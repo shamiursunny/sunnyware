@@ -1,0 +1,25 @@
+# SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
+# SPDX-License-Identifier: AGPL-3.0-only
+"""Configuration loader — YAML + environment variables."""
+
+import os
+from pathlib import Path
+from dotenv import load_dotenv
+import yaml
+
+
+class Config:
+    def __init__(self, raw: dict):
+        raw = raw or {}
+        self.raw = raw
+        self.generic_agent_path = raw.get("generic_agent_path", "/app/GenericAgent")
+        self.llm_base_url = raw.get("llm_base_url", "http://localhost:4000/v1")
+        self.llm_api_key = raw.get("llm_api_key", "sk-sunnyware-local")
+        self.max_context_tokens = int(raw.get("max_context_tokens", 1048576))
+
+
+def load_config() -> Config:
+    load_dotenv()
+    path = Path("./config/sunnyware.yaml")
+    raw = yaml.safe_load(path.read_text()) if path.exists() else {}
+    return Config(raw)
