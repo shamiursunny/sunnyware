@@ -2,7 +2,7 @@
 title: Sunnyware
 emoji: ☀️
 colorFrom: yellow
-colorTo: orange
+colorTo: red
 sdk: gradio
 app_port: 7860
 pinned: false
