@@ -46,39 +46,66 @@ state = {
 }
 
 
-# ── Lifespan (startup + shutdown) ───────────────────────────────────────────
-@asynccontextmanager
-async def lifespan(app):
-    """Runs on startup and shutdown. Must be passed to Server(lifespan=...)."""
-    # ── Startup ──
-    log.info("sunnyware starting up", version=PROJECT_VERSION)
+# ── Logging setup ───────────────────────────────────────────────────────────
+log = configure_logging("./data/logs")
+
+
+# ── Application state ───────────────────────────────────────────────────────
+state = {
+    "ready": False,
+    "started_at": None,
+    "config": None,
+}
+
+
+# ── Idempotent initialization ───────────────────────────────────────────────
+def _init_state() -> None:
+    """Initialize application state. Safe to call multiple times.
+
+    Called at module import (fallback for HF Spaces whose Gradio launch
+    path skips FastAPI lifespan) AND in lifespan (normal uvicorn path).
+    """
+    if state["ready"]:
+        return
+
+    log.info("sunnyware initializing", version=PROJECT_VERSION)
     state["started_at"] = time.time()
 
-    cfg = load_config()
-    state["config"] = cfg
-    log.info("Config loaded", agent_path=cfg.generic_agent_path)
+    try:
+        cfg = load_config()
+        state["config"] = cfg
+        log.info("Config loaded", agent_path=cfg.generic_agent_path)
 
-    data_dir = Path("/data" if os.path.exists("/data") else "./data")
-    (data_dir / "workspace").mkdir(parents=True, exist_ok=True)
-    (data_dir / "logs").mkdir(parents=True, exist_ok=True)
+        data_dir = Path("./data")
+        (data_dir / "workspace").mkdir(parents=True, exist_ok=True)
+        (data_dir / "logs").mkdir(parents=True, exist_ok=True)
 
-    state["ready"] = True
-    log.info("sunnyware ready", version=PROJECT_VERSION)
+        state["ready"] = True
+        log.info("sunnyware ready", version=PROJECT_VERSION)
+    except Exception as e:
+        log.error("Startup failed", error=str(e), exc_info=True)
+        state["ready"] = False
 
+
+# ── Lifespan (used when uvicorn / Server.launch() runs) ─────────────────────
+@asynccontextmanager
+async def lifespan(app):
+    _init_state()
     yield
-
-    # ── Shutdown ──
     state["ready"] = False
     log.info("sunnyware shutting down")
 
 
-# ── Server (gradio.Server = FastAPI subclass) ───────────────────────────────
-# ⚠️ CRITICAL: lifespan=lifespan MUST be present.
+# ── Server ──────────────────────────────────────────────────────────────────
 app = Server(
     title="sunnyware",
     version=PROJECT_VERSION,
-    lifespan=lifespan,   # ← do NOT remove this line
+    lifespan=lifespan,
 )
+
+
+# ── FALLBACK: init at import time (HF Spaces skips lifespan) ────────────────
+_init_state()
 
 
 # ── Endpoints ───────────────────────────────────────────────────────────────
