@@ -103,6 +103,28 @@ else
     check "LLM status: $LLM_STATUS" "1"
 fi
 
+# 9. Session CRUD (Part 4)
+TEST_SESSION="smoke-session-$(date +%s)"
+CREATE_RESP=$(curl -sf -X POST "$URL/api/agent/run" \
+    -H "Content-Type: application/json" \
+    -d "{\"input\":\"test session persistence\",\"session_id\":\"$TEST_SESSION\"}" 2>/dev/null || echo "")
+
+if echo "$CREATE_RESP" | grep -q '"session_uuid"'; then
+    GET_RESP=$(curl -sf "$URL/api/sessions/$TEST_SESSION" 2>/dev/null || echo "")
+    if echo "$GET_RESP" | grep -q '"session"'; then
+        DEL_RESP=$(curl -sf -X DELETE "$URL/api/sessions/$TEST_SESSION" 2>/dev/null || echo "")
+        if echo "$DEL_RESP" | grep -q '"deleted": *true'; then
+            check "Session CRUD: create -> get -> delete" "0"
+        else
+            check "Session CRUD: delete failed" "1"
+        fi
+    else
+        check "Session CRUD: get failed" "1"
+    fi
+else
+    check "Session CRUD: create failed (missing session_uuid)" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 

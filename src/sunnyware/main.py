@@ -22,6 +22,8 @@ import uvicorn
 from .config import load_config
 from . import state as app_state
 from . import llm as llm_client
+from . import sessions as sessions_store
+from . import memory as memory_store
 from .logging_config import configure_logging
 
 
@@ -193,6 +195,12 @@ async def readiness():
     else:
         checks["llm"] = "not_configured"
 
+    # Sessions + memory health (Part 4) — non-fatal
+    sess_health = await sessions_store.health_check()
+    checks["sessions"] = sess_health.get("status", "unknown")
+    mem_health = await memory_store.health_check()
+    checks["memory"] = mem_health.get("status", "unknown")
+
     return JSONResponse(
         {
             "status": "ok" if all_ok else "degraded",
@@ -218,10 +226,37 @@ async def run_agent(req: Request):
     if not prompt:
         return JSONResponse({"error": "input required"}, status_code=400)
 
+    # Part 4: get or create session, log user turn
+    session_uuid = await sessions_store.get_or_create(session_id)
+    if session_uuid:
+        await memory_store.log_event(
+            session_uuid,
+            "user_message",
+            {"content": prompt, "model": model or "default"},
+        )
+
     result = await llm_client.chat(prompt, model=model, system=system)
 
+    # Log LLM response (or error) to memory
+    if session_uuid:
+        if result.get("ok"):
+            await memory_store.log_event(
+                session_uuid,
+                "assistant_message",
+                {
+                    "content": result["content"],
+                    "model": result["model"],
+                    "latency_ms": result["latency_ms"],
+                },
+            )
+        else:
+            await memory_store.log_event(
+                session_uuid,
+                "llm_error",
+                {"error": result.get("error", "unknown")},
+            )
+
     # Always return 200 (unless request invalid) — graceful degradation.
-    # Clients check `error` field to detect LLM issues.
     if not result.get("ok"):
         return {
             "result": None,
@@ -230,6 +265,7 @@ async def run_agent(req: Request):
             "latency_ms": result.get("latency_ms", 0),
             "served_by": "sunnyware",
             "session_id": session_id,
+            "session_uuid": session_uuid,
         }
 
     return {
@@ -240,7 +276,35 @@ async def run_agent(req: Request):
         "latency_ms": result["latency_ms"],
         "served_by": "sunnyware",
         "session_id": session_id,
+        "session_uuid": session_uuid,
     }
+
+
+
+
+# ── Part 4: Session & memory endpoints ──────────────────────────────────────
+@app.get("/api/sessions")
+async def list_sessions(limit: int = 20):
+    """List recent sessions."""
+    items = await sessions_store.list_recent(limit=min(limit, 100))
+    return {"count": len(items), "sessions": items}
+
+
+@app.get("/api/sessions/{session_key}")
+async def get_session_detail(session_key: str):
+    """Get session by key with event history."""
+    sess = await sessions_store.get(session_key)
+    if not sess:
+        return JSONResponse({"error": "session not found"}, status_code=404)
+    history = await memory_store.get_history(sess["id"], limit=50)
+    return {"session": sess, "event_count": len(history), "history": history}
+
+
+@app.delete("/api/sessions/{session_key}")
+async def delete_session_endpoint(session_key: str):
+    """Delete session (cascades to events)."""
+    ok = await sessions_store.delete(session_key)
+    return {"deleted": ok, "session_key": session_key}
 
 
 # ── Entry point ─────────────────────────────────────────────────────────────

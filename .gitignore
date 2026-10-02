@@ -48,3 +48,5 @@ part2_setup.sh
 -remote
 *.bak.part3
 part3_setup.sh
+*.bak.part4
+part4_setup.sh
