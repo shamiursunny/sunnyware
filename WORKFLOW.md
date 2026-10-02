@@ -43,3 +43,11 @@ See [WORKFLOW.md](./WORKFLOW.md) for the locked dual-remote workflow.
 
 - **HF Space:** https://huggingface.co/spaces/shamiur/sunnyware
 - **GitHub:** https://github.com/shamiursunny/sunnyware
+
+## Part Progress Log
+
+| Part | Commit  | HF              | GitHub    | Status |
+|------|---------|-----------------|-----------|--------|
+| 1    | 76fcdde | Live            | Backed up | Done   |
+| 2    | a190c3c | Live            | Backed up | Done   |
+| 3    | d3b9dc3 | Live (LLM local)| Backed up | Done   |
