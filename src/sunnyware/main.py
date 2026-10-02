@@ -220,15 +220,17 @@ async def run_agent(req: Request):
 
     result = await llm_client.chat(prompt, model=model, system=system)
 
+    # Always return 200 (unless request invalid) — graceful degradation.
+    # Clients check `error` field to detect LLM issues.
     if not result.get("ok"):
-        return JSONResponse(
-            {
-                "error": "LLM call failed",
-                "detail": result.get("error"),
-                "served_by": "sunnyware",
-            },
-            status_code=502,
-        )
+        return {
+            "result": None,
+            "error": "LLM call failed",
+            "detail": result.get("error"),
+            "latency_ms": result.get("latency_ms", 0),
+            "served_by": "sunnyware",
+            "session_id": session_id,
+        }
 
     return {
         "result": {
