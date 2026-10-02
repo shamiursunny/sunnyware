@@ -171,14 +171,15 @@ async def readiness():
     # Neon check (Part 2) — lazy init on first request
     if state["config"] and state["config"].neon_database_url:
         if app_state.get_pool() is None:
-            try:
-                await app_state.init_pool()
-            except Exception as e:
-                log.error("Neon pool init failed", error=str(e))
+            ok = await app_state.init_pool()
+            log.info("Neon pool init", ok=ok)
         neon = await app_state.health_check()
         checks["neon"] = neon.get("status", "unknown")
         if neon.get("status") == "error":
             all_ok = False
+            checks["neon_error"] = neon.get("error", "unknown")[:200]
+        elif neon.get("status") == "not_initialized":
+            checks["neon_error"] = neon.get("error", "unknown")[:200]
     else:
         checks["neon"] = "not_configured"
 
