@@ -74,6 +74,16 @@ else
     check "response contains served_by (missing)" "1"
 fi
 
+# 7. Neon connectivity check
+READY_BODY=$(curl -sf "$URL/health/ready" 2>/dev/null || echo "")
+NEON_STATUS=$(echo "$READY_BODY" | grep -o '"neon": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"' || echo "unknown")
+
+if [ "$NEON_STATUS" = "ok" ] || [ "$NEON_STATUS" = "not_configured" ]; then
+    check "Neon status: $NEON_STATUS" "0"
+else
+    check "Neon status: $NEON_STATUS (expected ok or not_configured)" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 

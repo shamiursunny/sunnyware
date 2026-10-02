@@ -16,6 +16,8 @@ class Config:
         self.llm_base_url = raw.get("llm_base_url", "http://localhost:4000/v1")
         self.llm_api_key = raw.get("llm_api_key", "sk-sunnyware-local")
         self.max_context_tokens = int(raw.get("max_context_tokens", 1048576))
+        # Neon (from environment)
+        self.neon_database_url = os.getenv("NEON_DATABASE_URL", "")
 
 
 def load_config() -> Config:

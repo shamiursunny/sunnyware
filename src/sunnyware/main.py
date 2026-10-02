@@ -20,6 +20,7 @@ from fastapi.responses import JSONResponse
 import uvicorn
 
 from .config import load_config
+from . import state as app_state
 from .logging_config import configure_logging
 
 
@@ -79,6 +80,10 @@ def _init_state() -> None:
         data_dir = Path("./data")
         (data_dir / "workspace").mkdir(parents=True, exist_ok=True)
         (data_dir / "logs").mkdir(parents=True, exist_ok=True)
+
+        # Neon pool init moved to lazy path (Part 2 fix)
+        # See /health/ready — pool created on first request
+        # This avoids Windows ProactorEventLoop hang at import time
 
         state["ready"] = True
         log.info("sunnyware ready", version=PROJECT_VERSION)
@@ -162,6 +167,20 @@ async def readiness():
     checks["config_loaded"] = state["config"] is not None
     if not state["config"]:
         all_ok = False
+
+    # Neon check (Part 2) — lazy init on first request
+    if state["config"] and state["config"].neon_database_url:
+        if app_state.get_pool() is None:
+            try:
+                await app_state.init_pool()
+            except Exception as e:
+                log.error("Neon pool init failed", error=str(e))
+        neon = await app_state.health_check()
+        checks["neon"] = neon.get("status", "unknown")
+        if neon.get("status") == "error":
+            all_ok = False
+    else:
+        checks["neon"] = "not_configured"
 
     return JSONResponse(
         {
