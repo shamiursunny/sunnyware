@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 generic_agent_path: "/app/GenericAgent"
-llm_base_url: "http://localhost:4000/v1"
-llm_api_key: "sk-sunnyware-local"
 max_context_tokens: 1048576
+
+# LLM (env vars override these)
+llm_base_url: "http://localhost:11434/v1"
+llm_api_key: "ollama"
+llm_model: "gemma2-2b-tuned-stable:latest"

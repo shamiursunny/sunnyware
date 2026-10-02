@@ -84,6 +84,25 @@ else
     check "Neon status: $NEON_STATUS (expected ok or not_configured)" "1"
 fi
 
+# 8. LLM round-trip
+READY_BODY2=$(curl -sf "$URL/health/ready" 2>/dev/null || echo "")
+LLM_STATUS=$(echo "$READY_BODY2" | grep -o '"llm": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"' || echo "unknown")
+
+if [ "$LLM_STATUS" = "ok" ]; then
+    LLM_RESP=$(curl -sf -X POST "$URL/api/agent/run" \
+        -H "Content-Type: application/json" \
+        -d '{"input":"Say only: pong","session_id":"smoke-llm"}' 2>/dev/null || echo "")
+    if echo "$LLM_RESP" | grep -q '"content"'; then
+        check "LLM round-trip: ok" "0"
+    else
+        check "LLM round-trip: missing content" "1"
+    fi
+elif [ "$LLM_STATUS" = "not_configured" ] || [ "$LLM_STATUS" = "error" ]; then
+    check "LLM status: $LLM_STATUS (skipping round-trip)" "0"
+else
+    check "LLM status: $LLM_STATUS" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 

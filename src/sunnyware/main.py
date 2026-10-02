@@ -21,6 +21,7 @@ import uvicorn
 
 from .config import load_config
 from . import state as app_state
+from . import llm as llm_client
 from .logging_config import configure_logging
 
 
@@ -183,6 +184,15 @@ async def readiness():
     else:
         checks["neon"] = "not_configured"
 
+    # LLM check (Part 3) — non-fatal
+    if state["config"] and state["config"].llm_base_url:
+        llm_health = await llm_client.health_check(timeout=3.0)
+        checks["llm"] = llm_health.get("status", "unknown")
+        if llm_health.get("status") == "error":
+            checks["llm_error"] = llm_health.get("error", "")[:200]
+    else:
+        checks["llm"] = "not_configured"
+
     return JSONResponse(
         {
             "status": "ok" if all_ok else "degraded",
@@ -195,24 +205,37 @@ async def readiness():
 
 @app.post("/api/agent/run")
 async def run_agent(req: Request):
-    """Part 1 stub — returns echo response. Orchestrator added in Part 17."""
+    """Part 3 — LLM round-trip via OpenAI-compatible endpoint."""
     if not state["ready"]:
-        return JSONResponse(
-            {"error": "server not ready — lifespan did not complete"},
-            status_code=503,
-        )
+        return JSONResponse({"error": "server not ready"}, status_code=503)
 
     body = await req.json()
     prompt = body.get("input", "")
     session_id = body.get("session_id", "default")
+    model = body.get("model")
+    system = body.get("system")
 
-    start = time.time()
-    result = {"echo": prompt, "note": "Part 1 stub — orchestrator added in Part 17"}
-    latency_ms = int((time.time() - start) * 1000)
+    if not prompt:
+        return JSONResponse({"error": "input required"}, status_code=400)
+
+    result = await llm_client.chat(prompt, model=model, system=system)
+
+    if not result.get("ok"):
+        return JSONResponse(
+            {
+                "error": "LLM call failed",
+                "detail": result.get("error"),
+                "served_by": "sunnyware",
+            },
+            status_code=502,
+        )
 
     return {
-        "result": result,
-        "latency_ms": latency_ms,
+        "result": {
+            "content": result["content"],
+            "model": result["model"],
+        },
+        "latency_ms": result["latency_ms"],
         "served_by": "sunnyware",
         "session_id": session_id,
     }

@@ -1,0 +1,92 @@
+# SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
+# SPDX-License-Identifier: AGPL-3.0-only
+"""LLM client — OpenAI-compatible HTTP (Ollama, HF Inference, OpenAI)."""
+
+import os
+import time
+from typing import Optional
+import httpx
+
+
+DEFAULT_BASE_URL = "http://localhost:11434/v1"
+DEFAULT_MODEL = "gemma2-2b-tuned-stable:latest"
+DEFAULT_API_KEY = "ollama"
+
+
+def _base_url() -> str:
+    return os.getenv("LLM_BASE_URL", DEFAULT_BASE_URL).rstrip("/")
+
+
+def _api_key() -> str:
+    return os.getenv("LLM_API_KEY", DEFAULT_API_KEY)
+
+
+def _model() -> str:
+    return os.getenv("LLM_MODEL", DEFAULT_MODEL)
+
+
+async def health_check(timeout: float = 5.0) -> dict:
+    """Ping /models endpoint. Returns {status, models, count} or {status: error}."""
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            r = await client.get(
+                f"{_base_url()}/models",
+                headers={"Authorization": f"Bearer {_api_key()}"},
+            )
+            if r.status_code != 200:
+                return {"status": "error", "error": f"HTTP {r.status_code}"}
+            data = r.json()
+            models = [m.get("id", "?") for m in data.get("data", [])]
+            return {"status": "ok", "models": models[:5], "count": len(models)}
+    except Exception as e:
+        return {"status": "error", "error": f"{type(e).__name__}: {e}"}
+
+
+async def chat(
+    prompt: str,
+    model: Optional[str] = None,
+    system: Optional[str] = None,
+    timeout: float = 60.0,
+) -> dict:
+    """Send chat completion. Returns {ok, content, model, latency_ms} or {ok: False, error}."""
+    payload = {
+        "model": model or _model(),
+        "messages": [],
+        "temperature": 0.7,
+    }
+    if system:
+        payload["messages"].append({"role": "system", "content": system})
+    payload["messages"].append({"role": "user", "content": prompt})
+
+    start = time.time()
+    try:
+        async with httpx.AsyncClient(timeout=timeout) as client:
+            r = await client.post(
+                f"{_base_url()}/chat/completions",
+                json=payload,
+                headers={
+                    "Authorization": f"Bearer {_api_key()}",
+                    "Content-Type": "application/json",
+                },
+            )
+            latency_ms = int((time.time() - start) * 1000)
+            if r.status_code != 200:
+                return {
+                    "ok": False,
+                    "error": f"HTTP {r.status_code}: {r.text[:200]}",
+                    "latency_ms": latency_ms,
+                }
+            data = r.json()
+            content = data["choices"][0]["message"]["content"]
+            return {
+                "ok": True,
+                "content": content,
+                "model": data.get("model", model or _model()),
+                "latency_ms": latency_ms,
+            }
+    except Exception as e:
+        return {
+            "ok": False,
+            "error": f"{type(e).__name__}: {e}",
+            "latency_ms": int((time.time() - start) * 1000),
+        }
