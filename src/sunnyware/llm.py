@@ -46,17 +46,26 @@ async def chat(
     prompt: str,
     model: Optional[str] = None,
     system: Optional[str] = None,
+    history: Optional[list] = None,
     timeout: float = 60.0,
 ) -> dict:
-    """Send chat completion. Returns {ok, content, model, latency_ms} or {ok: False, error}."""
+    """Send chat completion with optional multi-turn history.
+
+    history: list of {role, content} dicts (from memory.build_context).
+    Returns {ok, content, model, latency_ms} or {ok: False, error}.
+    """
+    messages = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    if history:
+        messages.extend(history)
+    messages.append({"role": "user", "content": prompt})
+
     payload = {
         "model": model or _model(),
-        "messages": [],
+        "messages": messages,
         "temperature": 0.7,
     }
-    if system:
-        payload["messages"].append({"role": "system", "content": system})
-    payload["messages"].append({"role": "user", "content": prompt})
 
     start = time.time()
     try:

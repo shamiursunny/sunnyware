@@ -226,8 +226,15 @@ async def run_agent(req: Request):
     if not prompt:
         return JSONResponse({"error": "input required"}, status_code=400)
 
-    # Part 4: get or create session, log user turn
+    # Part 4: get or create session
     session_uuid = await sessions_store.get_or_create(session_id)
+
+    # Part 5A: build conversation context (BEFORE logging current turn)
+    history = []
+    if session_uuid:
+        history = await memory_store.build_context(session_uuid, max_turns=10)
+
+    # Part 4: log current user turn
     if session_uuid:
         await memory_store.log_event(
             session_uuid,
@@ -235,7 +242,10 @@ async def run_agent(req: Request):
             {"content": prompt, "model": model or "default"},
         )
 
-    result = await llm_client.chat(prompt, model=model, system=system)
+    # Part 5A: pass history to LLM (multi-turn)
+    result = await llm_client.chat(
+        prompt, model=model, system=system, history=history
+    )
 
     # Log LLM response (or error) to memory
     if session_uuid:

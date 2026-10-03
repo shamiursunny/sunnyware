@@ -125,6 +125,37 @@ else
     check "Session CRUD: create failed (missing session_uuid)" "1"
 fi
 
+# 10. Multi-turn context (Part 5A)
+READY_BODY3=$(curl -sf "$URL/health/ready" 2>/dev/null || echo "")
+LLM_STATUS_MT=$(echo "$READY_BODY3" | grep -o '"llm": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"' || echo "unknown")
+
+if [ "$LLM_STATUS_MT" = "ok" ]; then
+    MT_SESSION="smoke-multiturn-$(date +%s)"
+
+    # Turn 1: introduce name
+    curl -sf -X POST "$URL/api/agent/run" \
+        -H "Content-Type: application/json" \
+        -d "{\"input\":\"My name is Alex. Reply with only: OK\",\"session_id\":\"$MT_SESSION\"}" > /dev/null 2>&1
+
+    # Turn 2: recall name (same session)
+    MT_RESP=$(curl -sf -X POST "$URL/api/agent/run" \
+        -H "Content-Type: application/json" \
+        -d "{\"input\":\"What is my name? Reply with only the name.\",\"session_id\":\"$MT_SESSION\"}" 2>/dev/null || echo "")
+
+    if echo "$MT_RESP" | grep -qi "alex"; then
+        check "Multi-turn context: remembered 'Alex'" "0"
+    else
+        check "Multi-turn context: name not recalled" "1"
+    fi
+
+    # Cleanup
+    curl -sf -X DELETE "$URL/api/sessions/$MT_SESSION" > /dev/null 2>&1 || true
+elif [ "$LLM_STATUS_MT" = "error" ] || [ "$LLM_STATUS_MT" = "not_configured" ]; then
+    check "Multi-turn context: skipped (LLM $LLM_STATUS_MT)" "0"
+else
+    check "Multi-turn context: LLM status $LLM_STATUS_MT" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 
