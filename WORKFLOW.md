@@ -55,6 +55,7 @@ See [WORKFLOW.md](./WORKFLOW.md) for the locked dual-remote workflow.
 | 5A   | 5802662 | Live            | Backed up | Done   |
 | 5B   | dc96bf3 | Live (LLM=Groq) | Backed up | Done   |
 | 6    | 84dc484 | Live (tools)    | Backed up | Done   |
+| 7    | 7776777 | Live (7 tools)  | Backed up | Done   |
 
 ## LLM Backend Configuration
 
@@ -112,3 +113,23 @@ Override with `LLM_NATIVE_TOOLS=true|false`.
 
 ### Debug
 Response `steps[].protocol` shows `native` or `prompt-json`.
+
+## Tool Inventory (7 total)
+
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| `echo` | sanity check | deterministic |
+| `current_time` | UTC time | deterministic |
+| `read_file` | read text file | sandbox: `./data/workspace/` |
+| `write_file` | write text file | sandbox: `./data/workspace/` |
+| `calculator` | math eval | AST-based, no `eval()` |
+| `web_fetch` | URL → text | http/https only |
+| `memory_search` | search events | ILIKE on payload |
+
+### Endpoints
+- `GET  /api/tools` — list all
+- `POST /api/tools/{name}` — direct invoke (deterministic tests)
+
+### Prompt sizing note
+- Small models (gemma2-2b): compact prompt (tool names only) + `max_tokens=500`
+- Large models (gpt-oss-20b): native tool schemas via `tools=` param
