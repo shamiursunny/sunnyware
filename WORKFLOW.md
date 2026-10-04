@@ -53,3 +53,34 @@ See [WORKFLOW.md](./WORKFLOW.md) for the locked dual-remote workflow.
 | 3    | d3b9dc3 | Live (LLM local)| Backed up | Done   |
 | 4    | f0fd68e | Live            | Backed up | Done   |
 | 5A   | 5802662 | Live            | Backed up | Done   |
+| 5B   | dc96bf3 | Live (LLM=Groq) | Backed up | Done   |
+
+## LLM Backend Configuration
+
+Same codebase supports multiple OpenAI-compatible backends via env vars:
+
+| Env var | Purpose | Example |
+|---------|---------|---------|
+| `LLM_BASE_URL` | OpenAI-compatible endpoint | `https://api.groq.com/openai/v1` |
+| `LLM_API_KEY` | API key | `gsk_...` or `ollama` |
+| `LLM_MODEL` | Model name | `openai/gpt-oss-20b` |
+
+### Backends
+
+- **Local (dev):** Ollama — `http://localhost:11434/v1`, key `ollama`
+- **HF Space (prod):** Groq — `https://api.groq.com/openai/v1`, model `openai/gpt-oss-20b`
+- **Fallback:** OpenAI, HF Inference API
+
+### Deployment Matrix
+
+| Env | LLM_BASE_URL | Model |
+|-----|--------------|-------|
+| Local .env | `http://localhost:11434/v1` | `gemma2-2b-tuned-stable:latest` |
+| HF Space secrets | `https://api.groq.com/openai/v1` | `openai/gpt-oss-20b` |
+
+### Why Groq for HF?
+
+- Cloudflare Tunnel blocked by BD ISP (verified 2026-10-04)
+- Groq: 14,400 req/day free, ~200-300ms latency
+- No laptop dependency — HF Space always-on
+- Same OpenAI-compatible client code
