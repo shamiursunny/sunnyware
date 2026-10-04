@@ -47,12 +47,14 @@ async def chat(
     model: Optional[str] = None,
     system: Optional[str] = None,
     history: Optional[list] = None,
+    tools: Optional[list] = None,
     timeout: float = 60.0,
 ) -> dict:
-    """Send chat completion with optional multi-turn history.
+    """Send chat completion with optional multi-turn history + native tools.
 
-    history: list of {role, content} dicts (from memory.build_context).
-    Returns {ok, content, model, latency_ms} or {ok: False, error}.
+    history: list of {role, content} dicts.
+    tools: OpenAI-format tool schemas — enables native tool calling.
+    Returns {ok, content, tool_calls, model, latency_ms} or {ok: False, error}.
     """
     messages = []
     if system:
@@ -66,6 +68,9 @@ async def chat(
         "messages": messages,
         "temperature": 0.7,
     }
+    if tools:
+        payload["tools"] = tools
+        payload["tool_choice"] = "auto"
 
     start = time.time()
     try:
@@ -86,10 +91,13 @@ async def chat(
                     "latency_ms": latency_ms,
                 }
             data = r.json()
-            content = data["choices"][0]["message"]["content"]
+            msg = data["choices"][0]["message"]
+            content = msg.get("content") or ""
+            tool_calls = msg.get("tool_calls")
             return {
                 "ok": True,
                 "content": content,
+                "tool_calls": tool_calls,
                 "model": data.get("model", model or _model()),
                 "latency_ms": latency_ms,
             }

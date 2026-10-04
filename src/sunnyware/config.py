@@ -37,6 +37,20 @@ class Config:
             "LLM_MODEL", raw.get("llm_model", "gemma2-2b-tuned-stable:latest")
         )
 
+        # Native tool calling capability (Groq, OpenAI support it; Ollama doesn't)
+        explicit = os.getenv("LLM_NATIVE_TOOLS", "").lower()
+        if explicit in ("true", "1", "yes"):
+            self.llm_native_tools = True
+        elif explicit in ("false", "0", "no"):
+            self.llm_native_tools = False
+        else:
+            # Auto-detect by base URL
+            url = self.llm_base_url.lower()
+            self.llm_native_tools = any(
+                marker in url
+                for marker in ("groq.com", "openai.com", "anthropic.com", "mistral.ai")
+            )
+
 
 def load_config() -> Config:
     load_dotenv()
