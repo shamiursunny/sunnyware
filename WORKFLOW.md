@@ -54,6 +54,7 @@ See [WORKFLOW.md](./WORKFLOW.md) for the locked dual-remote workflow.
 | 4    | f0fd68e | Live            | Backed up | Done   |
 | 5A   | 5802662 | Live            | Backed up | Done   |
 | 5B   | dc96bf3 | Live (LLM=Groq) | Backed up | Done   |
+| 6    | 84dc484 | Live (tools)    | Backed up | Done   |
 
 ## LLM Backend Configuration
 
@@ -84,3 +85,30 @@ Same codebase supports multiple OpenAI-compatible backends via env vars:
 - Groq: 14,400 req/day free, ~200-300ms latency
 - No laptop dependency — HF Space always-on
 - Same OpenAI-compatible client code
+
+## Orchestrator + Tools (Part 6)
+
+### Architecture
+- `orchestrator.py` — ReAct loop: think → tool call → observe → answer
+- `tools/` — modular tool framework (registry pattern)
+- Max iterations: 5
+
+### Hybrid protocol (auto-detected)
+| Backend | Protocol | Detection |
+|---------|----------|-----------|
+| Groq / OpenAI | Native tool calling (`tools=` param) | URL contains groq.com/openai.com |
+| Ollama / small models | Prompt-based JSON | default |
+
+Override with `LLM_NATIVE_TOOLS=true|false`.
+
+### Available tools
+- `echo` — sanity check
+- `current_time` — UTC time
+
+### Endpoints
+- `GET /api/tools` — list tools
+- `POST /api/tools/{name}` — direct invocation
+- `POST /api/agent/run` — full agent loop
+
+### Debug
+Response `steps[].protocol` shows `native` or `prompt-json`.
