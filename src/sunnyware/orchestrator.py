@@ -50,6 +50,21 @@ def _build_tools_schema() -> list:
     return out
 
 
+def _build_native_system_prompt() -> str:
+    """Minimal system prompt for native tool calling.
+
+    Native models (Groq gpt-oss, OpenAI gpt-4o) already understand the tools=
+    schema — do NOT include JSON protocol instructions or we confuse them.
+    """
+    names = ", ".join(tools_registry.tool_names()) or "(none)"
+    return (
+        "You are Sunnyware, a concise AI agent. "
+        f"You have these tools available: {names}. "
+        "Use a tool when you need real information. "
+        "Otherwise answer the user directly and briefly."
+    )
+
+
 def _build_system_prompt() -> str:
     tools_lines = []
     for t in tools_registry.list_tools():
@@ -126,11 +141,7 @@ async def run_agent(
     if session_uuid:
         history = await memory_store.build_context(session_uuid, max_turns=5)
 
-    system_prompt = _build_system_prompt()
-    if system:
-        system_prompt = system + "\n\n" + system_prompt
-
-    # Auto-detect native tools support
+    # Choose system prompt based on mode
     if use_native_tools is None:
         try:
             from .config import load_config
@@ -138,6 +149,14 @@ async def run_agent(
             use_native_tools = getattr(cfg, "llm_native_tools", False)
         except Exception:
             use_native_tools = False
+
+    if use_native_tools:
+        system_prompt = _build_native_system_prompt()
+    else:
+        system_prompt = _build_system_prompt()
+
+    if system:
+        system_prompt = system + "\n\n" + system_prompt
 
     tools_schema = _build_tools_schema() if use_native_tools else None
     steps = []

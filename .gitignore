@@ -56,3 +56,5 @@ part5a_setup.sh
 part6_setup.sh
 part6c_setup.sh
 *.bak.part6c
+part6d_setup.sh
+*.bak.part6d
