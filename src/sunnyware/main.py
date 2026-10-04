@@ -24,6 +24,8 @@ from . import state as app_state
 from . import llm as llm_client
 from . import sessions as sessions_store
 from . import memory as memory_store
+from . import orchestrator
+from . import tools as tools_registry
 from .logging_config import configure_logging
 
 
@@ -201,6 +203,9 @@ async def readiness():
     mem_health = await memory_store.health_check()
     checks["memory"] = mem_health.get("status", "unknown")
 
+    # Tools (Part 6)
+    checks["tools"] = len(tools_registry.list_tools())
+
     return JSONResponse(
         {
             "status": "ok" if all_ok else "degraded",
@@ -242,37 +247,41 @@ async def run_agent(req: Request):
             {"content": prompt, "model": model or "default"},
         )
 
-    # Part 5A: pass history to LLM (multi-turn)
-    result = await llm_client.chat(
-        prompt, model=model, system=system, history=history
+    # Part 6: route through orchestrator (agent can call tools)
+    import time as _time
+    _t0 = _time.time()
+    agent_result = await orchestrator.run_agent(
+        prompt, session_uuid=session_uuid, model=model, system=system
     )
+    total_latency_ms = int((_time.time() - _t0) * 1000)
 
-    # Log LLM response (or error) to memory
+    # Log assistant turn (or error) to memory
     if session_uuid:
-        if result.get("ok"):
+        if agent_result.get("ok"):
             await memory_store.log_event(
                 session_uuid,
                 "assistant_message",
                 {
-                    "content": result["content"],
-                    "model": result["model"],
-                    "latency_ms": result["latency_ms"],
+                    "content": agent_result.get("answer", ""),
+                    "steps_count": len(agent_result.get("steps", [])),
+                    "iterations": agent_result.get("iterations", 0),
+                    "model": model or state["config"].llm_model if state["config"] else "unknown",
                 },
             )
         else:
             await memory_store.log_event(
                 session_uuid,
                 "llm_error",
-                {"error": result.get("error", "unknown")},
+                {"error": agent_result.get("error", "unknown")},
             )
 
-    # Always return 200 (unless request invalid) — graceful degradation.
-    if not result.get("ok"):
+    # Graceful degradation — always 200 for valid requests
+    if not agent_result.get("ok"):
         return {
             "result": None,
-            "error": "LLM call failed",
-            "detail": result.get("error"),
-            "latency_ms": result.get("latency_ms", 0),
+            "error": "Agent failed",
+            "detail": agent_result.get("error"),
+            "latency_ms": total_latency_ms,
             "served_by": "sunnyware",
             "session_id": session_id,
             "session_uuid": session_uuid,
@@ -280,10 +289,12 @@ async def run_agent(req: Request):
 
     return {
         "result": {
-            "content": result["content"],
-            "model": result["model"],
+            "content": agent_result.get("answer", ""),
+            "model": (state["config"].llm_model if state["config"] else "unknown"),
+            "steps": agent_result.get("steps", []),
+            "iterations": agent_result.get("iterations", 1),
         },
-        "latency_ms": result["latency_ms"],
+        "latency_ms": total_latency_ms,
         "served_by": "sunnyware",
         "session_id": session_id,
         "session_uuid": session_uuid,
@@ -315,6 +326,41 @@ async def delete_session_endpoint(session_key: str):
     """Delete session (cascades to events)."""
     ok = await sessions_store.delete(session_key)
     return {"deleted": ok, "session_key": session_key}
+
+
+
+
+# ── Part 6: Tool endpoints ──────────────────────────────────────────────────
+@app.get("/api/tools")
+async def list_tools_endpoint():
+    """List all registered tools with metadata."""
+    items = tools_registry.list_tools()
+    return {"count": len(items), "tools": items}
+
+
+@app.post("/api/tools/{tool_name}")
+async def call_tool_endpoint(tool_name: str, req: Request):
+    """Direct tool invocation (bypasses LLM). For testing / integrations."""
+    tool = tools_registry.get_tool(tool_name)
+    if tool is None:
+        return JSONResponse(
+            {"error": f"unknown tool: {tool_name}", "available": tools_registry.tool_names()},
+            status_code=404,
+        )
+    try:
+        args = await req.json()
+    except Exception:
+        args = {}
+    if not isinstance(args, dict):
+        args = {}
+    try:
+        result = await tool.run(args)
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+    return {"tool": tool_name, "args": args, "result": result}
 
 
 # ── Entry point ─────────────────────────────────────────────────────────────

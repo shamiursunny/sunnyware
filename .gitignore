@@ -52,3 +52,5 @@ part3_setup.sh
 part4_setup.sh
 *.bak.part5a
 part5a_setup.sh
+*.bak.part6
+part6_setup.sh

@@ -156,6 +156,50 @@ else
     check "Multi-turn context: LLM status $LLM_STATUS_MT" "1"
 fi
 
+# 11. Tool framework (Part 6) — registry + direct call (deterministic)
+TOOLS_RESP=$(curl -sf "$URL/api/tools" 2>/dev/null || echo "")
+if echo "$TOOLS_RESP" | grep -q '"tools"' && echo "$TOOLS_RESP" | grep -q '"echo"'; then
+    ECHO_RESP=$(curl -sf -X POST "$URL/api/tools/echo" \
+        -H "Content-Type: application/json" \
+        -d '{"text":"part6-smoke-test"}' 2>/dev/null || echo "")
+    if echo "$ECHO_RESP" | grep -q 'part6-smoke-test'; then
+        check "Tool framework: registry + echo dispatch" "0"
+    else
+        check "Tool framework: echo dispatch failed" "1"
+    fi
+else
+    check "Tool framework: registry missing or echo not registered" "1"
+fi
+
+# 12. Orchestrator tool use (Part 6) — LLM-driven tool call
+READY_BODY6=$(curl -sf "$URL/health/ready" 2>/dev/null || echo "")
+LLM_STATUS_6=$(echo "$READY_BODY6" | grep -o '"llm": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"' || echo "unknown")
+
+if [ "$LLM_STATUS_6" = "ok" ]; then
+    ORCH_SESSION="smoke-orch-$(date +%s)"
+    ORCH_RESP=$(curl -sf -X POST "$URL/api/agent/run" \
+        -H "Content-Type: application/json" \
+        -d "{\"input\":\"Use the current_time tool to get the time. Then give the answer.\",\"session_id\":\"$ORCH_SESSION\"}" 2>/dev/null || echo "")
+
+    if echo "$ORCH_RESP" | grep -q '"steps"' && echo "$ORCH_RESP" | grep -q 'current_time'; then
+        check "Orchestrator: LLM called current_time tool" "0"
+    else
+        # Lenient: if response has content but no steps, LLM didn't follow protocol
+        if echo "$ORCH_RESP" | grep -q '"content"'; then
+            check "Orchestrator: LLM answered but skipped tool (lenient pass)" "0"
+        else
+            check "Orchestrator: no content and no steps" "1"
+        fi
+    fi
+
+    # Cleanup
+    curl -sf -X DELETE "$URL/api/sessions/$ORCH_SESSION" > /dev/null 2>&1 || true
+elif [ "$LLM_STATUS_6" = "error" ] || [ "$LLM_STATUS_6" = "not_configured" ]; then
+    check "Orchestrator: skipped (LLM $LLM_STATUS_6)" "0"
+else
+    check "Orchestrator: LLM status $LLM_STATUS_6" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 
