@@ -19,7 +19,7 @@ from . import memory as memory_store
 from . import tools as tools_registry
 
 
-MAX_ITERATIONS = 5
+MAX_ITERATIONS = 3
 
 
 def _build_tools_schema() -> list:
@@ -66,22 +66,13 @@ def _build_native_system_prompt() -> str:
 
 
 def _build_system_prompt() -> str:
-    tools_lines = []
-    for t in tools_registry.list_tools():
-        params = json.dumps(t["parameters"]) if t["parameters"] else "{}"
-        tools_lines.append(f"- {t['name']}: {t['description']} | params: {params}")
-    tools_block = "\n".join(tools_lines) if tools_lines else "(no tools available)"
-
-    return f"""You are Sunnyware, an AI agent that can call tools.
-
-Available tools:
-{tools_block}
-
-Behavior:
-- Call a tool when you need real information (e.g., current time).
-- Otherwise, answer directly and concisely.
-- Keep answers short."""
-
+    """Compact prompt for small models (prompt-JSON mode)."""
+    names = ", ".join(tools_registry.tool_names()) or "(none)"
+    return (
+        f"You are Sunnyware. Available tools: {names}. "
+        'Reply with JSON only: {"answer": "..."} or {"tool": "name", "args": {...}}. '
+        "If no tool is needed, answer directly. Keep it short."
+    )
 
 def _parse_json_response(content: str) -> Optional[dict]:
     if not content:

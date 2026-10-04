@@ -58,3 +58,6 @@ part6c_setup.sh
 *.bak.part6c
 part6d_setup.sh
 *.bak.part6d
+*.bak.part7
+diag.sh
+*.bak.part7b

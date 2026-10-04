@@ -48,7 +48,7 @@ async def chat(
     system: Optional[str] = None,
     history: Optional[list] = None,
     tools: Optional[list] = None,
-    timeout: float = 60.0,
+    timeout: float = 30.0,
 ) -> dict:
     """Send chat completion with optional multi-turn history + native tools.
 
@@ -67,6 +67,7 @@ async def chat(
         "model": model or _model(),
         "messages": messages,
         "temperature": 0.7,
+        "max_tokens": 500,
     }
     if tools:
         payload["tools"] = tools

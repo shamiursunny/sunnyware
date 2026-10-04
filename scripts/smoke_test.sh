@@ -200,6 +200,58 @@ else
     check "Orchestrator: LLM status $LLM_STATUS_6" "1"
 fi
 
+# 13. Calculator (deterministic) — safe AST evaluator
+CALC_RESP=$(curl -sf -X POST "$URL/api/tools/calculator" \
+    -H "Content-Type: application/json" \
+    -d '{"expression":"2 + 3 * 4"}' 2>/dev/null || echo "")
+
+if echo "$CALC_RESP" | grep -q '"result": *14'; then
+    check "Calculator: 2 + 3 * 4 = 14" "0"
+else
+    check "Calculator: unexpected response" "1"
+fi
+
+# 14. File roundtrip (write then read)
+FILE_PATH="smoke-test-$(date +%s).txt"
+FILE_CONTENT="part7-file-roundtrip-$(date +%s)"
+
+WRITE_RESP=$(curl -sf -X POST "$URL/api/tools/write_file" \
+    -H "Content-Type: application/json" \
+    -d "{\"path\":\"$FILE_PATH\",\"content\":\"$FILE_CONTENT\"}" 2>/dev/null || echo "")
+
+READ_RESP=$(curl -sf -X POST "$URL/api/tools/read_file" \
+    -H "Content-Type: application/json" \
+    -d "{\"path\":\"$FILE_PATH\"}" 2>/dev/null || echo "")
+
+if echo "$READ_RESP" | grep -q "$FILE_CONTENT"; then
+    check "File roundtrip: write + read" "0"
+    # cleanup
+    curl -sf -X POST "$URL/api/tools/write_file" \
+        -H "Content-Type: application/json" \
+        -d "{\"path\":\"$FILE_PATH\",\"content\":\"\"}" > /dev/null 2>&1 || true
+else
+    check "File roundtrip: write or read failed" "1"
+fi
+
+# 15. Memory search (after posting a distinctive message)
+MEM_SESSION="smoke-memsearch-$(date +%s)"
+MEM_TOKEN="magic-phrase-part7-$(date +%s)"
+
+curl -sf -X POST "$URL/api/agent/run" \
+    -H "Content-Type: application/json" \
+    -d "{\"input\":\"Remember this: $MEM_TOKEN\",\"session_id\":\"$MEM_SESSION\"}" > /dev/null 2>&1 || true
+
+MEM_RESP=$(curl -sf -X POST "$URL/api/tools/memory_search" \
+    -H "Content-Type: application/json" \
+    -d "{\"query\":\"$MEM_TOKEN\",\"limit\":5}" 2>/dev/null || echo "")
+
+if echo "$MEM_RESP" | grep -q "$MEM_TOKEN"; then
+    check "Memory search: found past event" "0"
+    curl -sf -X DELETE "$URL/api/sessions/$MEM_SESSION" > /dev/null 2>&1 || true
+else
+    check "Memory search: query returned nothing" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 

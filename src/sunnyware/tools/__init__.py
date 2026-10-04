@@ -1,27 +1,28 @@
 # SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Tool registry — all agent tools live in this package.
-
-Each tool is a class with:
-  - name: str
-  - description: str
-  - parameters: dict (JSON-schema-ish)
-  - async run(args: dict) -> dict
-"""
+"""Tool registry — all agent tools live in this package."""
 
 from .echo import EchoTool
 from .current_time import CurrentTimeTool
+from .read_file import ReadFileTool
+from .write_file import WriteFileTool
+from .calculator import CalculatorTool
+from .web_fetch import WebFetchTool
+from .memory_search import MemorySearchTool
 
 
-# Central registry
 _TOOLS = {
     EchoTool.name: EchoTool(),
     CurrentTimeTool.name: CurrentTimeTool(),
+    ReadFileTool.name: ReadFileTool(),
+    WriteFileTool.name: WriteFileTool(),
+    CalculatorTool.name: CalculatorTool(),
+    WebFetchTool.name: WebFetchTool(),
+    MemorySearchTool.name: MemorySearchTool(),
 }
 
 
 def list_tools() -> list:
-    """Return metadata for all registered tools."""
     return [
         {
             "name": t.name,
@@ -33,7 +34,6 @@ def list_tools() -> list:
 
 
 def get_tool(name: str):
-    """Return tool instance, or None."""
     return _TOOLS.get(name)
 
 
