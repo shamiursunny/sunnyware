@@ -63,3 +63,5 @@ diag.sh
 *.bak.part7b
 *.bak.part8
 part8_setup.sh
+*.bak.part9
+part9_setup.sh

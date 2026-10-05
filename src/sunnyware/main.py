@@ -43,6 +43,16 @@ LICENSE_ID = "AGPL-3.0-only"
 # ── Logging setup (stderr fallback if /data not writable) ───────────────────
 log = configure_logging("/data/logs" if os.path.exists("/data") else "./data/logs")
 
+async def _ensure_pool():
+    """Lazy-init Neon pool if not ready. Idempotent. Called at start of DB-touching endpoints."""
+    if app_state.get_pool() is None:
+        try:
+            await app_state.init_pool()
+        except Exception as e:
+            log.error("Pool init failed", error=str(e))
+
+
+
 
 # ── Application state ───────────────────────────────────────────────────────
 state = {
@@ -222,6 +232,8 @@ async def run_agent(req: Request):
     if not state["ready"]:
         return JSONResponse({"error": "server not ready"}, status_code=503)
 
+    await _ensure_pool()
+
     body = await req.json()
     prompt = body.get("input", "")
     session_id = body.get("session_id", "default")
@@ -307,6 +319,7 @@ async def run_agent(req: Request):
 @app.get("/api/sessions")
 async def list_sessions(limit: int = 20):
     """List recent sessions."""
+    await _ensure_pool()
     items = await sessions_store.list_recent(limit=min(limit, 100))
     return {"count": len(items), "sessions": items}
 
@@ -314,6 +327,7 @@ async def list_sessions(limit: int = 20):
 @app.get("/api/sessions/{session_key}")
 async def get_session_detail(session_key: str):
     """Get session by key with event history."""
+    await _ensure_pool()
     sess = await sessions_store.get(session_key)
     if not sess:
         return JSONResponse({"error": "session not found"}, status_code=404)
@@ -372,6 +386,7 @@ async def memory_context(q: str, session_id: str = None):
 
     Useful for debugging: "what does the agent remember about X?"
     """
+    await _ensure_pool()
     exclude_uuid = None
     if session_id:
         sess = await sessions_store.get(session_id)
@@ -389,6 +404,82 @@ async def memory_context(q: str, session_id: str = None):
         "count": len(events),
         "events": events,
         "formatted_context": formatted,
+    }
+
+
+
+
+# ── Part 9: Session history API ─────────────────────────────────────────────
+@app.get("/api/sessions/{session_key}/history")
+async def session_history(session_key: str, limit: int = 200):
+    """Full chronological event timeline for a session."""
+    await _ensure_pool()
+    sess = await sessions_store.get(session_key)
+    if not sess:
+        return JSONResponse({"error": "session not found"}, status_code=404)
+    events = await memory_store.get_all_events(sess["id"], max_limit=min(limit, 1000))
+    return {
+        "session": sess,
+        "count": len(events),
+        "events": events,
+    }
+
+
+@app.get("/api/sessions/{session_key}/export")
+async def session_export(session_key: str):
+    """Full JSON export (session + all events) for backup / portability."""
+    await _ensure_pool()
+    from datetime import datetime, timezone
+    sess = await sessions_store.get(session_key)
+    if not sess:
+        return JSONResponse({"error": "session not found"}, status_code=404)
+    events = await memory_store.get_all_events(sess["id"], max_limit=1000)
+    export = {
+        "exported_at": datetime.now(timezone.utc).isoformat(),
+        "sunnyware_version": PROJECT_VERSION,
+        "session": sess,
+        "event_count": len(events),
+        "events": events,
+    }
+    return JSONResponse(
+        export,
+        headers={
+            "Content-Disposition": f'attachment; filename="session-{session_key}.json"'
+        },
+    )
+
+
+@app.post("/api/sessions/{session_key}/rewind")
+async def session_rewind(session_key: str, req: Request):
+    """Soft-truncate: delete all events with id > to_event.
+
+    Body: {"to_event": <event_id>}
+    Keeps events up to and including to_event.
+    """
+    sess = await sessions_store.get(session_key)
+    if not sess:
+        return JSONResponse({"error": "session not found"}, status_code=404)
+
+    try:
+        body = await req.json()
+    except Exception:
+        body = {}
+
+    to_event = body.get("to_event")
+    if to_event is None:
+        return JSONResponse(
+            {"error": "to_event (event id) required in body"}, status_code=400
+        )
+    try:
+        to_event = int(to_event)
+    except Exception:
+        return JSONResponse({"error": "to_event must be an integer"}, status_code=400)
+
+    deleted = await memory_store.delete_events_after(sess["id"], to_event)
+    return {
+        "session_key": session_key,
+        "kept_up_to_event_id": to_event,
+        "deleted_count": deleted,
     }
 
 

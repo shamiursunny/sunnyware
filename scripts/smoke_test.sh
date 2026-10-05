@@ -89,14 +89,17 @@ READY_BODY2=$(curl -sf "$URL/health/ready" 2>/dev/null || echo "")
 LLM_STATUS=$(echo "$READY_BODY2" | grep -o '"llm": *"[^"]*"' | grep -o '"[^"]*"$' | tr -d '"' || echo "unknown")
 
 if [ "$LLM_STATUS" = "ok" ]; then
-    LLM_RESP=$(curl -sf -X POST "$URL/api/agent/run" \
+    LLM_SESSION="smoke-llm-$(date +%s)-$$"
+    LLM_PAYLOAD="{\"input\":\"Reply with only the word pong.\",\"session_id\":\"$LLM_SESSION\"}"
+    LLM_RESP=$(curl -sf --max-time 90 -X POST "$URL/api/agent/run" \
         -H "Content-Type: application/json" \
-        -d '{"input":"Say only: pong","session_id":"smoke-llm"}' 2>/dev/null || echo "")
+        -d "$LLM_PAYLOAD" 2>/dev/null || echo "")
     if echo "$LLM_RESP" | grep -q '"content"'; then
         check "LLM round-trip: ok" "0"
     else
         check "LLM round-trip: missing content" "1"
     fi
+    curl -sf -X DELETE "$URL/api/sessions/$LLM_SESSION" > /dev/null 2>&1 || true
 elif [ "$LLM_STATUS" = "not_configured" ] || [ "$LLM_STATUS" = "error" ]; then
     check "LLM status: $LLM_STATUS (skipping round-trip)" "0"
 else
@@ -275,6 +278,57 @@ fi
 
 # Cleanup
 curl -sf -X DELETE "$URL/api/sessions/$MEM_A" > /dev/null 2>&1 || true
+
+# 17. Session history endpoint (Part 9)
+HIST_SESSION="smoke-hist-$(date +%s)"
+curl -sf -X POST "$URL/api/agent/run" \
+    -H "Content-Type: application/json" \
+    -d "{\"input\":\"first message\",\"session_id\":\"$HIST_SESSION\"}" > /dev/null 2>&1 || true
+curl -sf -X POST "$URL/api/agent/run" \
+    -H "Content-Type: application/json" \
+    -d "{\"input\":\"second message\",\"session_id\":\"$HIST_SESSION\"}" > /dev/null 2>&1 || true
+sleep 2
+
+HIST_RESP=$(curl -sf "$URL/api/sessions/$HIST_SESSION/history" 2>/dev/null || echo "")
+if echo "$HIST_RESP" | grep -q '"events"' && echo "$HIST_RESP" | grep -q 'first message'; then
+    check "Session history: timeline returned" "0"
+else
+    check "Session history: empty or malformed" "1"
+fi
+
+# 18. Session export (JSON download)
+EXPORT_RESP=$(curl -sf "$URL/api/sessions/$HIST_SESSION/export" 2>/dev/null || echo "")
+if echo "$EXPORT_RESP" | grep -q '"exported_at"' && echo "$EXPORT_RESP" | grep -q '"events"'; then
+    check "Session export: JSON generated" "0"
+else
+    check "Session export: failed" "1"
+fi
+
+# 19. Session rewind (delete events after N)
+# Fetch history, grab first event id, rewind to it, verify count
+FIRST_EVENT_ID=$(echo "$HIST_RESP" | python -c "import sys,json; d=json.load(sys.stdin); print(d['events'][0]['id'] if d.get('events') else '')" 2>/dev/null || echo "")
+
+if [ -n "$FIRST_EVENT_ID" ]; then
+    REWIND_RESP=$(curl -sf -X POST "$URL/api/sessions/$HIST_SESSION/rewind" \
+        -H "Content-Type: application/json" \
+        -d "{\"to_event\":$FIRST_EVENT_ID}" 2>/dev/null || echo "")
+    if echo "$REWIND_RESP" | grep -q '"deleted_count"'; then
+        AFTER_RESP=$(curl -sf "$URL/api/sessions/$HIST_SESSION/history" 2>/dev/null || echo "")
+        AFTER_COUNT=$(echo "$AFTER_RESP" | python -c "import sys,json; print(json.load(sys.stdin)['count'])" 2>/dev/null || echo "-1")
+        if [ "$AFTER_COUNT" = "1" ]; then
+            check "Session rewind: truncated to 1 event" "0"
+        else
+            check "Session rewind: after-count was $AFTER_COUNT (expected 1)" "1"
+        fi
+    else
+        check "Session rewind: request failed" "1"
+    fi
+else
+    check "Session rewind: no event to rewind to" "1"
+fi
+
+# Cleanup
+curl -sf -X DELETE "$URL/api/sessions/$HIST_SESSION" > /dev/null 2>&1 || true
 
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="

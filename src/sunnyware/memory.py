@@ -245,6 +245,56 @@ def format_context(events: list, max_chars_per_event: int = 200) -> str:
     return "\n".join(lines)
 
 
+# ── Part 9: session history helpers ─────────────────────────────────────────
+
+async def get_all_events(session_uuid: str, max_limit: int = 1000) -> list:
+    """Get ALL events for a session, oldest first. Capped at max_limit."""
+    pool = app_state.get_pool()
+    if pool is None or not session_uuid:
+        return []
+    try:
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT id, event_type, payload, created_at
+                FROM events
+                WHERE session_id = $1::uuid
+                ORDER BY id ASC
+                LIMIT $2
+                """,
+                session_uuid, max_limit,
+            )
+        return [
+            {
+                "id": r["id"],
+                "event_type": r["event_type"],
+                "payload": r["payload"],
+                "created_at": r["created_at"].isoformat(),
+            }
+            for r in rows
+        ]
+    except Exception:
+        return []
+
+
+async def delete_events_after(session_uuid: str, event_id: int) -> int:
+    """Delete all events with id > event_id for this session. Returns count deleted."""
+    pool = app_state.get_pool()
+    if pool is None or not session_uuid:
+        return 0
+    try:
+        async with pool.acquire() as conn:
+            result = await conn.execute(
+                "DELETE FROM events WHERE session_id = $1::uuid AND id > $2",
+                session_uuid, event_id,
+            )
+            # asyncpg returns "DELETE N"
+            parts = result.split()
+            return int(parts[1]) if len(parts) == 2 else 0
+    except Exception:
+        return 0
+
+
 async def health_check() -> dict:
     """Verify events table accessible."""
     pool = app_state.get_pool()
