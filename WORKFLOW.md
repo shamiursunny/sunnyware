@@ -57,6 +57,7 @@ See [WORKFLOW.md](./WORKFLOW.md) for the locked dual-remote workflow.
 | 6    | 84dc484 | Live (tools)    | Backed up | Done   |
 | 7    | 7776777 | Live (7 tools)  | Backed up | Done   |
 | 8    | 772d646 | Live (memory)   | Backed up | Done   |
+| 9    | 462e04e | Live (history)  | Backed up | Done   |
 
 ## LLM Backend Configuration
 
@@ -155,3 +156,29 @@ Response `steps[].protocol` shows `native` or `prompt-json`.
 
 ### Health
 - `/health/ready` includes `memory_context: "ok"` check
+
+## Session History API (Part 9)
+
+### Endpoints
+- `GET  /api/sessions/{key}/history?limit=N` — chronological event timeline
+- `GET  /api/sessions/{key}/export` — JSON download (with Content-Disposition)
+- `POST /api/sessions/{key}/rewind` — soft truncate (body: {"to_event": <id>})
+
+### Helpers
+- `memory.get_all_events(uuid, max_limit)` — all events ASC
+- `memory.delete_events_after(uuid, event_id)` — returns deleted count
+
+### Pool init fix (critical)
+- `_ensure_pool()` helper added to `main.py`
+- Called at start of every DB-touching endpoint
+- Fixes cold-start race where pool wasn't ready on first request
+- Endpoints covered: /api/agent/run, /api/memory/context, /api/sessions/*
+
+### Smoke tests added
+- #17: Session history returns events
+- #18: Session export returns JSON
+- #19: Session rewind deletes events after given ID
+
+### Test #8 fix
+- Previously used fixed `smoke-llm` session → history buildup over runs → timeout
+- Now: unique session per run (`smoke-llm-{ts}-{pid}`), 90s curl timeout, auto-cleanup
