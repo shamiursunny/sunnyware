@@ -56,6 +56,7 @@ See [WORKFLOW.md](./WORKFLOW.md) for the locked dual-remote workflow.
 | 5B   | dc96bf3 | Live (LLM=Groq) | Backed up | Done   |
 | 6    | 84dc484 | Live (tools)    | Backed up | Done   |
 | 7    | 7776777 | Live (7 tools)  | Backed up | Done   |
+| 8    | 772d646 | Live (memory)   | Backed up | Done   |
 
 ## LLM Backend Configuration
 
@@ -133,3 +134,24 @@ Response `steps[].protocol` shows `native` or `prompt-json`.
 ### Prompt sizing note
 - Small models (gemma2-2b): compact prompt (tool names only) + `max_tokens=500`
 - Large models (gpt-oss-20b): native tool schemas via `tools=` param
+
+## Memory-Enhanced Context (Part 8)
+
+### Auto-injection
+- Every `/api/agent/run` call fetches **3 relevant past events** from OTHER sessions
+- Injected into system prompt (native + prompt-JSON modes)
+- Ranking: keyword hits (desc) → recency (desc)
+- Stopword filter + length>=4 keyword extraction
+
+### Endpoint
+- `GET /api/memory/context?q=<text>[&session_id=<id>]`
+  - Shows what memory would be injected for a query
+  - Debug tool: "what does the agent remember about X?"
+
+### Files
+- `memory.select_relevant_events(query, exclude_session_uuid, limit)` — query events
+- `memory.format_context(events)` — format as text block
+- `_build_system_prompt(context)` / `_build_native_system_prompt(context)` — prompt with context
+
+### Health
+- `/health/ready` includes `memory_context: "ok"` check
