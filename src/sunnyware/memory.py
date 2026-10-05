@@ -126,6 +126,125 @@ async def build_context(session_uuid: str, max_turns: int = 10) -> list:
         return []
 
 
+# ── Part 8: cross-session memory selection ──────────────────────────────────
+
+_STOPWORDS = {
+    "the", "a", "an", "is", "are", "was", "were", "be", "been", "being",
+    "what", "who", "when", "where", "how", "why", "which",
+    "my", "your", "our", "their", "his", "her", "its",
+    "and", "or", "but", "of", "in", "on", "at", "to", "for", "with", "from",
+    "by", "as", "into", "about", "over", "under",
+    "it", "this", "that", "these", "those",
+    "have", "has", "had", "do", "does", "did",
+    "you", "me", "we", "us", "them", "they", "i",
+    "will", "would", "could", "should", "can", "may", "might",
+    "please", "just", "only", "also", "very", "really",
+}
+
+
+def _extract_keywords(query: str, max_keywords: int = 5) -> list:
+    """Extract candidate keywords from user query (lowercase, len>=4)."""
+    import re
+    tokens = re.findall(r"[a-zA-Z0-9]{4,}", query.lower())
+    # Preserve order, dedupe
+    seen = set()
+    out = []
+    for t in tokens:
+        if t in _STOPWORDS or t in seen:
+            continue
+        seen.add(t)
+        out.append(t)
+        if len(out) >= max_keywords:
+            break
+    return out
+
+
+async def select_relevant_events(
+    query: str,
+    exclude_session_uuid: Optional[str] = None,
+    limit: int = 3,
+) -> list:
+    """Select relevant past events from OTHER sessions matching query keywords.
+
+    Strategy:
+      1. Extract keywords from query
+      2. SQL: fetch recent events matching ANY keyword (ILIKE)
+      3. Exclude current session (multi-turn already has that)
+      4. Score by keyword match count + recency
+      5. Return top-N
+    """
+    pool = app_state.get_pool()
+    if pool is None or not query:
+        return []
+
+    keywords = _extract_keywords(query)
+    if not keywords:
+        return []
+
+    patterns = [f"%{k}%" for k in keywords]
+
+    try:
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT e.id, e.event_type, e.payload, e.created_at,
+                       s.session_key, s.id AS session_uuid
+                FROM events e
+                JOIN sessions s ON s.id = e.session_id
+                WHERE e.event_type IN ('user_message', 'assistant_message')
+                  AND e.payload::text ILIKE ANY($1::text[])
+                  AND ($2::uuid IS NULL OR e.session_id != $2::uuid)
+                ORDER BY e.id DESC
+                LIMIT 30
+                """,
+                patterns,
+                exclude_session_uuid,
+            )
+    except Exception:
+        return []
+
+    # Score: keyword hit count (desc), then recency (desc by id)
+    scored = []
+    for r in rows:
+        text = str(r["payload"]).lower()
+        score = sum(1 for k in keywords if k in text)
+        scored.append((score, r["id"], r))
+
+    scored.sort(key=lambda x: (-x[0], -x[1]))
+
+    return [
+        {
+            "id": r["id"],
+            "event_type": r["event_type"],
+            "payload": r["payload"],
+            "session_key": r["session_key"],
+            "created_at": r["created_at"].isoformat(),
+        }
+        for _score, _id, r in scored[:limit]
+    ]
+
+
+def format_context(events: list, max_chars_per_event: int = 200) -> str:
+    """Format selected events as a plain text context block for LLM."""
+    if not events:
+        return ""
+    lines = []
+    for ev in events:
+        payload = ev.get("payload", {})
+        if isinstance(payload, str):
+            try:
+                payload = json.loads(payload)
+            except Exception:
+                payload = {}
+        content = payload.get("content", "") if isinstance(payload, dict) else ""
+        if not content:
+            continue
+        content = str(content)[:max_chars_per_event].replace("\n", " ").strip()
+        role = "user" if ev.get("event_type") == "user_message" else "assistant"
+        lines.append(f"[{role}] {content}")
+    return "\n".join(lines)
+
+
 async def health_check() -> dict:
     """Verify events table accessible."""
     pool = app_state.get_pool()

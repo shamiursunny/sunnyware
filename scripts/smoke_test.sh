@@ -252,6 +252,30 @@ else
     check "Memory search: query returned nothing" "1"
 fi
 
+# 16. Cross-session memory injection (Part 8)
+MEM_A="mem-a-$(date +%s)"
+MEM_TOKEN="part8secret$(date +%s)"
+
+# Store distinctive fact in session A
+curl -sf -X POST "$URL/api/agent/run" \
+    -H "Content-Type: application/json" \
+    -d "{\"input\":\"Remember this fact: $MEM_TOKEN\",\"session_id\":\"$MEM_A\"}" > /dev/null 2>&1 || true
+
+# Give DB a moment to persist
+sleep 2
+
+# Query memory context endpoint (no session filter — global search)
+MEM_CTX=$(curl -sf "$URL/api/memory/context?q=$MEM_TOKEN" 2>/dev/null || echo "")
+
+if echo "$MEM_CTX" | grep -q "$MEM_TOKEN"; then
+    check "Memory injection: past event surfaced" "0"
+else
+    check "Memory injection: token not found in context" "1"
+fi
+
+# Cleanup
+curl -sf -X DELETE "$URL/api/sessions/$MEM_A" > /dev/null 2>&1 || true
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 

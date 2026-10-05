@@ -363,6 +363,35 @@ async def call_tool_endpoint(tool_name: str, req: Request):
     return {"tool": tool_name, "args": args, "result": result}
 
 
+
+
+# ── Part 8: Memory inspection endpoint ──────────────────────────────────────
+@app.get("/api/memory/context")
+async def memory_context(q: str, session_id: str = None):
+    """Show what cross-session memory would be injected for a given query.
+
+    Useful for debugging: "what does the agent remember about X?"
+    """
+    exclude_uuid = None
+    if session_id:
+        sess = await sessions_store.get(session_id)
+        if sess:
+            exclude_uuid = sess["id"]
+
+    events = await memory_store.select_relevant_events(
+        q, exclude_session_uuid=exclude_uuid, limit=5
+    )
+    formatted = memory_store.format_context(events)
+
+    return {
+        "query": q,
+        "exclude_session": session_id,
+        "count": len(events),
+        "events": events,
+        "formatted_context": formatted,
+    }
+
+
 # ── Entry point ─────────────────────────────────────────────────────────────
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "7860")))

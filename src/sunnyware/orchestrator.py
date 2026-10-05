@@ -50,29 +50,31 @@ def _build_tools_schema() -> list:
     return out
 
 
-def _build_native_system_prompt() -> str:
-    """Minimal system prompt for native tool calling.
-
-    Native models (Groq gpt-oss, OpenAI gpt-4o) already understand the tools=
-    schema — do NOT include JSON protocol instructions or we confuse them.
-    """
+def _build_native_system_prompt(context: str = "") -> str:
+    """Minimal system prompt for native tool calling."""
     names = ", ".join(tools_registry.tool_names()) or "(none)"
-    return (
+    base = (
         "You are Sunnyware, a concise AI agent. "
         f"You have these tools available: {names}. "
         "Use a tool when you need real information. "
         "Otherwise answer the user directly and briefly."
     )
+    if context:
+        base += "\n\nRelevant context from your memory of past sessions:\n" + context
+    return base
 
 
-def _build_system_prompt() -> str:
+def _build_system_prompt(context: str = "") -> str:
     """Compact prompt for small models (prompt-JSON mode)."""
     names = ", ".join(tools_registry.tool_names()) or "(none)"
-    return (
+    base = (
         f"You are Sunnyware. Available tools: {names}. "
         'Reply with JSON only: {"answer": "..."} or {"tool": "name", "args": {...}}. '
         "If no tool is needed, answer directly. Keep it short."
     )
+    if context:
+        base += "\n\nRelevant context from your memory of past sessions:\n" + context
+    return base
 
 def _parse_json_response(content: str) -> Optional[dict]:
     if not content:
@@ -141,10 +143,16 @@ async def run_agent(
         except Exception:
             use_native_tools = False
 
+    # Part 8: fetch relevant cross-session memory
+    relevant_events = await memory_store.select_relevant_events(
+        prompt, exclude_session_uuid=session_uuid, limit=3
+    )
+    context_str = memory_store.format_context(relevant_events)
+
     if use_native_tools:
-        system_prompt = _build_native_system_prompt()
+        system_prompt = _build_native_system_prompt(context_str)
     else:
-        system_prompt = _build_system_prompt()
+        system_prompt = _build_system_prompt(context_str)
 
     if system:
         system_prompt = system + "\n\n" + system_prompt
