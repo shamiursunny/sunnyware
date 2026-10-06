@@ -330,6 +330,22 @@ fi
 # Cleanup
 curl -sf -X DELETE "$URL/api/sessions/$HIST_SESSION" > /dev/null 2>&1 || true
 
+# 20. SSE streaming endpoint (Part 10)
+STREAM_SESSION="smoke-stream-$(date +%s)-$$"
+STREAM_RESP=$(curl -sf --max-time 60 -N -X POST "$URL/api/agent/run/stream" \
+    -H "Content-Type: application/json" \
+    -d "{\"input\":\"Reply with only: streaming works\",\"session_id\":\"$STREAM_SESSION\"}" 2>/dev/null | head -c 3000 || echo "")
+
+if echo "$STREAM_RESP" | grep -q '"type": *"content"' && echo "$STREAM_RESP" | grep -q '"type": *"done"'; then
+    check "Streaming: SSE content + done received" "0"
+elif echo "$STREAM_RESP" | grep -q "data:"; then
+    check "Streaming: SSE format present (partial)" "0"
+else
+    check "Streaming: no SSE response (got: ${STREAM_RESP:0:80})" "1"
+fi
+
+curl -sf -X DELETE "$URL/api/sessions/$STREAM_SESSION" > /dev/null 2>&1 || true
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 

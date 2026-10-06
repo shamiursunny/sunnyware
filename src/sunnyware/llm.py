@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """LLM client — OpenAI-compatible HTTP (Ollama, HF Inference, OpenAI)."""
 
+import json
 import os
 import time
 from typing import Optional
@@ -108,3 +109,64 @@ async def chat(
             "error": f"{type(e).__name__}: {e}",
             "latency_ms": int((time.time() - start) * 1000),
         }
+
+
+async def stream_chat(
+    prompt: str,
+    model: Optional[str] = None,
+    system: Optional[str] = None,
+    history: Optional[list] = None,
+    timeout: float = 90.0,
+):
+    """Async generator yielding text chunks from a streaming chat completion.
+
+    Uses OpenAI-compatible SSE (data: {...} lines, terminates with [DONE]).
+    Raises on error — caller handles.
+    """
+    messages = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    if history:
+        messages.extend(history)
+    messages.append({"role": "user", "content": prompt})
+
+    payload = {
+        "model": model or _model(),
+        "messages": messages,
+        "temperature": 0.7,
+        "max_tokens": 500,
+        "stream": True,
+    }
+
+    async with httpx.AsyncClient(timeout=timeout) as client:
+        async with client.stream(
+            "POST",
+            f"{_base_url()}/chat/completions",
+            json=payload,
+            headers={
+                "Authorization": f"Bearer {_api_key()}",
+                "Content-Type": "application/json",
+            },
+        ) as r:
+            if r.status_code != 200:
+                body = await r.aread()
+                raise RuntimeError(f"HTTP {r.status_code}: {body[:200]!r}")
+
+            async for raw_line in r.aiter_lines():
+                if not raw_line:
+                    continue
+                line = raw_line.strip()
+                if not line.startswith("data:"):
+                    continue
+                data = line[5:].strip()
+                if data == "[DONE]":
+                    break
+                try:
+                    obj = json.loads(data)
+                    choice = (obj.get("choices") or [{}])[0]
+                    delta = choice.get("delta") or {}
+                    chunk = delta.get("content")
+                    if chunk:
+                        yield chunk
+                except Exception:
+                    continue

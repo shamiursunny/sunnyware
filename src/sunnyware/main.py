@@ -16,7 +16,7 @@ from pathlib import Path
 
 from gradio import Server                       # ← FastAPI-compatible subclass
 from fastapi import Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 import uvicorn
 
 from .config import load_config
@@ -481,6 +481,86 @@ async def session_rewind(session_key: str, req: Request):
         "kept_up_to_event_id": to_event,
         "deleted_count": deleted,
     }
+
+
+
+
+# ── Part 10: SSE streaming endpoint (direct LLM, no tools) ──────────────────
+@app.post("/api/agent/run/stream")
+async def run_agent_stream(req: Request):
+    """SSE streaming version of /api/agent/run (direct LLM, no tool orchestration).
+
+    SSE events:
+      data: {"type": "start", "session_uuid": "..."}
+      data: {"type": "content", "text": "chunk"}
+      data: {"type": "done", "session_uuid": "..."}
+      data: {"type": "error", "error": "..."}
+    """
+    import json as _json
+
+    if not state["ready"]:
+        return JSONResponse({"error": "server not ready"}, status_code=503)
+
+    await _ensure_pool()
+
+    body = await req.json()
+    prompt = body.get("input", "")
+    session_id = body.get("session_id", "default")
+    model = body.get("model")
+    system = body.get("system")
+
+    if not prompt:
+        return JSONResponse({"error": "input required"}, status_code=400)
+
+    # Session + history + log user turn
+    session_uuid = await sessions_store.get_or_create(session_id)
+    history = []
+    if session_uuid:
+        history = await memory_store.build_context(session_uuid, max_turns=5)
+        await memory_store.log_event(
+            session_uuid,
+            "user_message",
+            {"content": prompt, "model": model or "default", "streaming": True},
+        )
+
+    async def event_stream():
+        full_text = ""
+        try:
+            yield f"data: {_json.dumps({'type': 'start', 'session_uuid': session_uuid})}\n\n"
+
+            async for chunk in llm_client.stream_chat(
+                prompt, model=model, system=system, history=history
+            ):
+                full_text += chunk
+                payload = _json.dumps({"type": "content", "text": chunk})
+                yield f"data: {payload}\n\n"
+
+            # Persist assistant turn
+            if session_uuid and full_text:
+                await memory_store.log_event(
+                    session_uuid,
+                    "assistant_message",
+                    {
+                        "content": full_text,
+                        "model": model or "default",
+                        "streaming": True,
+                    },
+                )
+
+            yield f"data: {_json.dumps({'type': 'done', 'session_uuid': session_uuid})}\n\n"
+        except Exception as e:
+            err = _json.dumps({"type": "error", "error": f"{type(e).__name__}: {e}"})
+            yield f"data: {err}\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 # ── Entry point ─────────────────────────────────────────────────────────────
