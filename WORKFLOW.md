@@ -58,6 +58,7 @@ See [WORKFLOW.md](./WORKFLOW.md) for the locked dual-remote workflow.
 | 7    | 7776777 | Live (7 tools)  | Backed up | Done   |
 | 8    | 772d646 | Live (memory)   | Backed up | Done   |
 | 9    | 462e04e | Live (history)  | Backed up | Done   |
+| 10   | e3d38f5 | Live (streaming)| Backed up | Done   |
 
 ## LLM Backend Configuration
 
@@ -182,3 +183,22 @@ Response `steps[].protocol` shows `native` or `prompt-json`.
 ### Test #8 fix
 - Previously used fixed `smoke-llm` session → history buildup over runs → timeout
 - Now: unique session per run (`smoke-llm-{ts}-{pid}`), 90s curl timeout, auto-cleanup
+
+## SSE Streaming (Part 10)
+
+### Endpoint
+- POST /api/agent/run/stream
+
+### SSE event types
+- start    -> session_uuid
+- content  -> text chunk
+- done     -> session_uuid
+- error    -> error message
+
+### llm.stream_chat()
+Async generator yielding text chunks via OpenAI-compatible SSE.
+Direct LLM only (no tool orchestration).
+Tool-aware streaming is deferred (Part 10.5).
+
+### Smoke
+Test #20 verifies SSE content + done events received.
