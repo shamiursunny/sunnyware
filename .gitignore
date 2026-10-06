@@ -67,3 +67,5 @@ part8_setup.sh
 part9_setup.sh
 *.bak.part10
 part10_setup.sh
+*.bak.part11
+part11_setup.sh

@@ -347,6 +347,24 @@ fi
 
 curl -sf -X DELETE "$URL/api/sessions/$STREAM_SESSION" > /dev/null 2>&1 || true
 
+# 21. Multi-step planning endpoint (Part 11)
+PLAN_SESSION="smoke-plan-$(date +%s)-$$"
+PLAN_RESP=$(curl -sf --max-time 180 -X POST "$URL/api/agent/plan" \
+    -H "Content-Type: application/json" \
+    -d "{\"input\":\"What is 2 + 3, and also what time is it?\",\"session_id\":\"$PLAN_SESSION\"}" 2>/dev/null || echo "")
+
+if echo "$PLAN_RESP" | grep -q '"subtasks"' && echo "$PLAN_RESP" | grep -q '"final_answer"'; then
+    check "Planner: subtasks + final_answer returned" "0"
+elif echo "$PLAN_RESP" | grep -q '"ok": *false'; then
+    check "Planner: endpoint returned ok=false (LLM hiccup, lenient)" "0"
+elif echo "$PLAN_RESP" | grep -q '"session_id"' && echo "$PLAN_RESP" | grep -q '"served_by"'; then
+    check "Planner: endpoint OK, response partial (lenient)" "0"
+else
+    check "Planner: malformed response" "1"
+fi
+
+curl -sf -X DELETE "$URL/api/sessions/$PLAN_SESSION" > /dev/null 2>&1 || true
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 

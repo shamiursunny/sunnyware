@@ -25,6 +25,7 @@ from . import llm as llm_client
 from . import sessions as sessions_store
 from . import memory as memory_store
 from . import orchestrator
+from . import planner
 from . import tools as tools_registry
 from .logging_config import configure_logging
 
@@ -561,6 +562,63 @@ async def run_agent_stream(req: Request):
             "X-Accel-Buffering": "no",
         },
     )
+
+
+
+
+# ── Part 11: Multi-step planning endpoint ───────────────────────────────────
+@app.post("/api/agent/plan")
+async def run_agent_plan(req: Request):
+    """Decompose a complex task into sub-tasks, execute each, synthesize answer.
+
+    Body: {"input": "<task>", "session_id": "<key>" (optional), "model" (optional)}
+    Returns: {ok, task, subtasks, results, final_answer, latency_ms}
+    """
+    if not state["ready"]:
+        return JSONResponse({"error": "server not ready"}, status_code=503)
+
+    await _ensure_pool()
+
+    body = await req.json()
+    task = body.get("input", "")
+    session_id = body.get("session_id", "plan-default")
+    model = body.get("model")
+
+    if not task:
+        return JSONResponse({"error": "input required"}, status_code=400)
+
+    # Session + log
+    session_uuid = await sessions_store.get_or_create(session_id)
+    if session_uuid:
+        await memory_store.log_event(
+            session_uuid,
+            "user_message",
+            {"content": task, "model": model or "default", "mode": "plan"},
+        )
+
+    result = await planner.plan_and_execute(
+        task, session_uuid=session_uuid, model=model
+    )
+
+    # Persist plan summary
+    if session_uuid:
+        await memory_store.log_event(
+            session_uuid,
+            "assistant_message",
+            {
+                "content": result.get("final_answer", ""),
+                "mode": "plan",
+                "subtask_count": len(result.get("subtasks", [])),
+                "ok": result.get("ok", False),
+            },
+        )
+
+    return {
+        **result,
+        "served_by": "sunnyware",
+        "session_id": session_id,
+        "session_uuid": session_uuid,
+    }
 
 
 # ── Entry point ─────────────────────────────────────────────────────────────
