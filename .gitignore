@@ -72,3 +72,5 @@ part11_setup.sh
 *.bak.part12
 part12_setup.sh
 main
+*.bak.part13
+part13_setup.sh

@@ -9,6 +9,7 @@ from .write_file import WriteFileTool
 from .calculator import CalculatorTool
 from .web_fetch import WebFetchTool
 from .memory_search import MemorySearchTool
+from .web_search import WebSearchTool
 
 
 _TOOLS = {
@@ -19,6 +20,7 @@ _TOOLS = {
     CalculatorTool.name: CalculatorTool(),
     WebFetchTool.name: WebFetchTool(),
     MemorySearchTool.name: MemorySearchTool(),
+    WebSearchTool.name: WebSearchTool(),
 }
 
 

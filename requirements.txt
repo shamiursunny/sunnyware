@@ -8,3 +8,4 @@ structlog>=24.1.0
 spaces
 asyncpg>=0.29.0
 httpx>=0.27.0
+ddgs>=9.0.0
