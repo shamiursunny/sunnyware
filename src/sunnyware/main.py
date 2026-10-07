@@ -583,6 +583,7 @@ async def run_agent_plan(req: Request):
     task = body.get("input", "")
     session_id = body.get("session_id", "plan-default")
     model = body.get("model")
+    parallel = bool(body.get("parallel", True))
 
     if not task:
         return JSONResponse({"error": "input required"}, status_code=400)
@@ -593,11 +594,11 @@ async def run_agent_plan(req: Request):
         await memory_store.log_event(
             session_uuid,
             "user_message",
-            {"content": task, "model": model or "default", "mode": "plan"},
+            {"content": task, "model": model or "default", "mode": "plan", "parallel": parallel},
         )
 
     result = await planner.plan_and_execute(
-        task, session_uuid=session_uuid, model=model
+        task, session_uuid=session_uuid, model=model, parallel=parallel
     )
 
     # Persist plan summary

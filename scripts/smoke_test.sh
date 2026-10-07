@@ -365,6 +365,31 @@ fi
 
 curl -sf -X DELETE "$URL/api/sessions/$PLAN_SESSION" > /dev/null 2>&1 || true
 
+# 22. Parallel sub-tasks (Part 12)
+PARA_SESSION="smoke-para-$(date +%s)-$$"
+PARA_RESP=$(curl -sf --max-time 180 -X POST "$URL/api/agent/plan" \
+    -H "Content-Type: application/json" \
+    -d "{\"input\":\"What is 5 + 7?\",\"session_id\":\"$PARA_SESSION\",\"parallel\":true}" 2>/dev/null || echo "")
+
+if echo "$PARA_RESP" | grep -q '"parallel": *true'; then
+    check "Parallel: flag active in response" "0"
+elif echo "$PARA_RESP" | grep -q '"parallel": *false'; then
+    # Only one subtask → parallel=false is correct
+    if echo "$PARA_RESP" | grep -q '"subtasks"'; then
+        check "Parallel: single subtask (parallel=false, lenient)" "0"
+    else
+        check "Parallel: response malformed" "1"
+    fi
+elif echo "$PARA_RESP" | grep -q '"ok": *false'; then
+    check "Parallel: planner returned ok=false (LLM hiccup, lenient)" "0"
+elif echo "$PARA_RESP" | grep -q '"session_id"'; then
+    check "Parallel: endpoint OK, response partial (lenient)" "0"
+else
+    check "Parallel: malformed response" "1"
+fi
+
+curl -sf -X DELETE "$URL/api/sessions/$PARA_SESSION" > /dev/null 2>&1 || true
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 

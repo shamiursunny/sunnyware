@@ -8,6 +8,7 @@ Flow:
   3. Synthesizer LLM call → combine sub-results into final answer
 """
 
+import asyncio
 import json
 import re
 from typing import Optional
@@ -87,12 +88,44 @@ def _clean_list(items) -> list:
     return out[:MAX_SUBTASKS]
 
 
+async def _run_one_subtask(st: str, session_uuid: Optional[str], model: Optional[str]) -> dict:
+    """Execute a single sub-task via orchestrator, normalize result."""
+    try:
+        r = await orchestrator.run_agent(st, session_uuid=session_uuid, model=model)
+        if r.get("ok"):
+            return {
+                "subtask": st,
+                "ok": True,
+                "answer": r.get("answer", ""),
+                "steps_count": len(r.get("steps", [])),
+                "iterations": r.get("iterations", 0),
+            }
+        return {
+            "subtask": st,
+            "ok": False,
+            "error": r.get("error", "unknown"),
+            "answer": "",
+            "steps_count": 0,
+            "iterations": 0,
+        }
+    except Exception as e:
+        return {
+            "subtask": st,
+            "ok": False,
+            "error": f"{type(e).__name__}: {e}",
+            "answer": "",
+            "steps_count": 0,
+            "iterations": 0,
+        }
+
+
 async def plan_and_execute(
     task: str,
     session_uuid: Optional[str] = None,
     model: Optional[str] = None,
+    parallel: bool = True,
 ) -> dict:
-    """Decompose task, run each sub-task, synthesize final answer.
+    """Decompose task, run each sub-task (sequential or parallel), synthesize.
 
     Returns:
       {
@@ -144,37 +177,18 @@ async def plan_and_execute(
     if not subtasks:
         subtasks = [task]
 
-    # ── Step 2: Execute each sub-task via orchestrator ──
-    results = []
-    for st in subtasks:
-        try:
-            r = await orchestrator.run_agent(st, session_uuid=session_uuid, model=model)
-            if r.get("ok"):
-                results.append({
-                    "subtask": st,
-                    "ok": True,
-                    "answer": r.get("answer", ""),
-                    "steps_count": len(r.get("steps", [])),
-                    "iterations": r.get("iterations", 0),
-                })
-            else:
-                results.append({
-                    "subtask": st,
-                    "ok": False,
-                    "error": r.get("error", "unknown"),
-                    "answer": "",
-                    "steps_count": 0,
-                    "iterations": 0,
-                })
-        except Exception as e:
-            results.append({
-                "subtask": st,
-                "ok": False,
-                "error": f"{type(e).__name__}: {e}",
-                "answer": "",
-                "steps_count": 0,
-                "iterations": 0,
-            })
+    # ── Step 2: Execute sub-tasks (parallel or sequential) ──
+    if parallel and len(subtasks) > 1:
+        # asyncio.gather — run all subtasks concurrently
+        gathered = await asyncio.gather(
+            *[_run_one_subtask(st, session_uuid, model) for st in subtasks],
+            return_exceptions=False,
+        )
+        results = list(gathered)
+    else:
+        results = []
+        for st in subtasks:
+            results.append(await _run_one_subtask(st, session_uuid, model))
 
     # ── Step 3: Synthesize final answer ──
     results_text = "\n\n".join(
@@ -211,6 +225,7 @@ async def plan_and_execute(
         "ok": True,
         "task": task,
         "subtasks": subtasks,
+        "parallel": parallel and len(subtasks) > 1,
         "results": results,
         "final_answer": final_answer,
         "latency_ms": int((time.time() - t0) * 1000),
