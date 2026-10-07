@@ -79,3 +79,5 @@ part12altB_setup.py
 *.bak.part12altA
 *.bak.part12altB
 .pytest_cache/
+*.bak.part14
+part14_setup.sh

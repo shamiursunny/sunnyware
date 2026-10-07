@@ -406,6 +406,32 @@ else
     check "Web search: malformed response" "1"
 fi
 
+# 24. Weather tool (external — lenient)
+WEATHER_RESP=$(curl -sf --max-time 20 -X POST "$URL/api/tools/weather" \
+    -H "Content-Type: application/json" \
+    -d '{"city":"London"}' 2>/dev/null || echo "")
+
+if echo "$WEATHER_RESP" | grep -q '"temperature_c"'; then
+    check "Weather: temperature returned for London" "0"
+elif echo "$WEATHER_RESP" | grep -q '"error"'; then
+    check "Weather: external error (lenient pass)" "0"
+elif echo "$WEATHER_RESP" | grep -q '"tool"'; then
+    check "Weather: tool endpoint OK (lenient)" "0"
+else
+    check "Weather: malformed response" "1"
+fi
+
+# 25. Date calculator (deterministic)
+DATE_RESP=$(curl -sf -X POST "$URL/api/tools/date_calc" \
+    -H "Content-Type: application/json" \
+    -d '{"action":"add","date":"2026-01-01","days":30}' 2>/dev/null || echo "")
+
+if echo "$DATE_RESP" | grep -q '"result": *"2026-01-31"'; then
+    check "Date calc: 2026-01-01 + 30 = 2026-01-31" "0"
+else
+    check "Date calc: unexpected result" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 

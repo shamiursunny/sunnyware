@@ -10,6 +10,8 @@ from .calculator import CalculatorTool
 from .web_fetch import WebFetchTool
 from .memory_search import MemorySearchTool
 from .web_search import WebSearchTool
+from .weather import WeatherTool
+from .date_calc import DateCalcTool
 
 
 _TOOLS = {
@@ -21,6 +23,8 @@ _TOOLS = {
     WebFetchTool.name: WebFetchTool(),
     MemorySearchTool.name: MemorySearchTool(),
     WebSearchTool.name: WebSearchTool(),
+    WeatherTool.name: WeatherTool(),
+    DateCalcTool.name: DateCalcTool(),
 }
 
 
