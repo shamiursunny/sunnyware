@@ -12,6 +12,7 @@ from .memory_search import MemorySearchTool
 from .web_search import WebSearchTool
 from .weather import WeatherTool
 from .date_calc import DateCalcTool
+from .python_eval import PythonEvalTool
 
 
 _TOOLS = {
@@ -25,6 +26,7 @@ _TOOLS = {
     WebSearchTool.name: WebSearchTool(),
     WeatherTool.name: WeatherTool(),
     DateCalcTool.name: DateCalcTool(),
+    PythonEvalTool.name: PythonEvalTool(),
 }
 
 

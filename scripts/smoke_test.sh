@@ -432,6 +432,21 @@ else
     check "Date calc: unexpected result" "1"
 fi
 
+# 26. Python eval tool (Part 15)
+PY_RESP=$(curl -sf --max-time 15 -X POST "$URL/api/tools/python_eval" \
+    -H "Content-Type: application/json" \
+    -d '{"code":"nums = [1,2,3,4,5]\nresult = sum(nums) * 2"}' 2>/dev/null || echo "")
+
+if echo "$PY_RESP" | grep -q '"result": *30'; then
+    check "Python eval: sum([1..5])*2 = 30" "0"
+elif echo "$PY_RESP" | grep -q '"error"'; then
+    # Show actual error to help diagnose
+    PY_ERR=$(echo "$PY_RESP" | head -c 200)
+    check "Python eval: unexpected error (${PY_ERR})" "1"
+else
+    check "Python eval: malformed response" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 
