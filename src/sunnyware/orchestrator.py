@@ -1,14 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Agent orchestrator — supports BOTH native (OpenAI/Groq) and prompt-based tools.
-
-Flow per iteration:
-  1. Call LLM with tools= (native). Groq/GPT-4 use tool_calls.
-  2. If LLM returned tool_calls → execute, feed back, loop.
-  3. Else if LLM content has JSON {"tool":..., "args":...} → execute (Ollama path).
-  4. Else if content has JSON {"answer":...} → return answer.
-  5. Else → treat raw content as final answer (fallback).
-"""
+"""Agent orchestrator — ReAct-style loop (native tools + prompt-JSON fallback)."""
 
 import json
 import re
@@ -16,14 +8,14 @@ from typing import Optional
 
 from . import llm as llm_client
 from . import memory as memory_store
+from . import prompts
 from . import tools as tools_registry
 
 
-MAX_ITERATIONS = 3
+MAX_ITERATIONS = 5
 
 
 def _build_tools_schema() -> list:
-    """Build OpenAI-format tools schema from registry."""
     out = []
     for t in tools_registry.list_tools():
         props = {}
@@ -49,32 +41,6 @@ def _build_tools_schema() -> list:
         })
     return out
 
-
-def _build_native_system_prompt(context: str = "") -> str:
-    """Minimal system prompt for native tool calling."""
-    names = ", ".join(tools_registry.tool_names()) or "(none)"
-    base = (
-        "You are Sunnyware, a concise AI agent. "
-        f"You have these tools available: {names}. "
-        "Use a tool when you need real information. "
-        "Otherwise answer the user directly and briefly."
-    )
-    if context:
-        base += "\n\nRelevant context from your memory of past sessions:\n" + context
-    return base
-
-
-def _build_system_prompt(context: str = "") -> str:
-    """Compact prompt for small models (prompt-JSON mode)."""
-    names = ", ".join(tools_registry.tool_names()) or "(none)"
-    base = (
-        f"You are Sunnyware. Available tools: {names}. "
-        'Reply with JSON only: {"answer": "..."} or {"tool": "name", "args": {...}}. '
-        "If no tool is needed, answer directly. Keep it short."
-    )
-    if context:
-        base += "\n\nRelevant context from your memory of past sessions:\n" + context
-    return base
 
 def _parse_json_response(content: str) -> Optional[dict]:
     if not content:
@@ -124,17 +90,10 @@ async def run_agent(
     system: Optional[str] = None,
     use_native_tools: Optional[bool] = None,
 ) -> dict:
-    """Execute the agent loop.
-
-    use_native_tools: if True, pass OpenAI tools param (Groq/GPT).
-                      if False, use prompt-based JSON protocol (Ollama).
-                      if None, auto-detect from config (default).
-    """
     history = []
     if session_uuid:
         history = await memory_store.build_context(session_uuid, max_turns=5)
 
-    # Choose system prompt based on mode
     if use_native_tools is None:
         try:
             from .config import load_config
@@ -143,16 +102,15 @@ async def run_agent(
         except Exception:
             use_native_tools = False
 
-    # Part 8: fetch relevant cross-session memory
     relevant_events = await memory_store.select_relevant_events(
         prompt, exclude_session_uuid=session_uuid, limit=3
     )
     context_str = memory_store.format_context(relevant_events)
 
     if use_native_tools:
-        system_prompt = _build_native_system_prompt(context_str)
+        system_prompt = prompts.native_prompt(context_str)
     else:
-        system_prompt = _build_system_prompt(context_str)
+        system_prompt = prompts.compact_prompt(context_str)
 
     if system:
         system_prompt = system + "\n\n" + system_prompt
@@ -160,12 +118,10 @@ async def run_agent(
     tools_schema = _build_tools_schema() if use_native_tools else None
     steps = []
 
-    # OpenAI-style message history for native protocol
     messages = list(history)
     messages.append({"role": "user", "content": prompt})
 
     for iteration in range(MAX_ITERATIONS):
-        # Only pass tools on iteration 0 — subsequent turns use message history
         result = await llm_client.chat(
             prompt if iteration == 0 else "Continue.",
             model=model,
@@ -185,14 +141,12 @@ async def run_agent(
         content = (result.get("content") or "").strip()
         native_calls = result.get("tool_calls")
 
-        # ── Path 1: Native tool calls (Groq/GPT) ──
         if native_calls:
             messages.append({
                 "role": "assistant",
                 "content": content or "",
                 "tool_calls": native_calls,
             })
-
             for call in native_calls:
                 try:
                     fn = call["function"]
@@ -207,7 +161,6 @@ async def run_agent(
                     tool_result = {"error": f"parse error: {e}"}
                 else:
                     tool_result = await _execute_tool(tool_name, tool_args)
-
                 steps.append({
                     "iteration": iteration + 1,
                     "tool": tool_name,
@@ -215,7 +168,6 @@ async def run_agent(
                     "result": tool_result,
                     "protocol": "native",
                 })
-
                 messages.append({
                     "role": "tool",
                     "tool_call_id": call.get("id", ""),
@@ -223,7 +175,6 @@ async def run_agent(
                 })
             continue
 
-        # ── Path 2: Prompt-based JSON (Ollama) ──
         parsed = _parse_json_response(content)
 
         if parsed is not None and "tool" in parsed:
@@ -254,7 +205,6 @@ async def run_agent(
                 "iterations": iteration + 1,
             }
 
-        # ── Path 3: Plain text answer ──
         if content:
             return {
                 "ok": True,
@@ -263,7 +213,6 @@ async def run_agent(
                 "iterations": iteration + 1,
             }
 
-        # Empty content — if we have steps, return partial; else error
         if steps:
             return {
                 "ok": True,

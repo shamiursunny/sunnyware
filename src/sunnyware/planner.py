@@ -15,6 +15,7 @@ from typing import Optional
 
 from . import llm as llm_client
 from . import orchestrator
+from . import prompts
 
 
 MAX_SUBTASKS = 4
@@ -22,22 +23,9 @@ PLANNER_TIMEOUT = 45.0
 SYNTH_TIMEOUT = 45.0
 
 
-_PLANNER_SYSTEM = (
-    "You are a task planner. Given a complex request, break it into 1-4 "
-    "concrete, independently-executable sub-tasks. Each sub-task should be "
-    "a single clear instruction a worker can complete alone.\n\n"
-    "Reply with JSON ONLY (no markdown): "
-    '{"subtasks": ["first task", "second task", ...]}\n\n'
-    "If the task is already simple, return exactly one sub-task. "
-    "Maximum 4 sub-tasks. Keep each sub-task concise."
-)
 
-_SYNTH_SYSTEM = (
-    "You are a synthesizer. You will receive a user's original request and the "
-    "results of several sub-tasks. Produce a single, concise final answer that "
-    "directly addresses the original request. Do not mention sub-tasks. "
-    "Just answer."
-)
+
+
 
 
 def _parse_subtasks(content: str) -> list:
@@ -156,7 +144,7 @@ async def plan_and_execute(
     plan_result = await llm_client.chat(
         f"Decompose this task into sub-tasks: {task}",
         model=model,
-        system=_PLANNER_SYSTEM,
+        system=prompts.PLANNER_SYSTEM,
         timeout=PLANNER_TIMEOUT,
     )
 
@@ -206,7 +194,7 @@ async def plan_and_execute(
     synth_result = await llm_client.chat(
         synth_prompt,
         model=model,
-        system=_SYNTH_SYSTEM,
+        system=prompts.SYNTH_SYSTEM,
         timeout=SYNTH_TIMEOUT,
     )
 

@@ -1,0 +1,116 @@
+# SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
+# SPDX-License-Identifier: AGPL-3.0-only
+"""Root, about, and health endpoints."""
+
+from fastapi import APIRouter
+from fastapi.responses import JSONResponse
+
+from .. import meta
+from ..runtime import state, ensure_pool
+from .. import state as app_state
+from .. import sessions as sessions_store
+from .. import memory as memory_store
+from .. import llm as llm_client
+from .. import tools as tools_registry
+
+
+router = APIRouter()
+
+
+@router.get("/")
+async def root():
+    return {
+        "name": "sunnyware",
+        "version": meta.PROJECT_VERSION,
+        "author": {
+            "name": meta.AUTHOR_NAME,
+            "email": meta.AUTHOR_EMAIL,
+            "phone": meta.AUTHOR_PHONE,
+            "website": meta.AUTHOR_WEBSITE,
+            "github": meta.AUTHOR_GITHUB,
+        },
+        "copyright": meta.COPYRIGHT,
+        "license": meta.LICENSE_ID,
+        "architecture": "part-12alt-refactor",
+        "endpoints": [
+            "/", "/about", "/health/live", "/health/ready",
+            "/api/agent/run", "/api/agent/run/stream", "/api/agent/plan",
+            "/api/tools", "/api/tools/{name}",
+            "/api/sessions", "/api/sessions/{key}",
+            "/api/sessions/{key}/history", "/api/sessions/{key}/export",
+            "/api/sessions/{key}/rewind",
+            "/api/memory/context",
+        ],
+    }
+
+
+@router.get("/about")
+async def about():
+    return {
+        "project": "sunnyware",
+        "version": meta.PROJECT_VERSION,
+        "author": meta.AUTHOR_NAME,
+        "email": meta.AUTHOR_EMAIL,
+        "phone": meta.AUTHOR_PHONE,
+        "website": meta.AUTHOR_WEBSITE,
+        "github": meta.AUTHOR_GITHUB,
+        "copyright": meta.COPYRIGHT,
+        "license": meta.LICENSE_ID,
+    }
+
+
+@router.get("/health/live")
+async def liveness():
+    return {"status": "ok"}
+
+
+@router.get("/health/ready")
+async def readiness():
+    await ensure_pool()
+    checks = {}
+    all_ok = True
+
+    checks["lifespan_ran"] = state["ready"]
+    if not state["ready"]:
+        all_ok = False
+
+    checks["config_loaded"] = state["config"] is not None
+    if not state["config"]:
+        all_ok = False
+
+    if state["config"] and state["config"].neon_database_url:
+        neon = await app_state.health_check()
+        checks["neon"] = neon.get("status", "unknown")
+        if neon.get("status") == "error":
+            all_ok = False
+    else:
+        checks["neon"] = "not_configured"
+
+    if state["config"] and state["config"].llm_base_url:
+        llm_health = await llm_client.health_check(timeout=3.0)
+        checks["llm"] = llm_health.get("status", "unknown")
+        if llm_health.get("status") == "error":
+            checks["llm_error"] = llm_health.get("error", "")[:200]
+    else:
+        checks["llm"] = "not_configured"
+
+    sess_health = await sessions_store.health_check()
+    checks["sessions"] = sess_health.get("status", "unknown")
+    mem_health = await memory_store.health_check()
+    checks["memory"] = mem_health.get("status", "unknown")
+    checks["tools"] = len(tools_registry.list_tools())
+
+    try:
+        await memory_store.select_relevant_events("health", limit=1)
+        checks["memory_context"] = "ok"
+    except Exception as e:
+        checks["memory_context"] = f"error: {type(e).__name__}"
+
+    return JSONResponse(
+        {
+            "status": "ok" if all_ok else "degraded",
+            "checks": checks,
+            "author": meta.AUTHOR_NAME,
+        },
+        status_code=200 if all_ok else 503,
+    )
