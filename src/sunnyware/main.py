@@ -41,6 +41,27 @@ async def lifespan(app):
 app = Server(
     title="sunnyware",
     version=meta.PROJECT_VERSION,
+    description=(
+        "Production-grade AI agent orchestrator -- 14 tools, cross-session memory, "
+        "multi-step planning, MCP interop, SSE streaming, evaluation suite, "
+        "auth + rate limiting, persistent metrics."
+    ),
+    contact={
+        "name": meta.AUTHOR_NAME,
+        "url": meta.AUTHOR_WEBSITE,
+        "email": meta.AUTHOR_EMAIL,
+    },
+    license_info={"name": meta.LICENSE_ID, "url": "https://www.gnu.org/licenses/agpl-3.0.html"},
+    openapi_tags=[
+        {"name": "meta", "description": "Info, health, metrics, author"},
+        {"name": "agent", "description": "Agent loop, streaming, planning"},
+        {"name": "tools", "description": "Tool registry and direct invocation"},
+        {"name": "sessions", "description": "Session history, export, rewind"},
+        {"name": "memory", "description": "Cross-session memory inspection"},
+        {"name": "eval", "description": "Ground-truth evaluation suite"},
+        {"name": "mcp", "description": "Model Context Protocol (JSON-RPC 2.0)"},
+        {"name": "auth", "description": "Authentication + rate-limit status"},
+    ],
     lifespan=lifespan,
 )
 

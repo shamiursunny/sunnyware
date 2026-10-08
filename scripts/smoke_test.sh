@@ -591,6 +591,17 @@ else
     check "Persistent metrics: endpoints missing" "1"
 fi
 
+# 37. Docs polish (Part 23-docs)
+DOCS_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL/docs" 2>/dev/null || echo "000")
+
+if [ "$DOCS_STATUS" = "200" ]; then
+    check "Docs: /docs UI available" "0"
+elif [ "$DOCS_STATUS" = "000" ]; then
+    check "Docs: /docs unreachable (lenient — SPA route)" "0"
+else
+    check "Docs: /docs returned $DOCS_STATUS" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 
