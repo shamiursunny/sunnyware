@@ -568,6 +568,15 @@ else
     check "MCP: JSON-RPC endpoint missing or malformed" "1"
 fi
 
+# 35. Auth status endpoint (Part 21-ratelimit)
+AUTH_RESP=$(curl -sf "$URL/api/auth/status" 2>/dev/null || echo "")
+
+if echo "$AUTH_RESP" | grep -q '"auth_enabled"'; then
+    check "Auth: status endpoint responds" "0"
+else
+    check "Auth: status endpoint missing" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 
