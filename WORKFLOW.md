@@ -67,6 +67,7 @@ See [WORKFLOW.md](./WORKFLOW.md) for the locked dual-remote workflow.
 | 15   | acc04fa | Live (11 tools) | Backed up | Done   |
 | 16   | b350069 | Live (14 tools) | Backed up | Done   |
 | 17   | 45d206f | Live (metrics)  | Backed up | Done   |
+| 18   | 65f1f8c | Live (tool-stream) | Backed up | Done   |
 
 ## LLM Backend Configuration
 
