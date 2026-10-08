@@ -547,6 +547,27 @@ else
     check "Eval suite: list endpoint missing" "1"
 fi
 
+# 34. MCP server (Part 20-mcp)
+MCP_INIT=$(curl -sf -X POST "$URL/mcp/rpc" \
+    -H "Content-Type: application/json" \
+    -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{}}' 2>/dev/null || echo "")
+
+MCP_TOOLS=$(curl -sf -X POST "$URL/mcp/rpc" \
+    -H "Content-Type: application/json" \
+    -d '{"jsonrpc":"2.0","id":2,"method":"tools/list","params":{}}' 2>/dev/null || echo "")
+
+MCP_CALL=$(curl -sf -X POST "$URL/mcp/rpc" \
+    -H "Content-Type: application/json" \
+    -d '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"echo","arguments":{"text":"mcp-test"}}}' 2>/dev/null || echo "")
+
+if echo "$MCP_TOOLS" | grep -q '"tools"' && echo "$MCP_CALL" | grep -q 'mcp-test'; then
+    check "MCP: initialize + tools/list + tools/call" "0"
+elif echo "$MCP_INIT" | grep -q '"protocolVersion"'; then
+    check "MCP: initialize OK (partial)" "0"
+else
+    check "MCP: JSON-RPC endpoint missing or malformed" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 
