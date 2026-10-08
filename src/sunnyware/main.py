@@ -22,6 +22,7 @@ from .runtime import state, init_state, log
 from . import state as app_state
 from .routes import meta as meta_routes
 from .routes import agent as agent_routes
+from .routes import eval as eval_routes
 from .routes import tools as tools_routes
 from .routes import sessions as sessions_routes
 from .routes import memory_routes
@@ -48,6 +49,7 @@ app.include_router(agent_routes.router)
 app.include_router(tools_routes.router)
 app.include_router(sessions_routes.router)
 app.include_router(memory_routes.router)
+app.include_router(eval_routes.router)
 
 
 # FALLBACK: init state at import time (HF Spaces skips lifespan)

@@ -1,0 +1,53 @@
+[
+  {
+    "id": "echo_1",
+    "input": "Reply with exactly: pong",
+    "expect_contains": ["pong"],
+    "tags": ["basic"]
+  },
+  {
+    "id": "math_simple",
+    "input": "What is 2 + 3? Reply with the number only.",
+    "expect_contains": ["5"],
+    "tags": ["math"]
+  },
+  {
+    "id": "math_multiply",
+    "input": "What is 12 * 7? Reply with the number only.",
+    "expect_contains": ["84"],
+    "tags": ["math"]
+  },
+  {
+    "id": "tool_calculator",
+    "input": "Use the calculator tool to compute 123 + 456.",
+    "expect_contains": ["579"],
+    "expect_tool_called": "calculator",
+    "tags": ["tool", "math"]
+  },
+  {
+    "id": "tool_current_time",
+    "input": "Use the current_time tool to get the current UTC time.",
+    "expect_contains": ["UTC"],
+    "expect_tool_called": "current_time",
+    "tags": ["tool", "time"]
+  },
+  {
+    "id": "no_tool_needed",
+    "input": "Reply with exactly: hello",
+    "expect_contains": ["hello"],
+    "expect_no_tools": true,
+    "tags": ["basic"]
+  },
+  {
+    "id": "multi_step_plan",
+    "input": "Calculate 10 + 20 and also 30 + 40.",
+    "expect_any": ["30", "70"],
+    "tags": ["plan"]
+  },
+  {
+    "id": "sandboxed_eval",
+    "input": "Use python_eval to compute 100 * 3 and return the result.",
+    "expect_contains": ["300"],
+    "tags": ["tool", "eval"]
+  }
+]

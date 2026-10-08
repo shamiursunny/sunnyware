@@ -88,3 +88,7 @@ part16_setup.sh
 *.bak.part17
 part17_setup.sh
 *.bak.part18
+*.bak.part19
+part19_setup.sh
+delete
+get

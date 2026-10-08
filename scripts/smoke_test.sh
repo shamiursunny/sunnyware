@@ -527,6 +527,26 @@ fi
 
 curl -sf -X DELETE "$URL/api/sessions/$STREAM18_SESSION" > /dev/null 2>&1 || true
 
+# 33. Eval suite (Part 19) — list + run one fast case
+EVAL_LIST=$(curl -sf "$URL/api/eval/cases" 2>/dev/null || echo "")
+
+if echo "$EVAL_LIST" | grep -q '"cases"' && echo "$EVAL_LIST" | grep -q 'echo_1'; then
+    EVAL_ONE=$(curl -sf --max-time 60 -X POST "$URL/api/eval/run/echo_1" 2>/dev/null || echo "")
+    if echo "$EVAL_ONE" | grep -q '"passed": *true'; then
+        check "Eval suite: list + run echo_1 passed" "0"
+    elif echo "$EVAL_ONE" | grep -q '"passed": *false'; then
+        check "Eval suite: case ran but failed (lenient)" "0"
+    elif echo "$EVAL_ONE" | grep -q '"id"'; then
+        check "Eval suite: case ran (lenient)" "0"
+    else
+        check "Eval suite: case execution malformed" "1"
+    fi
+elif echo "$EVAL_LIST" | grep -q '"cases"'; then
+    check "Eval suite: list OK (partial)" "0"
+else
+    check "Eval suite: list endpoint missing" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 
