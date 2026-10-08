@@ -76,6 +76,11 @@ async def chat(
 
     start = time.time()
     try:
+        from . import metrics as _metrics
+        _metrics.incr("llm_calls_total")
+    except Exception:
+        pass
+    try:
         async with httpx.AsyncClient(timeout=timeout) as client:
             r = await client.post(
                 f"{_base_url()}/chat/completions",
@@ -87,6 +92,11 @@ async def chat(
             )
             latency_ms = int((time.time() - start) * 1000)
             if r.status_code != 200:
+                try:
+                    from . import metrics as _metrics2
+                    _metrics2.incr("llm_errors_total")
+                except Exception:
+                    pass
                 return {
                     "ok": False,
                     "error": f"HTTP {r.status_code}: {r.text[:200]}",

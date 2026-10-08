@@ -71,6 +71,9 @@ def _parse_json_response(content: str) -> Optional[dict]:
 
 
 async def _execute_tool(tool_name: str, tool_args: dict) -> dict:
+    from . import metrics as _metrics
+    _metrics.incr("tool_calls_total")
+    _metrics.incr_labeled("tool_calls_by_name", tool_name)
     tool = tools_registry.get_tool(tool_name)
     if tool is None:
         return {"error": f"unknown tool: {tool_name}"}

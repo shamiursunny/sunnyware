@@ -32,6 +32,9 @@ async def call_tool_endpoint(tool_name: str, req: Request):
     if not isinstance(args, dict):
         args = {}
     try:
+        from .. import metrics as _metrics
+        _metrics.incr("tool_calls_total")
+        _metrics.incr_labeled("tool_calls_by_name", tool_name)
         result = await tool.run(args)
     except Exception as e:
         return JSONResponse({"error": f"{type(e).__name__}: {e}"}, status_code=500)

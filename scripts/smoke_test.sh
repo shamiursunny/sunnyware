@@ -489,6 +489,26 @@ else
     check "File ops: escape NOT blocked" "1"
 fi
 
+# 30. Metrics endpoint (Part 17)
+METRICS_RESP=$(curl -sf "$URL/metrics" 2>/dev/null || echo "")
+
+if echo "$METRICS_RESP" | grep -q '"requests_total"' && echo "$METRICS_RESP" | grep -q '"tool_calls_total"'; then
+    check "Metrics: counters present" "0"
+elif echo "$METRICS_RESP" | grep -q '"uptime_seconds"'; then
+    check "Metrics: partial counters present" "0"
+else
+    check "Metrics: endpoint missing or malformed" "1"
+fi
+
+# 31. Request ID header (Part 17)
+RID_HEADER=$(curl -s -o /dev/null -D - "$URL/health/live" 2>/dev/null | grep -i "x-request-id" || echo "")
+
+if [ -n "$RID_HEADER" ]; then
+    check "Request ID: x-request-id header present" "0"
+else
+    check "Request ID: header missing" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 

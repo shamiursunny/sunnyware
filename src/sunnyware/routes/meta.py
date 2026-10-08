@@ -114,3 +114,10 @@ async def readiness():
         },
         status_code=200 if all_ok else 503,
     )
+
+@router.get("/metrics")
+async def metrics_endpoint():
+    """In-memory metrics snapshot (requests, tool calls, errors, uptime)."""
+    from .. import metrics as _metrics
+    return _metrics.snapshot()
+

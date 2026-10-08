@@ -85,3 +85,5 @@ part14_setup.sh
 part15_setup.sh
 *.bak.part16
 part16_setup.sh
+*.bak.part17
+part17_setup.sh
