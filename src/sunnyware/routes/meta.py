@@ -121,3 +121,13 @@ async def metrics_endpoint():
     from .. import metrics as _metrics
     return _metrics.snapshot()
 
+@router.post("/api/metrics/flush")
+async def metrics_flush():
+    """Force-flush dirty counters to persistent storage (Neon)."""
+    from .. import metrics as _metrics
+    written = await _metrics.flush_now()
+    return {
+        "flushed_keys": written,
+        "status": _metrics.persistence_status(),
+    }
+

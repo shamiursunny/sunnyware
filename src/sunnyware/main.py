@@ -155,6 +155,12 @@ class _MetricsMiddleware:
                 message["headers"] = headers
             await send(message)
 
+        # Part 22: load persisted counters on first request per process
+        try:
+            await _metrics.ensure_loaded()
+        except Exception:
+            pass
+
         try:
             await self.app(scope, receive, send_wrapper)
         except Exception:
@@ -175,6 +181,11 @@ class _MetricsMiddleware:
                     ms=duration_ms,
                     rid=req_id,
                 )
+            except Exception:
+                pass
+            # Part 22: flush dirty counters to DB (throttled to once per ~10s)
+            try:
+                await _metrics.flush_if_due()
             except Exception:
                 pass
 

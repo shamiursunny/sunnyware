@@ -577,6 +577,20 @@ else
     check "Auth: status endpoint missing" "1"
 fi
 
+# 36. Persistent metrics (Part 22-persist)
+METRICS_PERSIST=$(curl -sf "$URL/metrics" 2>/dev/null | grep -o '"persist"' || echo "")
+FLUSH_RESP=$(curl -sf -X POST "$URL/api/metrics/flush" 2>/dev/null || echo "")
+
+if [ -n "$METRICS_PERSIST" ] && echo "$FLUSH_RESP" | grep -q '"flushed_keys"'; then
+    check "Persistent metrics: /metrics has persist + flush works" "0"
+elif echo "$FLUSH_RESP" | grep -q '"flushed_keys"'; then
+    check "Persistent metrics: flush endpoint works (partial)" "0"
+elif [ -n "$METRICS_PERSIST" ]; then
+    check "Persistent metrics: /metrics has persist block (partial)" "0"
+else
+    check "Persistent metrics: endpoints missing" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 
