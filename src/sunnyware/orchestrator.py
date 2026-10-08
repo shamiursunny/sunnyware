@@ -86,16 +86,29 @@ async def _execute_tool(tool_name: str, tool_args: dict) -> dict:
         return {"error": f"{type(e).__name__}: {e}"}
 
 
+async def _emit(on_event, event: dict) -> None:
+    """Fire event callback if provided (best-effort)."""
+    if on_event is None:
+        return
+    try:
+        await on_event(event)
+    except Exception:
+        pass
+
+
 async def run_agent(
     prompt: str,
     session_uuid: Optional[str] = None,
     model: Optional[str] = None,
     system: Optional[str] = None,
     use_native_tools: Optional[bool] = None,
+    on_event=None,
 ) -> dict:
     history = []
     if session_uuid:
         history = await memory_store.build_context(session_uuid, max_turns=5)
+
+    await _emit(on_event, {"type": "start"})
 
     if use_native_tools is None:
         try:
@@ -163,7 +176,9 @@ async def run_agent(
                     tool_name = "unknown"
                     tool_result = {"error": f"parse error: {e}"}
                 else:
+                    await _emit(on_event, {"type": "tool_call", "tool": tool_name, "args": tool_args, "protocol": "native"})
                     tool_result = await _execute_tool(tool_name, tool_args)
+                    await _emit(on_event, {"type": "tool_result", "tool": tool_name, "result": tool_result})
                 steps.append({
                     "iteration": iteration + 1,
                     "tool": tool_name,
@@ -185,7 +200,9 @@ async def run_agent(
             tool_args = parsed.get("args") or {}
             if not isinstance(tool_args, dict):
                 tool_args = {}
+            await _emit(on_event, {"type": "tool_call", "tool": tool_name, "args": tool_args, "protocol": "prompt-json"})
             tool_result = await _execute_tool(tool_name, tool_args)
+            await _emit(on_event, {"type": "tool_result", "tool": tool_name, "result": tool_result})
             steps.append({
                 "iteration": iteration + 1,
                 "tool": tool_name,
@@ -201,9 +218,11 @@ async def run_agent(
             continue
 
         if parsed is not None and "answer" in parsed:
+            _ans = str(parsed.get("answer", ""))
+            await _emit(on_event, {"type": "answer", "text": _ans})
             return {
                 "ok": True,
-                "answer": str(parsed.get("answer", "")),
+                "answer": _ans,
                 "steps": steps,
                 "iterations": iteration + 1,
             }

@@ -54,36 +54,76 @@ app.include_router(memory_routes.router)
 init_state()
 
 
-# ── Part 17: request ID + metrics middleware ──
-@app.middleware("http")
-async def _metrics_middleware(request, call_next):
-    import uuid as _uuid
-    import time as _time
-    from . import metrics as _metrics
+# ── Part 17/18: request ID + metrics middleware (ASGI, streaming-safe) ──
+class _MetricsMiddleware:
+    """Raw ASGI middleware — does NOT buffer streaming responses.
 
-    req_id = request.headers.get("x-request-id") or str(_uuid.uuid4())[:8]
-    start = _time.time()
-    try:
-        response = await call_next(request)
-    except Exception:
-        _metrics.incr("errors_total")
-        log.error("request_failed", rid=req_id, path=request.url.path)
-        raise
-    duration_ms = int((_time.time() - start) * 1000)
-    path = request.url.path
-    if not path.startswith("/health") and not path.startswith("/metrics"):
-        _metrics.incr("requests_total")
-        _metrics.incr_labeled("requests_by_endpoint", path)
-    response.headers["x-request-id"] = req_id
-    log.info(
-        "request",
-        method=request.method,
-        path=path,
-        status=response.status_code,
-        ms=duration_ms,
-        rid=req_id,
-    )
-    return response
+    Adds x-request-id header, structured logs, and metrics counters.
+    Safe for SSE / StreamingResponse endpoints.
+    """
+
+    def __init__(self, app):
+        self.app = app
+
+    async def __call__(self, scope, receive, send):
+        if scope.get("type") != "http":
+            await self.app(scope, receive, send)
+            return
+
+        import uuid as _uuid
+        import time as _time
+        from . import metrics as _metrics
+
+        path = scope.get("path", "")
+        method = scope.get("method", "?")
+        req_id = str(_uuid.uuid4())[:8]
+        start = _time.time()
+        status_holder = {"code": 0}
+
+        for k, v in scope.get("headers", []):
+            if k.lower() == b"x-request-id":
+                try:
+                    req_id = v.decode("ascii")[:32]
+                except Exception:
+                    pass
+                break
+
+        async def send_wrapper(message):
+            if message["type"] == "http.response.start":
+                status_holder["code"] = message.get("status", 0)
+                headers = list(message.get("headers", []))
+                if not any(k.lower() == b"x-request-id" for k, _ in headers):
+                    headers.append((b"x-request-id", req_id.encode("ascii")))
+                message["headers"] = headers
+            await send(message)
+
+        try:
+            await self.app(scope, receive, send_wrapper)
+        except Exception:
+            _metrics.incr("errors_total")
+            log.error("request_failed", rid=req_id, path=path)
+            raise
+        finally:
+            duration_ms = int((_time.time() - start) * 1000)
+            if not path.startswith("/health") and not path.startswith("/metrics"):
+                _metrics.incr("requests_total")
+                _metrics.incr_labeled("requests_by_endpoint", path)
+            try:
+                log.info(
+                    "request",
+                    method=method,
+                    path=path,
+                    status=status_holder["code"],
+                    ms=duration_ms,
+                    rid=req_id,
+                )
+            except Exception:
+                pass
+
+
+app.add_middleware(_MetricsMiddleware)
+
+
 
 
 if __name__ == "__main__":

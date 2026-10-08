@@ -1,3 +1,4 @@
+import asyncio
 # SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
 # SPDX-License-Identifier: AGPL-3.0-only
 """Agent endpoints: /api/agent/run, /run/stream, /plan."""
@@ -189,3 +190,104 @@ async def run_agent_plan(req: Request):
         "session_id": session_id,
         "session_uuid": session_uuid,
     }
+
+@router.post("/api/agent/stream")
+async def agent_stream(req: Request):
+    """Tool-aware SSE — reports tool_calls in real time as they happen.
+
+    SSE event types:
+      start, iteration, tool_call, tool_result, answer, done, error
+    """
+    from ..runtime import state, log
+    from .. import sessions as _sessions
+    from .. import memory as _memory
+    from .. import orchestrator as _orch
+    from .. import state as _app_state
+
+    if not state.get("ready"):
+        return JSONResponse({"error": "server not ready"}, status_code=503)
+
+    # ensure_pool
+    if _app_state.get_pool() is None:
+        try:
+            await _app_state.init_pool()
+        except Exception:
+            pass
+
+    body = await req.json()
+    prompt = body.get("input", "")
+    session_id = body.get("session_id", "stream-default")
+    model = body.get("model")
+
+    if not prompt:
+        return JSONResponse({"error": "input required"}, status_code=400)
+
+    session_uuid = await _sessions.get_or_create(session_id)
+    if session_uuid:
+        await _memory.log_event(
+            session_uuid,
+            "user_message",
+            {"content": prompt, "model": model or "default", "mode": "stream-orch"},
+        )
+
+    queue: asyncio.Queue = asyncio.Queue()
+
+    async def _cb(ev):
+        await queue.put(ev)
+
+    async def _runner():
+        try:
+            result = await _orch.run_agent(
+                prompt, session_uuid=session_uuid, model=model, on_event=_cb
+            )
+            if session_uuid:
+                if result.get("ok"):
+                    await _memory.log_event(
+                        session_uuid,
+                        "assistant_message",
+                        {
+                            "content": result.get("answer", ""),
+                            "mode": "stream-orch",
+                            "steps_count": len(result.get("steps", [])),
+                        },
+                    )
+                else:
+                    await _memory.log_event(
+                        session_uuid,
+                        "llm_error",
+                        {"error": result.get("error", "unknown")},
+                    )
+            await queue.put({"type": "final", "ok": result.get("ok", False),
+                             "answer": result.get("answer", ""),
+                             "error": result.get("error"),
+                             "iterations": result.get("iterations", 1),
+                             "steps_count": len(result.get("steps", []))})
+        except Exception as e:
+            await queue.put({"type": "error", "error": f"{type(e).__name__}: {e}"})
+        finally:
+            await queue.put({"type": "__END__"})
+
+    async def _event_stream():
+        runner_task = asyncio.create_task(_runner())
+        try:
+            yield f"data: {_json.dumps({'type': 'session', 'session_uuid': session_uuid})}\n\n"
+            while True:
+                ev = await queue.get()
+                if ev.get("type") == "__END__":
+                    break
+                yield f"data: {_json.dumps(ev)}\n\n"
+            yield f"data: {_json.dumps({'type': 'done'})}\n\n"
+        finally:
+            if not runner_task.done():
+                runner_task.cancel()
+
+    return StreamingResponse(
+        _event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+

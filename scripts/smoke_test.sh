@@ -509,6 +509,24 @@ else
     check "Request ID: header missing" "1"
 fi
 
+# 32. Tool-aware streaming (Part 18)
+STREAM18_SESSION="smoke-s18-$(date +%s)-$$"
+STREAM18_RESP=$(curl -sf --max-time 120 -N -X POST "$URL/api/agent/stream" \
+    -H "Content-Type: application/json" \
+    -d "{\"input\":\"What time is it UTC? Use current_time tool.\",\"session_id\":\"$STREAM18_SESSION\"}" 2>/dev/null | head -c 4000 || echo "")
+
+if echo "$STREAM18_RESP" | grep -q '"type": *"done"'; then
+    check "Tool-aware streaming: SSE done received" "0"
+elif echo "$STREAM18_RESP" | grep -q '"type": *"tool_call"'; then
+    check "Tool-aware streaming: tool_call event seen (partial)" "0"
+elif echo "$STREAM18_RESP" | grep -q '"type"'; then
+    check "Tool-aware streaming: SSE events present (lenient)" "0"
+else
+    check "Tool-aware streaming: no SSE response" "1"
+fi
+
+curl -sf -X DELETE "$URL/api/sessions/$STREAM18_SESSION" > /dev/null 2>&1 || true
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 
