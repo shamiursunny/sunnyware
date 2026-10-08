@@ -13,6 +13,9 @@ from .web_search import WebSearchTool
 from .weather import WeatherTool
 from .date_calc import DateCalcTool
 from .python_eval import PythonEvalTool
+from .list_files import ListFilesTool
+from .delete_file import DeleteFileTool
+from .mkdir import MkdirTool
 
 
 _TOOLS = {
@@ -27,6 +30,9 @@ _TOOLS = {
     WeatherTool.name: WeatherTool(),
     DateCalcTool.name: DateCalcTool(),
     PythonEvalTool.name: PythonEvalTool(),
+    ListFilesTool.name: ListFilesTool(),
+    DeleteFileTool.name: DeleteFileTool(),
+    MkdirTool.name: MkdirTool(),
 }
 
 

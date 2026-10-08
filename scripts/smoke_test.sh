@@ -447,6 +447,48 @@ else
     check "Python eval: malformed response" "1"
 fi
 
+# 27. mkdir + list_files + delete_file roundtrip (Part 16)
+MKDIR_RESP=$(curl -sf -X POST "$URL/api/tools/mkdir" \
+    -H "Content-Type: application/json" \
+    -d '{"path":"smoke-part16-dir"}' 2>/dev/null || echo "")
+
+if echo "$MKDIR_RESP" | grep -q '"created"'; then
+    LIST_RESP=$(curl -sf -X POST "$URL/api/tools/list_files" \
+        -H "Content-Type: application/json" \
+        -d '{}' 2>/dev/null || echo "")
+    if echo "$LIST_RESP" | grep -q 'smoke-part16-dir'; then
+        check "File ops: mkdir + list_files sees dir" "0"
+    else
+        check "File ops: dir created but not listed" "1"
+    fi
+else
+    check "File ops: mkdir failed" "1"
+fi
+
+# 28. delete_file (empty dir)
+DEL_RESP=$(curl -sf -X POST "$URL/api/tools/delete_file" \
+    -H "Content-Type: application/json" \
+    -d '{"path":"smoke-part16-dir"}' 2>/dev/null || echo "")
+
+if echo "$DEL_RESP" | grep -q '"deleted"'; then
+    check "File ops: delete_file works" "0"
+else
+    check "File ops: delete_file failed" "1"
+fi
+
+# 29. Sandbox escape rejected
+ESCAPE_RESP=$(curl -sf -X POST "$URL/api/tools/mkdir" \
+    -H "Content-Type: application/json" \
+    -d '{"path":"../../../etc/evil"}' 2>/dev/null || echo "")
+
+if echo "$ESCAPE_RESP" | grep -q '"error"' && echo "$ESCAPE_RESP" | grep -q 'escapes workspace'; then
+    check "File ops: sandbox escape blocked" "0"
+elif echo "$ESCAPE_RESP" | grep -q '"error"'; then
+    check "File ops: escape blocked (different msg, lenient)" "0"
+else
+    check "File ops: escape NOT blocked" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 
