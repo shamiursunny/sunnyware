@@ -140,6 +140,9 @@ if [ "$LLM_STATUS_MT" = "ok" ]; then
         -H "Content-Type: application/json" \
         -d "{\"input\":\"My name is Alex. Reply with only: OK\",\"session_id\":\"$MT_SESSION\"}" > /dev/null 2>&1
 
+    # Give Neon a moment to commit the event before Turn 2 reads history
+    sleep 1
+
     # Turn 2: recall name (same session)
     MT_RESP=$(curl -sf -X POST "$URL/api/agent/run" \
         -H "Content-Type: application/json" \
