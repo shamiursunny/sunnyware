@@ -707,6 +707,35 @@ else
     check "Cost tracking: endpoints missing" "1"
 fi
 
+# 43. Persistent workspace (Part 31)
+READY_WS=$(curl -sf "$URL/health/ready" 2>/dev/null || echo "")
+
+if echo "$READY_WS" | grep -q '"workspace_path"'; then
+    WS_PATH=$(echo "$READY_WS" | grep -o '"workspace_path": *"[^"]*"' | sed 's/.*"\([^"]*\)"$/\1/')
+    PERSIST=$(echo "$READY_WS" | grep -o '"persistent_storage": *[a-z]*' | awk '{print $2}')
+
+    # Write a marker file, read it back (proves file ops go to workspace)
+    MARKER="persist-test-$(date +%s)"
+    WRITE_OK=$(curl -sf -X POST "$URL/api/tools/write_file" \
+        -H "Content-Type: application/json" \
+        -d "{\"path\":\"$MARKER.txt\",\"content\":\"marker-body\"}" 2>/dev/null || echo "")
+    READ_OK=$(curl -sf -X POST "$URL/api/tools/read_file" \
+        -H "Content-Type: application/json" \
+        -d "{\"path\":\"$MARKER.txt\"}" 2>/dev/null || echo "")
+
+    if echo "$READ_OK" | grep -q "marker-body"; then
+        check "Persistent storage: workspace=$WS_PATH (write+read OK)" "0"
+        # Cleanup
+        curl -sf -X POST "$URL/api/tools/delete_file" \
+            -H "Content-Type: application/json" \
+            -d "{\"path\":\"$MARKER.txt\"}" > /dev/null 2>&1 || true
+    else
+        check "Persistent storage: write/read failed" "1"
+    fi
+else
+    check "Persistent storage: /health/ready missing workspace_path" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 

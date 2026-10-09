@@ -7,7 +7,8 @@ from pathlib import Path
 
 
 def _workspace() -> Path:
-    return Path(os.getenv("SUNNYWARE_WORKSPACE", "./data/workspace")).resolve()
+    from .. import paths
+    return paths.workspace()
 
 
 def _safe_path(rel: str) -> Path:

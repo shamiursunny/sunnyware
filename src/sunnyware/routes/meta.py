@@ -100,6 +100,15 @@ async def readiness():
     checks["memory"] = mem_health.get("status", "unknown")
     checks["tools"] = len(tools_registry.list_tools())
 
+    # Part 31: persistent storage info
+    try:
+        from .. import paths as _paths
+        checks["workspace_path"] = str(_paths.workspace())
+        checks["persistent_storage"] = _paths.using_persistent_storage()
+    except Exception:
+        checks["workspace_path"] = "unknown"
+        checks["persistent_storage"] = False
+
     try:
         await memory_store.select_relevant_events("health", limit=1)
         checks["memory_context"] = "ok"

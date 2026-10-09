@@ -11,7 +11,7 @@ from .logging_config import configure_logging
 from . import state as app_state
 
 
-log = configure_logging("/data/logs" if os.path.exists("/data") else "./data/logs")
+log = configure_logging()  # uses paths.logs_dir() internally
 
 
 state = {
@@ -31,9 +31,10 @@ def init_state() -> None:
         cfg = load_config()
         state["config"] = cfg
         log.info("Config loaded", agent_path=cfg.generic_agent_path)
-        data_dir = Path("./data")
-        (data_dir / "workspace").mkdir(parents=True, exist_ok=True)
-        (data_dir / "logs").mkdir(parents=True, exist_ok=True)
+        # Part 31: use persistent paths (falls back to ./data if no /data)
+        from . import paths as _paths
+        _paths.workspace()   # ensures workspace dir exists
+        _paths.logs_dir()    # ensures logs dir exists
         state["ready"] = True
 
         # Part 26: register jobs + try starting scheduler (only if loop is running)

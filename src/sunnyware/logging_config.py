@@ -8,8 +8,14 @@ from pathlib import Path
 import structlog
 
 
-def configure_logging(log_dir: str = "/data/logs"):
+def configure_logging(log_dir: str = None):
     """Configure structlog. Falls back to stderr if file logging fails."""
+    if log_dir is None:
+        try:
+            from . import paths
+            log_dir = str(paths.logs_dir())
+        except Exception:
+            log_dir = "./data/logs"
     file_handler = None
     try:
         Path(log_dir).mkdir(parents=True, exist_ok=True)

@@ -10,7 +10,8 @@ MAX_BYTES = 256 * 1024  # 256 KB
 
 
 def _workspace() -> Path:
-    return Path(os.getenv("SUNNYWARE_WORKSPACE", "./data/workspace")).resolve()
+    from .. import paths
+    return paths.workspace()
 
 
 def _safe_path(rel: str) -> Path:
