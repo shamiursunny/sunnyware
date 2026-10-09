@@ -692,6 +692,18 @@ else
     check "Firewall: endpoint missing or headers absent" "1"
 fi
 
+# 42. Cost tracking (Part 29)
+USAGE_RESP=$(curl -sf "$URL/api/usage" 2>/dev/null || echo "")
+PRICING_RESP=$(curl -sf "$URL/api/usage/pricing" 2>/dev/null || echo "")
+
+if echo "$USAGE_RESP" | grep -q '"process_local"' && echo "$PRICING_RESP" | grep -q '"cost_table"'; then
+    check "Cost tracking: usage summary + pricing endpoints work" "0"
+elif echo "$USAGE_RESP" | grep -q '"process_local"'; then
+    check "Cost tracking: usage endpoint works (partial)" "0"
+else
+    check "Cost tracking: endpoints missing" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 

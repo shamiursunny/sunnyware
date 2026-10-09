@@ -144,3 +144,23 @@ async def firewall_status():
     from .. import firewall as _fw
     return _fw.status()
 
+@router.get("/api/usage")
+async def usage_summary(days: int = 7):
+    """LLM usage + cost summary for current tenant."""
+    from .. import usage as _usage
+    return await _usage.summary(days=days)
+
+
+@router.get("/api/usage/recent")
+async def usage_recent(limit: int = 50):
+    """Recent LLM calls (in-memory, current process)."""
+    from .. import usage as _usage
+    return await _usage.recent(limit=limit)
+
+
+@router.get("/api/usage/pricing")
+async def usage_pricing():
+    """Cost table (USD per 1M tokens) used for estimates."""
+    from .. import usage as _usage
+    return {"cost_table": _usage.cost_table_snapshot()}
+

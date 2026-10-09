@@ -106,6 +106,26 @@ async def chat(
             msg = data["choices"][0]["message"]
             content = msg.get("content") or ""
             tool_calls = msg.get("tool_calls")
+
+            # Part 29: record token usage + cost
+            try:
+                from . import usage as _usage
+                u = data.get("usage") or {}
+                in_tok = int(u.get("prompt_tokens", 0) or 0)
+                out_tok = int(u.get("completion_tokens", 0) or 0)
+                if in_tok == 0 and out_tok == 0:
+                    # Approximate from content (small local models may not report usage)
+                    in_tok = max(1, (len(prompt) if isinstance(prompt, str) else 0) // 4)
+                    out_tok = max(1, len(content) // 4)
+                await _usage.record(
+                    model=data.get("model", model or _model()),
+                    input_tokens=in_tok,
+                    output_tokens=out_tok,
+                    latency_ms=latency_ms,
+                )
+            except Exception:
+                pass
+
             return {
                 "ok": True,
                 "content": content,
