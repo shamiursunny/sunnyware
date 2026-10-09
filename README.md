@@ -14,7 +14,11 @@ license: agpl-3.0
 **Production-grade AI agent orchestrator** -- 14 tools, cross-session memory, multi-step planning, MCP interop, all on Hugging Face free tier.
 
 **Live:** https://shamiur-sunnyware.hf.space
+**Chat UI:** https://shamiur-sunnyware.hf.space/ui
+**API docs:** https://shamiur-sunnyware.hf.space/docs
 **MCP:** https://shamiur-sunnyware.hf.space/mcp
+**Scheduler:** https://shamiur-sunnyware.hf.space/api/schedule
+**Usage:** https://shamiur-sunnyware.hf.space/api/usage
 **Author:** [Shamiur Rashid Sunny](https://shamiur.com) | shamiur@engineer.com | +880-01737394735
 
 ---
