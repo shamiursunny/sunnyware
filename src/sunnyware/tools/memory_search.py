@@ -36,6 +36,12 @@ class MemorySearchTool:
             return {"error": "database unavailable"}
 
         pattern = f"%{query}%"
+        # Part 24: scope to current tenant
+        try:
+            from .. import tenant as _tenant
+            owner = _tenant.get_key()
+        except Exception:
+            owner = ""
         try:
             async with pool.acquire() as conn:
                 rows = await conn.fetch(
@@ -44,10 +50,11 @@ class MemorySearchTool:
                     FROM events e
                     JOIN sessions s ON s.id = e.session_id
                     WHERE e.payload::text ILIKE $1
+                      AND s.owner_key = $3
                     ORDER BY e.id DESC
                     LIMIT $2
                     """,
-                    pattern, limit,
+                    pattern, limit, owner,
                 )
         except Exception as e:
             return {"error": f"search failed: {type(e).__name__}: {e}"}

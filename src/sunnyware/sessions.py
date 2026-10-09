@@ -1,10 +1,17 @@
 # SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Session CRUD via Neon Postgres (asyncpg pool from state.py)."""
+"""Session CRUD via Neon — scoped by tenant (API key)."""
 
 import json
 from typing import Optional
+
 from . import state as app_state
+from . import tenant as tenant_ctx
+
+
+def _owner() -> str:
+    """Current tenant key. Empty string when auth is off (legacy shared)."""
+    return tenant_ctx.get_key()
 
 
 async def get_or_create(session_key: str, metadata: Optional[dict] = None) -> Optional[str]:
@@ -12,19 +19,19 @@ async def get_or_create(session_key: str, metadata: Optional[dict] = None) -> Op
     pool = app_state.get_pool()
     if pool is None:
         return None
-
+    owner = _owner()
     meta_json = json.dumps(metadata or {})
     try:
         async with pool.acquire() as conn:
             row = await conn.fetchrow(
                 """
-                INSERT INTO sessions (session_key, metadata)
-                VALUES ($1, $2::jsonb)
-                ON CONFLICT (session_key) DO UPDATE
+                INSERT INTO sessions (session_key, owner_key, metadata)
+                VALUES ($1, $2, $3::jsonb)
+                ON CONFLICT (session_key, owner_key) DO UPDATE
                     SET updated_at = NOW()
                 RETURNING id
                 """,
-                session_key, meta_json,
+                session_key, owner, meta_json,
             )
             return str(row["id"]) if row else None
     except Exception:
@@ -32,21 +39,27 @@ async def get_or_create(session_key: str, metadata: Optional[dict] = None) -> Op
 
 
 async def get(session_key: str) -> Optional[dict]:
-    """Fetch session by key. Returns dict or None."""
+    """Fetch session by key scoped to current tenant."""
     pool = app_state.get_pool()
     if pool is None:
         return None
+    owner = _owner()
     try:
         async with pool.acquire() as conn:
             row = await conn.fetchrow(
-                "SELECT id, session_key, created_at, updated_at, metadata FROM sessions WHERE session_key = $1",
-                session_key,
+                """
+                SELECT id, session_key, owner_key, created_at, updated_at, metadata
+                FROM sessions
+                WHERE session_key = $1 AND owner_key = $2
+                """,
+                session_key, owner,
             )
             if not row:
                 return None
             return {
                 "id": str(row["id"]),
                 "session_key": row["session_key"],
+                "owner_key": row["owner_key"],
                 "created_at": row["created_at"].isoformat(),
                 "updated_at": row["updated_at"].isoformat(),
                 "metadata": row["metadata"],
@@ -56,25 +69,28 @@ async def get(session_key: str) -> Optional[dict]:
 
 
 async def list_recent(limit: int = 20) -> list:
-    """List recent sessions."""
+    """List recent sessions (current tenant only)."""
     pool = app_state.get_pool()
     if pool is None:
         return []
+    owner = _owner()
     try:
         async with pool.acquire() as conn:
             rows = await conn.fetch(
                 """
-                SELECT id, session_key, created_at, updated_at, metadata
+                SELECT id, session_key, owner_key, created_at, updated_at, metadata
                 FROM sessions
+                WHERE owner_key = $1
                 ORDER BY updated_at DESC
-                LIMIT $1
+                LIMIT $2
                 """,
-                limit,
+                owner, limit,
             )
             return [
                 {
                     "id": str(r["id"]),
                     "session_key": r["session_key"],
+                    "owner_key": r["owner_key"],
                     "created_at": r["created_at"].isoformat(),
                     "updated_at": r["updated_at"].isoformat(),
                     "metadata": r["metadata"],
@@ -86,14 +102,16 @@ async def list_recent(limit: int = 20) -> list:
 
 
 async def delete(session_key: str) -> bool:
-    """Delete session (cascade removes events)."""
+    """Delete session (current tenant only); cascades to events."""
     pool = app_state.get_pool()
     if pool is None:
         return False
+    owner = _owner()
     try:
         async with pool.acquire() as conn:
             result = await conn.execute(
-                "DELETE FROM sessions WHERE session_key = $1", session_key
+                "DELETE FROM sessions WHERE session_key = $1 AND owner_key = $2",
+                session_key, owner,
             )
             return result.startswith("DELETE 1")
     except Exception:
@@ -101,7 +119,7 @@ async def delete(session_key: str) -> bool:
 
 
 async def health_check() -> dict:
-    """Verify sessions table is accessible."""
+    """Verify sessions table accessible."""
     pool = app_state.get_pool()
     if pool is None:
         return {"status": "no_pool"}

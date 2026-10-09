@@ -602,6 +602,58 @@ else
     check "Docs: /docs returned $DOCS_STATUS" "1"
 fi
 
+# 38. Multi-tenant (Part 24) — session isolation (only meaningful when auth ON)
+AUTH_STATUS=$(curl -sf "$URL/api/auth/status" 2>/dev/null || echo "")
+AUTH_ENABLED=$(echo "$AUTH_STATUS" | grep -o '"auth_enabled": *[a-z]*' | awk '{print $2}')
+
+if [ "$AUTH_ENABLED" = "true" ]; then
+    # With auth on, use two keys and verify each sees its own sessions
+    KEY1="test-key-1"
+    KEY2="test-key-2"
+    S1="tenant-$(date +%s)-a"
+    S2="tenant-$(date +%s)-b"
+
+    curl -sf -X POST "$URL/api/agent/run" \
+        -H "Content-Type: application/json" \
+        -H "X-API-Key: $KEY1" \
+        -d "{\"input\":\"hello key1\",\"session_id\":\"$S1\"}" > /dev/null 2>&1 || true
+    curl -sf -X POST "$URL/api/agent/run" \
+        -H "Content-Type: application/json" \
+        -H "X-API-Key: $KEY2" \
+        -d "{\"input\":\"hello key2\",\"session_id\":\"$S2\"}" > /dev/null 2>&1 || true
+    sleep 2
+
+    LIST1=$(curl -sf "$URL/api/sessions?limit=100" -H "X-API-Key: $KEY1" 2>/dev/null || echo "")
+    LIST2=$(curl -sf "$URL/api/sessions?limit=100" -H "X-API-Key: $KEY2" 2>/dev/null || echo "")
+
+    if echo "$LIST1" | grep -q "$S1" && ! echo "$LIST1" | grep -q "$S2"; then
+        if echo "$LIST2" | grep -q "$S2" && ! echo "$LIST2" | grep -q "$S1"; then
+            check "Multi-tenant: tenant isolation working" "0"
+        else
+            check "Multi-tenant: tenant2 sees tenant1 session" "1"
+        fi
+    else
+        check "Multi-tenant: tenant1 list wrong" "1"
+    fi
+
+    curl -sf -X DELETE "$URL/api/sessions/$S1" -H "X-API-Key: $KEY1" > /dev/null 2>&1 || true
+    curl -sf -X DELETE "$URL/api/sessions/$S2" -H "X-API-Key: $KEY2" > /dev/null 2>&1 || true
+else
+    # Auth off — legacy shared namespace. Just verify sessions still work.
+    TS="legacy-$(date +%s)"
+    curl -sf -X POST "$URL/api/agent/run" \
+        -H "Content-Type: application/json" \
+        -d "{\"input\":\"hi\",\"session_id\":\"$TS\"}" > /dev/null 2>&1 || true
+    sleep 1
+    LL=$(curl -sf "$URL/api/sessions?limit=100" 2>/dev/null || echo "")
+    if echo "$LL" | grep -q "$TS"; then
+        check "Multi-tenant: auth-off shared namespace works" "0"
+    else
+        check "Multi-tenant: auth-off session not listed" "1"
+    fi
+    curl -sf -X DELETE "$URL/api/sessions/$TS" > /dev/null 2>&1 || true
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 

@@ -109,11 +109,16 @@ class _MetricsMiddleware:
         status_holder = {"code": 0}
 
         # ── Part 21: API key auth (opt-in) + rate limit ──
+        # ── Part 24: set tenant context from key (empty when auth off) ──
         try:
             from . import auth as _auth
+            from . import tenant as _tenant
+            _incoming_key = _auth.extract_key_from_headers(scope.get("headers") or []) or ""
+            # Only use key as tenant if auth is enabled (else shared namespace)
+            _tenant.set_key(_incoming_key if _auth.auth_enabled() else "")
             is_protected = path.startswith("/api/") and path != "/api/auth/status"
             if is_protected and _auth.auth_enabled():
-                key = _auth.extract_key_from_headers(scope.get("headers") or [])
+                key = _incoming_key
                 if not _auth.is_valid_key(key or ""):
                     body = _json.dumps({
                         "error": "unauthorized",

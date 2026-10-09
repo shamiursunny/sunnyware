@@ -183,6 +183,13 @@ async def select_relevant_events(
 
     patterns = [f"%{k}%" for k in keywords]
 
+    # Part 24: scope to current tenant
+    try:
+        from . import tenant as _tenant
+        owner = _tenant.get_key()
+    except Exception:
+        owner = ""
+
     try:
         async with pool.acquire() as conn:
             rows = await conn.fetch(
@@ -194,11 +201,13 @@ async def select_relevant_events(
                 WHERE e.event_type IN ('user_message', 'assistant_message')
                   AND e.payload::text ILIKE ANY($1::text[])
                   AND ($2::uuid IS NULL OR e.session_id != $2::uuid)
+                  AND s.owner_key = $3
                 ORDER BY e.id DESC
                 LIMIT 30
                 """,
                 patterns,
                 exclude_session_uuid,
+                owner,
             )
     except Exception:
         return []
