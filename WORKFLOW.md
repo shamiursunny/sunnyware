@@ -75,6 +75,7 @@ See [WORKFLOW.md](./WORKFLOW.md) for the locked dual-remote workflow.
 | 23d  | ab39620 | Live (docs)     | Backed up | Done   |
 | 24mt | ca23b56 | Live (tenant)   | Backed up | Done   |
 | 25t  | 0c3882c | Live (84 tests) | Backed up | Done   |
+| 26s  | 74fe10b | Live (scheduler)| Backed up | Done   |
 
 ## LLM Backend Configuration
 
