@@ -138,3 +138,9 @@ async def web_ui():
     from .. import webui
     return HTMLResponse(webui.HTML)
 
+@router.get("/api/firewall/status")
+async def firewall_status():
+    """Inspect IP allowlist + security header configuration."""
+    from .. import firewall as _fw
+    return _fw.status()
+

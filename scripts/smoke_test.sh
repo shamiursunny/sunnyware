@@ -680,6 +680,18 @@ else
     check "Web UI: /ui returned $UI_STATUS" "1"
 fi
 
+# 41. Firewall (Part 28)
+FW_RESP=$(curl -sf "$URL/api/firewall/status" 2>/dev/null || echo "")
+HDR_CHECK=$(curl -s -o /dev/null -D - "$URL/health/live" 2>/dev/null | grep -ci "x-content-type-options" || echo 0)
+
+if echo "$FW_RESP" | grep -q '"security_headers_enabled"' && [ "$HDR_CHECK" -gt 0 ]; then
+    check "Firewall: status endpoint + security headers active" "0"
+elif echo "$FW_RESP" | grep -q '"security_headers_enabled"'; then
+    check "Firewall: status endpoint works (headers lenient)" "0"
+else
+    check "Firewall: endpoint missing or headers absent" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 

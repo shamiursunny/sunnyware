@@ -125,6 +125,34 @@ class _MetricsMiddleware:
 
         # ── Part 21: API key auth (opt-in) + rate limit ──
         # ── Part 24: set tenant context from key (empty when auth off) ──
+        # ── Part 28: IP allowlist check ──
+        try:
+            from . import firewall as _fw
+            if _fw.enabled():
+                _ip = _fw.extract_client_ip(scope)
+                if not _fw.is_allowed(_ip):
+                    body = _json.dumps({
+                        "error": "forbidden",
+                        "detail": "client IP not in allowlist",
+                    }).encode()
+                    await send({
+                        "type": "http.response.start",
+                        "status": 403,
+                        "headers": [
+                            (b"content-type", b"application/json"),
+                            (b"x-request-id", req_id.encode("ascii")),
+                        ],
+                    })
+                    await send({"type": "http.response.body", "body": body})
+                    _metrics.incr("errors_total")
+                    log.info("firewall_rejected", path=path, rid=req_id, ip=_ip)
+                    return
+        except Exception as _e:
+            try:
+                log.error("firewall_error", err=f"{type(_e).__name__}: {_e}")
+            except Exception:
+                pass
+
         try:
             from . import auth as _auth
             from . import tenant as _tenant
@@ -193,6 +221,17 @@ class _MetricsMiddleware:
                 headers = list(message.get("headers", []))
                 if not any(k.lower() == b"x-request-id" for k, _ in headers):
                     headers.append((b"x-request-id", req_id.encode("ascii")))
+                # Part 28: security headers
+                try:
+                    from . import firewall as _fw
+                    if _fw.security_headers_enabled():
+                        _existing = {k.lower() for k, _ in headers}
+                        _scheme = scope.get("scheme", "https")
+                        for hk, hv in _fw.build_security_headers(_scheme):
+                            if hk not in _existing:
+                                headers.append((hk, hv))
+                except Exception:
+                    pass
                 message["headers"] = headers
             await send(message)
 
