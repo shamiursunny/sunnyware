@@ -243,5 +243,27 @@ app.add_middleware(_MetricsMiddleware)
 
 
 
+
+# ── Part 27: CORS (opt-in via SUNNYWARE_CORS_ORIGINS) ──
+try:
+    import os as _os
+    _origins_raw = (_os.getenv("SUNNYWARE_CORS_ORIGINS") or "").strip()
+    if _origins_raw:
+        from fastapi.middleware.cors import CORSMiddleware
+        _origins = [o.strip() for o in _origins_raw.split(",") if o.strip()]
+        app.add_middleware(
+            CORSMiddleware,
+            allow_origins=_origins,
+            allow_credentials=False,
+            allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+            allow_headers=["*"],
+        )
+        log.info("cors_enabled", origins=_origins)
+except Exception as _e:
+    try:
+        log.error("cors_setup_failed", err=f"{type(_e).__name__}: {_e}")
+    except Exception:
+        pass
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "7860")))

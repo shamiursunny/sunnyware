@@ -131,3 +131,10 @@ async def metrics_flush():
         "status": _metrics.persistence_status(),
     }
 
+@router.get("/ui", response_class=None)
+async def web_ui():
+    """Minimal chat web UI."""
+    from fastapi.responses import HTMLResponse
+    from .. import webui
+    return HTMLResponse(webui.HTML)
+

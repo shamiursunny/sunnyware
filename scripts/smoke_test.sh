@@ -668,6 +668,18 @@ else
     check "Scheduler: endpoint missing or no jobs" "1"
 fi
 
+# 40. Web UI + CORS (Part 27)
+UI_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$URL/ui" 2>/dev/null || echo "000")
+UI_BODY=$(curl -sf "$URL/ui" 2>/dev/null || echo "")
+
+if [ "$UI_STATUS" = "200" ] && echo "$UI_BODY" | grep -qi "sunnyware"; then
+    check "Web UI: /ui serves chat interface" "0"
+elif [ "$UI_STATUS" = "200" ]; then
+    check "Web UI: /ui returns 200 (partial)" "0"
+else
+    check "Web UI: /ui returned $UI_STATUS" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 
