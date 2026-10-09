@@ -35,6 +35,22 @@ def init_state() -> None:
         (data_dir / "workspace").mkdir(parents=True, exist_ok=True)
         (data_dir / "logs").mkdir(parents=True, exist_ok=True)
         state["ready"] = True
+
+        # Part 26: register jobs + try starting scheduler (only if loop is running)
+        try:
+            from .jobs import register_all as _register_jobs
+            from . import scheduler as _sched
+            _register_jobs()
+            _ok = _sched.start()
+            try:
+                log.info("scheduler_start_attempted", ok=_ok)
+            except Exception:
+                pass
+        except Exception as _e:
+            try:
+                log.error("scheduler_start_failed", err=f"{type(_e).__name__}: {_e}")
+            except Exception:
+                pass
         log.info("sunnyware ready")
     except Exception as e:
         log.error("Startup failed", error=str(e), exc_info=True)

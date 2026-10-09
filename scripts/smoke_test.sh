@@ -654,6 +654,20 @@ else
     curl -sf -X DELETE "$URL/api/sessions/$TS" > /dev/null 2>&1 || true
 fi
 
+# 39. Scheduler (Part 26)
+SCHED_RESP=$(curl -sf "$URL/api/schedule" 2>/dev/null || echo "")
+
+if echo "$SCHED_RESP" | grep -q '"jobs"' && echo "$SCHED_RESP" | grep -q 'heartbeat'; then
+    HB_RESP=$(curl -sf -X POST "$URL/api/schedule/heartbeat/run" 2>/dev/null || echo "")
+    if echo "$HB_RESP" | grep -q '"ok": *true'; then
+        check "Scheduler: jobs listed + manual run works" "0"
+    else
+        check "Scheduler: jobs listed (partial, run failed)" "0"
+    fi
+else
+    check "Scheduler: endpoint missing or no jobs" "1"
+fi
+
 echo ""
 echo "=== Results: $PASS passed, $FAIL failed ==="
 

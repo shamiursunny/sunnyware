@@ -25,6 +25,7 @@ from .routes import agent as agent_routes
 from .routes import eval as eval_routes
 from .routes import mcp as mcp_routes
 from .routes import auth as auth_routes
+from .routes import schedule as schedule_routes
 from .routes import tools as tools_routes
 from .routes import sessions as sessions_routes
 from .routes import memory_routes
@@ -33,7 +34,20 @@ from .routes import memory_routes
 @asynccontextmanager
 async def lifespan(app):
     init_state()
+    # Part 26: ensure scheduler running inside the live event loop
+    try:
+        from . import scheduler as _sched
+        _ok = _sched.start()
+        log.info("scheduler_lifespan_start", ok=_ok)
+    except Exception as e:
+        log.error("scheduler_lifespan_error", err=f"{type(e).__name__}: {e}")
     yield
+    # Shutdown
+    try:
+        from . import scheduler as _sched
+        _sched.stop()
+    except Exception:
+        pass
     state["ready"] = False
     log.info("sunnyware shutting down")
 
@@ -75,6 +89,7 @@ app.include_router(memory_routes.router)
 app.include_router(eval_routes.router)
 app.include_router(mcp_routes.router)
 app.include_router(auth_routes.router)
+app.include_router(schedule_routes.router)
 
 
 # FALLBACK: init state at import time (HF Spaces skips lifespan)
@@ -184,6 +199,13 @@ class _MetricsMiddleware:
         # Part 22: load persisted counters on first request per process
         try:
             await _metrics.ensure_loaded()
+        except Exception:
+            pass
+
+        # Part 26: lazy-start scheduler on first request (idempotent)
+        try:
+            from . import scheduler as _sched
+            _sched.start()
         except Exception:
             pass
 
