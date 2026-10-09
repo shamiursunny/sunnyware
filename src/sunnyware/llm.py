@@ -67,7 +67,7 @@ async def chat(
     payload = {
         "model": model or _model(),
         "messages": messages,
-        "temperature": 0.7,
+        "temperature": 0.2,
         "max_tokens": 500,
     }
     if tools:
@@ -163,7 +163,7 @@ async def stream_chat(
     payload = {
         "model": model or _model(),
         "messages": messages,
-        "temperature": 0.7,
+        "temperature": 0.2,
         "max_tokens": 500,
         "stream": True,
     }
