@@ -143,7 +143,7 @@ async def run_agent(
             model=model,
             system=system_prompt,
             history=history if iteration == 0 else messages,
-            tools=tools_schema if (iteration == 0 and use_native_tools) else None,
+            tools=tools_schema if use_native_tools else None,
         )
 
         if not result.get("ok"):
