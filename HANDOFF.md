@@ -1,171 +1,161 @@
-# Sunnyware — Handoff Document
+# HANDOFF — Sunnyware Current State
 
-**For future sessions. Read this first.**
+> **Read this first.** This file is the single source of truth for "where we are."
+> Update it at the end of every work session.
 
-## What this is
+**Last updated:** 2026-10-10 (Part 31F wrap)
+**Current commit:** fcafe08
+**Live Space:** https://shamiur-sunnyware.hf.space/ui
+**GitHub:** https://github.com/shamiursunny/sunnyware
 
-Sunnyware is a production-grade AI agent orchestrator built incrementally
-across 30 iterations. It runs 24/7 on Hugging Face Spaces (free tier),
-uses Neon Postgres for persistence, and exposes itself via HTTP, SSE,
-MCP, and a web chat UI.
+---
 
-## Live URLs
+## How to resume in a new tab
 
-- **Chat UI:**   https://shamiur-sunnyware.hf.space/ui
-- **API docs:**  https://shamiur-sunnyware.hf.space/docs
-- **MCP:**       https://shamiur-sunnyware.hf.space/mcp
-- **Scheduler:** https://shamiur-sunnyware.hf.space/api/schedule
-- **Usage:**     https://shamiur-sunnyware.hf.space/api/usage
-- **Metrics:**   https://shamiur-sunnyware.hf.space/metrics
-- **Firewall:**  https://shamiur-sunnyware.hf.space/api/firewall/status
+1. Open a new conversation
+2. Paste this prompt:
 
-## Repos (both at same commit)
+   > Read HANDOFF.md and AGENTS.md in full. Then tell me the current state
+   > and what's next. Wait for my instruction before doing anything.
 
-- HF:     https://huggingface.co/spaces/shamiur/sunnyware
-- GitHub: https://github.com/shamiursunny/sunnyware
+3. The AI will read both files and be ready to continue.
 
-## Local development
+---
 
-```bash
-cd /h/sunnyware
-source .venv/Scripts/activate      # Windows Git Bash
-export PYTHONPATH="$PWD/src"
-taskkill //F //IM python.exe 2>/dev/null || true
-python app.py                       # foreground, :7860
+## Current state
 
-## Deploy to HF (dual-remote workflow)
+### Deployed and live
+- Full RAG pipeline: upload -> chunk -> embed -> FAISS -> retrieve
+- Groq cloud LLM (gpt-oss-20b primary; 120b available)
+- 15 agent tools including `rag_search` and `python_eval` workbench
+- Data science workbench in python_eval (pandas, duckdb, matplotlib,
+  scipy, sklearn, statsmodels, seaborn, plotly, openpyxl, xlsxwriter)
+- All Part-31 hardening fixes live
 
-    cd /h/sunnyware
-    git add .
-    git commit -m "Part N: description"
-    ./push_hf.sh                # HF (helper script, token embedded)
-    git push origin main        # GitHub
+### Health check
+    curl https://shamiur-sunnyware.hf.space/health/ready
+    -> status: ok, llm: ok, python_eval: ok, tools: 15
 
-Wait ~3 min for HF rebuild, then run:
-    bash scripts/smoke_test.sh "https://shamiur-sunnyware.hf.space"
+### Sync state
+- Local: fcafe08
+- GitHub: fcafe08
+- HF: fcafe08
+- Unpushed: 0
 
-## Architecture
+---
 
-    Clients (HTTP, SSE, MCP, Web UI)
-             |
-       FastAPI (gradio.Server) + ASGI middleware
-             |  - auth (opt-in API keys)
-             |  - rate limit (per-key)
-             |  - firewall (IP allowlist, opt-in)
-             |  - security headers
-             |  - metrics (in-memory + Neon persist)
-             |  - request IDs
-             |  - scheduler lazy-start
-             |  - tenant context (contextvars)
-             |
-       Routes:      Orchestrator    MCP handler   Scheduler
-       /agent       (ReAct loop)    tools/list    jobs
-       /tools       - native        tools/call    - heartbeat
-       /sessions    - prompt-JSON                 - session_cleanup
-       /memory      - LLM (Groq/Ollama)
-       /eval        - Tools (14)
-       /mcp
-       /auth
-       /schedule
-             |
-       Neon Postgres
-       - sessions (owner_key for tenants)
-       - events (memory)
-       - metrics_counters
-       - scheduled_jobs
-       - llm_usage
+## What was just completed (Part 31 A-F)
 
-## Key facts / gotchas
+See WORKFLOW.md for full details. Summary:
 
-### HF quirks
-- emoji: field in README must be a real Extended_Pictographic char, not text
-- HF skips FastAPI lifespan on its launch path -> state also init'd at import
-- BaseHTTPMiddleware (the decorator) buffers SSE -> use ASGI middleware class
-- First request after cold start may be slow (Neon pool init ~30s)
-- HF build takes ~3 min for full rebuild
+- **Part 31**  RAG (bge-small + FAISS) + Groq LLM + rag_search tool
+- **Part 31D** Data science workbench for python_eval (sandboxed, hardened)
+- **Part 31E** Memory caps + tool-result truncation + tool-name aliases
+- **Part 31F** Directive prompt + placeholder retry + chart base64 injection
 
-### Local quirks
-- Up-arrow key on this laptop auto-fires -> run: bind '"\e[A":""' at session start
-- Large heredocs can get cut off -> use notepad file.md for markdown files
-- Always source .venv/Scripts/activate before running python
+All smoke tests passing:
+- rag_smoke_test.py         PASS
+- rag_narrative_smoke.py    PASS
+- agent_rag_smoke.py        PASS
+- sandbox_smoke.py          13/13
+- memory_cap_smoke.py       9/9
+- truncation_smoke.py       6/6
+- placeholder_smoke.py      8/8
 
-### Test flakiness
-- Local Ollama flakes on tests #8 (LLM round-trip) and #10 (multi-turn)
-  -> HF with Groq passes them reliably
-- Tests #21 and #22 (planner) may take 60-90s locally
+---
 
-## What is implemented (Parts 1-30)
+## What's next (recommended priority)
 
-### Infrastructure (Parts 1-5B)
-- FastAPI on HF via gradio.Server
-- Neon Postgres (sessions, events, migrations)
-- LLM client (Groq native + Ollama prompt-JSON fallback)
-- Multi-turn + cross-session memory
+1. **Real PDF end-to-end test** (~10 min)
+   Upload an actual PDF (10-K, invoice, contract) to the WebUI.
+   Verify pypdf extraction works on real documents.
 
-### Agent (Parts 6-16)
-- Orchestrator (ReAct, hybrid tool calling)
-- 14 tools (see README)
-- Multi-step planner (parallel-capable via asyncio.gather)
-- Session history API (history/export/rewind)
+2. **WebUI file-upload button** (~30 min)
+   Add a Gradio file-picker panel to webui.py.
+   Wire it to POST /api/rag/upload.
 
-### Production (Parts 17-30)
-- Metrics + request IDs + structured logs
-- Persistent metrics in Neon (write-through, throttled)
-- SSE streaming (direct + tool-aware)
-- Evaluation suite (8 cases, 4 scoring modes)
-- MCP server (HTTP JSON-RPC + stdio runner)
-- API key auth (opt-in)
-- Rate limiting (per-key, sliding window)
-- Multi-tenant session isolation (contextvars)
-- Background scheduled jobs (heartbeat + session cleanup)
-- Web chat UI at /ui
-- CORS (opt-in)
-- IP allowlist + security headers
-- Per-tenant LLM usage + cost tracking
+3. **Repository cleanup** (~5 min)
+   Archive the ~20 stale scripts/*.bak.partN* files into
+   scripts/_archive_stale/.
 
-### Quality
-- 84 pytest unit tests
-- 42 E2E smoke tests
-- README + OpenAPI docs + WORKFLOW.md
+4. **README refresh** (~15 min)
+   Public-facing docs, architecture diagram, live demo links.
 
-## Environment variables
+5. **Part 32** — next feature (define together)
 
-| Var | Default | Purpose |
-|---|---|---|
-| NEON_DATABASE_URL | - | Postgres (required) |
-| LLM_BASE_URL | http://localhost:11434/v1 | LLM endpoint |
-| LLM_API_KEY | ollama | LLM key |
-| LLM_MODEL | gemma2-2b-tuned-stable:latest | Model |
-| LLM_NATIVE_TOOLS | auto | Force native vs prompt-JSON |
-| SUNNYWARE_API_KEYS | unset | API keys (enables auth) |
-| SUNNYWARE_RATE_LIMIT_PER_MINUTE | 0 | Rate limit |
-| SUNNYWARE_PERSIST_METRICS | true | Persist counters |
-| SUNNYWARE_PERSIST_USAGE | true | Persist token usage |
-| SUNNYWARE_IP_ALLOWLIST | unset | IP/CIDR list (enables firewall) |
-| SUNNYWARE_SECURITY_HEADERS | true | Security headers |
-| SUNNYWARE_CORS_ORIGINS | unset | CORS allowlist |
-| SUNNYWARE_SCHEDULE_ENABLED | true | Background jobs |
-| SUNNYWARE_SESSION_TTL_DAYS | 30 | Cleanup TTL |
-| SUNNYWARE_WORKSPACE | ./data/workspace | File sandbox |
+---
 
-## How to resume
+## Key decisions made in Part 31
 
-    cd /h/sunnyware
-    source .venv/Scripts/activate
-    git fetch hf && git fetch origin
-    git log --oneline -5
-    pytest tests/ -q
+- CPU-only embeddings (bge-small-en-v1.5, 2-thread cap for old laptop safety)
+- Groq over local LLM (zero laptop heat, better tool calling, free tier)
+- gpt-oss-20b over 120b (4x the TPM budget on free tier, faster, sufficient)
+- FAISS over other vector stores (no external dependency)
+- Per-tenant vector store (scoped by tenant.get_key(), falls back to "default")
+- DuckDB over polars (polars needs AVX2/FMA; crashes on 3rd-gen i7)
+- Sandbox, not full PC (rich libraries, jailed to /data/workspace, no os/subprocess)
 
-Then read WORKFLOW.md for the full part-by-part history.
+---
 
-## Adding a new Part N
+## Environment variables in use
 
-1. Read WORKFLOW.md -> see last commit + part number
-2. Pattern: file -> wire into main.py -> smoke test -> commit -> push both remotes
-3. Update WORKFLOW.md with the new row
-4. Never push if smoke test fails
-5. Both remotes must end at the same commit hash
+Local .env (see .env.example for all options):
+- LLM_BASE_URL=https://api.groq.com/openai/v1
+- LLM_API_KEY=gsk_...   (rotated periodically)
+- LLM_MODEL=openai/gpt-oss-20b
+- SUNNYWARE_CPU_THREADS=2
+- SUNNYWARE_AGENT_TIMEOUT=90
+- NEON_DATABASE_URL=...   (for memory + sessions)
 
-## Author
+HF Space secrets mirror the above.
 
-Shamiur Rashid Sunny -- shamiur@engineer.com -- https://shamiur.com
+---
+
+## Known limitations and gotchas
+
+1. **Do NOT run `pip install` piped to `tail` on MINGW** — it buffers
+   everything for minutes. Use `--progress-bar on` for live output.
+
+2. **MINGW `/tmp/` is NOT Windows `/tmp/`** — use relative paths for
+   file arguments shared between bash and native Windows Python.
+
+3. **Prefer Python heredocs over bash heredocs** for multi-line content.
+   Inside triple-quoted strings, `\` can mis-escape.
+
+4. **HF Space rebuild time** — ~1 min for code-only changes, ~10 min if
+   requirements.txt changed (new wheels download).
+
+5. **HF Space runs on ZeroGPU hardware** — works fine for CPU workloads.
+   The iframe sometimes shows "refused to connect" while the API is fine.
+   Use `curl /health/ready` as ground truth.
+
+6. **Groq free-tier TPM limits** — 8K tokens/min for gpt-oss-20b.
+   Memory caps + truncation keep us under it.
+
+7. **gpt-oss-20b quirks** — sometimes abbreviates tool names or returns
+   placeholder text. Alias map + retry handle both.
+
+8. **Pre-Groq `.env` backup** lives at `.env.bak.20261010-171322`.
+   Keep it until Groq feels stable.
+
+---
+
+## See also
+
+- `WORKFLOW.md` — dual-remote workflow + per-part progress log
+- `AGENTS.md`   — briefing for AI assistants on this repo
+- `README.md`   — public-facing project overview
+
+---
+
+## How to update this file
+
+At the end of every session, before committing:
+
+- Update the "Last updated" line at top
+- Update the "Current commit" line
+- Update the "Sync state" block
+- Move completed items out of "What's next"
+- Add any new gotchas to the list
+
+Then commit + push both remotes.
