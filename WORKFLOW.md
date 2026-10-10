@@ -79,7 +79,7 @@ See [WORKFLOW.md](./WORKFLOW.md) for the locked dual-remote workflow.
 | 27c  | c6c99d2 | Live (web ui)   | Backed up | Done   |
 | 28f  | b56b648 | Live (firewall) | Backed up | Done   |
 | 29c  | c5dbdd1 | Live (cost)     | Backed up | Done   |
-| 31   | 2ed1e0e | Live (RAG+Groq) | Backed up | Done          |
+| 31D  | f0107e6 | Live (workbench)| Backed up | Done         |
 
 ## LLM Backend Configuration
 
