@@ -387,6 +387,25 @@ async def run_agent(
             }
 
         if steps:
+            # Part 31F-ext: empty content after a tool result -> retry once
+            # with a hard directive before falling back to the placeholder.
+            if not _placeholder_retry_used:
+                _placeholder_retry_used = True
+                try:
+                    from . import metrics as _m
+                    _m.incr("empty_after_tool_retry_total")
+                except Exception:
+                    pass
+                messages.append({
+                    "role": "user",
+                    "content": (
+                        "You have the tool result above. "
+                        "Write a short final answer that uses that result. "
+                        "For charts, just say the chart is ready. "
+                        "Do NOT return empty content."
+                    ),
+                })
+                continue
             return {
                 "ok": True,
                 "answer": f"(completed {len(steps)} tool call(s), no final answer)",
