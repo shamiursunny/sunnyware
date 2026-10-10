@@ -188,6 +188,61 @@ def _looks_like_placeholder(text: str) -> bool:
     return False
 
 
+# ── Part 31F-ext3: inject real base64 into answers that reference it ──
+_IMG_PLACEHOLDERS = (
+    "{{image_base64}}",
+    "{{ image_base64 }}",
+    "{{base64}}",
+    "{{ base64 }}",
+    "{{image}}",
+    "{{ image }}",
+    "<IMAGE_BASE64>",
+    "<image_base64>",
+    "<BASE64>",
+)
+
+
+def _inject_chart_base64(answer: str, steps: list) -> str:
+    """If the model wrote a placeholder instead of the real base64 chart,
+    substitute the actual base64 from the tool steps."""
+    if not answer or not steps:
+        return answer
+
+    # Collect the newest valid base64 from any tool step
+    real_b64 = None
+    for s in reversed(steps):
+        r = s.get("result") or {}
+        if not isinstance(r, dict):
+            continue
+        b64 = r.get("image_base64")
+        if isinstance(b64, str) and b64 and not b64.startswith("["):
+            real_b64 = b64
+            break
+    if not real_b64:
+        return answer
+
+    # Replace any placeholder tokens
+    for tok in _IMG_PLACEHOLDERS:
+        if tok in answer:
+            answer = answer.replace(tok, real_b64)
+
+    # Also handle the case where the model emitted "data:image/png;base64,<short-b64>"
+    # with actual (but broken) base64 characters instead of a placeholder.
+    import re
+    def _sub(m):
+        prefix, content = m.group(1), m.group(2)
+        # If the content looks like a placeholder (short, contains braces) replace it
+        if "{" in content or "}" in content or len(content) < 200:
+            return prefix + real_b64 + ")"
+        return m.group(0)
+    answer = re.sub(
+        r"(!\[[^\]]*\]\(data:image/png;base64,)([^)]+)\)",
+        _sub,
+        answer,
+    )
+    return answer
+
+
 async def _execute_tool(tool_name: str, tool_args: dict) -> dict:
     from . import metrics as _metrics
     # Part 31E-ext2: resolve alias -> canonical name
@@ -350,6 +405,7 @@ async def run_agent(
 
         if parsed is not None and "answer" in parsed:
             _ans = str(parsed.get("answer", ""))
+            _ans = _inject_chart_base64(_ans, steps)
             await _emit(on_event, {"type": "answer", "text": _ans})
             return {
                 "ok": True,
@@ -381,7 +437,7 @@ async def run_agent(
                 continue
             return {
                 "ok": True,
-                "answer": content,
+                "answer": _inject_chart_base64(content, steps),
                 "steps": steps,
                 "iterations": iteration + 1,
             }
