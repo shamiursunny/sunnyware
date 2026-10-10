@@ -278,3 +278,50 @@ Test #20 verifies SSE content + done events received.
 
 ### Rollback
 - `.env.bak.20261010-171322` — pre-Groq Ollama config
+\n
+
+## Data Science Workbench for python_eval (Part 31D)
+
+### Deliverable
+Agent's `python_eval` tool upgraded from a 40-builtin calculator into
+a full data science workbench - safe sandbox, rich libraries, chart
+capture, DuckDB SQL helpers.
+
+### Preloaded (no import needed)
+np, pd, plt, sns, scipy, stats, sklearn, sqlite3, duckdb, sql_on, pa,
+openpyxl, tabulate, Path, ws_path
+
+### Import whitelist (via import statement)
+- Data: numpy, pandas, scipy, scikit-learn, statsmodels
+- SQL: duckdb, sqlite3
+- Columnar: pyarrow
+- Viz: matplotlib, seaborn, plotly
+- Excel: openpyxl, xlsxwriter
+- Utils: tabulate, + safe stdlib (json, csv, math, datetime, re, etc.)
+
+### Always banned
+os, subprocess, socket, ctypes, importlib, multiprocessing + the
+sys.modules / dunder introspection escapes.
+
+### Features
+- sql_on(df, "SELECT ...") - DuckDB SQL over any DataFrame
+- matplotlib Agg forced; open figures auto-captured as base64 PNG (200 KB cap)
+- DataFrame / Series results auto-convert to JSON records
+- ws_path() - jailed relative paths, blocks ../ traversal
+- JailedPath subclass rejects read_text/read_bytes > 50 MB
+- 30s wall-clock timeout, 32 KB code cap, 64 KB output cap
+- Health check: /health/ready reports python_eval: ok|partial|unavailable
+
+### Verified live on HF Space
+- 27 ms pandas + DuckDB GROUP BY
+- 11 KB PNG chart from matplotlib
+- 13/13 local smoke tests passing (scripts/sandbox_smoke.py)
+
+### Requirements added
+matplotlib, seaborn, plotly, duckdb, pyarrow, xlsxwriter, tabulate,
+statsmodels
+
+### Known limits
+- No polars (AVX2/FMA required; crashes on 3rd-gen i7)
+- Timeout is soft (threads can't always be interrupted)
+- Not a hardened adversarial sandbox - enable API auth before public use
