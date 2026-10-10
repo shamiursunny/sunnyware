@@ -93,3 +93,8 @@ part19_setup.sh
 delete
 get
 part25_setup.sh
+
+# Part 31+ — RAG artifacts
+codebase_dump.txt
+scripts/_archive_ollama/
+scripts/_archive_stale/

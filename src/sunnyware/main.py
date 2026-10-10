@@ -29,6 +29,7 @@ from .routes import schedule as schedule_routes
 from .routes import tools as tools_routes
 from .routes import sessions as sessions_routes
 from .routes import memory_routes
+from .routes import rag as rag_routes
 
 
 @asynccontextmanager
@@ -75,6 +76,7 @@ app = Server(
         {"name": "eval", "description": "Ground-truth evaluation suite"},
         {"name": "mcp", "description": "Model Context Protocol (JSON-RPC 2.0)"},
         {"name": "auth", "description": "Authentication + rate-limit status"},
+        {"name": "rag", "description": "Local RAG — upload, query, status"},
     ],
     lifespan=lifespan,
 )
@@ -90,6 +92,7 @@ app.include_router(eval_routes.router)
 app.include_router(mcp_routes.router)
 app.include_router(auth_routes.router)
 app.include_router(schedule_routes.router)
+app.include_router(rag_routes.router)
 
 
 # FALLBACK: init state at import time (HF Spaces skips lifespan)

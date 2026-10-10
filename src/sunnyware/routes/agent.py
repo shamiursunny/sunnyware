@@ -44,9 +44,30 @@ async def run_agent(req: Request):
         )
 
     _t0 = _time.time()
-    agent_result = await orchestrator.run_agent(
-        prompt, session_uuid=session_uuid, model=model, system=system
-    )
+    # Hard wall-clock cap so a looping model cannot freeze the server / laptop.
+    # Override via SUNNYWARE_AGENT_TIMEOUT seconds (default 90).
+    import os as _os
+    try:
+        _agent_timeout = float(_os.getenv("SUNNYWARE_AGENT_TIMEOUT", "90"))
+    except Exception:
+        _agent_timeout = 90.0
+    try:
+        agent_result = await asyncio.wait_for(
+            orchestrator.run_agent(
+                prompt, session_uuid=session_uuid, model=model, system=system
+            ),
+            timeout=_agent_timeout,
+        )
+    except asyncio.TimeoutError:
+        total_latency_ms = int((_time.time() - _t0) * 1000)
+        return JSONResponse(
+            {
+                "error": "agent_timeout",
+                "detail": "agent exceeded " + str(int(_agent_timeout)) + "s wall-clock",
+                "latency_ms": total_latency_ms,
+            },
+            status_code=504,
+        )
     total_latency_ms = int((_time.time() - _t0) * 1000)
 
     if session_uuid:
