@@ -101,8 +101,66 @@ def _truncate_tool_result(tool_result: dict) -> dict:
     return out
 
 
+# ── Part 31E-ext2: tool-name aliases (gpt-oss-20b sometimes shortens names) ──
+_TOOL_ALIASES = {
+    "python": "python_eval",
+    "pythoneval": "python_eval",
+    "py": "python_eval",
+    "code": "python_eval",
+    "search": "web_search",
+    "websearch": "web_search",
+    "fetch": "web_fetch",
+    "webfetch": "web_fetch",
+    "calc": "calculator",
+    "calculate": "calculator",
+    "time": "current_time",
+    "now": "current_time",
+    "currenttime": "current_time",
+    "date": "date_calc",
+    "datecalc": "date_calc",
+    "list": "list_files",
+    "ls": "list_files",
+    "listfiles": "list_files",
+    "read": "read_file",
+    "readfile": "read_file",
+    "write": "write_file",
+    "writefile": "write_file",
+    "delete": "delete_file",
+    "deletefile": "delete_file",
+    "rm": "delete_file",
+    "rag": "rag_search",
+    "ragsearch": "rag_search",
+    "memory": "memory_search",
+    "memorysearch": "memory_search",
+    "recall": "memory_search",
+}
+
+
+def _resolve_tool_name(name: str) -> str:
+    """Map common short/abbreviated tool names to canonical ones."""
+    if not name:
+        return name
+    # Exact match wins
+    if tools_registry.get_tool(name):
+        return name
+    # Alias lookup (case-insensitive)
+    key = str(name).strip().lower().replace("-", "").replace("_", "")
+    if key in _TOOL_ALIASES:
+        return _TOOL_ALIASES[key]
+    return name
+
+
 async def _execute_tool(tool_name: str, tool_args: dict) -> dict:
     from . import metrics as _metrics
+    # Part 31E-ext2: resolve alias -> canonical name
+    resolved = _resolve_tool_name(tool_name)
+    if resolved != tool_name:
+        try:
+            from . import metrics as _m2
+            _m2.incr_labeled("tool_alias_resolved", str(tool_name) + "->" + resolved)
+        except Exception:
+            pass
+    tool_name = resolved
     _metrics.incr("tool_calls_total")
     _metrics.incr_labeled("tool_calls_by_name", tool_name)
     tool = tools_registry.get_tool(tool_name)
