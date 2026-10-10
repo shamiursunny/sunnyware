@@ -4,7 +4,7 @@
 > Update it at the end of every work session.
 
 **Last updated:** 2026-10-10 (Part 31F wrap)
-**Current commit:** fcafe08
+**Current commit:** (see `git log -1`)
 **Live Space:** https://shamiur-sunnyware.hf.space/ui
 **GitHub:** https://github.com/shamiursunny/sunnyware
 
@@ -37,9 +37,9 @@
     -> status: ok, llm: ok, python_eval: ok, tools: 15
 
 ### Sync state
-- Local: fcafe08
-- GitHub: fcafe08
-- HF: fcafe08
+- Local: (see `git log -1`)
+- GitHub: synced
+- HF: synced
 - Unpushed: 0
 
 ---
@@ -159,3 +159,39 @@ At the end of every session, before committing:
 - Add any new gotchas to the list
 
 Then commit + push both remotes.
+\n
+
+## Part 31G — Real PDF end-to-end test + max_tokens fix
+
+**Date:** 2026-10-10 (continued session)
+
+### What was tested
+Full document-intelligence pipeline on a real multi-page PDF:
+- Generated a 2-page PDF locally (matplotlib PdfPages) with budget
+  data + audit findings + bar chart
+- Uploaded to live HF Space via /api/rag/upload -> 2 chunks in 10 sec
+- Queried "What was the Sales variance in Q3?" with with_narrative=true
+- Received correct FP&A report with $4,000 (F) variance and page-level
+  citations [source: test.pdf (page 1), chunk 0]
+
+### Bug found + fixed
+**Symptom:** narrative_error = "empty llm response" on first PDF test.
+**Root cause:** gpt-oss-20b is a reasoning model that burns 60-75% of
+max_tokens on internal reasoning before producing output. Our llm.py
+sent max_tokens=500, leaving ~135 tokens for the actual answer.
+
+**Fix (Part 31G):** raised max_tokens 500 -> 2000 in llm.py (both chat
+and stream variants). Verified reasoning now completes with room for
+output.
+
+### Files changed
+- src/sunnyware/llm.py (max_tokens x2)
+
+### Test artifacts
+- test.pdf (38 KB, gitignored, kept locally for regression tests)
+
+### Verified live
+- /api/rag/upload on HF: 2 chunks from real 2-page PDF
+- /api/rag/query: correct Sales variance + Marketing driver extraction
+- narrative_model: openai/gpt-oss-20b
+- narrative_latency_ms: ~1600
