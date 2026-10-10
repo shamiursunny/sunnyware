@@ -80,6 +80,7 @@ See [WORKFLOW.md](./WORKFLOW.md) for the locked dual-remote workflow.
 | 28f  | b56b648 | Live (firewall) | Backed up | Done   |
 | 29c  | c5dbdd1 | Live (cost)     | Backed up | Done   |
 | 31D  | f0107e6 | Live (workbench)| Backed up | Done         |
+| 31E  | ca3b9a5 | Live (memory caps + aliases) | Backed up | Done |
 
 ## LLM Backend Configuration
 
@@ -325,3 +326,42 @@ statsmodels
 - No polars (AVX2/FMA required; crashes on 3rd-gen i7)
 - Timeout is soft (threads can't always be interrupted)
 - Not a hardened adversarial sandbox - enable API auth before public use
+\n
+
+## Memory Caps + Tool Aliases (Part 31E)
+
+### Bug
+WebUI hit Groq HTTP 413 after 2-3 tool calls because the memory layer
+replayed full prior events (including 15 KB base64 charts from
+python_eval) into every subsequent prompt, blowing the 8K TPM budget.
+
+### Fixes
+**memory.py** (payload caps):
+- _sanitize_content(): redacts 500+ char base64 runs, truncates to cap
+- log_event(): caps payload.content at 2000 chars before DB write
+- build_context(): caps replayed messages at 800 chars each
+- format_context(): caps cross-session context at 200 chars each
+- build_context max_turns: 10 -> 6
+
+**orchestrator.py** (tool-result truncation):
+- _truncate_tool_result(): strips base64 image fields, caps stdout/result
+  at 500 chars each, final JSON cap at 1500 chars
+- Native tool_result messages: truncated before append to history
+- Prompt-JSON fallback: truncated before append
+- build_context max_turns: 5 -> 4 (belt & suspenders)
+
+**orchestrator.py** (tool name aliases):
+- _TOOL_ALIASES map: python -> python_eval, rag -> rag_search, etc.
+- _resolve_tool_name(): case-insensitive, strips -/_ before lookup
+- Called at top of _execute_tool() with metrics tracking
+
+### Smoke tests
+- scripts/memory_cap_smoke.py    -> 9/9 PASS
+- scripts/truncation_smoke.py    -> 6/6 PASS
+- alias resolution inline test   -> 8/8 PASS
+
+### Verified live on HF WebUI
+- Bar chart rendered inline (turn 1)
+- Line chart rendered inline (turn 2)
+- Pie chart rendered inline (turn 3)
+- 3 base64 images + 4 turns in one session, zero 413 / 400 errors
