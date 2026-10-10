@@ -16,7 +16,7 @@ workbench. PostgreSQL (Neon) stores memory + sessions.
 - Space:  https://huggingface.co/spaces/shamiur/sunnyware
 
 ## Current state (last session: 2026-10-10)
-- Commit: e34f27d (both GitHub + HF in sync)
+- Commit: run `git log -1 --oneline` in the repo for current hash
 - Health: /health/ready -> status ok, llm ok, python_eval ok, 15 tools
 - Model: openai/gpt-oss-20b on Groq (LLM_BASE_URL=https://api.groq.com/openai/v1)
 - Vector store: 4 chunks (2 CSV + 2 PDF) in per-tenant FAISS
