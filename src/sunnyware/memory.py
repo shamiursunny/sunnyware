@@ -3,8 +3,43 @@
 """Memory / event log via Neon (append-only events table)."""
 
 import json
+import re
 from typing import Optional
 from . import state as app_state
+
+
+# ── Part 31E: memory payload caps (protects Groq 8K TPM budget) ──
+MAX_LOG_CONTENT_CHARS = 2000        # cap at write time
+MAX_HISTORY_CONTENT_CHARS = 800     # cap at read time (build_context)
+MAX_CONTEXT_CONTENT_CHARS = 200     # cap for cross-session context
+# Base64 heuristic: long run with MIXED char classes (uppercase + lowercase + digit
+# OR +/= padding). Pure-lowercase/uppercase runs (e.g. "xxxxxx") are NOT redacted
+# because they're common in legitimate text and hash prefixes.
+_BASE64_MARKER = re.compile(
+    r"(?=[A-Za-z0-9+/]*[A-Z])"        # has uppercase
+    r"(?=[A-Za-z0-9+/]*[a-z])"        # has lowercase
+    r"(?=[A-Za-z0-9+/]*[0-9])"        # has digit
+    r"[A-Za-z0-9+/]{500,}={0,2}"      # 500+ base64-ish chars
+)
+
+
+def _sanitize_content(text: str, max_chars: int) -> str:
+    """Truncate text and redact embedded base64 blobs.
+
+    Base64 images from python_eval were the primary cause of Groq 413s.
+    Replace any 500+ char alphanumeric+/= run with a short marker.
+    """
+    if not text:
+        return ""
+    text = str(text)
+    # Redact long base64-like runs
+    def _repl(m):
+        return "[redacted: " + str(len(m.group(0))) + " bytes]"
+    text = _BASE64_MARKER.sub(_repl, text)
+    # Truncate to cap
+    if len(text) > max_chars:
+        text = text[:max_chars] + "... [truncated, orig " + str(len(text)) + " chars]"
+    return text
 
 
 async def log_event(
@@ -17,6 +52,12 @@ async def log_event(
     pool = app_state.get_pool()
     if pool is None or not session_uuid:
         return None
+    # Part 31E: sanitize before writing — prevents token blowup on replay
+    clean_payload = dict(payload or {})
+    if "content" in clean_payload:
+        clean_payload["content"] = _sanitize_content(
+            clean_payload.get("content", ""), MAX_LOG_CONTENT_CHARS
+        )
     try:
         async with pool.acquire() as conn:
             event_id = await conn.fetchval(
@@ -25,7 +66,7 @@ async def log_event(
                 VALUES ($1::uuid, $2, $3::jsonb)
                 RETURNING id
                 """,
-                session_uuid, event_type, json.dumps(payload or {}),
+                session_uuid, event_type, json.dumps(clean_payload),
             )
             return event_id
     except Exception:
@@ -89,7 +130,7 @@ def _extract_content(payload) -> str:
     return ""
 
 
-async def build_context(session_uuid: str, max_turns: int = 10) -> list:
+async def build_context(session_uuid: str, max_turns: int = 6) -> list:
     """Build OpenAI-format messages array from session history.
 
     Returns list of {role, content} dicts in chronological order.
@@ -117,6 +158,8 @@ async def build_context(session_uuid: str, max_turns: int = 10) -> list:
             content = _extract_content(r["payload"])
             if not content:
                 continue
+            # Part 31E: cap replay size — belt & suspenders
+            content = _sanitize_content(content, MAX_HISTORY_CONTENT_CHARS)
             if r["event_type"] == "user_message":
                 messages.append({"role": "user", "content": content})
             elif r["event_type"] == "assistant_message":
@@ -248,7 +291,8 @@ def format_context(events: list, max_chars_per_event: int = 200) -> str:
         content = payload.get("content", "") if isinstance(payload, dict) else ""
         if not content:
             continue
-        content = str(content)[:max_chars_per_event].replace("\n", " ").strip()
+        content = _sanitize_content(str(content), max_chars_per_event)
+        content = content.replace("\n", " ").strip()
         role = "user" if ev.get("event_type") == "user_message" else "assistant"
         lines.append(f"[{role}] {content}")
     return "\n".join(lines)
