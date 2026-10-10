@@ -195,3 +195,18 @@ output.
 - /api/rag/query: correct Sales variance + Marketing driver extraction
 - narrative_model: openai/gpt-oss-20b
 - narrative_latency_ms: ~1600
+\n
+
+## WebUI PDF Validation (2026-10-10, session end)
+
+Verified end-to-end in the browser at https://shamiur-sunnyware.hf.space/ui:
+
+- User typed natural-language query asking for Q3 audit Marketing ad spend
+- Agent chose rag_search tool (native protocol)
+- Retrieved test.pdf (page 2) at 0.36 distance
+- LLM extracted: 20% overrun, CFO review required, Oct 20 action item
+- Multi-turn follow-up ("Sales variance?") returned $4,000 F correctly
+
+Conclusion: full document-intelligence pipeline is production-validated
+via both API and WebUI. Drag-drop upload button is the only remaining
+UX gap (next session — Part 31H).
