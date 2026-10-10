@@ -70,6 +70,37 @@ def _parse_json_response(content: str) -> Optional[dict]:
     return None
 
 
+# ── Part 31E: tool result truncation (prevents base64 blowup in history) ──
+_TOOL_RESULT_MAX_CHARS = 1500
+_TOOL_RESULT_B64_FIELDS = ("image_base64", "image_data", "chart_base64")
+
+
+def _truncate_tool_result(tool_result: dict) -> dict:
+    """Return a version safe to append to messages / send back to LLM.
+
+    - Strips base64 image fields -> [image: N bytes]
+    - Caps stdout / result / preview / content to 500 chars each
+    - Keeps error strings intact (usually short)
+    """
+    if not isinstance(tool_result, dict):
+        return {"result": str(tool_result)[:_TOOL_RESULT_MAX_CHARS]}
+    out = {}
+    for k, v in tool_result.items():
+        if k in _TOOL_RESULT_B64_FIELDS and isinstance(v, str) and v:
+            out[k] = "[image: " + str(len(v)) + " bytes base64]"
+            continue
+        if isinstance(v, str) and len(v) > 500:
+            out[k] = v[:500] + "... [truncated, orig " + str(len(v)) + " chars]"
+            continue
+        out[k] = v
+    # Final safety cap on total JSON size
+    import json as _json
+    serialized = _json.dumps(out, default=str)
+    if len(serialized) > _TOOL_RESULT_MAX_CHARS:
+        return {"truncated_result": serialized[:_TOOL_RESULT_MAX_CHARS] + "... [truncated]"}
+    return out
+
+
 async def _execute_tool(tool_name: str, tool_args: dict) -> dict:
     from . import metrics as _metrics
     _metrics.incr("tool_calls_total")
@@ -106,7 +137,7 @@ async def run_agent(
 ) -> dict:
     history = []
     if session_uuid:
-        history = await memory_store.build_context(session_uuid, max_turns=5)
+        history = await memory_store.build_context(session_uuid, max_turns=4)
 
     await _emit(on_event, {"type": "start"})
 
@@ -189,7 +220,7 @@ async def run_agent(
                 messages.append({
                     "role": "tool",
                     "tool_call_id": call.get("id", ""),
-                    "content": json.dumps(tool_result),
+                    "content": json.dumps(_truncate_tool_result(tool_result)),
                 })
             continue
 
@@ -213,7 +244,9 @@ async def run_agent(
             messages.append({"role": "assistant", "content": content})
             messages.append({
                 "role": "user",
-                "content": f"Tool result: {json.dumps(tool_result)}. Now give final answer.",
+                "content": "Tool result: "
+                           + json.dumps(_truncate_tool_result(tool_result))
+                           + ". Now give final answer.",
             })
             continue
 
