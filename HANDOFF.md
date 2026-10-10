@@ -210,3 +210,32 @@ Verified end-to-end in the browser at https://shamiur-sunnyware.hf.space/ui:
 Conclusion: full document-intelligence pipeline is production-validated
 via both API and WebUI. Drag-drop upload button is the only remaining
 UX gap (next session — Part 31H).
+\n
+
+## Part 31H + 31I + 31J (2026-10-10, extended session)
+
+### Part 31H - WebUI upload button
+- File picker in header (paperclip icon next to new session)
+- Chat shows progress + result (e.g. "uploaded test.pdf - 16 chunks - 12652 ms")
+- Header badge tracks doc count (docs: N)
+- No curl needed for uploading
+
+### Part 31I - Token budget hardening
+- rag_search k default 3 -> 2
+- Chunk preview cap 400 -> 1200 chars
+- 429 rate-limit auto-retry (20s backoff, up to 2 retries)
+- Prompt prefers rag_search over web_search for doc references
+- Fixed: chat() signature missing _retry_depth param
+
+### Part 31J - Iteration headroom
+- MAX_ITERATIONS 5 -> 7 for complex multi-tool queries
+
+### Known limitation
+- gpt-oss-20b sometimes hits "analysis paralysis" on complex multi-hop
+  queries - uses all iterations evaluating without committing.
+
+### Verified live in browser
+- Upload: attention paper (2.1 MB PDF) -> 16 chunks in 12.6 sec
+- Query: BLEU score 28.4 (correct)
+- Query: layers/heads/dim (6/8/512 correct)
+- Rate limit: 429 auto-recovers silently in ~20s
