@@ -116,6 +116,36 @@ async def chat(
                         history=history, tools=tools, timeout=timeout,
                         _retry_depth=_retry_depth + 1,
                     )
+                # Part 31K-ext: Groq rejected hallucinated tool name
+                # ('Model called python tool which was not enabled').
+                # Retry with a system hint forcing the exact tool name.
+                if (r.status_code == 400
+                        and "was not enabled" in r.text
+                        and _retry_depth < 2):
+                    import re as _re
+                    _m = _re.search(r"called (\w+) tool", r.text)
+                    _bad = _m.group(1) if _m else "unknown"
+                    _hint = (
+                        "\n\nCRITICAL: You just called a tool named '"
+                        + _bad + "' which does not exist. "
+                        "The ONLY tool for running Python code is "
+                        "named exactly 'python_eval'. "
+                        "Never use 'python' or any other abbreviation. "
+                        "Call 'python_eval' now."
+                    )
+                    _new_system = (system or "") + _hint
+                    try:
+                        from . import metrics as _m5
+                        _m5.incr("llm_tool_name_hint_retry_total")
+                    except Exception:
+                        pass
+                    import asyncio as _aio
+                    await _aio.sleep(0.3)
+                    return await chat(
+                        prompt=prompt, model=model, system=_new_system,
+                        history=history, tools=tools, timeout=timeout,
+                        _retry_depth=_retry_depth + 1,
+                    )
                 # Part 31F-ext2: retry once on Groq tool_use_failed
                 # (gpt-oss models sometimes emit malformed JSON args)
                 if (r.status_code == 400
