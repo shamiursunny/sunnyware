@@ -12,7 +12,7 @@ from . import prompts
 from . import tools as tools_registry
 
 
-MAX_ITERATIONS = 5
+MAX_ITERATIONS = 7  # Part 31J: raised from 5 for complex multi-tool queries
 
 
 def _build_tools_schema() -> list:
