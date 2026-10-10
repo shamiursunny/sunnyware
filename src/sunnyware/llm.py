@@ -68,7 +68,10 @@ async def chat(
         "model": model or _model(),
         "messages": messages,
         "temperature": 0.2,
-        "max_tokens": 500,
+        # Part 31G: reasoning models (gpt-oss) burn most of max_tokens on
+        # internal reasoning before producing output. 500 was too small:
+        # empty responses when reasoning used the whole budget.
+        "max_tokens": 2000,
     }
     if tools:
         payload["tools"] = tools
@@ -181,7 +184,7 @@ async def stream_chat(
         "model": model or _model(),
         "messages": messages,
         "temperature": 0.2,
-        "max_tokens": 500,
+        "max_tokens": 2000,
         "stream": True,
     }
 
