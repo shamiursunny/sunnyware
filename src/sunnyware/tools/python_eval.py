@@ -24,20 +24,11 @@ from . import _sandbox
 class PythonEvalTool:
     name = "python_eval"
     description = (
-        "Execute Python for data work: numpy, pandas, scipy, sklearn, "
-        "matplotlib (Agg), seaborn, plotly, sqlite3, duckdb, "
-        "pyarrow, openpyxl, xlsxwriter. No import needed for these "
-        "(np, pd, plt, sns, scipy, stats, sklearn, sqlite3, duckdb, "
-        "pa, openpyxl, tabulate, Path, ws_path, sql_on are preloaded).\n"
-        "sql_on(df, 'SELECT ... FROM df') runs DuckDB SQL on a DataFrame. "
-        "Set `result = ...` to return a value. "
-        "If you create a matplotlib figure, it is returned as a base64 PNG "
-        "in image_base64. "
-        "File paths must be workspace-relative via ws_path('name.csv') or "
-        "relative strings — absolute paths are blocked. "
-        "30s wall-clock timeout, no network, no os/subprocess. "
-        "Files >50MB and DataFrames >2M rows may OOM the Space."
+        "Execute Python code for data work (pandas, numpy, scipy, sklearn, "
+        "matplotlib, duckdb, openpyxl preloaded). Set result=... to return "
+        "a value. Use ws_path('file.csv') for workspace files."
     )
+
     parameters = {
         "code": {
             "type": "string",
