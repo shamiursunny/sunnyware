@@ -79,6 +79,7 @@ See [WORKFLOW.md](./WORKFLOW.md) for the locked dual-remote workflow.
 | 27c  | c6c99d2 | Live (web ui)   | Backed up | Done   |
 | 28f  | b56b648 | Live (firewall) | Backed up | Done   |
 | 29c  | c5dbdd1 | Live (cost)     | Backed up | Done   |
+| 31   | f7d5531 | Pending push    | Backed up | RAG+Groq done |
 
 ## LLM Backend Configuration
 
@@ -222,3 +223,58 @@ Tool-aware streaming is deferred (Part 10.5).
 
 ### Smoke
 Test #20 verifies SSE content + done events received.
+
+
+## Local RAG + Groq LLM + Agent Tool (Part 31)
+
+### Files added
+- `src/sunnyware/rag/` — 7-module RAG package
+  - `embeddings.py`       — BAAI/bge-small-en-v1.5, CPU, 384-dim
+  - `chunker.py`          — 1024-token windows / 100-token overlap + row-based for CSV/XLSX
+  - `extractor.py`        — PDF, DOCX, TXT/MD, CSV, XLSX/XLS
+  - `vector_store.py`     — per-tenant FAISS at `data/vector_store/{org_id}/`
+  - `report_generator.py` — FP&A prompt + async narrative + stub fallback
+  - `_threads.py`         — env-var thread caps (OMP/MKL/OPENBLAS + torch + faiss)
+- `src/sunnyware/routes/rag.py` — 4 endpoints
+- `src/sunnyware/tools/rag_search.py` — agent-callable search (15th tool)
+
+### Endpoints
+- `GET  /api/rag/status`
+- `POST /api/rag/upload`   (multipart: file, reset)
+- `POST /api/rag/query`    (query, k, with_prompt, with_narrative)
+- `POST /api/rag/reset`
+- `POST /api/tools/rag_search` — direct tool invocation
+
+### Env vars added
+| Var | Purpose | Default |
+|-----|---------|---------|
+| `SUNNYWARE_CPU_THREADS` | cap BLAS/torch/faiss threads | half of logical cores, max 4 |
+| `SUNNYWARE_AGENT_TIMEOUT` | 504 wall-clock cap on /api/agent/run | 90 |
+| `SUNNYWARE_TEST_AGENT` | enable agent loop in smoke tests | 0 |
+
+### Safety
+- CPU thread caps protect old laptops from thermal shutdown
+- 90s agent timeout guard: 504 on infinite loop instead of freeze
+- Graceful LLM fallback to stub markdown when Groq unreachable
+
+### Groq switch (production)
+- `.env`: `LLM_BASE_URL=https://api.groq.com/openai/v1`
+- `.env`: `LLM_MODEL=openai/gpt-oss-120b`
+- Ollama retained as local dev option
+- Cloud LLM = zero local heat during LLM calls
+
+### Smoke tests
+- `scripts/rag_smoke_test.py`      — 10-step retrieval e2e
+- `scripts/rag_narrative_smoke.py` — full pipeline + Groq narrative
+- `scripts/agent_rag_smoke.py`     — direct tool + opt-in agent loop
+
+### Verified (all PASS)
+- Retrieval e2e: 10/10 checks
+- Narrative on Groq: 2.3s latency, correct figures, citations
+- Agent tool call: rag_search invoked by gpt-oss-120b on natural prompt
+
+### Commit
+- `f7d5531` — 17 files, +1352/-3
+
+### Rollback
+- `.env.bak.20261010-171322` — pre-Groq Ollama config
