@@ -150,6 +150,44 @@ def _resolve_tool_name(name: str) -> str:
     return name
 
 
+# ── Part 31F: detect placeholder answers after tool calls ──
+_PLACEHOLDER_PATTERNS = (
+    "what would you like",
+    "how can i help",
+    "what next",
+    "what would you like to do",
+    "let me know if",
+    "anything else",
+    "would you like me to",
+    "happy to help",
+    "how may i assist",
+)
+
+
+def _looks_like_placeholder(text: str) -> bool:
+    """True if text is a short non-answer placeholder (no tool result used).
+
+    Heuristic:
+      - Empty -> placeholder
+      - Contains a digit -> real answer (numeric/table result)
+      - Matches known placeholder phrases -> placeholder
+      - Very short (<15 chars) with no digits -> placeholder
+      - Otherwise -> real answer
+    """
+    if not text:
+        return True
+    s = text.strip().lower()
+    # Any digit -> treat as a real answer (numeric/table results are valid)
+    if any(ch.isdigit() for ch in s):
+        return False
+    for pat in _PLACEHOLDER_PATTERNS:
+        if pat in s:
+            return True
+    if len(s) < 15:
+        return True
+    return False
+
+
 async def _execute_tool(tool_name: str, tool_args: dict) -> dict:
     from . import metrics as _metrics
     # Part 31E-ext2: resolve alias -> canonical name
@@ -225,6 +263,8 @@ async def run_agent(
 
     messages = list(history)
     messages.append({"role": "user", "content": prompt})
+
+    _placeholder_retry_used = False
 
     for iteration in range(MAX_ITERATIONS):
         result = await llm_client.chat(
@@ -319,6 +359,26 @@ async def run_agent(
             }
 
         if content:
+            # Part 31F: if a tool ran but the model didn't answer (placeholder),
+            # retry once with a hard directive before giving up.
+            if steps and not _placeholder_retry_used and _looks_like_placeholder(content):
+                _placeholder_retry_used = True
+                try:
+                    from . import metrics as _m
+                    _m.incr("placeholder_retry_total")
+                except Exception:
+                    pass
+                messages.append({"role": "assistant", "content": content})
+                messages.append({
+                    "role": "user",
+                    "content": (
+                        "You already have the tool result above. "
+                        "Answer the original request now using that result. "
+                        "Do NOT ask the user what to do next. "
+                        "Deliver the concrete numeric/textual answer in one short reply."
+                    ),
+                })
+                continue
             return {
                 "ok": True,
                 "answer": content,
