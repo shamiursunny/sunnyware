@@ -81,6 +81,7 @@ See [WORKFLOW.md](./WORKFLOW.md) for the locked dual-remote workflow.
 | 29c  | c5dbdd1 | Live (cost)     | Backed up | Done   |
 | 31D  | f0107e6 | Live (workbench)| Backed up | Done         |
 | 31E  | ca3b9a5 | Live (memory caps + aliases) | Backed up | Done |
+| 31F  | 272f98a | Live (tool retry + chart inject) | Backed up | Done |
 
 ## LLM Backend Configuration
 
@@ -365,3 +366,59 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Line chart rendered inline (turn 2)
 - Pie chart rendered inline (turn 3)
 - 3 base64 images + 4 turns in one session, zero 413 / 400 errors
+\n
+
+## Tool Reliability + Chart Injection (Part 31F)
+
+### Bugs fixed
+1. gpt-oss-20b made the tool call but returned placeholder text
+   ("What would you like to do next?") without the numeric answer
+2. gpt-oss-20b sometimes returned empty content after a tool call
+3. gpt-oss emitted malformed JSON args -> Groq rejected with 400
+   "tool_use_failed" before our server saw the request
+4. gpt-oss wrote ![chart](data:image/png;base64,{{image_base64}})
+   as a literal placeholder instead of the actual chart data
+
+### Fixes
+
+**prompts.py (directive system prompt)**
+- Rewrote native_prompt() with non-negotiable rules:
+  "MUST call the appropriate tool when the request involves
+   computation, data, search, documents"
+  "After a tool result, MUST compose a final answer using that result"
+  "Never respond with placeholders like 'What would you like to do next?'"
+
+**orchestrator.py (placeholder + empty retry)**
+- _looks_like_placeholder(): detects ~9 known phrases and short non-answers
+  (has-digit check ensures numeric answers are never flagged)
+- If model returns placeholder after a tool call -> retry once with hard
+  directive "Deliver the concrete numeric/textual answer in one short reply"
+- If model returns empty content after a tool call -> retry once with
+  "Write a short final answer that uses that result"
+
+**llm.py (Groq tool_use_failed retry)**
+- On HTTP 400 with "tool_use_failed" -> retry up to 2x with 0.4s backoff
+- Uses _retry_depth parameter (not a global) so nested calls are safe
+
+**tools/python_eval.py (schema shrink)**
+- Description trimmed from 872 -> 245 chars
+- Total tool schema 5006 -> 4492 chars
+- Reduces prompt token pressure + lowers malformed-JSON chance
+
+**orchestrator.py (chart base64 injection)**
+- _inject_chart_base64(): detects ~10 placeholder forms
+  ({{image_base64}}, {{ base64 }}, <IMAGE_BASE64>, etc.)
+  and substitutes the real base64 from steps[].result.image_base64
+- Also handles the case where the model emitted syntactically-correct
+  but truncated base64 characters (heuristic: content <200 chars)
+- Wired into both native and prompt-JSON answer return paths
+
+### Smoke tests
+- scripts/placeholder_smoke.py -> 8/8 PASS
+
+### Verified live in WebUI
+- Compute average -> "Average = 24,666.67" (was: placeholder)
+- Bar chart -> real PNG rendered inline (was: {{image_base64}})
+- Line + pie charts -> inline
+- RAG search -> correct figures + citation
+- Multi-turn, multi-chart session -> no 413, no 400, no placeholder
