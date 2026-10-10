@@ -50,6 +50,7 @@ async def chat(
     history: Optional[list] = None,
     tools: Optional[list] = None,
     timeout: float = 30.0,
+    _retry_depth: int = 0,
 ) -> dict:
     """Send chat completion with optional multi-turn history + native tools.
 
