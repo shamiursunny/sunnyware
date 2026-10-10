@@ -36,6 +36,12 @@ HTML = """<!DOCTYPE html>
   button:disabled { opacity: 0.5; cursor: not-allowed; }
   .footer-info { max-width: 860px; margin: 6px auto 0; text-align: right;
                  font-size: 11px; color: #4d5260; }
+  #fileInput { display: none; }
+  .msg.upload { color: #ffb454; font-size: 13px; }
+  .msg.upload-ok { color: #52b788; font-size: 13px; }
+  .msg.upload-err { color: #ff6b6b; font-size: 13px; }
+  .badge { background: #1d2026; color: #b8c4d0; padding: 2px 8px;
+           border-radius: 10px; font-size: 11px; margin-left: 8px; }
 </style>
 </head>
 <body>
@@ -45,9 +51,13 @@ HTML = """<!DOCTYPE html>
     <span id="sid">session: ...</span>
     <a href="/docs" target="_blank">API docs</a>
     <a href="/about" target="_blank">about</a>
+    <a href="#" id="upload">\U0001F4CE upload</a>
     <a href="#" id="clear">new session</a>
+    <span class="badge" id="docCount">docs: \u2014</span>
   </div>
 </header>
+<input type="file" id="fileInput"
+       accept=".pdf,.docx,.txt,.md,.csv,.xlsx,.xls">
 <div id="chat"></div>
 <footer>
   <form id="form">
@@ -145,9 +155,54 @@ HTML = """<!DOCTYPE html>
     input.focus();
   });
 
+  // Part 31H: file upload
+  const fileInput = document.getElementById('fileInput');
+  const uploadLink = document.getElementById('upload');
+  const docCountEl = document.getElementById('docCount');
+
+  async function refreshDocCount() {
+    try {
+      const r = await fetch('/api/rag/status');
+      const d = await r.json();
+      docCountEl.textContent = 'docs: ' + (d.count || 0);
+    } catch (e) {
+      docCountEl.textContent = 'docs: \u2014';
+    }
+  }
+
+  uploadLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    fileInput.click();
+  });
+
+  fileInput.addEventListener('change', async () => {
+    const f = fileInput.files[0];
+    if (!f) return;
+    addMsg('uploading ' + f.name + ' (' + Math.round(f.size/1024) + ' KB)...', 'upload');
+    const formData = new FormData();
+    formData.append('file', f);
+    try {
+      const r = await fetch('/api/rag/upload', { method: 'POST', body: formData });
+      const d = await r.json();
+      if (d.ok) {
+        addMsg('\u2713 ' + d.filename + ' \u2014 ' + d.chunks_added +
+               ' chunks \u00b7 ' + d.total_count + ' total \u00b7 ' +
+               d.elapsed_ms + ' ms', 'upload-ok');
+      } else {
+        addMsg('\u2717 upload failed: ' + (d.error || 'unknown'), 'upload-err');
+      }
+    } catch (e) {
+      addMsg('\u2717 upload error: ' + e.message, 'upload-err');
+    } finally {
+      fileInput.value = '';
+      refreshDocCount();
+    }
+  });
+
   // Init
   renderSession();
   addMsg('Welcome to sunnyware. Ask me anything.', 'step');
+  refreshDocCount();
   input.focus();
 })();
 </script>
