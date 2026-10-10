@@ -37,7 +37,10 @@ def native_prompt(context: str = "") -> str:
         "matplotlib code (plt.bar / plt.plot / plt.pie) and set "
         "result = 'done'. The chart will be captured automatically.\n"
         "4. If the user references uploaded documents, files, PDFs, or "
-        "asks about 'my docs', call rag_search with a clear query.\n"
+        "asks about 'my docs', 'the paper', 'this file', etc., "
+        "PREFER rag_search over web_search. Only use web_search if "
+        "rag_search returns no results or the user explicitly asks for "
+        "internet information.\n"
         "5. Keep final answers concise. Use tables or bullets when helpful."
     )
     if context:

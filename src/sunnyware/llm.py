@@ -100,6 +100,21 @@ async def chat(
                     _metrics2.incr("llm_errors_total")
                 except Exception:
                     pass
+                # Part 31I: 429 rate limit -> wait for window reset + retry
+                if (r.status_code == 429
+                        and _retry_depth < 2):
+                    try:
+                        from . import metrics as _m4
+                        _m4.incr("llm_rate_limit_retry_total")
+                    except Exception:
+                        pass
+                    import asyncio as _aio
+                    await _aio.sleep(20.0)
+                    return await chat(
+                        prompt=prompt, model=model, system=system,
+                        history=history, tools=tools, timeout=timeout,
+                        _retry_depth=_retry_depth + 1,
+                    )
                 # Part 31F-ext2: retry once on Groq tool_use_failed
                 # (gpt-oss models sometimes emit malformed JSON args)
                 if (r.status_code == 400

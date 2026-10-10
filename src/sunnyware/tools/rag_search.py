@@ -29,7 +29,7 @@ class RagSearchTool:
             return {"error": "query is required"}
 
         try:
-            k = int(args.get("k", 3))
+            k = int(args.get("k", 2))  # Part 31I: lowered from 3 -> 2 to save TPM
         except Exception:
             k = 3
         k = max(1, min(k, 10))
@@ -60,7 +60,7 @@ class RagSearchTool:
         results = []
         for h in hits:
             md = h.get("metadata") or {}
-            preview = (md.get("text") or "")[:400]
+            preview = (md.get("text") or "")[:1200]  # Part 31I: cap for TPM budget
             results.append({
                 "source": md.get("source"),
                 "chunk_id": md.get("chunk_id"),
