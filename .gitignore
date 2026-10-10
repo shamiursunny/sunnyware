@@ -98,3 +98,4 @@ part25_setup.sh
 codebase_dump.txt
 scripts/_archive_ollama/
 scripts/_archive_stale/
+test.pdf
