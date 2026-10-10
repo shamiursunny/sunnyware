@@ -239,3 +239,26 @@ UX gap (next session — Part 31H).
 - Query: BLEU score 28.4 (correct)
 - Query: layers/heads/dim (6/8/512 correct)
 - Rate limit: 429 auto-recovers silently in ~20s
+\n
+
+## Part 31K + 31K-ext (2026-10-10, late session)
+
+### Part 31K — Stronger prompt rules
+- RAG FIRST: if any document is uploaded, prefer rag_search for all
+  factual questions about its content (not just explicit 'in my docs')
+- TOOL OBEDIENCE: if user says 'use X tool', MUST call it, no mental simulation
+
+### Part 31K-ext — Groq hallucinated-tool-name retry
+- On HTTP 400 'Model called <X> tool which was not enabled', retry with
+  an injected system hint: "The only Python tool is named exactly
+  'python_eval'. Never use 'python' or abbreviations."
+- Verified: fixes the multi-tool chain case (512 x 8 x 6 = 24,576)
+
+### Known limitation (documented, not fixed)
+- For generic factual questions about a document ('What BLEU score did
+  the Transformer achieve?'), gpt-oss-20b sometimes still chooses
+  web_search instead of rag_search, even with 'RAG FIRST' rule.
+- Root cause: model treats those as general-knowledge queries.
+- Mitigation attempts tried: prompt rules (partial help).
+- Real fix would need server-side tool_choice enforcement or a
+  different model.
