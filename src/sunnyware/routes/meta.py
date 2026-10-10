@@ -115,6 +115,34 @@ async def readiness():
     except Exception as e:
         checks["memory_context"] = f"error: {type(e).__name__}"
 
+    # Part 31D: data workbench availability (non-blocking — never degrades)
+    try:
+        import importlib as _imp
+        _required = ["numpy", "pandas"]
+        _optional = ["matplotlib", "seaborn", "plotly", "scipy",
+                     "sklearn", "statsmodels", "duckdb", "pyarrow",
+                     "openpyxl", "xlsxwriter", "tabulate"]
+        _missing_core = []
+        for m in _required:
+            try:
+                _imp.import_module(m)
+            except Exception:
+                _missing_core.append(m)
+        _missing_opt = []
+        for m in _optional:
+            try:
+                _imp.import_module(m)
+            except Exception:
+                _missing_opt.append(m)
+        if _missing_core:
+            checks["python_eval"] = "unavailable: missing " + ",".join(_missing_core)
+        elif _missing_opt:
+            checks["python_eval"] = "partial: missing " + ",".join(_missing_opt)
+        else:
+            checks["python_eval"] = "ok"
+    except Exception as e:
+        checks["python_eval"] = "error: " + type(e).__name__
+
     return JSONResponse(
         {
             "status": "ok" if all_ok else "degraded",
