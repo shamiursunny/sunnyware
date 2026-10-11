@@ -353,3 +353,46 @@ Confirmed by: 129+ sec WebUI hang, empty /health/live response during local call
 - llm.py: router handles local provider type
 - main.py: preload task (runs at startup if lifespan fires)
 - requirements.txt: llama-cpp-python + prebuilt wheel index
+\n
+
+## Part 32 Phase 2 - VERDICT: MiniCPM5-2B not viable on 2 vCPU
+
+### Smoke test result (2026-10-11)
+- Test ran: /api/local-model/smoke (7 sub-tests)
+- Outcome: HTTP 502 after 490 sec (8.2 min)
+- Cause: HF gateway killed the connection because the Space was
+  unresponsive for too long
+
+### Root cause (confirmed)
+1. CPU: 2 vCPU shared cannot run a 2.5B model interactively
+2. GIL: llama-cpp-python holds Python GIL during inference, blocking
+   the entire FastAPI event loop (even /health/live froze)
+3. HF gateway timeout: ~8 min max before returning 502
+
+### Decision
+- Local model REMOVED from LLM_PROVIDERS priority list
+- LLM_PROVIDERS=groq,gemini,openrouter (cloud-only, stable)
+- Local code stays deployed but dormant (reactivate by adding "local"
+  back to LLM_PROVIDERS if infrastructure changes)
+
+### Future paths (if local becomes a hard requirement)
+a) HF PRO ($9/mo) -> 8 vCPU -> ~4x faster -> 2-3 min/response
+   (still slow but usable for non-chat batch tasks)
+b) Swap to Granite 4.0-H-1B (840 MB) or Qwen2.5-0.5B (350 MB) ->
+   actually runs on 2 vCPU in 30-60 sec, but tool-calling quality drops
+c) Own GPU server (out of scope for HF Space)
+
+### What's deployed but dormant
+- src/sunnyware/local_llm.py (in-process llama.cpp wrapper)
+- src/sunnyware/providers.py (supports type=local)
+- src/sunnyware/llm.py (routes local provider)
+- Bucket mount at /models (read-only)
+- /api/local-model/smoke endpoint (for future testing)
+- HF secrets: LOCAL_MODEL_PATH, LOCAL_BASE_URL, LOCAL_MODEL
+- HF variable: LOCAL_MODEL_ENABLED=1
+
+### Verified working today
+- 3 cloud providers (Groq, Gemini, OpenRouter) with auto-failover
+- WebUI "via <provider>" badge
+- ~1,900 free requests/day combined
+- Zero more daily token exhaustion
