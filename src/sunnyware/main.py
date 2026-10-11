@@ -32,6 +32,16 @@ from .routes import memory_routes
 from .routes import rag as rag_routes
 
 
+async def _preload_local_task():
+    """Load the local GGUF model in the background without blocking startup."""
+    try:
+        from . import local_llm as _local_llm
+        result = await _local_llm.preload()
+        log.info("local_llm_preload_done", result=result)
+    except Exception as e:
+        log.error("local_llm_preload_error", err=f"{type(e).__name__}: {e}")
+
+
 @asynccontextmanager
 async def lifespan(app):
     init_state()
@@ -42,6 +52,17 @@ async def lifespan(app):
         log.info("scheduler_lifespan_start", ok=_ok)
     except Exception as e:
         log.error("scheduler_lifespan_error", err=f"{type(e).__name__}: {e}")
+    # Part 32: kick off local_llm preload in background (fire-and-forget)
+    try:
+        from . import local_llm as _local_llm
+        if _local_llm.is_enabled():
+            import asyncio as _aio
+            _aio.create_task(_preload_local_task())
+            log.info("local_llm_preload_task_started")
+        else:
+            log.info("local_llm_disabled")
+    except Exception as _e:
+        log.error("local_llm_lifespan_error", err=f"{type(_e).__name__}: {_e}")
     yield
     # Shutdown
     try:
