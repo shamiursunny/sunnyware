@@ -118,6 +118,14 @@ HTML = """<!DOCTYPE html>
         addMsg('error: ' + (data.detail || data.error), 'error');
         return;
       }
+      // Part 32: update provider badge from response
+      try {
+        const prov = data.provider || (data.result && data.result.provider);
+        if (prov) {
+          const pb = document.getElementById('providerBadge');
+          if (pb) pb.textContent = 'via ' + prov;
+        }
+      } catch (e) { /* ignore */ }
       const content = data.result && data.result.content;
       if (content) {
         addMsg(content, 'agent');

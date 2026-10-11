@@ -320,6 +320,7 @@ async def run_agent(
     messages.append({"role": "user", "content": prompt})
 
     _placeholder_retry_used = False
+    _last_provider = None
 
     for iteration in range(MAX_ITERATIONS):
         result = await llm_client.chat(
@@ -340,6 +341,7 @@ async def run_agent(
 
         content = (result.get("content") or "").strip()
         native_calls = result.get("tool_calls")
+        _last_provider = result.get("provider") or _last_provider
 
         if native_calls:
             messages.append({
@@ -411,6 +413,7 @@ async def run_agent(
                 "ok": True,
                 "answer": _ans,
                 "steps": steps,
+                "provider": _last_provider,
                 "iterations": iteration + 1,
             }
 
@@ -439,6 +442,7 @@ async def run_agent(
                 "ok": True,
                 "answer": _inject_chart_base64(content, steps),
                 "steps": steps,
+                "provider": _last_provider,
                 "iterations": iteration + 1,
             }
 
@@ -507,6 +511,7 @@ async def run_agent(
                         "steps": steps,
                         "iterations": MAX_ITERATIONS,
                         "forced_summary": True,
+                        "provider": _last_provider,
                     }
         except Exception:
             pass
@@ -517,4 +522,5 @@ async def run_agent(
         "steps": steps,
         "iterations": MAX_ITERATIONS,
         "truncated": True,
+        "provider": _last_provider,
     }

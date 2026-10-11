@@ -94,6 +94,7 @@ async def run_agent(req: Request):
             "detail": agent_result.get("error"),
             "latency_ms": total_latency_ms,
             "served_by": "sunnyware",
+        "provider": agent_result.get("provider"),
             "session_id": session_id,
             "session_uuid": session_uuid,
         }
@@ -107,6 +108,7 @@ async def run_agent(req: Request):
         },
         "latency_ms": total_latency_ms,
         "served_by": "sunnyware",
+        "provider": agent_result.get("provider"),
         "session_id": session_id,
         "session_uuid": session_uuid,
     }
