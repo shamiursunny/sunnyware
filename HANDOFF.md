@@ -433,3 +433,58 @@ Effectively ~57,600 requests/day. Adds huge resilience to the router.
 
 ### Files ready
 - scripts/probe_nvidia.py (key verifier + model discovery)
+\n
+
+## Part 33 FINAL (2026-10-11) - 3/3 providers PASS
+
+### Live status
+| Priority | Provider | Model | Latency | Status |
+|---|---|---|---|---|
+| 1 | Groq | qwen/qwen3.8-27b | 233ms | PASS |
+| 2 | Gemini | gemini-2.5-flash | 574ms | PASS |
+| 3 | OpenRouter | liquid/lfm-2.5-2.6b:free | 6230ms | PASS |
+| - | Mistral | (removed from priority) | - | IP throttled |
+
+### Mistral decision
+Two separate accounts tested (old + new key), both got HTTP 429
+"Rate limit exceeded" from Bangladesh network. Confirmed pattern:
+- Mistral throttles by IP/region, not just by account
+- HF Space + local dev IPs both hit the same upstream throttle
+- Even brand-new accounts don't bypass it from this region
+
+Decision: REMOVED `mistral` from LLM_PROVIDERS.
+Secrets kept dormant - reactivate with one HF variable change if
+Mistral ever lifts the throttle, or if deploying from a different
+network region.
+
+### Current HF config
+Variables:
+- LLM_PROVIDERS=groq,gemini,openrouter
+- MODEL_AUTORESOLVE=1
+- SUNNYWARE_AGENT_TIMEOUT=300
+- SUNNYWARE_CPU_THREADS=2
+
+Secrets (all kept):
+- GROQ_* (qwen/qwen3.8-27b, primary)
+- GEMINI_* (gemini-2.5-flash)
+- OPENROUTER_* (liquid/lfm-2.5-2.6b:free)
+- MISTRAL_* (dormant)
+- LOCAL_* (dormant)
+- LLM_* legacy fallback
+- NEON_DATABASE_URL
+
+### Auto-resolver live
+- /api/models/resolve shows per-provider cache state
+- /api/models/resolve/refresh invalidates cache
+- Preference lists in src/sunnyware/model_resolver.py
+- Self-heals when any provider retires a model (e.g. OpenRouter's
+  earlier gemma-4-26b:free retirement)
+
+### Scripts for future probes
+- scripts/probe_all_providers.py - scan all provider /models
+- scripts/providers_smoke.py - per-provider health test
+
+### Next session
+1. NVIDIA NIM integration (pending support verification)
+2. Optional: re-test Mistral in 1-2 weeks
+3. Part 34 - define next feature
