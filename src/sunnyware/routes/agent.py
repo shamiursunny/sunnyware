@@ -105,6 +105,7 @@ async def run_agent(req: Request):
             "model": (state["config"].llm_model if state["config"] else "unknown"),
             "steps": agent_result.get("steps", []),
             "iterations": agent_result.get("iterations", 1),
+            "provider": agent_result.get("provider"),
         },
         "latency_ms": total_latency_ms,
         "served_by": "sunnyware",
