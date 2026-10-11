@@ -230,3 +230,119 @@ async def usage_pricing():
     from .. import usage as _usage
     return {"cost_table": _usage.cost_table_snapshot()}
 
+
+# ── Part 32 Phase 2: local model smoke test ────────────────────
+@router.post("/api/local-model/smoke")
+async def local_model_smoke():
+    """Run a small battery of tests against the local model.
+
+    WARNING: The local model runs in-process on 2 vCPU. During this
+    test, the entire Space freezes (GIL held by llama.cpp). The HTTP
+    response will only arrive after ALL tests complete (~5-10 min).
+    """
+    import time as _t
+    from .. import local_llm as _lm
+
+    results = []
+    t_start = _t.time()
+
+    def _add(name, ok, **extra):
+        results.append({"test": name, "ok": ok, **extra})
+
+    # Test 0 — status snapshot
+    try:
+        _add("status_before", True, status=_lm.status())
+    except Exception as e:
+        _add("status_before", False, error=str(e))
+
+    # Test 1 — simple greeting
+    try:
+        t0 = _t.time()
+        r = await _lm.chat(prompt="Say hi in one word.", timeout=180.0)
+        _add("simple_greeting",
+             ok=bool(r.get("ok")),
+             answer=(r.get("content") or "")[:100],
+             latency_ms=int((_t.time() - t0) * 1000),
+             error=r.get("error", ""))
+    except Exception as e:
+        _add("simple_greeting", False, error=str(e))
+
+    # Test 2 — simple math
+    try:
+        t0 = _t.time()
+        r = await _lm.chat(prompt="What is 7 times 8? Answer with just the number.", timeout=180.0)
+        _add("simple_math",
+             ok=bool(r.get("ok")),
+             answer=(r.get("content") or "")[:100],
+             latency_ms=int((_t.time() - t0) * 1000),
+             error=r.get("error", ""))
+    except Exception as e:
+        _add("simple_math", False, error=str(e))
+
+    # Test 3 — memory (2-turn)
+    try:
+        t0 = _t.time()
+        r = await _lm.chat(
+            prompt="What is my name?",
+            history=[
+                {"role": "user", "content": "My name is Ziggy."},
+                {"role": "assistant", "content": "Nice to meet you, Ziggy."},
+            ],
+            timeout=180.0,
+        )
+        _add("memory_2_turn",
+             ok=bool(r.get("ok")),
+             answer=(r.get("content") or "")[:100],
+             latency_ms=int((_t.time() - t0) * 1000),
+             error=r.get("error", ""))
+    except Exception as e:
+        _add("memory_2_turn", False, error=str(e))
+
+    # Test 4 — tool calling
+    try:
+        t0 = _t.time()
+        tools = [{
+            "type": "function",
+            "function": {
+                "name": "get_weather",
+                "description": "Get current weather for a city",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "city": {"type": "string", "description": "City name"},
+                    },
+                    "required": ["city"],
+                },
+            },
+        }]
+        r = await _lm.chat(
+            prompt="What's the weather in Dhaka? Use the get_weather tool.",
+            tools=tools,
+            timeout=180.0,
+        )
+        has_call = bool(r.get("tool_calls"))
+        _add("tool_calling",
+             ok=bool(r.get("ok")),
+             tool_calls=has_call,
+             raw_tool_calls=str(r.get("tool_calls"))[:200] if has_call else "",
+             answer=(r.get("content") or "")[:100],
+             latency_ms=int((_t.time() - t0) * 1000),
+             error=r.get("error", ""))
+    except Exception as e:
+        _add("tool_calling", False, error=str(e))
+
+    # Test 5 — status snapshot after
+    try:
+        _add("status_after", True, status=_lm.status())
+    except Exception as e:
+        _add("status_after", False, error=str(e))
+
+    total_ms = int((_t.time() - t_start) * 1000)
+    passed = sum(1 for r in results if r.get("ok"))
+    return {
+        "total_tests": len(results),
+        "passed": passed,
+        "failed": len(results) - passed,
+        "total_latency_ms": total_ms,
+        "results": results,
+    }
