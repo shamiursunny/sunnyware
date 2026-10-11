@@ -37,6 +37,7 @@ class Provider:
     base_url: str
     api_key: str
     model: str
+    provider_type: str = "http"  # "http" or "local"
     cooldown_until: float = 0.0
     last_error: str = ""
     success_count: int = 0
@@ -64,6 +65,7 @@ class Provider:
     def status(self) -> dict:
         return {
             "name": self.name,
+            "type": self.provider_type,
             "model": self.model,
             "base_url": self.base_url.split("/")[2] if "://" in self.base_url else self.base_url,
             "cooling": self.is_cooling(),
@@ -104,11 +106,13 @@ def load_providers(reload: bool = False) -> List[Provider]:
         if not (base_url and model):
             # Skip misconfigured providers (missing URL or model)
             continue
+        ptype = "local" if name == "local" else "http"
         out.append(Provider(
             name=name,
             base_url=base_url.rstrip("/"),
             api_key=api_key or "local",
             model=model,
+            provider_type=ptype,
         ))
 
     _PROVIDERS = out

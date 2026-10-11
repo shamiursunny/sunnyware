@@ -22,6 +22,7 @@ from typing import Optional
 import httpx
 
 from . import providers as _providers
+from . import local_llm as _local_llm
 
 
 DEFAULT_BASE_URL = "http://localhost:11434/v1"
@@ -274,6 +275,26 @@ async def chat(
     for p in provs:
         if p.is_cooling():
             continue
+
+        # Local provider: bypass HTTP, call in-process
+        if p.provider_type == "local":
+            try:
+                from . import metrics as _m
+                _m.incr_labeled("llm_provider_attempt", p.name)
+            except Exception:
+                pass
+            r = await _local_llm.chat(
+                prompt=prompt, model=p.model, system=system,
+                history=history, tools=tools, timeout=max(timeout, 120.0),
+            )
+            if r.get("ok"):
+                p.record_success()
+                return r
+            p.record_failure(r.get("error", ""))
+            last_err = r.get("error", "")
+            p.mark_cooldown(10.0)
+            continue
+
         try:
             from . import metrics as _m
             _m.incr_labeled("llm_provider_attempt", p.name)
