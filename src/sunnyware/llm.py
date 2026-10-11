@@ -255,15 +255,30 @@ async def chat(
     if not provs:
         return {"ok": False, "error": "no LLM providers configured"}
 
+    # Part 33: auto-resolve best model per provider (adapts when a
+    # provider retires a model). Cached per provider for 1h.
+    from . import model_resolver as _mr
+    _resolved = {}
+    for _p in provs:
+        if _p.provider_type == "local":
+            _resolved[_p.name] = model or _p.model
+            continue
+        try:
+            _res = await _mr.resolve(_p.name, _p.base_url, _p.api_key, model or _p.model)
+            _resolved[_p.name] = _res.get("model") or (model or _p.model)
+        except Exception:
+            _resolved[_p.name] = model or _p.model
+
     # Single provider — legacy path, minimal overhead
     if len(provs) == 1:
         p = provs[0]
         r = await _chat_single(
             prompt=prompt, base_url=p.base_url, api_key=p.api_key,
-            model=model or p.model, system=system, history=history,
+            model=_resolved.get(p.name) or model or p.model, system=system, history=history,
             tools=tools, timeout=timeout, _retry_depth=_retry_depth,
         )
         r["provider"] = p.name
+        r["resolved_model"] = _resolved.get(p.name)
         if r.get("ok"):
             p.record_success()
         else:
@@ -303,10 +318,11 @@ async def chat(
 
         r = await _chat_single(
             prompt=prompt, base_url=p.base_url, api_key=p.api_key,
-            model=model or p.model, system=system, history=history,
+            model=_resolved.get(p.name) or model or p.model, system=system, history=history,
             tools=tools, timeout=timeout, _retry_depth=0,
         )
         r["provider"] = p.name
+        r["resolved_model"] = _resolved.get(p.name)
 
         if r.get("ok"):
             p.record_success()

@@ -346,3 +346,25 @@ async def local_model_smoke():
         "total_latency_ms": total_ms,
         "results": results,
     }
+
+
+# ── Part 33: auto model resolver diagnostics ──────────────────
+@router.get("/api/models/resolve")
+async def models_resolve_status():
+    """Return current auto-resolver cache state per provider."""
+    try:
+        from .. import model_resolver as _mr
+        return {"resolvers": _mr.snapshot()}
+    except Exception as e:
+        return {"error": type(e).__name__ + ": " + str(e)}
+
+
+@router.post("/api/models/resolve/refresh")
+async def models_resolve_refresh():
+    """Force invalidate the resolver cache so next call re-probes."""
+    try:
+        from .. import model_resolver as _mr
+        _mr.invalidate()
+        return {"ok": True, "cleared": True}
+    except Exception as e:
+        return {"ok": False, "error": type(e).__name__ + ": " + str(e)}
