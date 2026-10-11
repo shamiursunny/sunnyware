@@ -396,3 +396,40 @@ c) Own GPU server (out of scope for HF Space)
 - WebUI "via <provider>" badge
 - ~1,900 free requests/day combined
 - Zero more daily token exhaustion
+\n
+
+## NVIDIA NIM Provider - PENDING SUPPORT VERIFICATION
+
+### Status
+- NVIDIA Cloud Account created: sunnyware (account #1068493506984984, ACTIVE)
+- build.nvidia.com still shows "API Access Unavailable - contact support"
+- Cause: Bangladesh not available in phone verification dropdown
+
+### Action taken (2026-10-11)
+- Sent manual verification request via build.nvidia.com/settings/api-keys
+  -> Contact Support button
+- Duplicate email to help@build.nvidia.com
+- Attached screenshots: verification page, country dropdown, live Space
+
+### Awaiting
+- NVIDIA support response (24-72 hours typical)
+
+### Once verified
+1. Get API key from https://build.nvidia.com/settings/api-keys
+2. Run: export NVIDIA_API_KEY=nvapi-...
+3. Run: python scripts/probe_nvidia.py
+   (discovers which tool-calling models are available)
+4. Add 3 HF secrets:
+   NVIDIA_BASE_URL=https://integrate.api.nvidia.com/v1
+   NVIDIA_API_KEY=nvapi-...
+   NVIDIA_MODEL=meta/llama-4-maverick-17b-128e-instruct  (or best from probe)
+5. Edit LLM_PROVIDERS variable:
+   groq,gemini,openrouter,nvidia
+6. Verify with /api/providers/status -> should show 4 providers
+
+### Why this matters
+NVIDIA NIM free tier: ~40 requests/minute (no daily token cap)
+Effectively ~57,600 requests/day. Adds huge resilience to the router.
+
+### Files ready
+- scripts/probe_nvidia.py (key verifier + model discovery)
