@@ -309,3 +309,47 @@ Combined free budget: ~1,900 requests/day
 - Bucket: shamiur/minicpm5-2b-bucket (to create)
 - GGUF: MiniCPM5-2B-Q4_K_M.gguf (1.56 GB)
 - Speed expectation: ~8-15 tok/s on 2 vCPU (~30-50 sec response)
+\n
+
+## Part 32 Phase 2 - Local model deployed (parked as fallback)
+
+### Current status
+- Code deployed: commit 6e8d734
+- Local MiniCPM5-2B provider registered in the router (type=local)
+- Parked LAST in priority: LLM_PROVIDERS=groq,gemini,openrouter,local
+- Cloud-first for production (fast, no GIL issues)
+
+### HF Space config (all set)
+- Variable: LLM_PROVIDERS=groq,gemini,openrouter,local
+- Variable: LOCAL_MODEL_ENABLED=1
+- Variable: SUNNYWARE_AGENT_TIMEOUT=300
+- Secret: LOCAL_MODEL_PATH=/models/shamiur/MiniCPM5-2B-GGUF-bucket/MiniCPM5-2B-Q4_K_M.gguf
+- Secret: LOCAL_BASE_URL=http://localhost:8080/v1
+- Secret: LOCAL_MODEL=minicpm5-2b
+- Bucket mounted at /models (read-only)
+
+### Known limitation - GIL blocking
+Local model runs in-process via llama-cpp-python. During inference on 2 vCPU:
+- llama.cpp holds the GIL
+- Python event loop is blocked
+- Entire FastAPI Space freezes (all endpoints return empty / timeout)
+- Health check also frozen until inference completes
+
+Confirmed by: 129+ sec WebUI hang, empty /health/live response during local call.
+
+### Fix for next session - pick one
+1. Run local model in multiprocessing.Process (GIL isolated)
+2. Spawn llama-server as subprocess on port 8080 (HTTP isolation)
+3. Accept as "slow batch-only fallback" - invoke only via direct API, never in chat
+
+### What's working today
+- 3 cloud providers (Groq, Gemini, OpenRouter) with auto-failover
+- WebUI badge shows serving provider
+- Local model is deployed and loadable - just not chat-friendly yet
+
+### Files added for Phase 2
+- src/sunnyware/local_llm.py - in-process llama.cpp wrapper
+- providers.py: added provider_type field ("http" | "local")
+- llm.py: router handles local provider type
+- main.py: preload task (runs at startup if lifespan fires)
+- requirements.txt: llama-cpp-python + prebuilt wheel index
