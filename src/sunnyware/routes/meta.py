@@ -409,7 +409,7 @@ async def providers_smoke():
             system=None,
             history=None,
             tools=None,
-            timeout=25.0,
+            timeout=90.0,
         )
         latency = int((_t.time() - t0) * 1000)
 

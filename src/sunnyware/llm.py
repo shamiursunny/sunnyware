@@ -243,7 +243,7 @@ async def chat(
     system: Optional[str] = None,
     history: Optional[list] = None,
     tools: Optional[list] = None,
-    timeout: float = 30.0,
+    timeout: float = 90.0,
     _retry_depth: int = 0,
 ) -> dict:
     """Route across providers. Falls through on rate-limits / errors.
