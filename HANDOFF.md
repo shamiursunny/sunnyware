@@ -262,3 +262,50 @@ UX gap (next session — Part 31H).
 - Mitigation attempts tried: prompt rules (partial help).
 - Real fix would need server-side tool_choice enforcement or a
   different model.
+\n
+
+## Part 32 Phase 1 + Phase 3 (2026-10-11, multi-provider router)
+
+### Phase 1 - Multi-provider router
+- New: src/sunnyware/providers.py (Provider dataclass + cooldown tracking)
+- Rewrote: src/sunnyware/llm.py as 2-layer router
+  - _chat_single(): all Part-31 retries preserved
+  - chat(): iterates providers, falls through on error
+  - Rate-limit cooldown = 60s, generic error cooldown = 10s
+- LLM_PROVIDERS env var (comma-separated priority list)
+- Legacy single-provider mode preserved when LLM_PROVIDERS unset
+
+Configured providers (priority order):
+1. Groq          - openai/gpt-oss-20b           - 200K tokens/day
+2. Gemini        - gemini-2.0-flash             - 1.5K requests/day
+3. OpenRouter    - llama-3.2-3b-instruct:free   - 50 requests/day
+
+Combined free budget: ~1,900 requests/day
+
+### Phase 3 - Monitoring
+- New: GET /api/providers/status
+  - Returns per-provider: name, model, base_url host, cooling status,
+    cooldown_remaining_s, success_count, fail_count, last_error
+- Updated: /health/ready now includes providers count
+- WebUI: "via <provider>" badge in header, updates after each message
+
+### Verified live
+- mode: "multi" with 3 providers listed
+- Groq served first test request (success_count = 1)
+- WebUI badge shows "via groq" after response
+- API returns provider at top level + inside result dict
+
+### Config (HF Space secrets)
+- LLM_PROVIDERS=groq,gemini,openrouter (Variable)
+- GROQ_BASE_URL, GROQ_API_KEY, GROQ_MODEL
+- GEMINI_BASE_URL, GEMINI_API_KEY, GEMINI_MODEL
+- OPENROUTER_BASE_URL, OPENROUTER_API_KEY, OPENROUTER_MODEL
+- Legacy LLM_BASE_URL/LLM_API_KEY/LLM_MODEL kept as fallback
+
+### Phase 2 - TODO next session
+- Local MiniCPM5-2B fallback in HF Space
+- Constraint: HF Spaces Docker SDK requires PRO ($9/mo)
+- Workaround: run llama.cpp as subprocess inside existing Gradio Space
+- Bucket: shamiur/minicpm5-2b-bucket (to create)
+- GGUF: MiniCPM5-2B-Q4_K_M.gguf (1.56 GB)
+- Speed expectation: ~8-15 tok/s on 2 vCPU (~30-50 sec response)

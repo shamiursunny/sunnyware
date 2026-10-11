@@ -29,6 +29,11 @@ workbench. PostgreSQL (Neon) stores memory + sessions.
 - Inline matplotlib charts in the WebUI
 - Native tool calling via Groq
 - Multi-turn sessions without token overflow
+- **Multi-provider LLM router (Part 32)** — Groq -> Gemini -> OpenRouter
+  with auto-failover on rate-limit / error
+- **WebUI `via <provider>` badge** in header shows serving provider
+- **GET /api/providers/status** endpoint
+- **16 agent tools** (added rag_list in Part 32)
 
 ## What's next (priority order)
 1. WebUI drag-drop upload button (Part 31H) — close last UX gap
