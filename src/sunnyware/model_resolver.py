@@ -44,12 +44,12 @@ PREFERENCES = {
         "gemini-2.0-flash",
     ],
     "openrouter": [
-        "google/gemma-4-26b-a4b-it:free",
-        "google/gemma-4-31b-it:free",
         "nvidia/nemotron-3-super-120b-a12b:free",
         "thinkingmachines/inkling:free",
         "cohere/north-mini-code:free",
         "liquid/lfm-2.5-2.6b:free",
+        "google/gemma-4-31b-it:free",
+        "google/gemma-4-26b-a4b-it:free",
     ],
     "groq": [
         "qwen/qwen3.8-27b",

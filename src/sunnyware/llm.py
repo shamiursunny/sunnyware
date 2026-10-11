@@ -84,7 +84,7 @@ async def _chat_single(
     system: Optional[str] = None,
     history: Optional[list] = None,
     tools: Optional[list] = None,
-    timeout: float = 30.0,
+    timeout: float = 60.0,
     _retry_depth: int = 0,
 ) -> dict:
     """Low-level single-endpoint chat call. Preserves all Part-31 retries."""
@@ -131,20 +131,20 @@ async def _chat_single(
                 except Exception:
                     pass
 
-                # Part 31I: 429 rate limit -> wait for window reset + retry
-                if r.status_code == 429 and _retry_depth < 2:
+                # Part 33: 429 -> fail fast, let router try next provider
+                # (previous 20s x 2 retries wasted 40s per broken provider)
+                if r.status_code == 429:
                     try:
                         from . import metrics as _m4
-                        _m4.incr("llm_rate_limit_retry_total")
+                        _m4.incr("llm_rate_limit_fastfail_total")
                     except Exception:
                         pass
-                    await asyncio.sleep(20.0)
-                    return await _chat_single(
-                        prompt=prompt, base_url=base_url, api_key=api_key,
-                        model=model, system=system, history=history,
-                        tools=tools, timeout=timeout,
-                        _retry_depth=_retry_depth + 1,
-                    )
+                    return {
+                        "ok": False,
+                        "error": f"HTTP 429: {r.text[:200]}",
+                        "latency_ms": latency_ms,
+                        "status_code": 429,
+                    }
 
                 # Part 31K-ext: hallucinated tool name -> retry with hint
                 if r.status_code == 400 and "was not enabled" in r.text and _retry_depth < 2:
