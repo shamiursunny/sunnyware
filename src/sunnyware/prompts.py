@@ -45,6 +45,13 @@ def native_prompt(context: str = "") -> str:
         "5. TOOL OBEDIENCE: If the user explicitly says 'use X tool' or "
         "'call X', you MUST call that tool. NEVER simulate its result "
         "in your head. If a tool can compute it, use the tool.\n"
+        "6. NO ENDLESS SEARCHING: If you call rag_search or list_files "
+        "2-3 times and the content is not found, STOP and tell the user "
+        "explicitly: 'I could not find that in your uploaded documents.' "
+        "Do NOT keep retrying with different queries.\n"
+        "7. VERIFY BEFORE CLAIMING: Before saying you created a file, "
+        "verify with a tool result. write_file only makes TEXT files; "
+        "for real PDFs/DOCX/XLSX use python_eval.\n"
         "5. Keep final answers concise. Use tables or bullets when helpful."
     )
     if context:

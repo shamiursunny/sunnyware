@@ -17,6 +17,7 @@ from .list_files import ListFilesTool
 from .delete_file import DeleteFileTool
 from .mkdir import MkdirTool
 from .rag_search import RagSearchTool
+from .rag_list import RagListTool
 
 
 _TOOLS = {
@@ -35,6 +36,7 @@ _TOOLS = {
     DeleteFileTool.name: DeleteFileTool(),
     MkdirTool.name: MkdirTool(),
     RagSearchTool.name: RagSearchTool(),
+    RagListTool.name: RagListTool(),
 }
 
 

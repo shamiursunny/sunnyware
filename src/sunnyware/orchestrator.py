@@ -475,6 +475,42 @@ async def run_agent(
             "iterations": iteration + 1,
         }
 
+    # Part 32: on iteration exhaustion, force the model to summarize what
+    # it found so the user doesn't get a silent failure.
+    if steps:
+        try:
+            from . import metrics as _m
+            _m.incr("agent_forced_summary_total")
+        except Exception:
+            pass
+        try:
+            messages.append({
+                "role": "user",
+                "content": (
+                    "You've reached the iteration limit. Do NOT call more tools. "
+                    "In one short paragraph, tell the user exactly what you DID find "
+                    "in the tool results above, and what you did NOT find. If nothing "
+                    "relevant was found, say so explicitly."
+                ),
+            })
+            _final = await llm_client.chat(
+                prompt="Summarize what you found from the tool results above in one paragraph.",
+                model=model, system=system_prompt, history=messages,
+                tools=None, timeout=30.0,
+            )
+            if _final.get("ok"):
+                _txt = (_final.get("content") or "").strip()
+                if _txt:
+                    return {
+                        "ok": True,
+                        "answer": _txt,
+                        "steps": steps,
+                        "iterations": MAX_ITERATIONS,
+                        "forced_summary": True,
+                    }
+        except Exception:
+            pass
+
     return {
         "ok": True,
         "answer": "Maximum reasoning iterations reached without a final answer.",

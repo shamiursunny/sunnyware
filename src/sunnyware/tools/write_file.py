@@ -8,6 +8,15 @@ from pathlib import Path
 
 MAX_BYTES = 256 * 1024  # 256 KB
 
+# Part 32: refuse text-mode writes to extensions that require real binary files
+BINARY_EXTS = {
+    ".pdf", ".docx", ".doc", ".xlsx", ".xls", ".pptx", ".ppt",
+    ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp",
+    ".zip", ".gz", ".tar", ".7z",
+    ".mp3", ".mp4", ".wav", ".avi", ".mov",
+    ".so", ".dll", ".exe", ".bin",
+}
+
 
 def _workspace() -> Path:
     from .. import paths
@@ -44,6 +53,15 @@ class WriteFileTool:
         content = args.get("content", "")
         if not rel:
             return {"error": "path is required"}
+
+        # Part 32: refuse binary extension writes via text tool
+        ext = Path(rel).suffix.lower()
+        if ext in BINARY_EXTS:
+            return {
+                "error": "cannot write binary file '" + ext + "' with write_file",
+                "hint": "write_file only creates text files. For real PDFs use python_eval with matplotlib PdfPages. For XLSX use openpyxl or pandas.to_excel. For images use matplotlib savefig or PIL.",
+                "suggested_tool": "python_eval",
+            }
         if not isinstance(content, str):
             content = str(content)
         if len(content.encode("utf-8")) > MAX_BYTES:
