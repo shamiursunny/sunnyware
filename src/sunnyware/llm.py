@@ -1,12 +1,27 @@
 # SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
 # SPDX-License-Identifier: AGPL-3.0-only
-"""LLM client — OpenAI-compatible HTTP (Ollama, HF Inference, OpenAI)."""
+"""LLM client + multi-provider router (Part 32).
 
+Two layers:
+  - _chat_single(): low-level OpenAI-compatible call to one endpoint
+    with all Part-31 retries (429, tool_use_failed, hallucinated tool names)
+  - chat(): routes across providers from providers.load_providers(),
+    marks rate-limited ones as cooling, falls through on errors
+
+If LLM_PROVIDERS is unset, chat() uses the legacy single-provider config
+(LLM_BASE_URL / LLM_API_KEY / LLM_MODEL).
+"""
+
+import asyncio
 import json
 import os
+import re
 import time
 from typing import Optional
+
 import httpx
+
+from . import providers as _providers
 
 
 DEFAULT_BASE_URL = "http://localhost:11434/v1"
@@ -14,37 +29,56 @@ DEFAULT_MODEL = "gemma2-2b-tuned-stable:latest"
 DEFAULT_API_KEY = "ollama"
 
 
-def _base_url() -> str:
+def _legacy_base_url() -> str:
     return os.getenv("LLM_BASE_URL", DEFAULT_BASE_URL).rstrip("/")
 
 
-def _api_key() -> str:
+def _legacy_api_key() -> str:
     return os.getenv("LLM_API_KEY", DEFAULT_API_KEY)
 
 
-def _model() -> str:
+def _legacy_model() -> str:
     return os.getenv("LLM_MODEL", DEFAULT_MODEL)
 
 
+# Legacy aliases kept for backward compat with existing call sites
+def _base_url() -> str:
+    return _legacy_base_url()
+
+
+def _api_key() -> str:
+    return _legacy_api_key()
+
+
+def _model() -> str:
+    return _legacy_model()
+
+
 async def health_check(timeout: float = 5.0) -> dict:
-    """Ping /models endpoint. Returns {status, models, count} or {status: error}."""
+    """Ping /models on the first provider (or legacy config if none)."""
+    provs = _providers.load_providers()
+    if not provs:
+        return {"status": "error", "error": "no providers configured"}
+    p = provs[0]
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
             r = await client.get(
-                f"{_base_url()}/models",
-                headers={"Authorization": f"Bearer {_api_key()}"},
+                f"{p.base_url}/models",
+                headers={"Authorization": f"Bearer {p.api_key}"},
             )
             if r.status_code != 200:
                 return {"status": "error", "error": f"HTTP {r.status_code}"}
             data = r.json()
             models = [m.get("id", "?") for m in data.get("data", [])]
-            return {"status": "ok", "models": models[:5], "count": len(models)}
+            return {"status": "ok", "models": models[:5], "count": len(models), "provider": p.name}
     except Exception as e:
         return {"status": "error", "error": f"{type(e).__name__}: {e}"}
 
 
-async def chat(
+async def _chat_single(
     prompt: str,
+    base_url: str,
+    api_key: str,
     model: Optional[str] = None,
     system: Optional[str] = None,
     history: Optional[list] = None,
@@ -52,12 +86,7 @@ async def chat(
     timeout: float = 30.0,
     _retry_depth: int = 0,
 ) -> dict:
-    """Send chat completion with optional multi-turn history + native tools.
-
-    history: list of {role, content} dicts.
-    tools: OpenAI-format tool schemas — enables native tool calling.
-    Returns {ok, content, tool_calls, model, latency_ms} or {ok: False, error}.
-    """
+    """Low-level single-endpoint chat call. Preserves all Part-31 retries."""
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
@@ -66,12 +95,9 @@ async def chat(
     messages.append({"role": "user", "content": prompt})
 
     payload = {
-        "model": model or _model(),
+        "model": model or DEFAULT_MODEL,
         "messages": messages,
         "temperature": 0.2,
-        # Part 31G: reasoning models (gpt-oss) burn most of max_tokens on
-        # internal reasoning before producing output. 500 was too small:
-        # empty responses when reasoning used the whole budget.
         "max_tokens": 2000,
     }
     if tools:
@@ -84,107 +110,105 @@ async def chat(
         _metrics.incr("llm_calls_total")
     except Exception:
         pass
+
     try:
         async with httpx.AsyncClient(timeout=timeout) as client:
             r = await client.post(
-                f"{_base_url()}/chat/completions",
+                f"{base_url}/chat/completions",
                 json=payload,
                 headers={
-                    "Authorization": f"Bearer {_api_key()}",
+                    "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
                 },
             )
             latency_ms = int((time.time() - start) * 1000)
+
             if r.status_code != 200:
                 try:
                     from . import metrics as _metrics2
                     _metrics2.incr("llm_errors_total")
                 except Exception:
                     pass
+
                 # Part 31I: 429 rate limit -> wait for window reset + retry
-                if (r.status_code == 429
-                        and _retry_depth < 2):
+                if r.status_code == 429 and _retry_depth < 2:
                     try:
                         from . import metrics as _m4
                         _m4.incr("llm_rate_limit_retry_total")
                     except Exception:
                         pass
-                    import asyncio as _aio
-                    await _aio.sleep(20.0)
-                    return await chat(
-                        prompt=prompt, model=model, system=system,
-                        history=history, tools=tools, timeout=timeout,
+                    await asyncio.sleep(20.0)
+                    return await _chat_single(
+                        prompt=prompt, base_url=base_url, api_key=api_key,
+                        model=model, system=system, history=history,
+                        tools=tools, timeout=timeout,
                         _retry_depth=_retry_depth + 1,
                     )
-                # Part 31K-ext: Groq rejected hallucinated tool name
-                # ('Model called python tool which was not enabled').
-                # Retry with a system hint forcing the exact tool name.
-                if (r.status_code == 400
-                        and "was not enabled" in r.text
-                        and _retry_depth < 2):
-                    import re as _re
-                    _m = _re.search(r"called (\w+) tool", r.text)
-                    _bad = _m.group(1) if _m else "unknown"
-                    _hint = (
+
+                # Part 31K-ext: hallucinated tool name -> retry with hint
+                if r.status_code == 400 and "was not enabled" in r.text and _retry_depth < 2:
+                    m = re.search(r"called (\w+) tool", r.text)
+                    bad = m.group(1) if m else "unknown"
+                    hint = (
                         "\n\nCRITICAL: You just called a tool named '"
-                        + _bad + "' which does not exist. "
+                        + bad + "' which does not exist. "
                         "The ONLY tool for running Python code is "
                         "named exactly 'python_eval'. "
                         "Never use 'python' or any other abbreviation. "
                         "Call 'python_eval' now."
                     )
-                    _new_system = (system or "") + _hint
+                    new_system = (system or "") + hint
                     try:
                         from . import metrics as _m5
                         _m5.incr("llm_tool_name_hint_retry_total")
                     except Exception:
                         pass
-                    import asyncio as _aio
-                    await _aio.sleep(0.3)
-                    return await chat(
-                        prompt=prompt, model=model, system=_new_system,
-                        history=history, tools=tools, timeout=timeout,
+                    await asyncio.sleep(0.3)
+                    return await _chat_single(
+                        prompt=prompt, base_url=base_url, api_key=api_key,
+                        model=model, system=new_system, history=history,
+                        tools=tools, timeout=timeout,
                         _retry_depth=_retry_depth + 1,
                     )
-                # Part 31F-ext2: retry once on Groq tool_use_failed
-                # (gpt-oss models sometimes emit malformed JSON args)
-                if (r.status_code == 400
-                        and "tool_use_failed" in r.text
-                        and _retry_depth < 2):
+
+                # Part 31F-ext2: tool_use_failed retry
+                if r.status_code == 400 and "tool_use_failed" in r.text and _retry_depth < 2:
                     try:
                         from . import metrics as _m3
                         _m3.incr("llm_tool_use_retry_total")
                     except Exception:
                         pass
-                    import asyncio as _aio
-                    await _aio.sleep(0.4)
-                    return await chat(
-                        prompt=prompt, model=model, system=system,
-                        history=history, tools=tools, timeout=timeout,
+                    await asyncio.sleep(0.4)
+                    return await _chat_single(
+                        prompt=prompt, base_url=base_url, api_key=api_key,
+                        model=model, system=system, history=history,
+                        tools=tools, timeout=timeout,
                         _retry_depth=_retry_depth + 1,
                     )
+
                 return {
                     "ok": False,
                     "error": f"HTTP {r.status_code}: {r.text[:200]}",
                     "latency_ms": latency_ms,
+                    "status_code": r.status_code,
                 }
+
             data = r.json()
             msg = data["choices"][0]["message"]
             content = msg.get("content") or ""
             tool_calls = msg.get("tool_calls")
 
-            # Part 29: record token usage + cost
+            # Usage tracking (Part 29)
             try:
                 from . import usage as _usage
                 u = data.get("usage") or {}
                 in_tok = int(u.get("prompt_tokens", 0) or 0)
                 out_tok = int(u.get("completion_tokens", 0) or 0)
                 if in_tok == 0 and out_tok == 0:
-                    # Approximate from content (small local models may not report usage)
                     in_tok = max(1, (len(prompt) if isinstance(prompt, str) else 0) // 4)
                     out_tok = max(1, len(content) // 4)
                 await _usage.record(
-                    model=data.get("model", model or _model()),
+                    model=data.get("model", model or DEFAULT_MODEL),
                     input_tokens=in_tok,
                     output_tokens=out_tok,
                     latency_ms=latency_ms,
@@ -196,7 +220,7 @@ async def chat(
                 "ok": True,
                 "content": content,
                 "tool_calls": tool_calls,
-                "model": data.get("model", model or _model()),
+                "model": data.get("model", model or DEFAULT_MODEL),
                 "latency_ms": latency_ms,
             }
     except Exception as e:
@@ -207,6 +231,82 @@ async def chat(
         }
 
 
+def _is_rate_limit_error(err: str) -> bool:
+    e = (err or "").lower()
+    return "429" in e or "rate limit" in e or "tpd" in e or "tpm" in e
+
+
+async def chat(
+    prompt: str,
+    model: Optional[str] = None,
+    system: Optional[str] = None,
+    history: Optional[list] = None,
+    tools: Optional[list] = None,
+    timeout: float = 30.0,
+    _retry_depth: int = 0,
+) -> dict:
+    """Route across providers. Falls through on rate-limits / errors.
+
+    Legacy single-provider behavior preserved when only one provider is
+    configured (LLM_PROVIDERS unset or has one entry).
+    """
+    provs = _providers.load_providers()
+    if not provs:
+        return {"ok": False, "error": "no LLM providers configured"}
+
+    # Single provider — legacy path, minimal overhead
+    if len(provs) == 1:
+        p = provs[0]
+        r = await _chat_single(
+            prompt=prompt, base_url=p.base_url, api_key=p.api_key,
+            model=model or p.model, system=system, history=history,
+            tools=tools, timeout=timeout, _retry_depth=_retry_depth,
+        )
+        r["provider"] = p.name
+        if r.get("ok"):
+            p.record_success()
+        else:
+            p.record_failure(r.get("error", ""))
+        return r
+
+    # Multi-provider router
+    last_err = ""
+    for p in provs:
+        if p.is_cooling():
+            continue
+        try:
+            from . import metrics as _m
+            _m.incr_labeled("llm_provider_attempt", p.name)
+        except Exception:
+            pass
+
+        r = await _chat_single(
+            prompt=prompt, base_url=p.base_url, api_key=p.api_key,
+            model=model or p.model, system=system, history=history,
+            tools=tools, timeout=timeout, _retry_depth=0,
+        )
+        r["provider"] = p.name
+
+        if r.get("ok"):
+            p.record_success()
+            return r
+
+        err = r.get("error", "")
+        last_err = err
+        p.record_failure(err)
+
+        if _is_rate_limit_error(err):
+            p.mark_cooldown(60.0)
+        else:
+            p.mark_cooldown(10.0)
+
+    return {
+        "ok": False,
+        "error": "all providers failed; last: " + (last_err or "unknown"),
+        "provider": "none",
+    }
+
+
 async def stream_chat(
     prompt: str,
     model: Optional[str] = None,
@@ -214,11 +314,15 @@ async def stream_chat(
     history: Optional[list] = None,
     timeout: float = 90.0,
 ):
-    """Async generator yielding text chunks from a streaming chat completion.
+    """Streaming — uses the FIRST configured provider (no router fallback)."""
+    provs = _providers.load_providers()
+    if not provs:
+        raise RuntimeError("no providers configured")
+    p = provs[0]
+    base_url = p.base_url
+    api_key = p.api_key
+    use_model = model or p.model
 
-    Uses OpenAI-compatible SSE (data: {...} lines, terminates with [DONE]).
-    Raises on error — caller handles.
-    """
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
@@ -227,7 +331,7 @@ async def stream_chat(
     messages.append({"role": "user", "content": prompt})
 
     payload = {
-        "model": model or _model(),
+        "model": use_model,
         "messages": messages,
         "temperature": 0.2,
         "max_tokens": 2000,
@@ -237,10 +341,10 @@ async def stream_chat(
     async with httpx.AsyncClient(timeout=timeout) as client:
         async with client.stream(
             "POST",
-            f"{_base_url()}/chat/completions",
+            f"{base_url}/chat/completions",
             json=payload,
             headers={
-                "Authorization": f"Bearer {_api_key()}",
+                "Authorization": f"Bearer {api_key}",
                 "Content-Type": "application/json",
             },
         ) as r:

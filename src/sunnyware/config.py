@@ -29,6 +29,11 @@ class Config:
         self.neon_database_url = _sanitize_db_url(os.getenv("NEON_DATABASE_URL", ""))
 
         # LLM (env overrides YAML)
+        # Part 32: multi-provider mode uses LLM_PROVIDERS; per-provider
+        # config is read by providers.load_providers(). The legacy
+        # LLM_BASE_URL / LLM_API_KEY / LLM_MODEL remain for single-provider use.
+        self.llm_providers = (os.getenv("LLM_PROVIDERS") or "").strip()
+        self.llm_multi_provider = bool(self.llm_providers)
         self.llm_base_url = os.getenv(
             "LLM_BASE_URL", raw.get("llm_base_url", "http://localhost:11434/v1")
         )

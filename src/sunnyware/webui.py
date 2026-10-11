@@ -54,6 +54,7 @@ HTML = """<!DOCTYPE html>
     <a href="#" id="upload">\U0001F4CE upload</a>
     <a href="#" id="clear">new session</a>
     <span class="badge" id="docCount">docs: \u2014</span>
+    <span class="badge" id="providerBadge" title="Last LLM provider that served a response">via \u2014</span>
   </div>
 </header>
 <input type="file" id="fileInput"
@@ -203,7 +204,29 @@ HTML = """<!DOCTYPE html>
   renderSession();
   addMsg('Welcome to sunnyware. Ask me anything.', 'step');
   refreshDocCount();
+  refreshProviders();
   input.focus();
+
+  async function refreshProviders() {
+    try {
+      const r = await fetch('/api/providers/status');
+      const d = await r.json();
+      const el = document.getElementById('provBadge');
+      if (!el) return;
+      const provs = d.providers || [];
+      if (provs.length === 0) {
+        el.textContent = 'providers: none';
+        return;
+      }
+      const live = provs.filter(p => !p.cooling).length;
+      const firstLive = provs.find(p => !p.cooling);
+      const label = firstLive ? firstLive.name : provs[0].name;
+      el.textContent = 'providers: ' + live + '/' + provs.length + ' (' + label + ')';
+    } catch (e) {
+      const el = document.getElementById('provBadge');
+      if (el) el.textContent = 'providers: ?';
+    }
+  }
 })();
 </script>
 </body>

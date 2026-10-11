@@ -64,6 +64,23 @@ async def liveness():
     return {"status": "ok"}
 
 
+@router.get("/api/providers/status")
+async def providers_status():
+    """Part 32: current multi-provider router state."""
+    try:
+        from .. import providers as _prov
+        from .. import config as _cfg_mod
+        cfg = state.get("config") or _cfg_mod.load_config()
+        statuses = _prov.provider_statuses()
+        return {
+            "mode": "multi" if getattr(cfg, "llm_multi_provider", False) else "single",
+            "configured": cfg.llm_providers if getattr(cfg, "llm_multi_provider", False) else "legacy",
+            "providers": statuses,
+        }
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"}, status_code=500)
+
+
 @router.get("/health/ready")
 async def readiness():
     await ensure_pool()
@@ -99,6 +116,18 @@ async def readiness():
     mem_health = await memory_store.health_check()
     checks["memory"] = mem_health.get("status", "unknown")
     checks["tools"] = len(tools_registry.list_tools())
+
+    # Part 32: provider router summary
+    try:
+        from .. import providers as _prov
+        _statuses = _prov.provider_statuses()
+        if len(_statuses) > 1:
+            _live = sum(1 for s in _statuses if not s.get("cooling"))
+            checks["providers"] = f"{_live}/{len(_statuses)} live"
+        else:
+            checks["providers"] = "single"
+    except Exception:
+        checks["providers"] = "unknown"
 
     # Part 31: persistent storage info
     try:
