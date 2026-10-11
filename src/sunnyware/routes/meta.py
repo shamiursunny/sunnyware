@@ -368,3 +368,67 @@ async def models_resolve_refresh():
         return {"ok": True, "cleared": True}
     except Exception as e:
         return {"ok": False, "error": type(e).__name__ + ": " + str(e)}
+
+
+# ── Part 33: provider smoke test (hits each provider once) ────
+@router.post("/api/providers/smoke")
+async def providers_smoke():
+    """Test each configured HTTP provider with a minimal prompt.
+
+    Runs sequentially so we can isolate failures per provider.
+    Returns per-provider {ok, model, latency_ms, error, sample}.
+    """
+    import time as _t
+    from .. import providers as _prov
+    from .. import llm as _llm
+    from .. import model_resolver as _mr
+
+    out = []
+    provs = _prov.load_providers()
+    for p in provs:
+        if p.provider_type == "local":
+            out.append({"provider": p.name, "skipped": "local type"})
+            continue
+
+        try:
+            r = await _mr.resolve(p.name, p.base_url, p.api_key, p.model)
+            resolved = r.get("model") or p.model
+            source = r.get("source", "?")
+            available = r.get("available", 0)
+        except Exception as e:
+            resolved = p.model
+            source = "resolve_error:" + type(e).__name__
+            available = 0
+
+        t0 = _t.time()
+        res = await _llm._chat_single(
+            prompt="Reply with just the word: OK",
+            base_url=p.base_url,
+            api_key=p.api_key,
+            model=resolved,
+            system=None,
+            history=None,
+            tools=None,
+            timeout=25.0,
+        )
+        latency = int((_t.time() - t0) * 1000)
+
+        out.append({
+            "provider": p.name,
+            "ok": bool(res.get("ok")),
+            "configured_model": p.model,
+            "resolved_model": resolved,
+            "resolution_source": source,
+            "available_count": available,
+            "latency_ms": latency,
+            "sample": (res.get("content") or "")[:80],
+            "error": (res.get("error") or "")[:250],
+        })
+
+    passed = sum(1 for r in out if r.get("ok"))
+    return {
+        "total": len(out),
+        "passed": passed,
+        "failed": len(out) - passed,
+        "results": out,
+    }
