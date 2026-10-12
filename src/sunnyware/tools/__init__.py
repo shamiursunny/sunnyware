@@ -22,6 +22,7 @@ from .recall_history import RecallHistoryTool
 from .csv_query import CsvQueryTool
 from .chart_from_data import ChartFromDataTool
 from .citation_lookup import CitationLookupTool
+from .forecast_arima import ForecastArimaTool
 
 
 _TOOLS = {
@@ -45,6 +46,7 @@ _TOOLS = {
     CsvQueryTool.name: CsvQueryTool(),
     ChartFromDataTool.name: ChartFromDataTool(),
     CitationLookupTool.name: CitationLookupTool(),
+    ForecastArimaTool.name: ForecastArimaTool(),
 }
 
 
