@@ -26,6 +26,7 @@ from .forecast_arima import ForecastArimaTool
 from .financial_metrics import FinancialMetricsTool
 from .api_call import ApiCallTool
 from .document_diff import DocumentDiffTool
+from .pdf_report import PdfReportTool
 
 
 _TOOLS = {
@@ -53,6 +54,7 @@ _TOOLS = {
     FinancialMetricsTool.name: FinancialMetricsTool(),
     ApiCallTool.name: ApiCallTool(),
     DocumentDiffTool.name: DocumentDiffTool(),
+    PdfReportTool.name: PdfReportTool(),
 }
 
 
