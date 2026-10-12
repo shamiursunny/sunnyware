@@ -119,7 +119,9 @@ def main():
         check("Revenue FY24 = 12000000", row1.get("FY24") == 12000000)
         # Row 3: formula preserved
         row3 = pl["rows"][2]
-        gp = row3.get("Gross Profit")
+        check("row 3 is Gross Profit", row3.get("Line") == "Gross Profit",
+              detail=str(row3.get("Line")))
+        gp = row3.get("FY24")   # formula cell, not the row label
         check("formula preserved as dict", isinstance(gp, dict) and
               gp.get("formula") == "=B2-B3", detail=str(gp))
 
@@ -145,7 +147,7 @@ def main():
     check("include_formulas mode succeeds", "error" not in r4)
     if "error" not in r4:
         row3 = r4["sheets"][0]["rows"][2]
-        gp = row3.get("Gross Profit")
+        gp = row3.get("FY24")   # formula cell, not the row label
         check("formula kept as string with include_formulas=True",
               gp == "=B2-B3", detail=repr(gp))
 
