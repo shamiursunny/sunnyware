@@ -601,3 +601,44 @@ localStorage['sunnyware_active_v2'] = "web-xxxxx"
 1. Investigate XLSX extractor edge cases (optional)
 2. NVIDIA NIM integration (pending verification)
 3. Part 37 - define next
+\n
+
+## Part 37 - XLSX hardening + diagnostics + Groq swap (2026-10-12)
+
+### What shipped
+1. XLSX extractor hardened:
+   - Scans first 10 rows to find header row (title-row tolerant)
+   - Falls back to data_only=False (formula strings) if cached values empty
+   - Last-resort: dumps every non-empty cell as text block
+   - Column-letter fallback (col_A, col_B) when header cell blank
+
+2. Upload error diagnostics:
+   - Empty-file error now includes blocks_returned, total_rows,
+     total_text_chars, per_block breakdown, and per-extension hint
+   - WebUI displays these diagnostics inline on failure
+
+3. max_tokens reduced 2000 -> 900:
+   - Groq qwen3.8-27b free tier has 1000 OTPM cap - our old requests
+     exceeded it, causing HTTP 429
+   - 900 leaves headroom under all providers' limits
+
+4. GROQ_MODEL reverted to openai/gpt-oss-20b:
+   - qwen3.8-27b OTPM too tight for our usage pattern
+   - gpt-oss-20b has 8000 TPM (8x more headroom)
+   - Proven reliable across Parts 31-34
+
+### Bug fixed (regression)
+- JS escape bug: single \n in Python triple-quoted HTML -> real newline
+  in served JS -> syntax error. Doubled backslash in source -> fixed.
+- Same pattern as Part 34; needs to be a habit when adding JS strings.
+
+### Verified live
+- WebUI fully restored (session ID, docs badge, sidebar, chat all work)
+- Session persistence working across 3+ sessions
+- gpt-oss-20b chat responds in ~1-2s
+- Auto-titles, active session highlighting, markdown all working
+
+### Next session
+1. Retest the 4 XLSX files with new extractor (may fix 2-3 now)
+2. NVIDIA NIM integration (pending verification)
+3. Part 38 - define next
