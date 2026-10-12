@@ -85,7 +85,7 @@ HTML = """<!DOCTYPE html>
     <span class="badge" id="providerBadge" title="Last LLM provider that served a response">via \u2014</span>
   </div>
 </header>
-<input type="file" id="fileInput"
+<input type="file" id="fileInput" multiple
        accept=".pdf,.docx,.txt,.md,.csv,.xlsx,.xls">
 <div id="layout">
   <aside id="sidebar">
@@ -472,27 +472,47 @@ HTML = """<!DOCTYPE html>
   });
 
   fileInput.addEventListener('change', async () => {
-    const f = fileInput.files[0];
-    if (!f) return;
-    addMsg('uploading ' + f.name + ' (' + Math.round(f.size/1024) + ' KB)...', 'upload');
-    const formData = new FormData();
-    formData.append('file', f);
-    try {
-      const r = await fetch('/api/rag/upload', { method: 'POST', body: formData });
-      const d = await r.json();
-      if (d.ok) {
-        addMsg('\u2713 ' + d.filename + ' \u2014 ' + d.chunks_added +
-               ' chunks \u00b7 ' + d.total_count + ' total \u00b7 ' +
-               d.elapsed_ms + ' ms', 'upload-ok');
-      } else {
-        addMsg('\u2717 upload failed: ' + (d.error || 'unknown'), 'upload-err');
+    const files = Array.from(fileInput.files || []);
+    if (files.length === 0) return;
+
+    const total = files.length;
+    addMsg('uploading ' + total + ' file' + (total > 1 ? 's' : '') + '...', 'upload');
+
+    let okCount = 0;
+    let failCount = 0;
+    let totalChunks = 0;
+
+    for (let i = 0; i < total; i++) {
+      const f = files[i];
+      const idx = (i + 1) + '/' + total;
+      addMsg('  [' + idx + '] ' + f.name + ' (' + Math.round(f.size/1024) + ' KB)...', 'upload');
+      const formData = new FormData();
+      formData.append('file', f);
+      try {
+        const r = await fetch('/api/rag/upload', { method: 'POST', body: formData });
+        const d = await r.json();
+        if (d.ok) {
+          okCount++;
+          totalChunks += d.chunks_added || 0;
+          addMsg('  \u2713 ' + d.filename + ' \u2014 ' + d.chunks_added +
+                 ' chunks \u00b7 ' + d.total_count + ' total \u00b7 ' +
+                 d.elapsed_ms + ' ms', 'upload-ok');
+        } else {
+          failCount++;
+          addMsg('  \u2717 ' + f.name + ' failed: ' + (d.error || 'unknown'), 'upload-err');
+        }
+      } catch (e) {
+        failCount++;
+        addMsg('  \u2717 ' + f.name + ' error: ' + e.message, 'upload-err');
       }
-    } catch (e) {
-      addMsg('\u2717 upload error: ' + e.message, 'upload-err');
-    } finally {
-      fileInput.value = '';
-      refreshDocCount();
     }
+
+    if (total > 1) {
+      addMsg('Done: ' + okCount + ' uploaded (' + totalChunks + ' chunks) \u00b7 ' + failCount + ' failed', 'upload-ok');
+    }
+
+    fileInput.value = '';
+    refreshDocCount();
   });
 
   // Init
