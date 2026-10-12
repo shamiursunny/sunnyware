@@ -139,6 +139,23 @@ HTML = """<!DOCTYPE html>
   .msg.agent th, .msg.agent td { border: 1px solid #2a2e36; padding: 5px 10px; }
   .msg.agent th { background: #1d2026; color: #ffb454; }
   .msg.agent hr { border: none; border-top: 1px solid #2a2e36; margin: 12px 0; }
+  /* Part 43: chart rendering */
+  .msg.agent img { max-width: 100%; border: 1px solid #2a2e36; border-radius: 6px;
+                   margin: 8px 0; cursor: zoom-in; background: #fff; }
+  .msg.agent img.zoomed { position: fixed; inset: 5vh 5vw; width: 90vw; height: 90vh;
+                          object-fit: contain; z-index: 2000; cursor: zoom-out;
+                          background: #0a0c0f; padding: 12px; border-radius: 10px; }
+  /* Part 43: mic button */
+  #micBtn { padding: 12px 14px; border-radius: 8px; border: 1px solid #2a2e36;
+            background: #1d2026; color: #b8c4d0; cursor: pointer; font-size: 16px; }
+  #micBtn:hover { background: #252932; border-color: #52b788; color: #e6e8eb; }
+  #micBtn.recording { background: #3a1a1a; border-color: #ff6b6b; color: #ff6b6b;
+                      animation: pulse-red 1.2s infinite; }
+  @keyframes pulse-red { 0%,100% { opacity: 1; } 50% { opacity: 0.55; } }
+  /* Part 43: session rename */
+  .sess .ren { opacity: 0; color: #6e7480; font-size: 12px; padding: 0 3px; cursor: pointer; }
+  .sess:hover .ren { opacity: 1; }
+  .sess .ren:hover { color: #ffb454; }
 </style>
 </head>
 <body>
@@ -183,6 +200,7 @@ HTML = """<!DOCTYPE html>
     <footer>
       <form id="form">
         <input type="text" id="input" placeholder="Ask anything..." autocomplete="off" required>
+        <button type="button" id="micBtn" title="Voice input (click to start/stop)">\U0001F3A4</button>
         <button type="submit" id="send">Send</button>
       </form>
       <div class="footer-info">Powered by sunnyware · <span id="latency">—</span></div>
@@ -436,7 +454,22 @@ HTML = """<!DOCTYPE html>
       const title = document.createElement('span');
       title.className = 'title';
       title.textContent = s.title || 'New chat';
+      title.title = 'Double-click to rename';
+      title.addEventListener('dblclick', (ev) => {
+        ev.stopPropagation();
+        renameSession(s.id);
+      });
       row.appendChild(title);
+
+      const ren = document.createElement('span');
+      ren.className = 'ren';
+      ren.textContent = '\u270F';
+      ren.title = 'Rename';
+      ren.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        renameSession(s.id);
+      });
+      row.appendChild(ren);
 
       const del = document.createElement('span');
       del.className = 'del';
@@ -469,6 +502,20 @@ HTML = """<!DOCTYPE html>
     addMsg('Welcome to sunnyware. Ask me anything.', 'step', false);
     renderSidebar();
     input.focus();
+  }
+
+  function renameSession(id) {
+    const sessions = getSessions();
+    const sess = sessions[id];
+    if (!sess) return;
+    const current = sess.title || 'New chat';
+    const next = window.prompt('Rename session:', current);
+    if (next === null) return;
+    const trimmed = next.trim();
+    if (!trimmed) return;
+    sess.title = trimmed.length > 60 ? trimmed.slice(0, 60) + '...' : trimmed;
+    saveSessions(sessions);
+    renderSidebar();
   }
 
   function deleteSession(id) {
@@ -506,11 +553,25 @@ HTML = """<!DOCTYPE html>
     }
     return out;
   }
+  function wrapBareBase64(t) {
+    // Case A: data:image URI not already inside markdown ![]()
+    t = t.replace(
+      /(^|[^"(])(data:image\/(?:png|jpe?g|gif|webp);base64,[A-Za-z0-9+\/=]{200,})/g,
+      '$1![chart]($2)'
+    );
+    // Case B: bare PNG base64 blob (PNG magic bytes)
+    t = t.replace(
+      /(^|[\s>\n])(iVBORw0KGgo[A-Za-z0-9+\/=]{500,})/g,
+      '$1![chart](data:image/png;base64,$2)'
+    );
+    return t;
+  }
+
   function renderAgentHtml(text) {
     if (!text) return '';
     if (typeof marked === 'undefined' || !marked.parse) return escapeHtml(text);
     try {
-      var raw = marked.parse(text);
+      var raw = marked.parse(wrapBareBase64(text));
       raw = raw.split('<\/script').join('&lt;/script');
       raw = raw.split('javascript:').join('');
       return raw;
@@ -1041,6 +1102,63 @@ HTML = """<!DOCTYPE html>
   }
   refreshDocCount();
   input.focus();
+
+  // Part 43: chart click-to-zoom
+  chat.addEventListener('click', (e) => {
+    if (e.target.tagName === 'IMG' && e.target.closest('.msg.agent')) {
+      e.target.classList.toggle('zoomed');
+    } else if (e.target.classList && e.target.classList.contains('zoomed')) {
+      e.target.classList.remove('zoomed');
+    }
+  });
+
+  // Part 43: voice input via Web Speech API
+  (function initVoice() {
+    const btn = document.getElementById('micBtn');
+    if (!btn) return;
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) {
+      btn.title = 'Voice input not supported in this browser';
+      btn.disabled = true;
+      btn.style.opacity = '0.4';
+      return;
+    }
+    let rec = null;
+    let active = false;
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (active && rec) { rec.stop(); return; }
+      rec = new SR();
+      rec.lang = 'en-US';
+      rec.interimResults = true;
+      rec.continuous = false;
+      let base = input.value ? input.value + ' ' : '';
+      rec.onstart = () => {
+        active = true;
+        btn.classList.add('recording');
+        btn.title = 'Listening... click to stop';
+      };
+      rec.onresult = (ev) => {
+        let interim = '', final = '';
+        for (let i = ev.resultIndex; i < ev.results.length; i++) {
+          const r = ev.results[i];
+          if (r.isFinal) final += r[0].transcript;
+          else interim += r[0].transcript;
+        }
+        input.value = base + final + interim;
+      };
+      rec.onerror = (ev) => {
+        addMsg('voice error: ' + (ev.error || 'unknown'), 'error', false);
+      };
+      rec.onend = () => {
+        active = false;
+        btn.classList.remove('recording');
+        btn.title = 'Voice input (click to start/stop)';
+        input.focus();
+      };
+      rec.start();
+    });
+  })();
 
 })();
 </script>
