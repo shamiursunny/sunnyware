@@ -29,6 +29,7 @@ from .document_diff import DocumentDiffTool
 from .pdf_report import PdfReportTool
 from .workspace_snapshot import WorkspaceSnapshotTool
 from .excel_write import ExcelWriteTool
+from .excel_read import ExcelReadTool
 
 
 _TOOLS = {
@@ -59,6 +60,7 @@ _TOOLS = {
     PdfReportTool.name: PdfReportTool(),
     WorkspaceSnapshotTool.name: WorkspaceSnapshotTool(),
     ExcelWriteTool.name: ExcelWriteTool(),
+    ExcelReadTool.name: ExcelReadTool(),
 }
 
 
