@@ -48,7 +48,10 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - Chart rendering + click-to-zoom (Part 43)
 - Session rename — pencil icon or double-click title (Part 43)
 - Voice input — Web Speech API (Part 43; Chrome/Edge/Safari only, not Firefox)
-- WebUI hits tool-aware /api/agent/stream (Part 50) — tools work on mobile + desktop
+- WebUI hits tool-aware /api/agent/stream (Part 47) — tools work on mobile + desktop
+- Tool audit trail in Neon (Part 48) — tool_invocations table
+- recall_history tool (Part 49) — cross-session memory search
+- csv_query tool (Part 50) — DuckDB over workspace files
 - Full responsive UI — mobile drawer, tablet, TV mode (Part 44)
 - Mic permission UX — getUserMedia preflight + state badge (Part 44)
 - TV user-agent detection with larger fonts + focus outlines (Part 44)
