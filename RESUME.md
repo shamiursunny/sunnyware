@@ -17,9 +17,9 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - GitHub:  https://github.com/shamiursunny/sunnyware
 - Space:   https://huggingface.co/spaces/shamiur/sunnyware
 
-## Current state (last session: 2026-10-12, Part 55)
+## Current state (last session: 2026-10-12, Part 56)
 - Commit:  run `git log -1 --oneline` for current hash
-- Health:  /health/ready -> status ok, tools: 22
+- Health:  /health/ready -> status ok, tools: 23
 - LLM:     multi-provider (groq, gemini, openrouter) with auto-failover
   - Groq:       openai/gpt-oss-120b      (primary, ~200ms)
   - Gemini:     gemini-2.5-flash        (backup, ~500ms)
@@ -35,8 +35,9 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - Multi-provider LLM router with auto-failover
 - Auto model resolver — self-heals when providers retire models
 - 429 fast-fail (0.2s instead of 40s waste per broken provider)
-- 22 agent tools: rag_search, python_eval, recall_history, csv_query,
-  chart_from_data, citation_lookup, forecast_arima (+ 14 core)
+- 23 agent tools: rag_search, python_eval, recall_history, csv_query,
+  chart_from_data, citation_lookup, forecast_arima, financial_metrics,
+  api_call (+ 14 core)
 - Streaming WebUI — tokens appear as generated via SSE (Part 34)
 - Chat history persistence + sidebar with multi-session (Part 35)
 - Multi-file upload (Part 36) — drag 10+ files at once
@@ -52,7 +53,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - WebUI hits tool-aware /api/agent/stream (Part 47) — tools work on mobile + desktop
 - Tool audit trail in Neon (Part 48) — tool_invocations table
 - recall_history tool (Part 49) — cross-session memory search
-- csv_query tool (Part 55) — DuckDB over workspace files
+- csv_query tool (Part 56) — DuckDB over workspace files
 - Full responsive UI — mobile drawer, tablet, TV mode (Part 44)
 - Mic permission UX — getUserMedia preflight + state badge (Part 44)
 - TV user-agent detection with larger fonts + focus outlines (Part 44)
@@ -77,7 +78,7 @@ Exit 0 = READY TO PUSH.
 
 ## What's next (priority order)
 1. NVIDIA NIM integration — pending support verification
-2. Part 56 — next feature (define together)
+2. Part 57 — next feature (define together)
 3. Optional: voice input, session rename, chart rendering polish
 
 ## Key files
@@ -99,6 +100,7 @@ Exit 0 = READY TO PUSH.
 ## Key scripts
 - scripts/pre_push_check.py            Master DevSecOps gate (5 stages)
 - scripts/system_monitor.py            System health snapshot + baseline
+- scripts/smoke_test_part56.py         33 checks (api_call)
 - scripts/smoke_test_part55.py         30 checks (financial_metrics)
 - scripts/smoke_test_part53.py         27 checks (forecast_arima)
 - scripts/smoke_test_part52.py         13 checks (citation_lookup)
