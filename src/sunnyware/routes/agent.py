@@ -144,13 +144,6 @@ async def run_agent_stream(req: Request):
         full_text = ""
         _prov_name = None
         try:
-            try:
-                from ..providers import load_providers as _lp
-                _plist = _lp()
-                if _plist:
-                    _prov_name = _plist[0].name
-            except Exception:
-                pass
             yield f"data: {_json.dumps({'type': 'start', 'session_uuid': session_uuid})}\n\n"
             async for chunk in llm_client.stream_chat(
                 prompt, model=model, system=system, history=history
@@ -162,6 +155,11 @@ async def run_agent_stream(req: Request):
                     session_uuid, "assistant_message",
                     {"content": full_text, "model": model or "default", "streaming": True},
                 )
+            try:
+                from ..llm import get_last_stream_provider as _glp
+                _prov_name = _glp()
+            except Exception:
+                _prov_name = None
             yield f"data: {_json.dumps({'type': 'done', 'session_uuid': session_uuid, 'provider': _prov_name})}\n\n"
         except Exception as e:
             err = _json.dumps({"type": "error", "error": f"{type(e).__name__}: {e}"})

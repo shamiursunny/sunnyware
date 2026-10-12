@@ -344,6 +344,14 @@ async def chat(
     }
 
 
+_LAST_STREAM_PROVIDER = None
+
+
+def get_last_stream_provider():
+    """Return the provider name that served the most recent stream."""
+    return _LAST_STREAM_PROVIDER
+
+
 async def stream_chat(
     prompt: str,
     model: Optional[str] = None,
@@ -351,14 +359,15 @@ async def stream_chat(
     history: Optional[list] = None,
     timeout: float = 90.0,
 ):
-    """Streaming — uses the FIRST configured provider (no router fallback)."""
+    """Streaming with provider fallback (Part 57).
+
+    Tries each provider in priority order. Once the first chunk is yielded
+    we're committed — a mid-stream failure cannot safely be retried.
+    """
+    global _LAST_STREAM_PROVIDER
     provs = _providers.load_providers()
     if not provs:
         raise RuntimeError("no providers configured")
-    p = provs[0]
-    base_url = p.base_url
-    api_key = p.api_key
-    use_model = model or p.model
 
     messages = []
     if system:
@@ -367,43 +376,66 @@ async def stream_chat(
         messages.extend(history)
     messages.append({"role": "user", "content": prompt})
 
-    payload = {
-        "model": use_model,
-        "messages": messages,
-        "temperature": 0.2,
-        "max_tokens": 900,
-        "stream": True,
-    }
+    last_err = None
+    for p in provs:
+        if p.is_cooling():
+            last_err = f"{p.name}: cooling"
+            continue
+        use_model = model or p.model
+        payload = {
+            "model": use_model,
+            "messages": messages,
+            "temperature": 0.2,
+            "max_tokens": 900,
+            "stream": True,
+        }
+        yielded_any = False
+        try:
+            async with httpx.AsyncClient(timeout=timeout) as client:
+                async with client.stream(
+                    "POST",
+                    f"{p.base_url}/chat/completions",
+                    json=payload,
+                    headers={
+                        "Authorization": f"Bearer {p.api_key}",
+                        "Content-Type": "application/json",
+                    },
+                ) as r:
+                    if r.status_code != 200:
+                        body = await r.aread()
+                        last_err = f"{p.name}: HTTP {r.status_code}: {body[:120]!r}"
+                        if r.status_code == 429:
+                            p.mark_cooldown(60.0)
+                        p.record_failure(last_err)
+                        continue
+                    _LAST_STREAM_PROVIDER = p.name
+                    p.record_success()
+                    async for raw_line in r.aiter_lines():
+                        if not raw_line:
+                            continue
+                        line = raw_line.strip()
+                        if not line.startswith("data:"):
+                            continue
+                        data = line[5:].strip()
+                        if data == "[DONE]":
+                            break
+                        try:
+                            obj = json.loads(data)
+                            choice = (obj.get("choices") or [{}])[0]
+                            delta = choice.get("delta") or {}
+                            chunk = delta.get("content")
+                            if chunk:
+                                yielded_any = True
+                                yield chunk
+                        except Exception:
+                            continue
+                    return
+        except Exception as e:
+            last_err = f"{p.name}: {type(e).__name__}: {e}"
+            p.record_failure(last_err)
+            if yielded_any:
+                raise
+            continue
 
-    async with httpx.AsyncClient(timeout=timeout) as client:
-        async with client.stream(
-            "POST",
-            f"{base_url}/chat/completions",
-            json=payload,
-            headers={
-                "Authorization": f"Bearer {api_key}",
-                "Content-Type": "application/json",
-            },
-        ) as r:
-            if r.status_code != 200:
-                body = await r.aread()
-                raise RuntimeError(f"HTTP {r.status_code}: {body[:200]!r}")
+    raise RuntimeError(f"all providers failed: {last_err or 'unknown'}")
 
-            async for raw_line in r.aiter_lines():
-                if not raw_line:
-                    continue
-                line = raw_line.strip()
-                if not line.startswith("data:"):
-                    continue
-                data = line[5:].strip()
-                if data == "[DONE]":
-                    break
-                try:
-                    obj = json.loads(data)
-                    choice = (obj.get("choices") or [{}])[0]
-                    delta = choice.get("delta") or {}
-                    chunk = delta.get("content")
-                    if chunk:
-                        yield chunk
-                except Exception:
-                    continue
