@@ -116,6 +116,51 @@ app.include_router(schedule_routes.router)
 app.include_router(rag_routes.router)
 
 
+
+# ── Part 45: flatten _IncludedRouter proxies for OpenAPI schema ──
+# FastAPI 0.142+ wraps include_router() calls in a lazy _IncludedRouter
+# proxy that doesn't expose the attributes get_openapi() needs. We unwrap
+# them into plain APIRoute objects first, then generate the schema.
+def _flatten_openapi_routes(routes):
+    """Unwrap FastAPI 0.142 _IncludedRouter proxies and drop routes that
+    have no response_class (e.g. Gradio's /ui HTML page). FastAPI's OpenAPI
+    generator asserts on response_class=None and aborts."""
+    out = []
+    for r in routes:
+        orig = getattr(r, "original_router", None)
+        if orig is not None and hasattr(orig, "routes"):
+            out.extend(_flatten_openapi_routes(list(orig.routes)))
+            continue
+        # Skip anything without a response_class (not schema-able)
+        rc = getattr(r, "response_class", "MISSING")
+        if rc is None:
+            continue
+        out.append(r)
+    return out
+
+
+def _patched_openapi():
+    if getattr(app, "openapi_schema", None):
+        return app.openapi_schema
+    from fastapi.openapi.utils import get_openapi as _go
+    flat = _flatten_openapi_routes(list(app.routes))
+    app.openapi_schema = _go(
+        title=app.title,
+        version=app.version,
+        openapi_version=getattr(app, "openapi_version", "3.1.0"),
+        description=getattr(app, "description", None),
+        routes=flat,
+        tags=getattr(app, "openapi_tags", None),
+    )
+    return app.openapi_schema
+
+
+try:
+    app.openapi = _patched_openapi
+except Exception:
+    pass
+
+
 # FALLBACK: init state at import time (HF Spaces skips lifespan)
 init_state()
 
