@@ -21,7 +21,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - Commit:  run `git log -1 --oneline` for current hash
 - Health:  /health/ready -> status ok, tools: 16
 - LLM:     multi-provider (groq, gemini, openrouter) with auto-failover
-  - Groq:       qwen/qwen3.8-27b       (primary, ~200ms)
+  - Groq:       openai/gpt-oss-120b      (primary, ~200ms)
   - Gemini:     gemini-2.5-flash        (backup, ~500ms)
   - OpenRouter: liquid/lfm-2.5-2.6b:free (backup, ~700ms)
   - Auto-resolver: /api/models/resolve (self-heals when providers retire models)
@@ -94,6 +94,7 @@ Exit 0 = READY TO PUSH.
 ## Key scripts
 - scripts/pre_push_check.py            Master DevSecOps gate (5 stages)
 - scripts/system_monitor.py            System health snapshot + baseline
+- scripts/smoke_test_part47.py         14 checks (tool-aware streaming)
 - scripts/smoke_test_part45.py         14 checks (/openapi.json fix)
 - scripts/smoke_test_part44.py         26 checks (responsive + mic + TV)
 - scripts/smoke_test_part43.py         24 checks (charts + rename + voice)
