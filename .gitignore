@@ -98,3 +98,6 @@ part25_setup.sh
 codebase_dump.txt
 scripts/_archive_stale/
 test.pdf
+
+# Part 41: system monitor output
+reports/
