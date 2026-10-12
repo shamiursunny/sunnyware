@@ -712,7 +712,7 @@ HTML = """<!DOCTYPE html>
     }
 
     try {
-      const r = await fetch('/api/agent/run/stream', {
+      const r = await fetch('/api/agent/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ input: text, session_id: getSession() }),
@@ -770,6 +770,18 @@ HTML = """<!DOCTYPE html>
               addMsg('[tool] ' + toolName + proto, 'step');
             } else if (type === 'error') {
               addMsg('error: ' + (data.error || data.text || 'unknown'), 'error');
+            } else if (type === 'final') {
+              // Tool-aware endpoint: final carries assembled answer + provider
+              const ans = data.answer || '';
+              if (ans) {
+                agentText = ans;
+                ensureBubble().innerHTML = renderAgentHtml(agentText);
+                chat.scrollTop = chat.scrollHeight;
+              }
+              if (data.provider) {
+                const pb = document.getElementById('providerBadge');
+                if (pb) pb.textContent = 'via ' + data.provider;
+              }
             } else if (type === 'done') {
               if (data.provider) {
                 const pb = document.getElementById('providerBadge');

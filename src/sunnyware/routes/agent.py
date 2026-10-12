@@ -293,7 +293,8 @@ async def agent_stream(req: Request):
                              "answer": result.get("answer", ""),
                              "error": result.get("error"),
                              "iterations": result.get("iterations", 1),
-                             "steps_count": len(result.get("steps", []))})
+                             "steps_count": len(result.get("steps", [])),
+                             "provider": result.get("provider")})
         except Exception as e:
             await queue.put({"type": "error", "error": f"{type(e).__name__}: {e}"})
         finally:
