@@ -17,9 +17,9 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - GitHub:  https://github.com/shamiursunny/sunnyware
 - Space:   https://huggingface.co/spaces/shamiur/sunnyware
 
-## Current state (last session: 2026-10-12, Part 61)
+## Current state (last session: 2026-10-12, Part 62)
 - Commit:  run `git log -1 --oneline` for current hash
-- Health:  /health/ready -> status ok, tools: 27
+- Health:  /health/ready -> status ok, tools: 28
 - LLM:     multi-provider (groq, gemini, openrouter) with auto-failover
   - Groq:       openai/gpt-oss-120b      (primary, ~200ms)
   - Gemini:     gemini-2.5-flash        (backup, ~500ms)
@@ -35,9 +35,10 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - Multi-provider LLM router with auto-failover
 - Auto model resolver — self-heals when providers retire models
 - 429 fast-fail (0.2s instead of 40s waste per broken provider)
-- 27 agent tools: rag_search, python_eval, recall_history, csv_query,
+- 28 agent tools: rag_search, python_eval, recall_history, csv_query,
   chart_from_data, citation_lookup, forecast_arima, financial_metrics,
-  api_call, document_diff, pdf_report, workspace_snapshot, excel_write (+ 14 core)
+  api_call, document_diff, pdf_report, workspace_snapshot, excel_write,
+  excel_read (+ 14 core)
 - Streaming WebUI — tokens appear as generated via SSE (Part 34)
 - Chat history persistence + sidebar with multi-session (Part 35)
 - Multi-file upload (Part 36) — drag 10+ files at once
@@ -64,6 +65,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - pdf_report tool (Part 59) — multi-page PDF (text/table/chart pages)
 - workspace_snapshot tool (Part 60) — zip workspace to retrievable archive
 - excel_write tool (Part 61) — formatted .xlsx (sheets, formulas, formats)
+- excel_read tool (Part 62) — read .xlsx (sheets, headers, formulas)
 - Full responsive UI — mobile drawer, tablet, TV mode (Part 44)
 - Mic permission UX — getUserMedia preflight + state badge (Part 44)
 - TV user-agent detection with larger fonts + focus outlines (Part 44)
@@ -88,7 +90,7 @@ Exit 0 = READY TO PUSH.
 
 ## What's next (priority order)
 1. NVIDIA NIM integration — pending support verification
-2. Part 62 — next feature (define together)
+2. Part 63 — Playwright browser automation (planned)
 3. Optional: voice input, session rename, chart rendering polish
 
 ## Key files
@@ -110,6 +112,7 @@ Exit 0 = READY TO PUSH.
 ## Key scripts
 - scripts/pre_push_check.py            Master DevSecOps gate (5 stages)
 - scripts/system_monitor.py            System health snapshot + baseline
+- scripts/smoke_test_part62.py         35 checks (excel_read)
 - scripts/smoke_test_part61.py         29 checks (excel_write)
 - scripts/smoke_test_part60.py         25 checks (workspace_snapshot)
 - scripts/smoke_test_part59.py         21 checks (pdf_report)
