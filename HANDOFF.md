@@ -642,3 +642,58 @@ localStorage['sunnyware_active_v2'] = "web-xxxxx"
 1. Retest the 4 XLSX files with new extractor (may fix 2-3 now)
 2. NVIDIA NIM integration (pending verification)
 3. Part 38 - define next
+\n
+
+## Part 38 - Neon Fallback for Session History (2026-10-12)
+
+### The problem
+Browser cache clear (Ctrl+Shift+Delete with "Cookies and other site data"
+checked) wiped localStorage -> all WebUI chat history appeared lost.
+BUT: every message is also logged to Neon DB by the backend.
+The WebUI just never read from Neon.
+
+### The fix
+WebUI now uses a two-tier session store:
+1. localStorage (fast, offline-friendly) - primary
+2. Neon DB (durable, browser-wipe proof) - fallback
+
+On page load:
+- If localStorage has sessions -> use them
+- If localStorage is EMPTY -> call /api/sessions, then for each web-*
+  session, call /api/sessions/{key}/history -> rebuild localStorage
+
+On session click:
+- If session in localStorage -> load directly
+- If session NOT in localStorage (but exists on Neon) -> fetch
+  history, save to localStorage, then load
+
+### Functions added to webui.py
+- fetchSessionsFromNeon()          - GET /api/sessions
+- fetchHistoryFromNeon(key)        - GET /api/sessions/{key}/history
+- hydrateFromNeon()                - bulk load all web-* sessions
+- loadSessionWithFallback(id)      - single session fetch + load
+
+### UI feedback
+- "Restored N session(s) from database." message at top of chat
+  when hydration runs
+
+### Verified live
+- Wiped localStorage via F12 console
+- Page reloaded -> all historical sessions reappeared in sidebar
+- Clicking any restored session loaded full conversation from Neon
+- Auto-titles, markdown, active highlighting all working
+
+### Backend endpoints used (already existed from Part 9)
+- GET /api/sessions                       -> list all sessions
+- GET /api/sessions/{key}/history?limit=N -> events for a session
+
+### Reliability improvement
+Browser wipes, cache clears, private mode, or a different browser
+device -> history can now be restored. Only total Neon DB deletion
+would lose data (in which case JSON export feature is the safety net
+for a future session).
+
+### Next session
+1. NVIDIA NIM integration (pending verification)
+2. Optional: Export/Import JSON button (extra belt & suspenders)
+3. Part 39 - define next
