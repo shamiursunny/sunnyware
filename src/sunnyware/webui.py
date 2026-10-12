@@ -102,44 +102,100 @@ HTML = """<!DOCTYPE html>
   async function sendMessage(text) {
     addMsg(text, 'user');
     send.disabled = true;
-    const thinking = addMsg('thinking...', 'step');
     const t0 = performance.now();
+    let agentBubble = null;
+    let agentText = '';
+
+    function ensureBubble() {
+      if (!agentBubble) {
+        agentBubble = document.createElement('div');
+        agentBubble.className = 'msg agent';
+        // Insert a blinking cursor until first token arrives
+        agentBubble.textContent = '';
+        chat.appendChild(agentBubble);
+        chat.scrollTop = chat.scrollHeight;
+      }
+      return agentBubble;
+    }
+
     try {
-      const r = await fetch('/api/agent/run', {
+      const r = await fetch('/api/agent/run/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ input: text, session_id: getSession() }),
       });
-      const data = await r.json();
-      const ms = Math.round(performance.now() - t0);
-      latEl.textContent = ms + ' ms';
-      thinking.remove();
-      if (data.error) {
-        addMsg('error: ' + (data.detail || data.error), 'error');
+
+      if (!r.ok) {
+        const errText = await r.text();
+        addMsg('error: HTTP ' + r.status + ' ' + errText.slice(0, 200), 'error');
         return;
       }
-      // Part 32: update provider badge from response
-      try {
-        const prov = data.provider || (data.result && data.result.provider);
-        if (prov) {
-          const pb = document.getElementById('providerBadge');
-          if (pb) pb.textContent = 'via ' + prov;
+
+      const reader = r.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      while (true) {
+        const chunk = await reader.read();
+        if (chunk.done) break;
+        buffer += decoder.decode(chunk.value, { stream: true });
+
+        // SSE events are separated by blank lines (
+
+)
+        const events = buffer.split('\n\n');
+        buffer = events.pop() || '';
+
+        for (const evt of events) {
+          const lines = evt.split('\n');
+          for (const line of lines) {
+            if (!line.startsWith('data:')) continue;
+            const payload = line.slice(5).trim();
+            if (!payload) continue;
+            let data;
+            try {
+              data = JSON.parse(payload);
+            } catch (e) {
+              continue;
+            }
+            const type = data.type || '';
+            if (type === 'content') {
+              const piece = data.text || '';
+              if (piece) {
+                agentText += piece;
+                ensureBubble().textContent = agentText;
+                chat.scrollTop = chat.scrollHeight;
+              }
+            } else if (type === 'answer') {
+              const ans = data.text || '';
+              if (ans) {
+                agentText = ans;
+                ensureBubble().textContent = agentText;
+                chat.scrollTop = chat.scrollHeight;
+              }
+            } else if (type === 'tool_call') {
+              const toolName = data.tool || '?';
+              const proto = data.protocol ? (' (' + data.protocol + ')') : '';
+              addMsg('[tool] ' + toolName + proto, 'step');
+            } else if (type === 'error') {
+              addMsg('error: ' + (data.error || data.text || 'unknown'), 'error');
+            } else if (type === 'done') {
+              if (data.provider) {
+                const pb = document.getElementById('providerBadge');
+                if (pb) pb.textContent = 'via ' + data.provider;
+              }
+            }
+          }
         }
-      } catch (e) { /* ignore */ }
-      const content = data.result && data.result.content;
-      if (content) {
-        addMsg(content, 'agent');
-      } else {
+      }
+
+      const ms = Math.round(performance.now() - t0);
+      latEl.textContent = ms + ' ms';
+
+      if (!agentText) {
         addMsg('(empty response)', 'error');
       }
-      const steps = (data.result && data.result.steps) || [];
-      for (const s of steps) {
-        const t = s.tool || '?';
-        const proto = s.protocol ? (' (' + s.protocol + ')') : '';
-        addMsg('[tool] ' + t + proto, 'step');
-      }
     } catch (e) {
-      thinking.remove();
       addMsg('network error: ' + e.message, 'error');
     } finally {
       send.disabled = false;
