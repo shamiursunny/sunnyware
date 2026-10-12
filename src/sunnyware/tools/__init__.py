@@ -20,6 +20,7 @@ from .rag_search import RagSearchTool
 from .rag_list import RagListTool
 from .recall_history import RecallHistoryTool
 from .csv_query import CsvQueryTool
+from .chart_from_data import ChartFromDataTool
 
 
 _TOOLS = {
@@ -41,6 +42,7 @@ _TOOLS = {
     RagListTool.name: RagListTool(),
     RecallHistoryTool.name: RecallHistoryTool(),
     CsvQueryTool.name: CsvQueryTool(),
+    ChartFromDataTool.name: ChartFromDataTool(),
 }
 
 
