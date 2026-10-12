@@ -259,13 +259,26 @@ async def _execute_tool(tool_name: str, tool_args: dict) -> dict:
     tool = tools_registry.get_tool(tool_name)
     if tool is None:
         return {"error": f"unknown tool: {tool_name}"}
+    # Part 48: audit trail — fire-and-forget, never blocks
+    import time as _time
+    from . import audit as _audit
+    _t0 = _time.time()
+    _result = None
+    _err = None
     try:
-        result = await tool.run(tool_args)
-        if not isinstance(result, dict):
-            result = {"result": result}
-        return result
+        _result = await tool.run(tool_args)
+        if not isinstance(_result, dict):
+            _result = {"result": _result}
+        return _result
     except Exception as e:
-        return {"error": f"{type(e).__name__}: {e}"}
+        _err = f"{type(e).__name__}: {e}"
+        return {"error": _err}
+    finally:
+        _latency_ms = int((_time.time() - _t0) * 1000)
+        try:
+            _audit.log_tool_call(tool_name, tool_args, _result, _err, _latency_ms)
+        except Exception:
+            pass
 
 
 async def _emit(on_event, event: dict) -> None:
