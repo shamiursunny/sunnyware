@@ -94,25 +94,40 @@ class CitationLookupTool:
                 cid = int(chunk_id)
             except (TypeError, ValueError):
                 return {"error": "chunk_id must be an integer"}
-            want = _normalize_source(source)
+            # Pass 1: exact source match (page suffix included)
+            # Pass 2: normalized match (strip ' (page N)')
+            # Prefer pass 1 to avoid ambiguity when chunk_id repeats
+            # across pages of the same document.
+            want_exact = source
+            want_norm = _normalize_source(source)
+            match = None
             for md in meta_list:
-                if (_normalize_source(md.get("source")) == want and
-                        md.get("chunk_id") == cid):
-                    text = md.get("text") or ""
-                    return {
-                        "mode": "exact",
-                        "org_id": org_id,
-                        "count": 1,
-                        "results": [{
-                            "source": md.get("source"),
-                            "chunk_id": md.get("chunk_id"),
-                            "char_start": md.get("char_start"),
-                            "char_end": md.get("char_end"),
-                            "page": md.get("page"),
-                            "text": text,
-                            "sha256_16": _sha256(text),
-                        }],
-                    }
+                if md.get("source") == want_exact and md.get("chunk_id") == cid:
+                    match = md
+                    break
+            if match is None:
+                for md in meta_list:
+                    if (_normalize_source(md.get("source")) == want_norm and
+                            md.get("chunk_id") == cid):
+                        match = md
+                        break
+            if match is not None:
+                md = match
+                text = md.get("text") or ""
+            return {
+                "mode": "exact",
+                    "org_id": org_id,
+                    "count": 1,
+                    "results": [{
+                        "source": md.get("source"),
+                        "chunk_id": md.get("chunk_id"),
+                        "char_start": md.get("char_start"),
+                        "char_end": md.get("char_end"),
+                        "page": md.get("page"),
+                        "text": text,
+                        "sha256_16": _sha256(text),
+                    }],
+                }
             return {"mode": "exact", "org_id": org_id, "count": 0,
                     "results": [],
                     "error": f"chunk not found: source={source} chunk_id={cid}"}
@@ -135,16 +150,16 @@ class CitationLookupTool:
             for h in hits:
                 md = h.get("metadata") or {}
                 text = md.get("text") or ""
-                results.append({
-                    "source": md.get("source"),
-                    "chunk_id": md.get("chunk_id"),
-                    "char_start": md.get("char_start"),
-                    "char_end": md.get("char_end"),
-                    "page": md.get("page"),
-                    "distance": h.get("distance"),
-                    "text": text,
-                    "sha256_16": _sha256(text),
-                })
+            results.append({
+                "source": md.get("source"),
+                "chunk_id": md.get("chunk_id"),
+                "char_start": md.get("char_start"),
+                "char_end": md.get("char_end"),
+                "page": md.get("page"),
+                "distance": h.get("distance"),
+                "text": text,
+                "sha256_16": _sha256(text),
+            })
             return {
                 "mode": "search",
                 "org_id": org_id,
