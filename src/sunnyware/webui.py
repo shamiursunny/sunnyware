@@ -42,6 +42,34 @@ HTML = """<!DOCTYPE html>
   .msg.upload-err { color: #ff6b6b; font-size: 13px; }
   .badge { background: #1d2026; color: #b8c4d0; padding: 2px 8px;
            border-radius: 10px; font-size: 11px; margin-left: 8px; }
+  /* Part 35: sidebar layout */
+  #layout { display: flex; flex: 1; overflow: hidden; }
+  #sidebar { width: 240px; min-width: 240px; background: #0a0c0f;
+             border-right: 1px solid #1d2026; display: flex;
+             flex-direction: column; overflow: hidden; }
+  #sidebar .hdr { padding: 10px 12px; border-bottom: 1px solid #1d2026; }
+  #newChatBtn { width: 100%; padding: 8px 12px; background: #1d2026;
+                color: #e6e8eb; border: 1px solid #2a2e36;
+                border-radius: 6px; cursor: pointer; font-size: 13px;
+                text-align: left; font-family: inherit; }
+  #newChatBtn:hover { background: #252932; border-color: #52b788; }
+  #sessionList { flex: 1; overflow-y: auto; padding: 4px 0; }
+  .sess { padding: 8px 14px; cursor: pointer; font-size: 12px;
+          color: #b8c4d0; border-left: 3px solid transparent;
+          display: flex; justify-content: space-between;
+          align-items: center; gap: 6px; }
+  .sess:hover { background: #121418; }
+  .sess.active { background: #121418; border-left-color: #52b788;
+                 color: #e6e8eb; }
+  .sess .title { flex: 1; overflow: hidden; text-overflow: ellipsis;
+                 white-space: nowrap; }
+  .sess .del { opacity: 0; color: #6e7480; font-size: 14px;
+               padding: 0 4px; cursor: pointer; }
+  .sess:hover .del { opacity: 1; }
+  .sess .del:hover { color: #ff6b6b; }
+  #main { flex: 1; display: flex; flex-direction: column;
+          overflow: hidden; }
+  @media (max-width: 720px) { #sidebar { display: none; } }
 </style>
 </head>
 <body>
@@ -59,14 +87,24 @@ HTML = """<!DOCTYPE html>
 </header>
 <input type="file" id="fileInput"
        accept=".pdf,.docx,.txt,.md,.csv,.xlsx,.xls">
-<div id="chat"></div>
-<footer>
-  <form id="form">
-    <input type="text" id="input" placeholder="Ask anything..." autocomplete="off" required>
-    <button type="submit" id="send">Send</button>
-  </form>
-  <div class="footer-info">Powered by sunnyware · <span id="latency">—</span></div>
-</footer>
+<div id="layout">
+  <aside id="sidebar">
+    <div class="hdr">
+      <button id="newChatBtn" type="button">+ New chat</button>
+    </div>
+    <div id="sessionList"></div>
+  </aside>
+  <div id="main">
+    <div id="chat"></div>
+    <footer>
+      <form id="form">
+        <input type="text" id="input" placeholder="Ask anything..." autocomplete="off" required>
+        <button type="submit" id="send">Send</button>
+      </form>
+      <div class="footer-info">Powered by sunnyware · <span id="latency">—</span></div>
+    </footer>
+  </div>
+</div>
 <script>
 (function () {
   const chat = document.getElementById('chat');
@@ -77,25 +115,211 @@ HTML = """<!DOCTYPE html>
   const latEl = document.getElementById('latency');
   const clearBtn = document.getElementById('clear');
 
-  function getSession() {
-    let s = localStorage.getItem('sunnyware_session');
-    if (!s) {
-      s = 'web-' + Math.random().toString(36).slice(2, 10);
-      localStorage.setItem('sunnyware_session', s);
+  // Part 35: multi-session storage
+  const SESS_KEY = 'sunnyware_sessions_v2';
+  const ACTIVE_KEY = 'sunnyware_active_v2';
+  const MAX_SESSIONS = 20;
+  const MAX_MSGS_PER = 200;
+
+  function getSessions() {
+    try {
+      const raw = localStorage.getItem(SESS_KEY);
+      return raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      return {};
     }
-    return s;
+  }
+
+  function saveSessions(sessions) {
+    try {
+      // Cap to MAX_SESSIONS by newest first
+      const ids = Object.keys(sessions);
+      if (ids.length > MAX_SESSIONS) {
+        ids.sort((a, b) => (sessions[b].created || 0) - (sessions[a].created || 0));
+        const keep = new Set(ids.slice(0, MAX_SESSIONS));
+        const trimmed = {};
+        for (const k of Object.keys(sessions)) {
+          if (keep.has(k)) trimmed[k] = sessions[k];
+        }
+        sessions = trimmed;
+      }
+      localStorage.setItem(SESS_KEY, JSON.stringify(sessions));
+    } catch (e) { /* quota or json error — ignore */ }
+  }
+
+  function getActiveId() {
+    return localStorage.getItem(ACTIVE_KEY) || '';
+  }
+
+  function setActiveId(id) {
+    if (id) localStorage.setItem(ACTIVE_KEY, id);
+    else localStorage.removeItem(ACTIVE_KEY);
+  }
+
+  function getActiveSession() {
+    const id = getActiveId();
+    if (!id) return null;
+    const s = getSessions();
+    return s[id] || null;
+  }
+
+  function makeId() {
+    return 'web-' + Math.random().toString(36).slice(2, 10);
+  }
+
+  function getSession() {
+    let id = getActiveId();
+    if (!id) {
+      id = makeId();
+      setActiveId(id);
+    }
+    return id;
+  }
+
+  function ensureSession() {
+    const id = getSession();
+    const sessions = getSessions();
+    if (!sessions[id]) {
+      sessions[id] = {
+        id: id,
+        title: 'New chat',
+        created: Date.now(),
+        messages: []
+      };
+      saveSessions(sessions);
+    }
+    return sessions[id];
+  }
+
+  function persistMessage(role, text) {
+    if (!text) return;
+    const id = getSession();
+    const sessions = getSessions();
+    if (!sessions[id]) {
+      sessions[id] = {
+        id: id,
+        title: 'New chat',
+        created: Date.now(),
+        messages: []
+      };
+    }
+    const sess = sessions[id];
+    sess.messages.push({ role: role, text: text, ts: Date.now() });
+    if (sess.messages.length > MAX_MSGS_PER) {
+      sess.messages = sess.messages.slice(-MAX_MSGS_PER);
+    }
+    // Auto-title from first user message
+    if (sess.title === 'New chat' && role === 'user' && text) {
+      sess.title = text.length > 40 ? text.slice(0, 40) + '...' : text;
+    }
+    saveSessions(sessions);
   }
 
   function renderSession() {
     sidEl.textContent = 'session: ' + getSession();
   }
 
-  function addMsg(text, cls) {
+  function loadSession(id) {
+    if (!id) return;
+    const sessions = getSessions();
+    const sess = sessions[id];
+    if (!sess) return;
+    setActiveId(id);
+    renderSession();
+    chat.innerHTML = '';
+    if (!sess.messages || sess.messages.length === 0) {
+      addMsg('Welcome to sunnyware. Ask me anything.', 'step', false);
+    } else {
+      for (const m of sess.messages) {
+        addMsg(m.text, m.role, false);
+      }
+    }
+    renderSidebar();
+    input.focus();
+  }
+
+  function renderSidebar() {
+    const list = document.getElementById('sessionList');
+    if (!list) return;
+    const sessions = getSessions();
+    const activeId = getActiveId();
+    const items = Object.values(sessions)
+      .filter(s => s.messages && s.messages.length > 0)
+      .sort((a, b) => (b.created || 0) - (a.created || 0));
+
+    list.innerHTML = '';
+    for (const s of items) {
+      const row = document.createElement('div');
+      row.className = 'sess' + (s.id === activeId ? ' active' : '');
+      row.dataset.id = s.id;
+
+      const title = document.createElement('span');
+      title.className = 'title';
+      title.textContent = s.title || 'New chat';
+      row.appendChild(title);
+
+      const del = document.createElement('span');
+      del.className = 'del';
+      del.textContent = '\u00d7';
+      del.title = 'Delete';
+      del.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        deleteSession(s.id);
+      });
+      row.appendChild(del);
+
+      row.addEventListener('click', () => loadSession(s.id));
+      list.appendChild(row);
+    }
+  }
+
+  function createNewSession() {
+    const id = makeId();
+    setActiveId(id);
+    const sessions = getSessions();
+    sessions[id] = {
+      id: id,
+      title: 'New chat',
+      created: Date.now(),
+      messages: []
+    };
+    saveSessions(sessions);
+    chat.innerHTML = '';
+    renderSession();
+    addMsg('Welcome to sunnyware. Ask me anything.', 'step', false);
+    renderSidebar();
+    input.focus();
+  }
+
+  function deleteSession(id) {
+    const sessions = getSessions();
+    if (!sessions[id]) return;
+    delete sessions[id];
+    saveSessions(sessions);
+    if (getActiveId() === id) {
+      const remaining = Object.values(sessions)
+        .filter(s => s.messages && s.messages.length > 0)
+        .sort((a, b) => (b.created || 0) - (a.created || 0));
+      if (remaining.length > 0) {
+        loadSession(remaining[0].id);
+      } else {
+        createNewSession();
+      }
+    } else {
+      renderSidebar();
+    }
+  }
+
+  function addMsg(text, cls, persist) {
+    if (persist === undefined) persist = true;
     const d = document.createElement('div');
     d.className = 'msg ' + cls;
     d.textContent = text;
     chat.appendChild(d);
     chat.scrollTop = chat.scrollHeight;
+    if (persist && (cls === 'user' || cls === 'agent' || cls === 'error')) {
+      try { persistMessage(cls, text); } catch (e) { /* ignore */ }
+    }
     return d;
   }
 
@@ -192,6 +416,10 @@ HTML = """<!DOCTYPE html>
 
       if (!agentText) {
         addMsg('(empty response)', 'error');
+      } else {
+        // Part 35: persist the final streamed answer
+        try { persistMessage('agent', agentText); } catch (e) { /* ignore */ }
+        renderSidebar();
       }
     } catch (e) {
       addMsg('network error: ' + e.message, 'error');
@@ -211,12 +439,17 @@ HTML = """<!DOCTYPE html>
 
   clearBtn.addEventListener('click', (e) => {
     e.preventDefault();
-    localStorage.removeItem('sunnyware_session');
-    chat.innerHTML = '';
-    renderSession();
-    addMsg('Welcome to sunnyware. Ask me anything.', 'step');
-    input.focus();
+    createNewSession();
   });
+
+  // Part 35: new chat button in sidebar
+  const newChatBtn = document.getElementById('newChatBtn');
+  if (newChatBtn) {
+    newChatBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      createNewSession();
+    });
+  }
 
   // Part 31H: file upload
   const fileInput = document.getElementById('fileInput');
@@ -263,8 +496,19 @@ HTML = """<!DOCTYPE html>
   });
 
   // Init
-  renderSession();
-  addMsg('Welcome to sunnyware. Ask me anything.', 'step');
+  try {
+    const active = getActiveSession();
+    if (active && active.messages && active.messages.length > 0) {
+      loadSession(active.id);
+    } else {
+      createNewSession();
+    }
+  } catch (e) {
+    // Fallback if anything goes wrong with storage
+    renderSession();
+    addMsg('Welcome to sunnyware. Ask me anything.', 'step', false);
+  }
+  renderSidebar();
   refreshDocCount();
   refreshProviders();
   input.focus();
