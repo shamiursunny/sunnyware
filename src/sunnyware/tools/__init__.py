@@ -19,6 +19,7 @@ from .mkdir import MkdirTool
 from .rag_search import RagSearchTool
 from .rag_list import RagListTool
 from .recall_history import RecallHistoryTool
+from .csv_query import CsvQueryTool
 
 
 _TOOLS = {
@@ -39,6 +40,7 @@ _TOOLS = {
     RagSearchTool.name: RagSearchTool(),
     RagListTool.name: RagListTool(),
     RecallHistoryTool.name: RecallHistoryTool(),
+    CsvQueryTool.name: CsvQueryTool(),
 }
 
 
