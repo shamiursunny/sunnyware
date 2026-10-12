@@ -488,3 +488,33 @@ Secrets (all kept):
 1. NVIDIA NIM integration (pending support verification)
 2. Optional: re-test Mistral in 1-2 weeks
 3. Part 34 - define next feature
+\n
+
+## Part 34 - Streaming WebUI (2026-10-12)
+
+### What shipped
+- WebUI now streams tokens live via SSE (Server-Sent Events)
+- Backend already had /api/agent/run/stream (Part 10) - frontend now uses it
+- Replaced fetch().then() with ReadableStream + TextDecoder
+- Tokens appear in real-time as they are generated
+- Tool call indicators show as tools fire
+- Provider badge updates on 'done' event
+
+### Files changed
+- src/sunnyware/webui.py - replaced sendMessage() with streaming version
+
+### Bugs fixed during build
+- Python triple-quoted HTML string was interpreting \n as actual newlines
+  in served JS - fixed by doubling backslashes (\\n -> literal \n)
+- Multi-line comment with embedded newlines broke JS parser - joined to one line
+
+### Verified live
+- 3-sentence story: 750ms
+- 10-sentence essay: 1003ms
+- No JS console errors
+- Streaming visible on longer responses (first token <1s)
+
+### Next
+1. Chat history persistence + sidebar (Part 35?)
+2. Multi-file upload
+3. NVIDIA NIM (pending verification)
