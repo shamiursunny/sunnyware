@@ -47,6 +47,7 @@ def extract_csv(path: Path) -> List[Dict]:
 def _xlsx_extract_with_mode(path: Path, data_only: bool) -> List[Dict]:
     """Extract with a specific data_only mode. Returns list of blocks."""
     from openpyxl import load_workbook
+    from openpyxl.utils import get_column_letter
     try:
         wb = load_workbook(str(path), read_only=True, data_only=data_only)
     except Exception:
@@ -56,29 +57,55 @@ def _xlsx_extract_with_mode(path: Path, data_only: bool) -> List[Dict]:
         try:
             ws = wb[sheet_name]
             it = ws.iter_rows(values_only=True)
-            try:
-                raw_headers = next(it)
-            except StopIteration:
+
+            # Scan up to 10 rows to find the first row that has at least one
+            # non-empty cell — treat that as the header row.
+            header_row = None
+            buffered = []
+            for _ in range(10):
+                try:
+                    row = next(it)
+                except StopIteration:
+                    break
+                buffered.append(row)
+                if any(c is not None and str(c).strip() for c in row):
+                    header_row = row
+                    break
+
+            if header_row is None:
+                # No non-empty row in first 10 — sheet is essentially blank
                 continue
-            # Skip columns whose header is entirely blank
+
+            # Build (index, header) pairs, falling back to column letters
             headers = []
-            for idx, h in enumerate(raw_headers):
+            for idx, h in enumerate(header_row):
                 hs = str(h).strip() if h is not None else ""
-                if hs:
-                    headers.append((idx, hs))
-            if not headers:
-                continue
+                if not hs:
+                    hs = "col_" + get_column_letter(idx + 1)
+                headers.append((idx, hs))
+
             rows = []
+            # Consume remaining buffered rows (after header_row index) + iterator
+            start_idx = buffered.index(header_row) + 1
+            for row in buffered[start_idx:]:
+                d = {}
+                for idx, hname in headers:
+                    if idx < len(row):
+                        val = row[idx]
+                        if val is not None and str(val).strip():
+                            d[hname] = val
+                if d:
+                    rows.append(d)
             for row in it:
                 d = {}
                 for idx, hname in headers:
                     if idx < len(row):
                         val = row[idx]
-                        if val is not None:
+                        if val is not None and str(val).strip():
                             d[hname] = val
-                # Only keep rows with at least one non-empty cell
                 if d:
                     rows.append(d)
+
             if rows:
                 out.append({"source": f"{path.name} [{sheet_name}]", "rows": rows})
         except Exception:
@@ -87,17 +114,40 @@ def _xlsx_extract_with_mode(path: Path, data_only: bool) -> List[Dict]:
 
 
 def extract_xlsx(path: Path) -> List[Dict]:
-    """Extract XLSX/XLS. Tries cached values first, then formulas.
+    """Extract XLSX/XLS.
 
-    Some workbooks (created by scripts, never opened in Excel) have no
-    cached formula values with data_only=True. Fall back to data_only=False
-    so we capture formula text rather than nothing.
+    Strategy:
+      1. Try cached values (data_only=True), scan up to 10 rows for headers.
+      2. If nothing, retry with data_only=False to capture formula strings.
+      3. If still nothing, dump every non-empty cell as a text block
+         (last-resort fallback so the file is never entirely invisible).
     """
     out = _xlsx_extract_with_mode(path, data_only=True)
-    if not out:
-        # Try again capturing formula strings instead of cached values
-        out = _xlsx_extract_with_mode(path, data_only=False)
-    return out
+    if out:
+        return out
+    out = _xlsx_extract_with_mode(path, data_only=False)
+    if out:
+        return out
+    # Last-resort: dump every non-empty cell as text
+    try:
+        from openpyxl import load_workbook
+        wb = load_workbook(str(path), read_only=True, data_only=False)
+        chunks = []
+        for sheet_name in wb.sheetnames:
+            try:
+                ws = wb[sheet_name]
+                for row in ws.iter_rows(values_only=True):
+                    cells = [str(c).strip() for c in row if c is not None and str(c).strip()]
+                    if cells:
+                        chunks.append(" | ".join(cells))
+            except Exception:
+                continue
+        text = "\n".join(chunks)
+        if text.strip():
+            return [{"source": f"{path.name} [raw cells]", "text": text}]
+    except Exception:
+        pass
+    return []
 
 
 EXTRACTORS = {

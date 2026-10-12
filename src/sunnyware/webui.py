@@ -499,7 +499,15 @@ HTML = """<!DOCTYPE html>
                  d.elapsed_ms + ' ms', 'upload-ok');
         } else {
           failCount++;
-          addMsg('  \u2717 ' + f.name + ' failed: ' + (d.error || 'unknown'), 'upload-err');
+          let msg = '  \u2717 ' + f.name + ' failed: ' + (d.error || 'unknown');
+          if (d.diagnostics) {
+            const diag = d.diagnostics;
+            msg += '\n     blocks=' + (diag.blocks_returned || 0) +
+                   ' rows=' + (diag.total_rows || 0) +
+                   ' textchars=' + (diag.total_text_chars || 0);
+            if (diag.hint) msg += '\n     hint: ' + diag.hint;
+          }
+          addMsg(msg, 'upload-err');
         }
       } catch (e) {
         failCount++;
