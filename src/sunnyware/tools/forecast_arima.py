@@ -210,7 +210,9 @@ class ForecastArimaTool:
             except (TypeError, ValueError):
                 return {"error": "order must be [p, d, q]"}
             auto = False
-            fit_trend = "c"
+            # statsmodels rejects trend='c' when d > 0. Use 'n' (no
+            # constant) for integrated models, else 'c'.
+            fit_trend = "n" if order[1] > 0 else "c"
             trend_detected = _has_trend(series)
         else:
             order_t, _, trend_detected = _auto_order(series)
