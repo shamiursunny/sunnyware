@@ -17,7 +17,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - GitHub:  https://github.com/shamiursunny/sunnyware
 - Space:   https://huggingface.co/spaces/shamiur/sunnyware
 
-## Current state (last session: 2026-10-12, Part 45)
+## Current state (last session: 2026-10-12, Part 47)
 - Commit:  run `git log -1 --oneline` for current hash
 - Health:  /health/ready -> status ok, tools: 16
 - LLM:     multi-provider (groq, gemini, openrouter) with auto-failover
@@ -48,9 +48,10 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - Chart rendering + click-to-zoom (Part 43)
 - Session rename — pencil icon or double-click title (Part 43)
 - Voice input — Web Speech API (Part 43; Chrome/Edge/Safari only, not Firefox)
-- Full responsive UI — mobile drawer, tablet, TV mode (Part 45)
-- Mic permission UX — getUserMedia preflight + state badge (Part 45)
-- TV user-agent detection with larger fonts + focus outlines (Part 45)
+- WebUI hits tool-aware /api/agent/stream (Part 47) — tools work on mobile + desktop
+- Full responsive UI — mobile drawer, tablet, TV mode (Part 44)
+- Mic permission UX — getUserMedia preflight + state badge (Part 44)
+- TV user-agent detection with larger fonts + focus outlines (Part 44)
 
 ### RAG over documents
 - Upload: /api/rag/upload (PDF/DOCX/CSV/XLSX/TXT/MD; 20 MB max; multi-file)
@@ -72,7 +73,7 @@ Exit 0 = READY TO PUSH.
 
 ## What's next (priority order)
 1. NVIDIA NIM integration — pending support verification
-2. Part 46 — next feature (define together)
+2. Part 48 — next feature (define together)
 3. Optional: voice input, session rename, chart rendering polish
 
 ## Key files
@@ -110,7 +111,7 @@ Provider order — env LLM_PROVIDERS (comma-separated priority order).
   Config lives in: src/sunnyware/providers.py (load_providers)
 
 Model per provider — env <NAME>_MODEL
-  Groq:       qwen/qwen3.8-27b       (swapped in Part 37, was gpt-oss-20b)
+  Groq:       openai/gpt-oss-120b    (Part 46 swap; llama-3.3-70b not in tier)
   Gemini:     gemini-2.5-flash
   OpenRouter: liquid/lfm-2.5-2.6b:free
 
@@ -133,7 +134,8 @@ in .env. Dynamic latency-based selection does not exist today.
 - pre_push_check auto-discovers highest-numbered smoke_test_partNN.py
 
 ## Key gotchas (do not re-learn)
-- qwen/qwen3.8-27b on Groq: needs max_tokens >= 900 (reasoning model)
+- qwen/qwen3.8-27b (Groq, retired Part 46): reasoning models do not reliably
+  call tools + hit 7000 ITPM rate limit. Do NOT re-enable as primary.
 - Memory payloads capped at 2000 chars (Groq TPM 413 protection)
 - Tool-result truncation in orchestrator: strips base64 + caps at 500 chars
 - Tool-name aliases: python -> python_eval, rag -> rag_search
