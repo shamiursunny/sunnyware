@@ -141,11 +141,11 @@ HTML = """<!DOCTYPE html>
         buffer += decoder.decode(chunk.value, { stream: true });
 
         // SSE events are separated by blank lines
-        const events = buffer.split('\n\n');
+        const events = buffer.split('\\n\\n');
         buffer = events.pop() || '';
 
         for (const evt of events) {
-          const lines = evt.split('\n');
+          const lines = evt.split('\\n');
           for (const line of lines) {
             if (!line.startsWith('data:')) continue;
             const payload = line.slice(5).trim();
