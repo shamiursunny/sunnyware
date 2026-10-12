@@ -53,7 +53,15 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - WebUI hits tool-aware /api/agent/stream (Part 47) — tools work on mobile + desktop
 - Tool audit trail in Neon (Part 48) — tool_invocations table
 - recall_history tool (Part 49) — cross-session memory search
-- csv_query tool (Part 59) — DuckDB over workspace files
+- csv_query tool (Part 50) — DuckDB over workspace files
+- chart_from_data tool (Part 51) — inline PNG from JSON/CSV
+- citation_lookup tool (Part 52) — full chunk text + sha256 provenance
+- forecast_arima tool (Part 53-54) — trend-aware ARIMA forecasting
+- financial_metrics tool (Part 55) — Sharpe/Sortino/VaR/CVaR/drawdown
+- api_call tool (Part 56) — generic REST client w/ SSRF guard
+- Streaming provider fallback (Part 57) — stream_chat tries all providers
+- document_diff tool (Part 58) — diff files/RAG chunks/inline text
+- pdf_report tool (Part 59) — multi-page PDF (text/table/chart pages)
 - Full responsive UI — mobile drawer, tablet, TV mode (Part 44)
 - Mic permission UX — getUserMedia preflight + state badge (Part 44)
 - TV user-agent detection with larger fonts + focus outlines (Part 44)
