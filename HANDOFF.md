@@ -568,3 +568,36 @@ localStorage['sunnyware_active_v2'] = "web-xxxxx"
 1. Multi-file upload
 2. NVIDIA NIM (pending verification)
 3. Part 36 - define next
+\n
+
+## Part 36 - Multi-file Upload (2026-10-12)
+
+### What shipped
+- File picker accepts multiple files (Ctrl+Click or Shift+Click)
+- Sequential upload with per-file progress: [1/N] filename.pdf...
+- Per-file result: ✓ for success, ✗ for failure
+- Continues after failures (doesn't stop the batch)
+- Summary line at end: "Done: N uploaded (M chunks) · K failed"
+- docs:N badge refreshes after batch completes
+- Zero backend changes (loop of existing /api/rag/upload calls)
+
+### Files changed
+- src/sunnyware/webui.py (file input gets 'multiple', handler loops)
+
+### Verified live
+- 4-file batch uploaded: 1 OK, 3 failed cleanly with error messages
+- Progress markers [1/4]..[4/4] shown correctly
+- Failure didn't block subsequent uploads
+- Summary line accurate
+
+### Known issue (investigate later)
+- 3 XLSX files returned "no extractable text found in file"
+- Likely: empty workbooks, header-only sheets, or formula-only cells
+- The extractor uses data_only=True; if XLSX never opened in Excel,
+  cached formula values may be missing
+- Not a bug in multi-file upload - the failure was reported correctly
+
+### Next session
+1. Investigate XLSX extractor edge cases (optional)
+2. NVIDIA NIM integration (pending verification)
+3. Part 37 - define next
