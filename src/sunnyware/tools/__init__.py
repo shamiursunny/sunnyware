@@ -21,6 +21,7 @@ from .rag_list import RagListTool
 from .recall_history import RecallHistoryTool
 from .csv_query import CsvQueryTool
 from .chart_from_data import ChartFromDataTool
+from .citation_lookup import CitationLookupTool
 
 
 _TOOLS = {
@@ -43,6 +44,7 @@ _TOOLS = {
     RecallHistoryTool.name: RecallHistoryTool(),
     CsvQueryTool.name: CsvQueryTool(),
     ChartFromDataTool.name: ChartFromDataTool(),
+    CitationLookupTool.name: CitationLookupTool(),
 }
 
 
