@@ -38,8 +38,8 @@ def main():
     # ── Chart rendering ───────────────────────────────────────
     print("\n  charts:")
     check("wrapBareBase64() defined", "function wrapBareBase64" in src)
-    check("data:image URI wrapped",
-          "data:image\\/(?:png|jpe?g|gif|webp)" in src)
+    check("data:image URI detection intact",
+          "lookback.indexOf('data:image')" in src)
     check("bare PNG base64 wrapped",
           "iVBORw0KGgo" in src)
     check("chart img CSS",

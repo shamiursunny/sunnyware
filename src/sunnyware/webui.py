@@ -554,17 +554,38 @@ HTML = """<!DOCTYPE html>
     return out;
   }
   function wrapBareBase64(t) {
-    // Case A: data:image URI not already inside markdown ![]()
-    t = t.replace(
-      /(^|[^"(])(data:image\/(?:png|jpe?g|gif|webp);base64,[A-Za-z0-9+\/=]{200,})/g,
-      '$1![chart]($2)'
-    );
-    // Case B: bare PNG base64 blob (PNG magic bytes)
-    t = t.replace(
-      /(^|[\s>\n])(iVBORw0KGgo[A-Za-z0-9+\/=]{500,})/g,
-      '$1![chart](data:image/png;base64,$2)'
-    );
-    return t;
+    var magic = 'iVBORw0KGgo';
+    var out = '';
+    var cursor = 0;
+    while (true) {
+      var idx = t.indexOf(magic, cursor);
+      if (idx === -1) { out += t.slice(cursor); break; }
+      var lookback = t.slice(Math.max(0, idx - 40), idx);
+      if (lookback.indexOf('data:image') !== -1) {
+        out += t.slice(cursor, idx + magic.length);
+        cursor = idx + magic.length;
+        continue;
+      }
+      var end = idx;
+      while (end < t.length) {
+        var ch = t.charAt(end);
+        var isB64 = (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') ||
+                    (ch >= '0' && ch <= '9') ||
+                    ch === '+' || ch === '/' || ch === '=';
+        if (!isB64) break;
+        end++;
+      }
+      var blob = t.slice(idx, end);
+      if (blob.length < 500) {
+        out += t.slice(cursor, end);
+        cursor = end;
+        continue;
+      }
+      out += t.slice(cursor, idx);
+      out += '![chart](data:image/png;base64,' + blob + ')';
+      cursor = end;
+    }
+    return out;
   }
 
   function renderAgentHtml(text) {
