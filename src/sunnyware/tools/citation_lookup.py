@@ -17,6 +17,17 @@ def _sha256(text: str) -> str:
     return hashlib.sha256((text or "").encode("utf-8")).hexdigest()[:16]
 
 
+import re as _re
+_PAGE_SUFFIX = _re.compile(r"\s*\(page\s+\d+\)\s*$", _re.IGNORECASE)
+
+
+def _normalize_source(s: str) -> str:
+    """Strip ' (page N)' suffix so exact lookup accepts either form."""
+    if not s:
+        return ""
+    return _PAGE_SUFFIX.sub("", str(s)).strip()
+
+
 class CitationLookupTool:
     name = "citation_lookup"
     description = (
@@ -83,8 +94,9 @@ class CitationLookupTool:
                 cid = int(chunk_id)
             except (TypeError, ValueError):
                 return {"error": "chunk_id must be an integer"}
+            want = _normalize_source(source)
             for md in meta_list:
-                if (md.get("source") == source and
+                if (_normalize_source(md.get("source")) == want and
                         md.get("chunk_id") == cid):
                     text = md.get("text") or ""
                     return {
