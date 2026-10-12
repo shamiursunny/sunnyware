@@ -44,23 +44,59 @@ def extract_csv(path: Path) -> List[Dict]:
     return [{"source": path.name, "rows": rows}]
 
 
-def extract_xlsx(path: Path) -> List[Dict]:
+def _xlsx_extract_with_mode(path: Path, data_only: bool) -> List[Dict]:
+    """Extract with a specific data_only mode. Returns list of blocks."""
     from openpyxl import load_workbook
-    wb = load_workbook(str(path), read_only=True, data_only=True)
+    try:
+        wb = load_workbook(str(path), read_only=True, data_only=data_only)
+    except Exception:
+        return []
     out = []
     for sheet_name in wb.sheetnames:
-        ws = wb[sheet_name]
-        it = ws.iter_rows(values_only=True)
         try:
-            headers = [str(h) if h is not None else "" for h in next(it)]
-        except StopIteration:
+            ws = wb[sheet_name]
+            it = ws.iter_rows(values_only=True)
+            try:
+                raw_headers = next(it)
+            except StopIteration:
+                continue
+            # Skip columns whose header is entirely blank
+            headers = []
+            for idx, h in enumerate(raw_headers):
+                hs = str(h).strip() if h is not None else ""
+                if hs:
+                    headers.append((idx, hs))
+            if not headers:
+                continue
+            rows = []
+            for row in it:
+                d = {}
+                for idx, hname in headers:
+                    if idx < len(row):
+                        val = row[idx]
+                        if val is not None:
+                            d[hname] = val
+                # Only keep rows with at least one non-empty cell
+                if d:
+                    rows.append(d)
+            if rows:
+                out.append({"source": f"{path.name} [{sheet_name}]", "rows": rows})
+        except Exception:
             continue
-        rows = []
-        for row in it:
-            d = {headers[i]: row[i] for i in range(min(len(headers), len(row)))}
-            rows.append(d)
-        if rows:
-            out.append({"source": f"{path.name} [{sheet_name}]", "rows": rows})
+    return out
+
+
+def extract_xlsx(path: Path) -> List[Dict]:
+    """Extract XLSX/XLS. Tries cached values first, then formulas.
+
+    Some workbooks (created by scripts, never opened in Excel) have no
+    cached formula values with data_only=True. Fall back to data_only=False
+    so we capture formula text rather than nothing.
+    """
+    out = _xlsx_extract_with_mode(path, data_only=True)
+    if not out:
+        # Try again capturing formula strings instead of cached values
+        out = _xlsx_extract_with_mode(path, data_only=False)
     return out
 
 

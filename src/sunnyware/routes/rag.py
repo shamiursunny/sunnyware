@@ -138,8 +138,48 @@ async def rag_upload(
             chunks.extend(chunker.chunk_text(b["text"], b["source"]))
 
     if not chunks:
+        # Part 37: enrich error with diagnostics to help debug empty files
+        diag = {
+            "blocks_returned": len(blocks),
+            "total_rows": 0,
+            "total_text_chars": 0,
+            "per_block": [],
+        }
+        for b in blocks:
+            src_name = b.get("source") or "?"
+            if "rows" in b:
+                n = len(b.get("rows") or [])
+                diag["total_rows"] += n
+                diag["per_block"].append({"source": src_name, "kind": "rows", "count": n})
+            elif "text" in b:
+                n = len(b.get("text") or "")
+                diag["total_text_chars"] += n
+                diag["per_block"].append({"source": src_name, "kind": "text", "count": n})
+        # Best-effort hint
+        ext = (Path(filename).suffix or "").lower()
+        if ext in (".xlsx", ".xls"):
+            if diag["blocks_returned"] == 0:
+                diag["hint"] = (
+                    "Workbook has no sheets with data rows. "
+                    "It may be blank, header-only, or all cells were empty after filtering."
+                )
+            elif diag["total_rows"] == 0:
+                diag["hint"] = (
+                    "Sheets found but no data rows extracted. "
+                    "Likely header-only, all-blank cells, or formulas without cached values."
+                )
+            else:
+                diag["hint"] = "Rows were extracted but no chunks were produced."
+        elif ext == ".pdf":
+            diag["hint"] = (
+                "PDF may be scanned/image-only (no text layer). "
+                "OCR is not supported - try a text-based PDF."
+            )
+        elif ext in (".docx", ".doc"):
+            diag["hint"] = "Document may contain only images or empty paragraphs."
         return JSONResponse(
-            {"error": "no extractable text found in file"}, status_code=422
+            {"error": "no extractable text found in file", "diagnostics": diag},
+            status_code=422,
         )
 
     # ── Embed ──
