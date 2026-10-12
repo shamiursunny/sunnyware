@@ -23,6 +23,7 @@ from .csv_query import CsvQueryTool
 from .chart_from_data import ChartFromDataTool
 from .citation_lookup import CitationLookupTool
 from .forecast_arima import ForecastArimaTool
+from .financial_metrics import FinancialMetricsTool
 
 
 _TOOLS = {
@@ -47,6 +48,7 @@ _TOOLS = {
     ChartFromDataTool.name: ChartFromDataTool(),
     CitationLookupTool.name: CitationLookupTool(),
     ForecastArimaTool.name: ForecastArimaTool(),
+    FinancialMetricsTool.name: FinancialMetricsTool(),
 }
 
 
