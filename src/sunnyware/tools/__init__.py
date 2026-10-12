@@ -28,6 +28,7 @@ from .api_call import ApiCallTool
 from .document_diff import DocumentDiffTool
 from .pdf_report import PdfReportTool
 from .workspace_snapshot import WorkspaceSnapshotTool
+from .excel_write import ExcelWriteTool
 
 
 _TOOLS = {
@@ -57,6 +58,7 @@ _TOOLS = {
     DocumentDiffTool.name: DocumentDiffTool(),
     PdfReportTool.name: PdfReportTool(),
     WorkspaceSnapshotTool.name: WorkspaceSnapshotTool(),
+    ExcelWriteTool.name: ExcelWriteTool(),
 }
 
 
