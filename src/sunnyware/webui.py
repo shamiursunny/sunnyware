@@ -61,6 +61,43 @@ HTML = """<!DOCTYPE html>
               cursor: pointer; font-size: 14px; line-height: 1;
               display: flex; align-items: center; justify-content: center; }
   .icon-btn:hover { background: #252932; border-color: #52b788; color: #e6e8eb; }
+  .icon-btn-wide { padding: 8px 12px; background: #1d2026; color: #b8c4d0;
+                   border: 1px solid #2a2e36; border-radius: 6px;
+                   cursor: pointer; font-size: 12px; font-family: inherit;
+                   white-space: nowrap; }
+  .icon-btn-wide:hover { background: #252932; border-color: #52b788;
+                         color: #e6e8eb; }
+
+  /* Part 40: usage dashboard modal */
+  .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+                   display: flex; align-items: center; justify-content: center;
+                   z-index: 1000; }
+  .modal-panel { background: #121418; border: 1px solid #2a2e36;
+                 border-radius: 10px; width: min(780px, 92vw);
+                 max-height: 85vh; display: flex; flex-direction: column; }
+  .modal-hdr { padding: 12px 18px; border-bottom: 1px solid #1d2026;
+               display: flex; justify-content: space-between;
+               align-items: center; font-weight: 600; color: #ffb454; }
+  .modal-body { padding: 18px; overflow-y: auto; flex: 1; }
+  .usage-grid { display: grid; grid-template-columns: repeat(4, 1fr);
+                gap: 10px; margin-bottom: 18px; }
+  .usage-card { background: #0e1014; border: 1px solid #1d2026;
+                border-radius: 8px; padding: 12px; }
+  .usage-card .k { font-size: 11px; color: #6e7480;
+                   text-transform: uppercase; letter-spacing: 0.5px; }
+  .usage-card .v { font-size: 20px; color: #e6e8eb; margin-top: 6px;
+                   font-weight: 600; }
+  .usage-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .usage-table th, .usage-table td { padding: 8px 10px; text-align: left;
+                                     border-bottom: 1px solid #1d2026; }
+  .usage-table th { color: #6e7480; font-weight: 600; font-size: 11px;
+                    text-transform: uppercase; letter-spacing: 0.5px; }
+  .usage-table td { color: #b8c4d0; }
+  .usage-table td.num { text-align: right; font-family: monospace; }
+  .usage-h { margin-top: 8px; margin-bottom: 10px; color: #ffb454;
+             font-size: 14px; }
+  .usage-loading { color: #6e7480; font-style: italic; padding: 20px;
+                   text-align: center; }
   #importInput { display: none; }
   #sessionList { flex: 1; overflow-y: auto; padding: 4px 0; }
   .sess { padding: 8px 14px; cursor: pointer; font-size: 12px;
@@ -96,12 +133,24 @@ HTML = """<!DOCTYPE html>
 </header>
 <input type="file" id="fileInput" multiple
        accept=".pdf,.docx,.txt,.md,.csv,.xlsx,.xls">
+<div id="usageModal" class="modal-overlay" style="display:none">
+  <div class="modal-panel">
+    <div class="modal-hdr">
+      <span>Token Usage Dashboard</span>
+      <button id="usageClose" class="icon-btn" type="button" title="Close">\u00d7</button>
+    </div>
+    <div class="modal-body" id="usageBody">
+      <div class="usage-loading">Loading usage data...</div>
+    </div>
+  </div>
+</div>
 <div id="layout">
   <aside id="sidebar">
     <div class="hdr">
       <button id="newChatBtn" type="button">+ New chat</button>
       <button id="exportBtn" class="icon-btn" type="button" title="Export all sessions as JSON">\u2b07</button>
       <button id="importBtn" class="icon-btn" type="button" title="Import sessions from JSON">\u2b06</button>
+      <button id="usageBtn" class="icon-btn-wide" type="button" title="Token usage dashboard">Stats</button>
     </div>
     <input type="file" id="importInput" accept=".json,application/json">
     <div id="sessionList"></div>
@@ -621,6 +670,150 @@ HTML = """<!DOCTYPE html>
     }
   }
 
+  // Part 40: token usage dashboard
+  async function openUsageModal() {
+    const modal = document.getElementById('usageModal');
+    if (!modal) return;
+    modal.style.display = 'flex';
+    const body = document.getElementById('usageBody');
+    body.innerHTML = '';
+    const loading = document.createElement('div');
+    loading.className = 'usage-loading';
+    loading.textContent = 'Loading usage data...';
+    body.appendChild(loading);
+    try {
+      const results = await Promise.all([
+        fetch('/api/usage'),
+        fetch('/api/usage/pricing'),
+      ]);
+      const usage = await results[0].json();
+      const pricing = await results[1].json();
+      renderUsageDashboard(usage, pricing);
+    } catch (err) {
+      body.innerHTML = '';
+      const errDiv = document.createElement('div');
+      errDiv.className = 'usage-loading';
+      errDiv.textContent = 'Failed to load: ' + err.message;
+      body.appendChild(errDiv);
+    }
+  }
+
+  function closeUsageModal() {
+    const modal = document.getElementById('usageModal');
+    if (modal) modal.style.display = 'none';
+  }
+
+  function fmtNum(n) {
+    n = Number(n) || 0;
+    if (n >= 1000000) return (n / 1000000).toFixed(2) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'k';
+    return String(n);
+  }
+
+  function addUsageCard(parent, key, value) {
+    const card = document.createElement('div');
+    card.className = 'usage-card';
+    const k = document.createElement('div');
+    k.className = 'k';
+    k.textContent = key;
+    card.appendChild(k);
+    const v = document.createElement('div');
+    v.className = 'v';
+    v.textContent = String(value);
+    card.appendChild(v);
+    parent.appendChild(card);
+  }
+
+  function addTableCell(row, text, isNum) {
+    const td = document.createElement('td');
+    if (isNum) td.className = 'num';
+    td.textContent = String(text);
+    row.appendChild(td);
+  }
+
+  function renderUsageDashboard(usage, pricing) {
+    const body = document.getElementById('usageBody');
+    if (!body) return;
+    body.innerHTML = '';
+    const persisted = usage.persisted || {};
+    const byModel = usage.by_model || [];
+    const grid = document.createElement('div');
+    grid.className = 'usage-grid';
+    addUsageCard(grid, 'Total calls', fmtNum(persisted.calls));
+    addUsageCard(grid, 'Input tokens', fmtNum(persisted.input_tokens));
+    addUsageCard(grid, 'Output tokens', fmtNum(persisted.output_tokens));
+    addUsageCard(grid, 'Cost (USD)', '$' + (Number(persisted.cost_usd) || 0).toFixed(4));
+    body.appendChild(grid);
+    const info = document.createElement('div');
+    info.style.cssText = 'color:#6e7480; font-size:12px; margin-bottom:14px;';
+    info.textContent = 'Window: last ' + (usage.window_days || 7) + ' days';
+    body.appendChild(info);
+    const h1 = document.createElement('div');
+    h1.className = 'usage-h';
+    h1.textContent = 'By model';
+    body.appendChild(h1);
+    const t1 = document.createElement('table');
+    t1.className = 'usage-table';
+    const thead1 = document.createElement('thead');
+    const tr1 = document.createElement('tr');
+    const cols1 = ['Model', 'Calls', 'Input', 'Output', 'Cost'];
+    for (let i = 0; i < cols1.length; i++) {
+      const th = document.createElement('th');
+      th.textContent = cols1[i];
+      tr1.appendChild(th);
+    }
+    thead1.appendChild(tr1);
+    t1.appendChild(thead1);
+    const tb1 = document.createElement('tbody');
+    if (byModel.length === 0) {
+      const row = document.createElement('tr');
+      addTableCell(row, 'No data yet');
+      tb1.appendChild(row);
+    } else {
+      for (let i = 0; i < byModel.length; i++) {
+        const m = byModel[i];
+        const row = document.createElement('tr');
+        addTableCell(row, m.model || '?');
+        addTableCell(row, fmtNum(m.calls), true);
+        addTableCell(row, fmtNum(m.input_tokens), true);
+        addTableCell(row, fmtNum(m.output_tokens), true);
+        addTableCell(row, '$' + (Number(m.cost_usd) || 0).toFixed(4), true);
+        tb1.appendChild(row);
+      }
+    }
+    t1.appendChild(tb1);
+    body.appendChild(t1);
+    const h2 = document.createElement('div');
+    h2.className = 'usage-h';
+    h2.style.marginTop = '20px';
+    h2.textContent = 'Pricing (USD per 1M tokens)';
+    body.appendChild(h2);
+    const t2 = document.createElement('table');
+    t2.className = 'usage-table';
+    const thead2 = document.createElement('thead');
+    const tr2 = document.createElement('tr');
+    const cols2 = ['Model', 'Input / 1M', 'Output / 1M'];
+    for (let i = 0; i < cols2.length; i++) {
+      const th = document.createElement('th');
+      th.textContent = cols2[i];
+      tr2.appendChild(th);
+    }
+    thead2.appendChild(tr2);
+    t2.appendChild(thead2);
+    const tb2 = document.createElement('tbody');
+    const costTable = pricing.cost_table || [];
+    for (let i = 0; i < costTable.length; i++) {
+      const item = costTable[i];
+      const row = document.createElement('tr');
+      addTableCell(row, item.model || '?');
+      addTableCell(row, '$' + (Number(item.input_per_million_usd) || 0).toFixed(2), true);
+      addTableCell(row, '$' + (Number(item.output_per_million_usd) || 0).toFixed(2), true);
+      tb2.appendChild(row);
+    }
+    t2.appendChild(tb2);
+    body.appendChild(t2);
+  }
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const text = input.value.trim();
@@ -661,6 +854,28 @@ HTML = """<!DOCTYPE html>
     importInput.addEventListener('change', async () => {
       const f = importInput.files && importInput.files[0];
       if (f) await importSessions(f);
+    });
+  }
+
+  // Part 40: usage dashboard wiring
+  const usageBtn = document.getElementById('usageBtn');
+  const usageClose = document.getElementById('usageClose');
+  const usageModal = document.getElementById('usageModal');
+  if (usageBtn) {
+    usageBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openUsageModal();
+    });
+  }
+  if (usageClose) {
+    usageClose.addEventListener('click', (e) => {
+      e.preventDefault();
+      closeUsageModal();
+    });
+  }
+  if (usageModal) {
+    usageModal.addEventListener('click', (e) => {
+      if (e.target === usageModal) closeUsageModal();
     });
   }
 
