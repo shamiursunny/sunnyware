@@ -17,7 +17,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - GitHub:  https://github.com/shamiursunny/sunnyware
 - Space:   https://huggingface.co/spaces/shamiur/sunnyware
 
-## Current state (last session: 2026-10-12, Part 44)
+## Current state (last session: 2026-10-12, Part 45)
 - Commit:  run `git log -1 --oneline` for current hash
 - Health:  /health/ready -> status ok, tools: 16
 - LLM:     multi-provider (groq, gemini, openrouter) with auto-failover
@@ -48,9 +48,9 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - Chart rendering + click-to-zoom (Part 43)
 - Session rename — pencil icon or double-click title (Part 43)
 - Voice input — Web Speech API (Part 43; Chrome/Edge/Safari only, not Firefox)
-- Full responsive UI — mobile drawer, tablet, TV mode (Part 44)
-- Mic permission UX — getUserMedia preflight + state badge (Part 44)
-- TV user-agent detection with larger fonts + focus outlines (Part 44)
+- Full responsive UI — mobile drawer, tablet, TV mode (Part 45)
+- Mic permission UX — getUserMedia preflight + state badge (Part 45)
+- TV user-agent detection with larger fonts + focus outlines (Part 45)
 
 ### RAG over documents
 - Upload: /api/rag/upload (PDF/DOCX/CSV/XLSX/TXT/MD; 20 MB max; multi-file)
@@ -72,7 +72,7 @@ Exit 0 = READY TO PUSH.
 
 ## What's next (priority order)
 1. NVIDIA NIM integration — pending support verification
-2. Part 45 — next feature (define together)
+2. Part 46 — next feature (define together)
 3. Optional: voice input, session rename, chart rendering polish
 
 ## Key files
@@ -94,6 +94,7 @@ Exit 0 = READY TO PUSH.
 ## Key scripts
 - scripts/pre_push_check.py            Master DevSecOps gate (5 stages)
 - scripts/system_monitor.py            System health snapshot + baseline
+- scripts/smoke_test_part45.py         14 checks (/openapi.json fix)
 - scripts/smoke_test_part44.py         26 checks (responsive + mic + TV)
 - scripts/smoke_test_part43.py         24 checks (charts + rename + voice)
 - scripts/smoke_test_part42.py         19 checks (markdown + provider badge)
