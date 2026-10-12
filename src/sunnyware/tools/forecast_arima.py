@@ -80,23 +80,74 @@ def _load_series(args: dict) -> tuple:
     return series, None
 
 
+def _has_trend(series) -> bool:
+    """Detect a monotonic trend via Pearson R between index and values.
+
+    Returns True when |r| > 0.55 — high enough to reject noise but low
+    enough to catch subtle-but-real trends on short series.
+    """
+    n = len(series)
+    if n < 4:
+        return False
+    mean_x = (n - 1) / 2.0
+    mean_y = sum(series) / n
+    num = sum((i - mean_x) * (series[i] - mean_y) for i in range(n))
+    den_x = sum((i - mean_x) ** 2 for i in range(n))
+    den_y = sum((y - mean_y) ** 2 for y in series)
+    denom = (den_x * den_y) ** 0.5
+    if denom == 0:
+        return False
+    return abs(num / denom) > 0.55
+
+
 def _auto_order(series) -> tuple:
     """Pick (p,d,q) via AIC over a small grid. Returns (order, aic)."""
+    has_trend = _has_trend(series)
     best = None
     best_aic = float("inf")
-    for p in (0, 1, 2):
-        for d in (0, 1):
-            for q in (0, 1, 2):
-                try:
-                    with _warnings.catch_warnings():
-                        _warnings.simplefilter("ignore")
-                        m = ARIMA(series, order=(p, d, q)).fit()
-                    if m.aic < best_aic:
-                        best_aic = m.aic
-                        best = (p, d, q)
-                except Exception:
-                    continue
-    return best, best_aic
+
+    def _try(p, d, q, trend):
+        nonlocal best, best_aic
+        # Part 54: skip pure-noise models when a trend is detected —
+        # (0, d, 0) with no trend term just repeats the last value.
+        if has_trend and p == 0 and q == 0 and trend != "t":
+            return
+        try:
+            with _warnings.catch_warnings():
+                _warnings.simplefilter("ignore")
+                m = ARIMA(series, order=(p, d, q), trend=trend).fit()
+            if m.aic < best_aic:
+                best_aic = m.aic
+                best = (p, d, q, trend)
+        except Exception:
+            return
+
+    # When trend present, prefer linear-trend models (trend='t') with d=0.
+    # When no trend, use the classic constant-only grid (trend='c').
+    if has_trend:
+        for p in (1, 2):
+            for q in (0, 1):
+                _try(p, 0, q, "t")     # linear trend + ARMA
+        # Also try integrated AR as a fallback
+        for p in (1, 2):
+            for q in (0, 1):
+                _try(p, 1, q, "c")     # differenced, constant only
+    else:
+        for p in (0, 1, 2):
+            for d in (0, 1):
+                for q in (0, 1, 2):
+                    _try(p, d, q, "c")
+
+    # Safety net
+    if best is None:
+        best = (1, 1, 0, "c")
+        try:
+            with _warnings.catch_warnings():
+                _warnings.simplefilter("ignore")
+                best_aic = ARIMA(series, order=(1, 1, 0), trend="c").fit().aic
+        except Exception:
+            best_aic = float("inf")
+    return best, best_aic, has_trend
 
 
 class ForecastArimaTool:
@@ -159,16 +210,20 @@ class ForecastArimaTool:
             except (TypeError, ValueError):
                 return {"error": "order must be [p, d, q]"}
             auto = False
+            fit_trend = "c"
+            trend_detected = _has_trend(series)
         else:
-            order, _ = _auto_order(series)
-            if order is None:
+            order_t, _, trend_detected = _auto_order(series)
+            if order_t is None:
                 return {"error": "could not fit any ARIMA order to this series"}
+            order = order_t[:3]
+            fit_trend = order_t[3]
             auto = True
 
         try:
             with _warnings.catch_warnings():
                 _warnings.simplefilter("ignore")
-                model = ARIMA(series, order=order).fit()
+                model = ARIMA(series, order=tuple(order), trend=fit_trend).fit()
         except Exception as e:
             return {"error": f"fit failed: {type(e).__name__}: {e}"}
 
@@ -188,7 +243,9 @@ class ForecastArimaTool:
 
         return {
             "order": list(order),
+            "trend_term": fit_trend,
             "auto_selected": auto,
+            "trend_detected": trend_detected,
             "aic": round(float(model.aic), 3),
             "periods": periods,
             "n_obs": len(series),
