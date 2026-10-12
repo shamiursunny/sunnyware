@@ -1,5 +1,5 @@
 {
-  "generated": "2026-10-12T17:22:12.561636",
+  "generated": "2026-10-12T20:56:22.884310",
   "score": 98.7,
   "grade": "A+ (production-ready)",
   "checks": {
@@ -57,6 +57,8 @@
     "security/No hardcoded API keys in source": "PASS",
     "hygiene/__pycache__ present (gitignored)": "PASS",
     "hygiene/data/ dir exists": "PASS",
-    "hygiene/No stale .bak.partN files in scripts/": "PASS"
+    "hygiene/No stale .bak.partN files in scripts/": "PASS",
+    "network/HF Space /health/ready returns ok": "PASS",
+    "network/HF Space has 3+ providers configured": "PASS"
   }
 }
