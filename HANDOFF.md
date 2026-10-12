@@ -518,3 +518,53 @@ Secrets (all kept):
 1. Chat history persistence + sidebar (Part 35?)
 2. Multi-file upload
 3. NVIDIA NIM (pending verification)
+\n
+
+## Part 35 - Chat History Persistence + Sidebar (2026-10-12)
+
+### What shipped
+- Left sidebar (240px) with session list
+- "+ New chat" button creates fresh session (doesn't wipe old ones)
+- Auto-titling: first user message becomes session title (40 char cap)
+- Multi-session localStorage: sunnyware_sessions_v2 (JSON)
+- Click session -> loads full conversation history
+- Hover session -> shows X to delete
+- Active session highlighted with green border
+- Mobile: sidebar hides at <720px (media query)
+
+### Storage schema
+localStorage['sunnyware_sessions_v2'] = {
+  "web-xxxxx": {
+    id: "web-xxxxx",
+    title: "first user message (truncated to 40 chars)",
+    created: <unix_ms>,
+    messages: [{role, text, ts}, ...]
+  },
+  ...
+}
+localStorage['sunnyware_active_v2'] = "web-xxxxx"
+
+### Caps
+- MAX_SESSIONS = 20 (oldest pruned by created time)
+- MAX_MSGS_PER = 200 per session
+- Only user/agent/error messages persisted (tool markers skipped)
+
+### Files changed
+- src/sunnyware/webui.py: +265 lines (CSS, HTML layout, JS logic)
+- Old single-session key 'sunnyware_session' abandoned (fresh start)
+
+### Bugs fixed during build
+- f-string backslash issue (Python 3.10 restriction) — split into concatenation
+- CSS/HTML structure needed two-pass patch (CSS first, JS later)
+
+### Verified live
+- Sidebar renders with session list
+- Conversations persist across browser refresh
+- "+ New chat" creates new session, keeps old
+- Session switch loads history correctly
+- Auto-titles work
+
+### Next session
+1. Multi-file upload
+2. NVIDIA NIM (pending verification)
+3. Part 36 - define next
