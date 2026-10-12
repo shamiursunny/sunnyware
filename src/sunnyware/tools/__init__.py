@@ -24,6 +24,7 @@ from .chart_from_data import ChartFromDataTool
 from .citation_lookup import CitationLookupTool
 from .forecast_arima import ForecastArimaTool
 from .financial_metrics import FinancialMetricsTool
+from .api_call import ApiCallTool
 
 
 _TOOLS = {
@@ -49,6 +50,7 @@ _TOOLS = {
     CitationLookupTool.name: CitationLookupTool(),
     ForecastArimaTool.name: ForecastArimaTool(),
     FinancialMetricsTool.name: FinancialMetricsTool(),
+    ApiCallTool.name: ApiCallTool(),
 }
 
 
