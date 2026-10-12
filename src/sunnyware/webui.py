@@ -9,6 +9,7 @@ HTML = """<!DOCTYPE html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>sunnyware</title>
+<script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 <style>
   * { box-sizing: border-box; }
   body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -116,6 +117,28 @@ HTML = """<!DOCTYPE html>
   #main { flex: 1; display: flex; flex-direction: column;
           overflow: hidden; }
   @media (max-width: 720px) { #sidebar { display: none; } }
+  /* Part 42: markdown rendering for assistant messages */
+  .msg.agent { white-space: normal; }
+  .msg.agent p { margin: 0 0 10px 0; }
+  .msg.agent p:last-child { margin-bottom: 0; }
+  .msg.agent code { background: #1d2026; padding: 2px 5px; border-radius: 3px;
+                    font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 13px; }
+  .msg.agent pre { background: #0a0c0f; border: 1px solid #1d2026; border-radius: 6px;
+                   padding: 10px 14px; overflow-x: auto; margin: 8px 0; }
+  .msg.agent pre code { background: none; padding: 0; font-size: 12.5px; }
+  .msg.agent h1, .msg.agent h2, .msg.agent h3 { color: #ffb454; margin: 12px 0 6px 0; }
+  .msg.agent h1 { font-size: 18px; }
+  .msg.agent h2 { font-size: 16px; }
+  .msg.agent h3 { font-size: 14px; }
+  .msg.agent ul, .msg.agent ol { margin: 6px 0 6px 22px; padding: 0; }
+  .msg.agent li { margin: 2px 0; }
+  .msg.agent a { color: #6e9bd8; }
+  .msg.agent blockquote { border-left: 3px solid #2a2e36; padding-left: 12px;
+                          color: #b8c4d0; margin: 8px 0; }
+  .msg.agent table { border-collapse: collapse; margin: 8px 0; }
+  .msg.agent th, .msg.agent td { border: 1px solid #2a2e36; padding: 5px 10px; }
+  .msg.agent th { background: #1d2026; color: #ffb454; }
+  .msg.agent hr { border: none; border-top: 1px solid #2a2e36; margin: 12px 0; }
 </style>
 </head>
 <body>
@@ -467,11 +490,44 @@ HTML = """<!DOCTYPE html>
     }
   }
 
+  // Part 42: markdown rendering for assistant messages
+  function escapeHtml(s) {
+    var esc = {};
+    esc[38] = '&amp;';
+    esc[60] = '&lt;';
+    esc[62] = '&gt;';
+    esc[34] = '&quot;';
+    esc[39] = '&#39;';
+    var out = '';
+    s = String(s);
+    for (var i = 0; i < s.length; i++) {
+      var ch = s.charAt(i);
+      out += esc[ch.charCodeAt(0)] || ch;
+    }
+    return out;
+  }
+  function renderAgentHtml(text) {
+    if (!text) return '';
+    if (typeof marked === 'undefined' || !marked.parse) return escapeHtml(text);
+    try {
+      var raw = marked.parse(text);
+      raw = raw.split('<\/script').join('&lt;/script');
+      raw = raw.split('javascript:').join('');
+      return raw;
+    } catch (e) {
+      return escapeHtml(text);
+    }
+  }
+
   function addMsg(text, cls, persist) {
     if (persist === undefined) persist = true;
     const d = document.createElement('div');
     d.className = 'msg ' + cls;
-    d.textContent = text;
+    if (cls === 'agent') {
+      d.innerHTML = renderAgentHtml(text);
+    } else {
+      d.textContent = text;
+    }
     chat.appendChild(d);
     chat.scrollTop = chat.scrollHeight;
     if (persist && (cls === 'user' || cls === 'agent' || cls === 'error')) {
@@ -542,14 +598,14 @@ HTML = """<!DOCTYPE html>
               const piece = data.text || '';
               if (piece) {
                 agentText += piece;
-                ensureBubble().textContent = agentText;
+                ensureBubble().innerHTML = renderAgentHtml(agentText);
                 chat.scrollTop = chat.scrollHeight;
               }
             } else if (type === 'answer') {
               const ans = data.text || '';
               if (ans) {
                 agentText = ans;
-                ensureBubble().textContent = agentText;
+                ensureBubble().innerHTML = renderAgentHtml(agentText);
                 chat.scrollTop = chat.scrollHeight;
               }
             } else if (type === 'tool_call') {
@@ -984,29 +1040,8 @@ HTML = """<!DOCTYPE html>
     renderSidebar();
   }
   refreshDocCount();
-  refreshProviders();
   input.focus();
 
-  async function refreshProviders() {
-    try {
-      const r = await fetch('/api/providers/status');
-      const d = await r.json();
-      const el = document.getElementById('provBadge');
-      if (!el) return;
-      const provs = d.providers || [];
-      if (provs.length === 0) {
-        el.textContent = 'providers: none';
-        return;
-      }
-      const live = provs.filter(p => !p.cooling).length;
-      const firstLive = provs.find(p => !p.cooling);
-      const label = firstLive ? firstLive.name : provs[0].name;
-      el.textContent = 'providers: ' + live + '/' + provs.length + ' (' + label + ')';
-    } catch (e) {
-      const el = document.getElementById('provBadge');
-      if (el) el.textContent = 'providers: ?';
-    }
-  }
 })();
 </script>
 </body>
