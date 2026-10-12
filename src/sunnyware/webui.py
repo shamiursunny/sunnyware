@@ -219,6 +219,102 @@ HTML = """<!DOCTYPE html>
     sidEl.textContent = 'session: ' + getSession();
   }
 
+  // Part 38: Neon fallback (fetch history from DB if localStorage lost it)
+  async function fetchSessionsFromNeon() {
+    try {
+      const r = await fetch('/api/sessions');
+      if (!r.ok) return [];
+      const d = await r.json();
+      return d.sessions || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function fetchHistoryFromNeon(sessionKey) {
+    try {
+      const r = await fetch('/api/sessions/' + encodeURIComponent(sessionKey) + '/history?limit=200');
+      if (!r.ok) return [];
+      const d = await r.json();
+      const events = d.events || [];
+      const messages = [];
+      for (let i = 0; i < events.length; i++) {
+        const e = events[i];
+        let payload;
+        try { payload = JSON.parse(e.payload || '{}'); } catch (err) { continue; }
+        const content = (payload && payload.content) || '';
+        if (!content) continue;
+        const ts = Date.parse(e.created_at) || Date.now();
+        if (e.event_type === 'user_message') {
+          messages.push({ role: 'user', text: content, ts: ts });
+        } else if (e.event_type === 'assistant_message') {
+          messages.push({ role: 'agent', text: content, ts: ts });
+        }
+      }
+      return messages;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  async function hydrateFromNeon() {
+    const local = getSessions();
+    const neonSessions = await fetchSessionsFromNeon();
+    if (!neonSessions || neonSessions.length === 0) return 0;
+    let merged = 0;
+    for (let i = 0; i < neonSessions.length; i++) {
+      const s = neonSessions[i];
+      const key = s.session_key || '';
+      if (!key.startsWith('web-')) continue;
+      if (local[key]) continue;
+      const msgs = await fetchHistoryFromNeon(key);
+      if (!msgs || msgs.length === 0) continue;
+      let title = 'New chat';
+      for (let j = 0; j < msgs.length; j++) {
+        if (msgs[j].role === 'user' && msgs[j].text) {
+          title = msgs[j].text.length > 40 ? msgs[j].text.slice(0, 40) : msgs[j].text;
+          break;
+        }
+      }
+      local[key] = {
+        id: key,
+        title: title,
+        created: Date.parse(s.created_at) || Date.now(),
+        messages: msgs
+      };
+      merged++;
+    }
+    if (merged > 0) saveSessions(local);
+    return merged;
+  }
+
+  async function loadSessionWithFallback(id) {
+    if (!id) return;
+    const local = getSessions();
+    if (local[id]) {
+      loadSession(id);
+      return;
+    }
+    const msgs = await fetchHistoryFromNeon(id);
+    if (!msgs || msgs.length === 0) return;
+    let title = 'New chat';
+    for (let i = 0; i < msgs.length; i++) {
+      if (msgs[i].role === 'user' && msgs[i].text) {
+        title = msgs[i].text.length > 40 ? msgs[i].text.slice(0, 40) : msgs[i].text;
+        break;
+      }
+    }
+    const local2 = getSessions();
+    local2[id] = {
+      id: id,
+      title: title,
+      created: Date.now(),
+      messages: msgs
+    };
+    saveSessions(local2);
+    loadSession(id);
+  }
+
   function loadSession(id) {
     if (!id) return;
     const sessions = getSessions();
@@ -268,7 +364,7 @@ HTML = """<!DOCTYPE html>
       });
       row.appendChild(del);
 
-      row.addEventListener('click', () => loadSession(s.id));
+      row.addEventListener('click', () => { loadSessionWithFallback(s.id); });
       list.appendChild(row);
     }
   }
@@ -528,15 +624,33 @@ HTML = """<!DOCTYPE html>
     const active = getActiveSession();
     if (active && active.messages && active.messages.length > 0) {
       loadSession(active.id);
+      renderSidebar();
     } else {
-      createNewSession();
+      // Part 38: localStorage empty -> try Neon hydration first
+      hydrateFromNeon().then((merged) => {
+        const active2 = getActiveSession();
+        if (active2 && active2.messages && active2.messages.length > 0) {
+          loadSession(active2.id);
+        } else {
+          createNewSession();
+        }
+        renderSidebar();
+        if (merged > 0) {
+          const note = document.createElement('div');
+          note.className = 'msg step';
+          note.textContent = 'Restored ' + merged + ' session(s) from database.';
+          chat.insertBefore(note, chat.firstChild);
+        }
+      }).catch(() => {
+        createNewSession();
+        renderSidebar();
+      });
     }
   } catch (e) {
-    // Fallback if anything goes wrong with storage
     renderSession();
     addMsg('Welcome to sunnyware. Ask me anything.', 'step', false);
+    renderSidebar();
   }
-  renderSidebar();
   refreshDocCount();
   refreshProviders();
   input.focus();
