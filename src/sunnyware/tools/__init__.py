@@ -30,6 +30,11 @@ from .pdf_report import PdfReportTool
 from .workspace_snapshot import WorkspaceSnapshotTool
 from .excel_write import ExcelWriteTool
 from .excel_read import ExcelReadTool
+from .browser_goto import BrowserGotoTool
+from .browser_screenshot import BrowserScreenshotTool
+from .browser_extract import BrowserExtractTool
+from .browser_click import BrowserClickTool
+from .browser_fill_submit import BrowserFillSubmitTool
 
 
 _TOOLS = {
@@ -61,6 +66,11 @@ _TOOLS = {
     WorkspaceSnapshotTool.name: WorkspaceSnapshotTool(),
     ExcelWriteTool.name: ExcelWriteTool(),
     ExcelReadTool.name: ExcelReadTool(),
+    BrowserGotoTool.name: BrowserGotoTool(),
+    BrowserScreenshotTool.name: BrowserScreenshotTool(),
+    BrowserExtractTool.name: BrowserExtractTool(),
+    BrowserClickTool.name: BrowserClickTool(),
+    BrowserFillSubmitTool.name: BrowserFillSubmitTool(),
 }
 
 
