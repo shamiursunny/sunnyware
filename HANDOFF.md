@@ -697,3 +697,48 @@ for a future session).
 1. NVIDIA NIM integration (pending verification)
 2. Optional: Export/Import JSON button (extra belt & suspenders)
 3. Part 39 - define next
+\n
+
+## Part 40 - Token Usage Dashboard (2026-10-12)
+
+### What shipped
+- Stats button in sidebar header opens modal dashboard
+- Modal shows:
+  - 4 summary cards: total calls, input tokens, output tokens, cost USD
+  - "By model" table: per-model calls/tokens/cost breakdown
+  - "Pricing" table: USD per 1M input/output tokens
+- Data source: existing /api/usage + /api/usage/pricing (Part 29)
+- Rendering: pure DOM API (createElement) - zero string-escape risk
+- Close methods: X button OR click outside modal backdrop
+
+### Files changed
+- src/sunnyware/webui.py: +modal CSS, +Stats button, +modal HTML, +JS functions
+- scripts/smoke_test_part40.py: 26-check verification
+
+### Bugs caught by pre-push gate
+- Part 40 first attempt: 5 CSS rules (.modal-overlay, .modal-panel,
+  .usage-grid, .usage-card, .usage-table) were silently missing because
+  an earlier patch aborted before write_text. Gate detected them.
+- This is exactly the value of scripts/pre_push_check.py - keeps history
+  clean and rollback-safe.
+
+### Verified live
+- Stats button visible next to sidebar icons
+- Modal shows real data (585 calls, $0.2403 cost, per-model breakdown)
+- All 4 providers tracked: qwen3.8-27b, gpt-oss-20b, lfm-2.5-2.6b, gemini-2.5-flash
+- Both close methods (X button, backdrop click) work
+
+### Cumulative live features now (Parts 31-40)
+- Multi-provider LLM router (Groq/Gemini/OpenRouter)
+- Auto model resolver (self-healing)
+- Streaming WebUI (SSE)
+- Multi-session sidebar with browser-wipe-proof Neon fallback
+- JSON export/import for sessions
+- Multi-file upload
+- Token usage dashboard
+- Pre-push DevSecOps gate (5 stages)
+
+### Next session
+1. NVIDIA NIM integration (pending verification)
+2. Part 41 - define next
+3. Optional: use pre-push gate as the standard workflow going forward
