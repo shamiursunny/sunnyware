@@ -53,6 +53,15 @@ HTML = """<!DOCTYPE html>
                 border-radius: 6px; cursor: pointer; font-size: 13px;
                 text-align: left; font-family: inherit; }
   #newChatBtn:hover { background: #252932; border-color: #52b788; }
+  #sidebar .hdr { display: flex; gap: 6px; align-items: center; }
+  #newChatBtn { flex: 1; }
+  .icon-btn { flex: 0 0 auto; width: 34px; height: 34px; padding: 0;
+              background: #1d2026; color: #b8c4d0;
+              border: 1px solid #2a2e36; border-radius: 6px;
+              cursor: pointer; font-size: 14px; line-height: 1;
+              display: flex; align-items: center; justify-content: center; }
+  .icon-btn:hover { background: #252932; border-color: #52b788; color: #e6e8eb; }
+  #importInput { display: none; }
   #sessionList { flex: 1; overflow-y: auto; padding: 4px 0; }
   .sess { padding: 8px 14px; cursor: pointer; font-size: 12px;
           color: #b8c4d0; border-left: 3px solid transparent;
@@ -91,7 +100,10 @@ HTML = """<!DOCTYPE html>
   <aside id="sidebar">
     <div class="hdr">
       <button id="newChatBtn" type="button">+ New chat</button>
+      <button id="exportBtn" class="icon-btn" type="button" title="Export all sessions as JSON">\u2b07</button>
+      <button id="importBtn" class="icon-btn" type="button" title="Import sessions from JSON">\u2b06</button>
     </div>
+    <input type="file" id="importInput" accept=".json,application/json">
     <div id="sessionList"></div>
   </aside>
   <div id="main">
@@ -525,6 +537,90 @@ HTML = """<!DOCTYPE html>
     }
   }
 
+  // Part 39: export/import sessions
+  function exportSessions() {
+    try {
+      const sessions = getSessions();
+      const payload = {
+        version: 1,
+        exported_at: new Date().toISOString(),
+        source: 'sunnyware-webui',
+        session_count: Object.keys(sessions).length,
+        sessions: sessions
+      };
+      const json = JSON.stringify(payload, null, 2);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      const ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      a.href = url;
+      a.download = 'sunnyware-sessions-' + ts + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      addMsg('Exported ' + payload.session_count + ' session(s) to JSON.', 'upload-ok', false);
+    } catch (e) {
+      addMsg('Export failed: ' + e.message, 'upload-err', false);
+    }
+  }
+
+  async function importSessions(file) {
+    if (!file) return;
+    try {
+      const text = await file.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        addMsg('Import failed: invalid JSON file', 'upload-err', false);
+        return;
+      }
+      // Accept two shapes: {sessions: {...}} (our export) or flat {...}
+      let incoming = {};
+      if (data && typeof data === 'object' && data.sessions && typeof data.sessions === 'object') {
+        incoming = data.sessions;
+      } else if (data && typeof data === 'object') {
+        incoming = data;
+      } else {
+        addMsg('Import failed: unexpected JSON shape', 'upload-err', false);
+        return;
+      }
+      const local = getSessions();
+      let added = 0;
+      let merged = 0;
+      for (const id of Object.keys(incoming)) {
+        const s = incoming[id];
+        if (!s || !s.id || !Array.isArray(s.messages)) continue;
+        if (!local[id]) {
+          local[id] = s;
+          added++;
+        } else {
+          // Merge: keep union of messages by ts
+          const seen = new Set((local[id].messages || []).map(m => m.ts + '|' + (m.text || '').slice(0, 30)));
+          let newMsgs = 0;
+          for (const m of s.messages) {
+            const key = m.ts + '|' + (m.text || '').slice(0, 30);
+            if (!seen.has(key)) {
+              local[id].messages.push(m);
+              seen.add(key);
+              newMsgs++;
+            }
+          }
+          if (newMsgs > 0) merged++;
+        }
+      }
+      saveSessions(local);
+      renderSidebar();
+      addMsg('Import complete: ' + added + ' new session(s), ' + merged + ' merged.', 'upload-ok', false);
+    } catch (e) {
+      addMsg('Import failed: ' + e.message, 'upload-err', false);
+    } finally {
+      const inp = document.getElementById('importInput');
+      if (inp) inp.value = '';
+    }
+  }
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const text = input.value.trim();
@@ -544,6 +640,27 @@ HTML = """<!DOCTYPE html>
     newChatBtn.addEventListener('click', (e) => {
       e.preventDefault();
       createNewSession();
+    });
+  }
+
+  // Part 39: export/import buttons
+  const exportBtn = document.getElementById('exportBtn');
+  const importBtn = document.getElementById('importBtn');
+  const importInput = document.getElementById('importInput');
+  if (exportBtn) {
+    exportBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      exportSessions();
+    });
+  }
+  if (importBtn && importInput) {
+    importBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      importInput.click();
+    });
+    importInput.addEventListener('change', async () => {
+      const f = importInput.files && importInput.files[0];
+      if (f) await importSessions(f);
     });
   }
 
