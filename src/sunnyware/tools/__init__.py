@@ -25,6 +25,7 @@ from .citation_lookup import CitationLookupTool
 from .forecast_arima import ForecastArimaTool
 from .financial_metrics import FinancialMetricsTool
 from .api_call import ApiCallTool
+from .document_diff import DocumentDiffTool
 
 
 _TOOLS = {
@@ -51,6 +52,7 @@ _TOOLS = {
     ForecastArimaTool.name: ForecastArimaTool(),
     FinancialMetricsTool.name: FinancialMetricsTool(),
     ApiCallTool.name: ApiCallTool(),
+    DocumentDiffTool.name: DocumentDiffTool(),
 }
 
 
