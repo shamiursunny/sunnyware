@@ -140,9 +140,7 @@ HTML = """<!DOCTYPE html>
         if (chunk.done) break;
         buffer += decoder.decode(chunk.value, { stream: true });
 
-        // SSE events are separated by blank lines (
-
-)
+        // SSE events are separated by blank lines
         const events = buffer.split('\n\n');
         buffer = events.pop() || '';
 
