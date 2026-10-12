@@ -18,6 +18,7 @@ from .delete_file import DeleteFileTool
 from .mkdir import MkdirTool
 from .rag_search import RagSearchTool
 from .rag_list import RagListTool
+from .recall_history import RecallHistoryTool
 
 
 _TOOLS = {
@@ -37,6 +38,7 @@ _TOOLS = {
     MkdirTool.name: MkdirTool(),
     RagSearchTool.name: RagSearchTool(),
     RagListTool.name: RagListTool(),
+    RecallHistoryTool.name: RecallHistoryTool(),
 }
 
 
