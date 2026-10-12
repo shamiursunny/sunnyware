@@ -156,11 +156,84 @@ HTML = """<!DOCTYPE html>
   .sess .ren { opacity: 0; color: #6e7480; font-size: 12px; padding: 0 3px; cursor: pointer; }
   .sess:hover .ren { opacity: 1; }
   .sess .ren:hover { color: #ffb454; }
+  /* ════ Part 44: responsive CSS ════ */
+  #mobileMenuBtn {
+    display: none; width: 40px; height: 40px; padding: 0;
+    background: transparent; border: 1px solid #2a2e36;
+    border-radius: 6px; color: #e6e8eb; cursor: pointer;
+    align-items: center; justify-content: center; font-size: 20px;
+    flex: 0 0 auto;
+  }
+  #mobileMenuBtn:hover { background: #252932; border-color: #52b788; }
+  .overlay-backdrop {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.55); z-index: 850; cursor: pointer;
+  }
+  body.mobile-menu-open .overlay-backdrop { display: block; }
+  @media (max-width: 640px) {
+    header { padding: 10px 14px; }
+    header h1 { font-size: 15px; }
+    header .meta { font-size: 11px; }
+    header .meta a { margin-left: 8px; font-size: 11px; }
+    #mobileMenuBtn { display: flex; }
+    #sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: 260px; min-width: 260px; z-index: 900;
+      transform: translateX(-100%); transition: transform 0.25s ease;
+      box-shadow: 4px 0 16px rgba(0,0,0,0.55);
+    }
+    body.mobile-menu-open #sidebar { transform: translateX(0); }
+    #chat { padding: 14px; }
+    .msg { font-size: 14px; }
+    .footer-info { font-size: 10px; }
+    form { gap: 6px; }
+    input[type=text] { padding: 12px 14px; font-size: 15px; }
+    #send { padding: 12px 18px; }
+    #micBtn { padding: 12px 14px; }
+  }
+  @media (min-width: 641px) and (max-width: 900px) {
+    #sidebar { width: 200px; min-width: 200px; }
+    #chat { padding: 16px; }
+    form { gap: 8px; }
+  }
+  @media (min-width: 1600px) {
+    header { padding: 16px 32px; }
+    header h1 { font-size: 20px; }
+    #chat { max-width: 1100px; padding: 28px; }
+    .msg { font-size: 16px; line-height: 1.6; }
+    #sidebar { width: 300px; min-width: 300px; }
+    input[type=text] { font-size: 16px; padding: 14px 18px; }
+    #send, #micBtn { padding: 14px 22px; font-size: 15px; }
+  }
+  @media (pointer: coarse) {
+    button, .icon-btn, .icon-btn-wide, .sess { min-height: 44px; }
+    .sess { padding: 12px 16px; }
+    .sess .del, .sess .ren { font-size: 16px; padding: 0 6px; }
+  }
+  body.tv-mode { font-size: 18px; }
+  body.tv-mode header { padding: 20px 40px; }
+  body.tv-mode header h1 { font-size: 24px; }
+  body.tv-mode #chat { max-width: 1200px; padding: 32px; }
+  body.tv-mode .msg { font-size: 18px; line-height: 1.7; }
+  body.tv-mode #sidebar { width: 340px; min-width: 340px; }
+  body.tv-mode .sess { padding: 16px 20px; font-size: 15px; }
+  body.tv-mode button,
+  body.tv-mode .icon-btn,
+  body.tv-mode .icon-btn-wide { min-height: 56px; font-size: 16px; padding: 16px 24px; }
+  body.tv-mode #input { font-size: 18px; padding: 18px 24px; }
+  body.tv-mode button:focus,
+  body.tv-mode input:focus,
+  body.tv-mode .sess:focus,
+  body.tv-mode a:focus { outline: 3px solid #52b788; outline-offset: 3px; }
+  #micBtn.mic-denied { border-color: #ff6b6b; color: #ff6b6b; opacity: 0.75; }
 </style>
 </head>
 <body>
 <header>
-  <h1>sunnyware</h1>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <button id="mobileMenuBtn" type="button" title="Menu">&#9776;</button>
+    <h1>sunnyware</h1>
+  </div>
   <div class="meta">
     <span id="sid">session: ...</span>
     <a href="/docs" target="_blank">API docs</a>
@@ -184,6 +257,7 @@ HTML = """<!DOCTYPE html>
     </div>
   </div>
 </div>
+<div class="overlay-backdrop" id="overlayBackdrop"></div>
 <div id="layout">
   <aside id="sidebar">
     <div class="hdr">
@@ -1146,38 +1220,117 @@ HTML = """<!DOCTYPE html>
     }
     let rec = null;
     let active = false;
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (active && rec) { rec.stop(); return; }
+    function startRecognition() {
       rec = new SR();
-      rec.lang = 'en-US';
+      rec.lang = navigator.language || navigator.userLanguage || 'en-US';
       rec.interimResults = true;
       rec.continuous = false;
-      let base = input.value ? input.value + ' ' : '';
-      rec.onstart = () => {
+      var base = input.value ? input.value + ' ' : '';
+      rec.onstart = function () {
         active = true;
         btn.classList.add('recording');
         btn.title = 'Listening... click to stop';
       };
-      rec.onresult = (ev) => {
-        let interim = '', final = '';
-        for (let i = ev.resultIndex; i < ev.results.length; i++) {
-          const r = ev.results[i];
+      rec.onresult = function (ev) {
+        var interim = '', final = '';
+        for (var i = ev.resultIndex; i < ev.results.length; i++) {
+          var r = ev.results[i];
           if (r.isFinal) final += r[0].transcript;
           else interim += r[0].transcript;
         }
         input.value = base + final + interim;
       };
-      rec.onerror = (ev) => {
+      rec.onerror = function (ev) {
         addMsg('voice error: ' + (ev.error || 'unknown'), 'error', false);
       };
-      rec.onend = () => {
+      rec.onend = function () {
         active = false;
         btn.classList.remove('recording');
         btn.title = 'Voice input (click to start/stop)';
         input.focus();
       };
       rec.start();
+    }
+
+    btn.addEventListener('click', function (e) {
+      e.preventDefault();
+      if (active && rec) { rec.stop(); return; }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        addMsg('voice: getUserMedia not available in this browser', 'error', false);
+        return;
+      }
+      navigator.mediaDevices.getUserMedia({ audio: true })
+        .then(function (stream) {
+          stream.getTracks().forEach(function (t) { t.stop(); });
+          startRecognition();
+        })
+        .catch(function (err) {
+          var name = (err && err.name) ? err.name : '';
+          var msg;
+          if (name === 'NotAllowedError' || name === 'SecurityError') {
+            msg = 'mic blocked - click padlock in URL bar then Microphone then Allow';
+          } else if (name === 'NotFoundError' || name === 'DevicesNotFoundError') {
+            msg = 'no microphone found on this device';
+          } else {
+            msg = 'mic error: ' + (err && err.message ? err.message : String(err));
+          }
+          addMsg('voice: ' + msg, 'error', false);
+        });
+    });
+  })();
+
+  // Part 44: TV user-agent detection
+  (function detectTVMode() {
+    var ua = navigator.userAgent || '';
+    var signs = ['SmartTV', 'Tizen', 'Web0S', 'WebOS', 'NetCast', 'HbbTV',
+                 'Viera', 'BRAVIA', 'AquosBrowser', 'SMART-TV', 'AppleTV',
+                 'CrKey', 'FireTV', 'AFT'];
+    for (var i = 0; i < signs.length; i++) {
+      if (ua.indexOf(signs[i]) !== -1) {
+        document.body.classList.add('tv-mode');
+        return;
+      }
+    }
+  })();
+
+  // Part 44: mic permission state UI
+  (function initMicPermissionUI() {
+    var btn = document.getElementById('micBtn');
+    if (!btn || !navigator.permissions || !navigator.permissions.query) return;
+    function setState(state) {
+      if (state === 'granted') {
+        btn.title = 'Voice input (click to start/stop)';
+        btn.classList.remove('mic-denied');
+      } else if (state === 'denied') {
+        btn.title = 'Mic blocked - click padlock in URL bar to allow';
+        btn.classList.add('mic-denied');
+      } else {
+        btn.title = 'Voice input (browser will ask for permission)';
+        btn.classList.remove('mic-denied');
+      }
+    }
+    try {
+      navigator.permissions.query({ name: 'microphone' }).then(function (r) {
+        setState(r.state);
+        r.onchange = function () { setState(r.state); };
+      }).catch(function () { /* Firefox may not expose mic query */ });
+    } catch (e) { /* ignore */ }
+  })();
+
+  // Part 44: mobile drawer menu
+  (function initMobileMenu() {
+    var btn = document.getElementById('mobileMenuBtn');
+    var backdrop = document.getElementById('overlayBackdrop');
+    function close() { document.body.classList.remove('mobile-menu-open'); }
+    function toggle() { document.body.classList.toggle('mobile-menu-open'); }
+    if (btn) btn.addEventListener('click', function (e) { e.preventDefault(); toggle(); });
+    if (backdrop) backdrop.addEventListener('click', close);
+    document.addEventListener('click', function (e) {
+      var t = e.target;
+      if (t && t.closest && t.closest('.sess')) close();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape') close();
     });
   })();
 
