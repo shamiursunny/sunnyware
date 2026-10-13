@@ -67,7 +67,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - workspace_snapshot tool (Part 60) — zip workspace to retrievable archive
 - excel_write tool (Part 61) — formatted .xlsx (sheets, formulas, formats)
 - excel_read tool (Part 62) — read .xlsx (sheets, headers, formulas)
-- Playwright browser automation (Part 63/63.1) — 5 tools:
+- Playwright browser automation (Part 63/63.3) — 5 tools:
   browser_goto, browser_screenshot, browser_extract,
   browser_click, browser_fill_submit. Part 63.1 fixes:
   chmod +x after install + retry on EACCES. Chromium caches to
