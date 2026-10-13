@@ -139,12 +139,47 @@ def _flatten_openapi_routes(routes):
     return out
 
 
+def _clean_openapi_schemas(schema: dict) -> dict:
+    """Part 77: strip Gradio-internal Pydantic models from /docs.
+
+    Gradio auto-generates request/response models (Body_undo_vibe_edit_*,
+    Body_login_login_*, etc.) that leak into OpenAPI components when we
+    pass its routes through. Filter them out by naming pattern.
+    """
+    try:
+        components = schema.get("components") or {}
+        schemas = components.get("schemas") or {}
+        if not schemas:
+            return schema
+        drop_prefixes = ("Body_undo_vibe_edit", "Body_login_login",
+                         "Body_predict", "Body_process_api",
+                         "Body_upload", "Body_")
+        drop_substr = ("gradio_api", "gradio")
+        kept = {}
+        dropped = []
+        for key, val in schemas.items():
+            k_lower = str(key).lower()
+            if any(k_lower.startswith(pp.lower()) for pp in drop_prefixes):
+                dropped.append(key); continue
+            if any(s in k_lower for s in drop_substr):
+                dropped.append(key); continue
+            # Also drop anything only referenced by gradio paths
+            kept[key] = val
+        components["schemas"] = kept
+        schema["components"] = components
+        if dropped:
+            print("[openapi] dropped gradio schemas: " + str(len(dropped)))
+        return schema
+    except Exception:
+        return schema
+
+
 def _patched_openapi():
     if getattr(app, "openapi_schema", None):
         return app.openapi_schema
     from fastapi.openapi.utils import get_openapi as _go
     flat = _flatten_openapi_routes(list(app.routes))
-    app.openapi_schema = _go(
+    _raw = _go(
         title=app.title,
         version=app.version,
         openapi_version=getattr(app, "openapi_version", "3.1.0"),
@@ -152,6 +187,7 @@ def _patched_openapi():
         routes=flat,
         tags=getattr(app, "openapi_tags", None),
     )
+    app.openapi_schema = _clean_openapi_schemas(_raw)
     return app.openapi_schema
 
 
