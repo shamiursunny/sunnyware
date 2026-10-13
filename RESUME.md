@@ -64,6 +64,11 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - Streaming provider fallback (Part 57) — stream_chat tries all providers
 - document_diff tool (Part 58) — diff files/RAG chunks/inline text
 - pdf_report tool (Part 59) — multi-page PDF (text/table/chart pages)
+- pdf_read tool (Part 72) — extract text from workspace PDFs
+- citation_lookup strengthened (Part 73) — citation_string + cite_these
+- report_batch tool (Part 74) — parallel multi-prompt runner
+- kpi_watch_add/list/run (Part 75) — log-only KPI monitoring
+  (Neon tables: kpi_watches, kpi_watch_events; email deferred to Part 76)
 - workspace_snapshot tool (Part 60) — zip workspace to retrievable archive
 - Full UI redesign (Parts 65-71): responsive, Inter font, SVG icons,
   neutral palette, glass drawer, ChatGPT/Claude message layout, session search
