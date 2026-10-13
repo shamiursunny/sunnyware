@@ -179,6 +179,14 @@ in .env. Dynamic latency-based selection does not exist today.
 - pre_push_check auto-discovers highest-numbered smoke_test_partNN.py
 
 ## Key gotchas (do not re-learn)
+- /docs Schemas section shows 7 orphan Gradio Pydantic models
+  (PredictBody, CancelBody, EstimationMessage, etc). All 41
+  endpoints work. Attempted fix (Parts 77, 77-fix, 77-fix-2, 77d):
+  module-level app.openapi override + /openapi.json route
+  re-registration. Local works; live still serves Gradio version
+  because Gradio Server.setup() re-registers routes at runtime.
+  Impact: COSMETIC ONLY. Future fix path: ASGI middleware before
+  router dispatch (untested).
 - qwen/qwen3.8-27b (Groq, retired Part 46): reasoning models do not reliably
   call tools + hit 7000 ITPM rate limit. Do NOT re-enable as primary.
 - Memory payloads capped at 2000 chars (Groq TPM 413 protection)
