@@ -1182,26 +1182,17 @@ HTML = """<!DOCTYPE html>
       loadSession(active.id);
       renderSidebar();
     } else {
-      // Part 38: localStorage empty -> try Neon hydration first
-      hydrateFromNeon().then((merged) => {
-        const active2 = getActiveSession();
-        if (active2 && active2.messages && active2.messages.length > 0) {
-          loadSession(active2.id);
-        } else {
-          createNewSession();
-        }
-        renderSidebar();
-        if (merged > 0) {
-          const note = document.createElement('div');
-          note.className = 'msg step';
-          note.textContent = 'Restored ' + merged + ' session(s) from database.';
-          chat.insertBefore(note, chat.firstChild);
-        }
-      }).catch(() => {
-        createNewSession();
-        renderSidebar();
-      });
+      createNewSession();
+      renderSidebar();
     }
+    // Part 64: ALWAYS hydrate from Neon (previously only ran when
+    // localStorage was empty). This restores cross-device history even
+    // when this browser already has cached sessions.
+    hydrateFromNeon().then((merged) => {
+      if (merged > 0) {
+        renderSidebar();
+      }
+    }).catch(() => { /* silently ignore offline */ });
   } catch (e) {
     renderSession();
     addMsg('Welcome to sunnyware. Ask me anything.', 'step', false);
