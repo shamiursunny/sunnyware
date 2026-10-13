@@ -7,8 +7,10 @@ class SqlSandboxCreateTool:
     name = "sql_sandbox_create"
     description = (
         "Create (or ensure) an isolated SQL sandbox. Returns the internal "
-        "schema name (sb_<name>). All SQL you run in the sandbox is "
-        "isolated from the app's main tables."
+        "schema name (sb_<name>). IDEMPOTENT - call ONCE then immediately "
+        "proceed to sql_sandbox_execute. Do NOT call this tool more than "
+        "once for the same name. If you need to create tables or insert "
+        "data, do it via sql_sandbox_execute, not this tool."
     )
     parameters = {
         "name": {"type": "string", "required": True,

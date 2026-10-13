@@ -99,7 +99,7 @@ async def _chat_single(
         "model": model or DEFAULT_MODEL,
         "messages": messages,
         "temperature": 0.2,
-        "max_tokens": 900,
+        "max_tokens": 2048,
     }
     if tools:
         payload["tools"] = tools
@@ -386,7 +386,7 @@ async def stream_chat(
             "model": use_model,
             "messages": messages,
             "temperature": 0.2,
-            "max_tokens": 900,
+            "max_tokens": 2048,
             "stream": True,
         }
         yielded_any = False
