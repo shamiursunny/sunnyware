@@ -167,10 +167,16 @@ HTML = """<!DOCTYPE html>
   }
   #mobileMenuBtn:hover { background: #252932; border-color: #52b788; }
   .overlay-backdrop {
-    display: none; position: fixed; inset: 0;
-    background: rgba(0,0,0,0.55); z-index: 850; cursor: pointer;
+    display: block; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.28); z-index: 850; cursor: pointer;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.22s ease;
+    -webkit-backdrop-filter: blur(4px);
+    backdrop-filter: blur(4px);
   }
-  body.mobile-menu-open .overlay-backdrop { display: block; }
+  body.mobile-menu-open .overlay-backdrop {
+    opacity: 1; pointer-events: auto;
+  }
   @media (max-width: 640px) {
     header { padding: 10px 14px; }
     header h1 { font-size: 15px; }
@@ -470,6 +476,27 @@ HTML = """<!DOCTYPE html>
     header, #sidebar, footer, #mobileMenuBtn, #overflowMenuBtn { display: none !important; }
     #layout, #main, #chat { overflow: visible !important; height: auto !important; }
     body { background: #fff; color: #000; }
+  }
+
+  /* ═══ Part 66: glass mobile drawer + guaranteed menu handler ═══ */
+  @media (max-width: 640px) {
+    body #sidebar {
+      background: rgba(10, 12, 15, 0.78) !important;
+      -webkit-backdrop-filter: blur(18px) saturate(1.4) !important;
+      backdrop-filter: blur(18px) saturate(1.4) !important;
+      border-right: 1px solid rgba(255,255,255,0.08);
+      width: min(280px, 78vw) !important;
+      min-width: min(280px, 78vw) !important;
+      transform: translateX(-100%);
+      transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    body.mobile-menu-open #sidebar { transform: translateX(0); }
+  }
+  /* fallback glass effect even if backdrop-filter unsupported */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    @media (max-width: 640px) {
+      body #sidebar { background: rgba(10, 12, 15, 0.96) !important; }
+    }
   }
 </style>
 </head>
@@ -1567,21 +1594,6 @@ HTML = """<!DOCTYPE html>
   })();
 
   // Part 44: mobile drawer menu
-  (function initMobileMenu() {
-    var btn = document.getElementById('mobileMenuBtn');
-    var backdrop = document.getElementById('overlayBackdrop');
-    function close() { document.body.classList.remove('mobile-menu-open'); }
-    function toggle() { document.body.classList.toggle('mobile-menu-open'); }
-    if (btn) btn.addEventListener('click', function (e) { e.preventDefault(); toggle(); });
-    if (backdrop) backdrop.addEventListener('click', close);
-    document.addEventListener('click', function (e) {
-      var t = e.target;
-      if (t && t.closest && t.closest('.sess')) close();
-    });
-    document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape') close();
-    });
-  })();
 
 
   // ── Part 65: device class + overflow menu ──
@@ -1646,6 +1658,47 @@ HTML = """<!DOCTYPE html>
     } catch (e) { /* never break UI */ }
   })();
 
+})();
+
+// ═══ Part 66: bulletproof mobile menu (event delegation, capture phase) ═══
+(function initMobileMenu66() {
+  function open()  { document.body.classList.add('mobile-menu-open'); }
+  function close() { document.body.classList.remove('mobile-menu-open'); }
+  function isOpen() { return document.body.classList.contains('mobile-menu-open'); }
+
+  // Capture phase -> fires BEFORE any other click handler
+  document.addEventListener('click', function (e) {
+    var t = e.target;
+    if (!t || !t.closest) return;
+
+    // Hamburger: toggle
+    if (t.closest('#mobileMenuBtn')) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if (isOpen()) close(); else open();
+      return;
+    }
+    // Backdrop: close
+    if (t.closest('#overlayBackdrop')) {
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      close();
+      return;
+    }
+    // Session item: close after
+    if (t.closest('.sess')) {
+      close();
+      return;
+    }
+    // Click outside sidebar while open: close
+    if (isOpen() && !t.closest('#sidebar')) {
+      close();
+    }
+  }, true);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && isOpen()) close();
+  });
 })();
 </script>
 </body>
