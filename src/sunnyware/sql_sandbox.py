@@ -35,7 +35,7 @@ _BLOCKED_KEYWORDS = [
     r"\bpg_sleep\b",
 ]
 _BLOCKED_IDENTS = [
-    "public.", "pg_catalog.", "information_schema.",
+    "public.", "public ", " public", "pg_catalog.", "information_schema.",
     "sessions", "events", "tool_invocations", "kpi_watches",
     "kpi_watch_events", "dynamic_schedules", "webhook_endpoints",
     "webhook_events", "email_send_log", "sql_sandboxes",
@@ -116,30 +116,47 @@ async def execute(name: str, sql: str, params=None) -> dict:
                 "SELECT 1 FROM sql_sandboxes WHERE name = $1", name)
             if row is None:
                 return {"error": "sandbox not found: " + name}
-            # Set search_path to sandbox ONLY
-            await conn.execute("SET LOCAL search_path TO " + schema + ", pg_temp")
-            await conn.execute(
-                "SET LOCAL statement_timeout = " + str(_STATEMENT_TIMEOUT_MS))
 
             s = sql.strip().rstrip(";")
             low = s.lower()
-            # DDL / DML without RETURNING -> use execute()
             is_query = low.startswith("select") or low.startswith("with") or low.startswith("show") or low.startswith("explain")
             has_returning = " returning " in low
-            if is_query or has_returning:
-                rows = await conn.fetch(s, *args)
-                out_rows = [dict(r) for r in rows[:_MAX_ROWS_RETURNED]]
-                # Normalize types (date/time -> str)
-                for r in out_rows:
-                    for k, v in list(r.items()):
-                        if hasattr(v, "isoformat"):
-                            r[k] = v.isoformat()
-                        elif isinstance(v, (bytes, memoryview)):
-                            r[k] = "<" + str(len(v)) + " bytes>"
-                truncated = len(rows) > _MAX_ROWS_RETURNED
+
+            # Part 84-fix: wrap in explicit transaction so SET LOCAL sticks.
+            # (SET LOCAL outside a transaction is discarded by asyncpg.)
+            async with conn.transaction():
+                await conn.execute("SET LOCAL search_path TO " + schema + ", pg_temp")
+                await conn.execute(
+                    "SET LOCAL statement_timeout = " + str(_STATEMENT_TIMEOUT_MS))
+                # Verify search_path took effect
+                cur_path = await conn.fetchval("SHOW search_path")
+                if schema not in str(cur_path):
+                    return {"error": "search_path set failed: " + str(cur_path)}
+
+                if is_query or has_returning:
+                    rows = await conn.fetch(s, *args)
+                    out_rows = [dict(r) for r in rows[:_MAX_ROWS_RETURNED]]
+                    for r in out_rows:
+                        for k, v in list(r.items()):
+                            if hasattr(v, "isoformat"):
+                                r[k] = v.isoformat()
+                            elif isinstance(v, (bytes, memoryview)):
+                                r[k] = "<" + str(len(v)) + " bytes>"
+                    truncated = len(rows) > _MAX_ROWS_RETURNED
+                else:
+                    out_rows = []
+                    truncated = False
+                    result = await conn.execute(s, *args)
+
+            # Outside transaction: update accounting
+            try:
                 await conn.execute(
                     "UPDATE sql_sandboxes SET last_used_at = NOW(), query_count = query_count + 1 WHERE name = $1",
                     name)
+            except Exception:
+                pass
+
+            if is_query or has_returning:
                 return {
                     "ok": True, "sandbox": name, "schema": schema,
                     "row_count": len(out_rows),
@@ -148,11 +165,6 @@ async def execute(name: str, sql: str, params=None) -> dict:
                     "rows": out_rows,
                 }
             else:
-                # INSERT/UPDATE/DELETE/CREATE/ALTER
-                result = await conn.execute(s, *args)
-                await conn.execute(
-                    "UPDATE sql_sandboxes SET last_used_at = NOW(), query_count = query_count + 1 WHERE name = $1",
-                    name)
                 return {"ok": True, "sandbox": name, "result": str(result)}
     except Exception as e:
         return {"error": type(e).__name__ + ": " + str(e)[:250]}
