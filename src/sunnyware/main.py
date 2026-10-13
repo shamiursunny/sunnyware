@@ -115,6 +115,24 @@ app.include_router(auth_routes.router)
 app.include_router(schedule_routes.router)
 app.include_router(rag_routes.router)
 
+# Part 79: ASGI middleware guarantees /openapi.json uses our cleaner.
+# Gradio's Server.setup() re-registers the /openapi.json HTTP route at
+# runtime, overwriting the route-level override we installed earlier.
+# Middleware runs BEFORE route matching, so it always wins.
+try:
+    @app.middleware("http")
+    async def _openapi_middleware(request, call_next):
+        if request.url.path == "/openapi.json":
+            try:
+                from fastapi.responses import JSONResponse as _JR
+                return _JR(_patched_openapi())
+            except Exception:
+                pass
+        return await call_next(request)
+except Exception:
+    pass
+
+
 
 
 # ── Part 45: flatten _IncludedRouter proxies for OpenAPI schema ──
