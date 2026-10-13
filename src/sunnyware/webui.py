@@ -7,7 +7,8 @@ HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0e1014">
 <title>sunnyware</title>
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 <style>
@@ -226,23 +227,268 @@ HTML = """<!DOCTYPE html>
   body.tv-mode .sess:focus,
   body.tv-mode a:focus { outline: 3px solid #52b788; outline-offset: 3px; }
   #micBtn.mic-denied { border-color: #ff6b6b; color: #ff6b6b; opacity: 0.75; }
+
+  /* ═══════════ Part 65: comprehensive responsive system ═══════════ */
+
+  :root {
+    --font-base: clamp(13px, 0.35vw + 12px, 17px);
+    --font-h1: clamp(16px, 0.9vw + 13px, 24px);
+    --font-small: clamp(10px, 0.25vw + 10px, 13px);
+    --font-code: clamp(11.5px, 0.15vw + 11px, 14px);
+    --pad-header: clamp(8px, 0.8vw + 5px, 20px);
+    --pad-chat: clamp(12px, 1.5vw, 28px);
+    --pad-footer: clamp(10px, 1.2vw, 20px);
+    --gap-form: clamp(6px, 0.5vw + 4px, 12px);
+    --radius: clamp(6px, 0.4vw + 5px, 10px);
+    --touch-min: 40px;
+    --sidebar-w: clamp(220px, 18vw, 300px);
+    --chat-max: min(860px, 94vw);
+    --c-bg: #0e1014;
+    --c-bg-elev: #121418;
+    --c-border: #1d2026;
+    --c-border-2: #2a2e36;
+    --c-text: #e6e8eb;
+    --c-text-dim: #b8c4d0;
+    --c-text-mute: #6e7480;
+    --c-accent: #52b788;
+    --c-accent-2: #ffb454;
+    --c-danger: #ff6b6b;
+    --c-link: #6e9bd8;
+  }
+  @media (min-width: 1600px) {
+    :root { --touch-min: 44px; --chat-max: min(1100px, 88vw); }
+  }
+  body.tv-mode,
+  body.device-tv {
+    --touch-min: 56px;
+    --font-base: clamp(16px, 1vw + 14px, 22px);
+    --font-h1: clamp(20px, 1.2vw + 16px, 30px);
+    --font-small: clamp(12px, 0.4vw + 11px, 16px);
+    --sidebar-w: clamp(280px, 20vw, 360px);
+    --chat-max: min(1200px, 92vw);
+  }
+
+  /* base fluid overrides */
+  body { font-size: var(--font-base); }
+  header h1 { font-size: var(--font-h1); }
+  .header-meta, .badge, .footer-info, .sess, #newChatBtn, .msg.step,
+  .msg.upload, .msg.upload-ok, .msg.upload-err { font-size: var(--font-small); }
+
+  /* ─── header layout ─── */
+  .header-left {
+    display: flex; align-items: center; gap: 8px;
+    min-width: 0; flex: 1;
+  }
+  #mobileMenuBtn {
+    display: none;
+    width: var(--touch-min); height: var(--touch-min);
+    min-width: var(--touch-min);
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--c-border-2);
+    border-radius: var(--radius);
+    color: var(--c-text);
+    font-size: 20px;
+    align-items: center; justify-content: center;
+    flex: 0 0 auto;
+    cursor: pointer;
+  }
+  #mobileMenuBtn:hover { background: #252932; border-color: var(--c-accent); }
+  #overflowMenuBtn {
+    display: none;
+    width: var(--touch-min); height: var(--touch-min);
+    min-width: var(--touch-min);
+    padding: 0;
+    background: transparent;
+    border: 1px solid var(--c-border-2);
+    border-radius: var(--radius);
+    color: var(--c-text);
+    font-size: 18px;
+    align-items: center; justify-content: center;
+    flex: 0 0 auto;
+    cursor: pointer;
+  }
+  #overflowMenuBtn:hover { background: #252932; border-color: var(--c-accent); }
+  .header-meta {
+    display: flex; align-items: center; gap: 10px;
+    font-size: var(--font-small);
+    color: var(--c-text-mute);
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+  .header-meta > * { white-space: nowrap; }
+  .header-meta #sid {
+    max-width: 26ch; overflow: hidden; text-overflow: ellipsis;
+  }
+  .header-meta a { color: var(--c-link); text-decoration: none; font-size: var(--font-small); }
+
+  /* ─── touch targets ─── */
+  button, .icon-btn, .icon-btn-wide, .sess, #newChatBtn, #send, #micBtn,
+  input[type=text] { min-height: var(--touch-min); }
+  #chat { padding: var(--pad-chat); max-width: var(--chat-max); }
+  form { gap: var(--gap-form); }
+  footer { padding: var(--pad-footer); }
+  .msg { font-size: var(--font-base); }
+
+  /* ─── mobile keyboard: dynamic viewport ─── */
+  body {
+    height: 100vh;
+    height: 100dvh;
+    overscroll-behavior: contain;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #layout, #main, #chat, #sessionList, .modal-body { min-height: 0; }
+  #main { min-width: 0; }
+
+  /* ─── markdown code font ─── */
+  .msg.agent code,
+  .msg.agent pre code { font-size: var(--font-code); }
+
+  /* ─── tables on mobile: horizontal scroll ─── */
+  .msg.agent table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  /* ═══════════ breakpoints ═══════════ */
+
+  /* PHONE: ≤640px — drawer sidebar + overflow menu */
+  @media (max-width: 640px) {
+    :root {
+      --font-base: 14px;
+      --font-h1: 17px;
+      --font-small: 11px;
+      --pad-header: 8px 10px;
+      --pad-chat: 12px 14px;
+      --pad-footer: 10px 12px;
+      --gap-form: 6px;
+    }
+    #mobileMenuBtn { display: flex; }
+    #overflowMenuBtn { display: flex; }
+    .header-meta {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 8px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+      background: var(--c-bg-elev);
+      border: 1px solid var(--c-border-2);
+      border-radius: 10px;
+      padding: 14px 16px;
+      min-width: 220px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.55);
+      z-index: 1200;
+    }
+    .header-meta.open { display: flex; }
+    .header-meta a,
+    .header-meta #sid { padding: 4px 0; font-size: 14px; }
+    .header-meta #sid { max-width: 100%; }
+    .header-meta .badge { display: inline-block; padding: 4px 10px; }
+    #sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: 260px; min-width: 260px;
+      z-index: 900;
+      transform: translateX(-100%);
+      transition: transform 0.25s ease;
+      box-shadow: 4px 0 16px rgba(0,0,0,0.55);
+    }
+    body.mobile-menu-open #sidebar { transform: translateX(0); }
+    .modal-overlay { padding: 0; }
+    .modal-panel {
+      width: 100vw; max-width: 100vw;
+      height: 100dvh; max-height: 100dvh;
+      border-radius: 0;
+    }
+    .usage-grid { grid-template-columns: 1fr 1fr; }
+    #send { padding: 12px 16px; }
+    #micBtn { padding: 12px; }
+  }
+
+  /* TABLET: 641–900px */
+  @media (min-width: 641px) and (max-width: 900px) {
+    :root { --sidebar-w: 220px; }
+    .header-meta #sid { display: none; }
+    #overflowMenuBtn { display: flex; }
+    .header-meta {
+      display: none;
+      position: absolute;
+      top: 100%; right: 12px;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
+      background: var(--c-bg-elev);
+      border: 1px solid var(--c-border-2);
+      border-radius: 10px;
+      padding: 14px 16px;
+      min-width: 220px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.55);
+      z-index: 1200;
+    }
+    .header-meta.open { display: flex; }
+    .header-meta a { padding: 4px 0; }
+  }
+
+  /* LARGE DESKTOP: ≥1600px */
+  @media (min-width: 1600px) {
+    :root {
+      --font-base: 17px;
+      --font-h1: 24px;
+      --pad-chat: 32px;
+      --chat-max: min(1200px, 88vw);
+      --sidebar-w: 320px;
+    }
+  }
+
+  /* TOUCH: bigger tap targets */
+  @media (pointer: coarse) {
+    :root { --touch-min: 46px; }
+    button, .icon-btn, .icon-btn-wide, .sess { min-height: var(--touch-min); }
+    .sess { padding: 12px 14px; }
+    .sess .del, .sess .ren { opacity: 0.55; }
+  }
+
+  /* TV MODE (JS-classified) */
+  body.device-tv header, body.tv-mode header { padding: var(--pad-header); }
+  body.device-tv #chat, body.tv-mode #chat { padding: var(--pad-chat); }
+  body.device-tv .msg, body.tv-mode .msg { font-size: var(--font-base); line-height: 1.7; }
+  body.device-tv button:focus,
+  body.device-tv input:focus,
+  body.device-tv .sess:focus,
+  body.device-tv a:focus,
+  body.tv-mode button:focus,
+  body.tv-mode input:focus,
+  body.tv-mode .sess:focus,
+  body.tv-mode a:focus { outline: 3px solid var(--c-accent); outline-offset: 3px; }
+
+  /* PRINT */
+  @media print {
+    header, #sidebar, footer, #mobileMenuBtn, #overflowMenuBtn { display: none !important; }
+    #layout, #main, #chat { overflow: visible !important; height: auto !important; }
+    body { background: #fff; color: #000; }
+  }
 </style>
 </head>
 <body>
 <header>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <button id="mobileMenuBtn" type="button" title="Menu">&#9776;</button>
+  <div class="header-left">
+    <button id="mobileMenuBtn" type="button" title="Open menu" aria-label="Open menu">&#9776;</button>
     <h1>sunnyware</h1>
   </div>
-  <div class="meta">
+  <div class="header-meta" id="headerMeta">
     <span id="sid">session: ...</span>
     <a href="/docs" target="_blank">API docs</a>
     <a href="/about" target="_blank">about</a>
-    <a href="#" id="upload">\U0001F4CE upload</a>
+    <a href="#" id="upload">&#128206; upload</a>
     <a href="#" id="clear">new session</a>
-    <span class="badge" id="docCount">docs: \u2014</span>
-    <span class="badge" id="providerBadge" title="Last LLM provider that served a response">via \u2014</span>
+    <span class="badge" id="docCount">docs: &mdash;</span>
+    <span class="badge" id="providerBadge" title="Last LLM provider that served a response">via &mdash;</span>
   </div>
+  <button id="overflowMenuBtn" type="button" title="More" aria-label="More options">&#8943;</button>
 </header>
 <input type="file" id="fileInput" multiple
        accept=".pdf,.docx,.txt,.md,.csv,.xlsx,.xls">
@@ -1335,6 +1581,69 @@ HTML = """<!DOCTYPE html>
     document.addEventListener('keydown', function (e) {
       if (e.key === 'Escape') close();
     });
+  })();
+
+
+  // ── Part 65: device class + overflow menu ──
+  (function initDeviceClass() {
+    function detect() {
+      try {
+        var w = window.innerWidth;
+        var ua = navigator.userAgent || "";
+        var tvSigns = ["SmartTV","Tizen","Web0S","WebOS","NetCast","HbbTV",
+                       "Viera","BRAVIA","AquosBrowser","SMART-TV","AppleTV",
+                       "CrKey","FireTV","AFT"];
+        var isTV = false;
+        for (var i = 0; i < tvSigns.length; i++) {
+          if (ua.indexOf(tvSigns[i]) !== -1) { isTV = true; break; }
+        }
+        var cls = "device-desktop";
+        if (isTV) cls = "device-tv";
+        else if (w < 641) cls = "device-mobile";
+        else if (w < 901) cls = "device-tablet";
+        else if (w < 1400) cls = "device-laptop";
+        var all = ["device-mobile","device-tablet","device-laptop","device-desktop","device-tv"];
+        for (var j = 0; j < all.length; j++) document.body.classList.remove(all[j]);
+        document.body.classList.add(cls);
+        if ("ontouchstart" in window || (navigator.maxTouchPoints || 0) > 0) {
+          document.body.classList.add("has-touch");
+        }
+      } catch (e) { /* never break UI on detection */ }
+    }
+    detect();
+    var _t = null;
+    window.addEventListener("resize", function () {
+      if (_t) clearTimeout(_t);
+      _t = setTimeout(detect, 120);
+    });
+    window.addEventListener("orientationchange", function () {
+      setTimeout(detect, 150);
+    });
+  })();
+
+  (function initOverflowMenu() {
+    try {
+      var btn = document.getElementById("overflowMenuBtn");
+      var menu = document.getElementById("headerMeta");
+      if (!btn || !menu) return;
+      btn.addEventListener("click", function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        menu.classList.toggle("open");
+      });
+      document.addEventListener("click", function (e) {
+        if (menu.classList.contains("open") &&
+            !menu.contains(e.target) && e.target !== btn) {
+          menu.classList.remove("open");
+        }
+      });
+      menu.addEventListener("click", function (e) {
+        if (e.target && e.target.tagName === "A") menu.classList.remove("open");
+      });
+      document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") menu.classList.remove("open");
+      });
+    } catch (e) { /* never break UI */ }
   })();
 
 })();

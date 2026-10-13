@@ -28,6 +28,7 @@ def main():
     result = subprocess.run(
         ["node", "--check", "-"],
         input=js, text=True, capture_output=True, timeout=15,
+        encoding="utf-8",
     )
     if result.returncode == 0:
         print("[PASS] node --check: JS parses cleanly")
