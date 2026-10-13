@@ -1,0 +1,32 @@
+# SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
+# SPDX-License-Identifier: AGPL-3.0-only
+"""Register a recurring agent task (Part 81)."""
+
+
+class ScheduleAddTool:
+    name = "schedule_add"
+    description = (
+        "Register a recurring task that runs an agent prompt on a fixed "
+        "interval. Optionally email the result. The task persists in Neon "
+        "and auto-registers with the background scheduler on next app start. "
+        "Interval must be 60-604800 seconds (1 min to 1 week)."
+    )
+    parameters = {
+        "name": {"type": "string", "required": True,
+                 "description": "Unique short name (e.g. 'weekly_fpa_summary')"},
+        "prompt": {"type": "string", "required": True,
+                   "description": "Agent prompt to run each interval"},
+        "interval_seconds": {"type": "integer", "required": True,
+                             "description": "Seconds between runs (60-604800)"},
+        "notify_email": {"type": "string", "required": False,
+                         "description": "Email to send results to (optional)"},
+    }
+
+    async def run(self, args: dict) -> dict:
+        from .. import dynamic_schedule as _ds
+        return await _ds.add(
+            name=args.get("name", ""),
+            prompt=args.get("prompt", ""),
+            interval_seconds=args.get("interval_seconds", 0),
+            notify_email=args.get("notify_email", ""),
+        )

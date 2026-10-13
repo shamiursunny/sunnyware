@@ -38,6 +38,10 @@ from .email_configured import EmailConfiguredTool
 from .url_metadata import UrlMetadataTool
 from .html_to_text import HtmlToTextTool
 from .data_quality_report import DataQualityReportTool
+from .schedule_add import ScheduleAddTool
+from .schedule_list import ScheduleListTool
+from .schedule_delete import ScheduleDeleteTool
+from .schedule_run_now import ScheduleRunNowTool
 from .workspace_snapshot import WorkspaceSnapshotTool
 from .excel_write import ExcelWriteTool
 from .excel_read import ExcelReadTool
@@ -85,6 +89,10 @@ _TOOLS = {
     UrlMetadataTool.name: UrlMetadataTool(),
     HtmlToTextTool.name: HtmlToTextTool(),
     DataQualityReportTool.name: DataQualityReportTool(),
+    ScheduleAddTool.name: ScheduleAddTool(),
+    ScheduleListTool.name: ScheduleListTool(),
+    ScheduleDeleteTool.name: ScheduleDeleteTool(),
+    ScheduleRunNowTool.name: ScheduleRunNowTool(),
     WorkspaceSnapshotTool.name: WorkspaceSnapshotTool(),
     ExcelWriteTool.name: ExcelWriteTool(),
     ExcelReadTool.name: ExcelReadTool(),
