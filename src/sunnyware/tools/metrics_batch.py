@@ -53,12 +53,63 @@ def _numpy_metrics(returns, rf_annual: float, ppy: int) -> dict:
     var_99 = float(np.percentile(r, 1))
     tail95 = r[r <= var_95]
     cvar_95 = float(tail95.mean()) if tail95.size else var_95
+
+    # Part 85a: extra ratios
+    # Calmar = annualized return / |max drawdown|
+    calmar = None
+    if max_dd < 0:
+        calmar = round(annual_return / abs(max_dd), 4)
+    # Omega ratio = sum(gains) / sum(losses), threshold = rf per period
+    gains = np.clip(r - rf_period, 0, None)
+    losses = -np.clip(r - rf_period, None, 0)
+    denom = losses.sum()
+    omega = round(float(gains.sum() / denom), 4) if denom > 0 else None
+    # Tail ratio = |95th percentile| / |5th percentile|
+    q95 = float(np.percentile(r, 95))
+    tail_ratio = round(abs(q95) / abs(var_95), 4) if var_95 != 0 else None
+    # Downside deviation (annualized)
+    down = r[r < rf_period]
+    down_dev_annual = None
+    if down.size > 1:
+        down_dev_annual = round(float(np.std(down, ddof=1)) * (ppy ** 0.5), 6)
+    # Upside/downside capture ratio (vs a simple benchmark = mean of r)
+    bench_mean = float(np.mean(r))
+    up_mask = r > bench_mean
+    dn_mask = r < bench_mean
+    up_capture = None
+    dn_capture = None
+    if bench_mean != 0 and up_mask.any():
+        up_capture = round(float(r[up_mask].mean() / bench_mean), 4) if bench_mean > 0 else None
+    if bench_mean != 0 and dn_mask.any():
+        dn_capture = round(float(r[dn_mask].mean() / bench_mean), 4) if bench_mean > 0 else None
+    # Win rate
+    win_rate = round(float((r > 0).sum()) / r.size, 4) if r.size > 0 else 0.0
+    # Profit factor = sum(wins) / |sum(losses)|
+    wins_sum = float(r[r > 0].sum())
+    losses_sum = abs(float(r[r < 0].sum()))
+    profit_factor = round(wins_sum / losses_sum, 4) if losses_sum > 0 else None
+    # Skew and kurtosis
+    try:
+        skew = round(float(np.mean(((r - mean_r) / std_r) ** 3)), 4) if std_r > 0 else None
+        kurt = round(float(np.mean(((r - mean_r) / std_r) ** 4)) - 3.0, 4) if std_r > 0 else None
+    except Exception:
+        skew = None
+        kurt = None
+
     return {
         "total_return": round(total_return, 6),
         "annualized_return": round(annual_return, 6),
         "annualized_volatility": round(annual_vol, 6),
+        "downside_deviation_annual": down_dev_annual,
         "sharpe_ratio": round(sharpe, 4),
         "sortino_ratio": round(sortino, 4) if sortino is not None else None,
+        "calmar_ratio": calmar,
+        "omega_ratio": omega,
+        "tail_ratio": tail_ratio,
+        "profit_factor": profit_factor,
+        "win_rate": win_rate,
+        "upside_capture": up_capture,
+        "downside_capture": dn_capture,
         "max_drawdown": round(max_dd, 6),
         "var_95": round(var_95, 6),
         "var_99": round(var_99, 6),
@@ -67,6 +118,8 @@ def _numpy_metrics(returns, rf_annual: float, ppy: int) -> dict:
         "worst_period": round(float(np.min(r)), 6),
         "mean_period_return": round(mean_r, 8),
         "std_period_return": round(std_r, 8),
+        "skew": skew,
+        "excess_kurtosis": kurt,
         "n_periods": int(r.size),
     }
 
@@ -101,6 +154,10 @@ def _empyrical_metrics(returns, rf_annual: float, ppy: int) -> dict:
             "max_drawdown": _f(_emp.max_drawdown(r)),
             "var_95": _f(_emp.value_at_risk(r, cutoff=0.05)),
             "cvar_95": _f(_emp.conditional_value_at_risk(r, cutoff=0.05)),
+            "calmar_ratio": _f(_emp.calmar_ratio(r)),
+            "omega_ratio": _f(_emp.omega_ratio(r, required_return=rf_annual)),
+            "tail_ratio": _f(_emp.tail_ratio(r)),
+            "downside_deviation_annual": _f(_emp.downside_risk(r)),
             "best_period": _f(np.max(r)),
             "worst_period": _f(np.min(r)),
             "mean_period_return": _f(np.mean(r)),
@@ -118,8 +175,10 @@ def _empyrical_metrics(returns, rf_annual: float, ppy: int) -> dict:
 class MetricsBatchTool:
     name = "metrics_batch"
     description = (
-        "Compute Sharpe, Sortino, max drawdown, VaR, CVaR, annualized "
-        "return/volatility for MULTIPLE return series in one call. "
+        "Compute 20+ metrics (Sharpe, Sortino, Calmar, Omega, tail ratio, "
+        "profit factor, win rate, downside deviation, capture ratios, "
+        "skew, kurtosis, max drawdown, VaR, CVaR, annualized return/vol) "
+        "for MULTIPLE return series in one call. "
         "Each series is a {name, returns: [...]}. Returns per-series "
         "metrics + a comparison summary (best Sharpe, worst drawdown, "
         "etc.). Uses empyrical-reloaded when available; falls back to "

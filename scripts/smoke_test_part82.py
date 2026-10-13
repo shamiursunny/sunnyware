@@ -29,9 +29,9 @@ def main():
 
     f = ROOT / "src/sunnyware/tools/metrics_batch.py"
     check("metrics_batch.py exists", f.exists())
-    req = ROOT / "requirements.txt"
-    check("empyrical in requirements",
-          req.exists() and "empyrical" in req.read_text(encoding="utf-8"))
+    # empyrical was attempted in Part 82 but failed HF build (BUILD_ERROR)
+    # and was reverted. numpy fallback in metrics_batch is the active path.
+    # See Part 85a for the enhanced numpy-only implementation.
     if not f.exists(): return 1
 
     src = f.read_text(encoding="utf-8")
