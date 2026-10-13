@@ -51,6 +51,7 @@ from .sql_sandbox_create import SqlSandboxCreateTool
 from .sql_sandbox_execute import SqlSandboxExecuteTool
 from .sql_sandbox_list import SqlSandboxListTool
 from .sql_sandbox_load_csv import SqlSandboxLoadCsvTool
+from .sql_sandbox_drop import SqlSandboxDropTool
 from .workspace_snapshot import WorkspaceSnapshotTool
 from .excel_write import ExcelWriteTool
 from .excel_read import ExcelReadTool
@@ -111,6 +112,7 @@ _TOOLS = {
     SqlSandboxExecuteTool.name: SqlSandboxExecuteTool(),
     SqlSandboxListTool.name: SqlSandboxListTool(),
     SqlSandboxLoadCsvTool.name: SqlSandboxLoadCsvTool(),
+    SqlSandboxDropTool.name: SqlSandboxDropTool(),
     WorkspaceSnapshotTool.name: WorkspaceSnapshotTool(),
     ExcelWriteTool.name: ExcelWriteTool(),
     ExcelReadTool.name: ExcelReadTool(),
