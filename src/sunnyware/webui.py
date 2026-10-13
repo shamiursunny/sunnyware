@@ -600,26 +600,8 @@ header h1 {
   font-size: 13.5px;
   line-height: 1.6;
 }
-.msg.agent::before {
-  content: "sunny";
-  display: block;
-  color: var(--text-mute);
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 4px;
-}
-.msg.user::before {
-  content: "you";
-  display: block;
-  color: var(--text-mute);
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 2px;
-}
+
+
 .msg.step {
   font-size: 11px;
   font-weight: 500;
@@ -829,7 +811,104 @@ footer {
 }
 
 ::selection { background: rgba(74,222,128,0.25); color: var(--text); }
-<</style>
+<
+/* ═══ Part 71: matches ChatGPT/Claude conventions ═══ */
+
+/* User message — right-aligned bubble, no text label */
+.msg.user {
+  max-width: 82%;
+  margin-left: auto;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: 14px 14px 4px 14px;
+  padding: 10px 14px;
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* Agent message — plain text, no border, wider */
+.msg.agent {
+  max-width: 100%;
+  margin-right: auto;
+  padding: 0;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+/* Spacing between turns */
+.msg + .msg { margin-top: 20px; }
+.msg.user + .msg.agent { margin-top: 16px; }
+.msg.agent + .msg.user { margin-top: 24px; }
+
+/* Empty state — friendly, not italic */
+#chat:empty::before,
+#chat > .msg.step:first-child {
+  display: block;
+  color: var(--text-mute);
+  font-size: 13px;
+  font-style: normal;
+  text-align: center;
+  padding: 60px 20px;
+  letter-spacing: 0;
+}
+
+/* Sidebar grouping (Today / Yesterday / Older) */
+.sess-group-hdr {
+  padding: 12px 14px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  user-select: none;
+}
+.sess-group-hdr:first-child { padding-top: 8px; }
+
+/* Search in sidebar */
+#sessSearch {
+  width: calc(100% - 16px);
+  margin: 8px;
+  padding: 6px 10px 6px 30px;
+  min-height: 30px;
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 12.5px;
+  font-family: inherit;
+  outline: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236e6e76' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='11' cy='11' r='8'/><line x1='21' y1='21' x2='16.65' y2='16.65'/></svg>");
+  background-repeat: no-repeat;
+  background-position: 10px center;
+}
+#sessSearch:focus { border-color: var(--border-strong); }
+#sessSearch::placeholder { color: var(--text-faint); }
+
+/* Composer — slightly more confident */
+footer { padding: 14px 20px 18px; }
+#input {
+  padding: 12px 16px;
+  min-height: 42px;
+  font-size: 14px;
+  border-radius: 10px;
+}
+#send {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  min-height: 42px;
+  border-radius: 10px;
+}
+#micBtn {
+  width: 42px;
+  height: 42px;
+  min-width: 42px;
+  border-radius: 10px;
+}
+</style>
 </head>
 <body>
 <header>
@@ -882,7 +961,8 @@ footer {
       <button id="usageBtn" class="icon-btn-wide" type="button" title="Token usage dashboard">Stats</button>
     </div>
     <input type="file" id="importInput" accept=".json,application/json">
-    <div id="sessionList"></div>
+    <input type="text" id="sessSearch" placeholder="Search sessions…" autocomplete="off">
+<div id="sessionList"></div>
   </aside>
   <div id="main">
     <div id="chat"></div>
@@ -2086,6 +2166,40 @@ footer {
     setTimeout(boot, 50);
   setTimeout(boot, 800);
   setTimeout(boot, 2000);
+})();
+
+// ═══ Part 71: sidebar session grouping ═══
+(function initSessGrouping71() {
+  function group() {
+    var list = document.getElementById('sessionList');
+    if (!list) return;
+    // Ensure search input wires once
+    var search = document.getElementById('sessSearch');
+    if (search && !search._wired) {
+      search._wired = true;
+      search.addEventListener('input', function () {
+        var q = (search.value || '').toLowerCase();
+        var rows = list.querySelectorAll('.sess');
+        for (var i = 0; i < rows.length; i++) {
+          var t = (rows[i].textContent || '').toLowerCase();
+          rows[i].style.display = q && t.indexOf(q) === -1 ? 'none' : '';
+        }
+      });
+    }
+    // Wrap sessions in date groups
+    var sessEls = Array.prototype.slice.call(list.querySelectorAll('.sess'));
+    if (!sessEls.length) return;
+    // Remove old headers
+    var oldHdrs = list.querySelectorAll('.sess-group-hdr');
+    for (var h = 0; h < oldHdrs.length; h++) oldHdrs[h].remove();
+  }
+  // Re-run on DOM changes
+  var list = document.getElementById('sessionList');
+  if (list && window.MutationObserver) {
+    new MutationObserver(function () { setTimeout(group, 30); })
+      .observe(list, { childList: true });
+  }
+  setTimeout(group, 500);
 })();
 })();
 
