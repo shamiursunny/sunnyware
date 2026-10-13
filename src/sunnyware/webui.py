@@ -16,6 +16,7 @@ HTML = """<!DOCTYPE html>
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 <style>
   :root {
+    /* ─── Fluid scale ─── */
     --fs-xs: clamp(10px, 0.25vw + 10px, 12px);
     --fs-sm: clamp(12px, 0.3vw + 11px, 14px);
     --fs-base: clamp(14px, 0.35vw + 13px, 16px);
@@ -27,34 +28,59 @@ HTML = """<!DOCTYPE html>
     --sp-3: clamp(12px, 0.5vw + 10px, 16px);
     --sp-4: clamp(16px, 0.8vw + 12px, 24px);
     --sp-5: clamp(24px, 1.2vw + 18px, 36px);
-    --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-xl: 20px; --r-full: 999px;
-    --touch: 44px; --touch-lg: 52px;
-    --sidebar-w: 260px; --header-h: 56px;
+    --r-sm: 6px;
+    --r-md: 10px;
+    --r-lg: 12px;
+    --r-xl: 24px;
+    --r-full: 999px;
+    --touch: 44px;
+    --header-h: 56px;
+    --sidebar-w: 260px;
     --chat-max: min(820px, 94vw);
     --composer-max: min(820px, 96vw);
-    --ease: cubic-bezier(0.4, 0, 0.2, 1); --dur: 0.22s;
-    --bg: hsl(222 15% 7%);
-    --bg-elev: hsl(222 14% 10%);
-    --bg-sidebar: hsl(222 14% 9%);
-    --bg-hover: hsl(222 12% 15%);
-    --bg-active: hsl(222 12% 18%);
-    --bg-input: hsl(222 12% 13%);
-    --border: hsl(222 10% 18%);
-    --border-2: hsl(222 10% 24%);
-    --text: hsl(210 20% 92%);
-    --text-dim: hsl(210 10% 65%);
-    --text-mute: hsl(210 8% 48%);
-    --accent: hsl(152 55% 48%);
-    --accent-hover: hsl(152 55% 55%);
-    --accent-2: hsl(35 85% 60%);
-    --danger: hsl(0 70% 60%);
-    --link: hsl(212 60% 68%);
-    --shadow-sm: 0 1px 3px rgba(0,0,0,0.4);
-    --shadow-md: 0 4px 16px rgba(0,0,0,0.5);
-    --shadow-lg: 0 12px 40px rgba(0,0,0,0.6);
-    --glass-bg: rgba(18, 21, 26, 0.72);
-    --glass-blur: blur(20px) saturate(1.5);
-  }
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
+    --dur: 0.18s;
+
+    /* ═══ Part 69: warm neutral palette ═══
+       Inspired by ChatGPT's warm grays + Vercel's subtle borders +
+       Claude's friendly warmth. Warm-hue = 240 (slight blue, cozy not cold). */
+
+    /* Surfaces — tonal elevation (Material 3 pattern) */
+    --bg:          hsl(240 6% 6%);        /* base canvas */
+    --bg-elev:     hsl(240 5% 9%);        /* elevated card */
+    --bg-sidebar:  hsl(240 6% 7%);        /* sidebar (slightly darker than canvas) */
+    --bg-hover:    hsl(240 5% 13%);       /* hover state */
+    --bg-active:   hsl(240 5% 17%);       /* pressed / active */
+    --bg-input:    hsl(240 5% 11%);       /* input fields */
+
+    /* Borders — rgba white overlays, Linear/Vercel pattern (much softer) */
+    --border:      rgba(255,255,255,0.06);
+    --border-2:    rgba(255,255,255,0.10);
+    --border-3:    rgba(255,255,255,0.16);
+
+    /* Text — tiered contrast (WCAG AA+ on --bg) */
+    --text:        hsl(220 20% 94%);       /* primary (contrast ~14:1) */
+    --text-dim:    hsl(220 12% 68%);       /* secondary (~7:1) */
+    --text-mute:   hsl(220 10% 48%);       /* tertiary (~3.5:1) */
+    --text-faint:  hsl(220 8% 35%);        /* quaternary */
+
+    /* Accent — refined emerald (less neon than previous) */
+    --accent:      hsl(158 62% 48%);       /* softer than 155/65/52 */
+    --accent-hover:hsl(158 62% 56%);
+    --accent-soft: hsla(158, 62%, 48%, 0.12);
+    --accent-2:    hsl(38 92% 60%);        /* warm amber for numbers */
+    --danger:      hsl(0 72% 58%);
+    --link:        hsl(212 65% 70%);
+
+    /* Shadows — much softer (Vercel pattern) */
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.35);
+    --shadow-lg: 0 12px 32px rgba(0,0,0,0.5);
+
+    /* Glass */
+    --glass-bg: rgba(15, 15, 18, 0.76);
+    --glass-blur: blur(20px) saturate(1.6);
+}
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   html { -webkit-text-size-adjust: 100%; }
   body {
@@ -364,6 +390,145 @@ code, pre, .usage-table td.num {
   letter-spacing: -0.03em;
   font-family: var(--font-mono);
 }
+
+/* ═══ Part 69: refined visual polish ═══ */
+body {
+  background:
+    radial-gradient(ellipse 1200px 600px at 50% -10%,
+      hsla(158, 62%, 48%, 0.04), transparent 60%),
+    var(--bg);
+}
+header {
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  backdrop-filter: saturate(1.4);
+}
+header h1 {
+  background: linear-gradient(135deg,
+              var(--accent-2) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+#sidebar {
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+}
+.sess {
+  margin: 2px 8px;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+}
+.sess.active {
+  background: var(--bg-active);
+  border-color: var(--border-2);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.sess:hover:not(.active) {
+  background: var(--bg-hover);
+  border-color: var(--border);
+}
+#newChatBtn {
+  background: linear-gradient(135deg,
+    hsla(158, 62%, 48%, 0.14) 0%,
+    hsla(158, 62%, 48%, 0.06) 100%);
+  border: 1px solid hsla(158, 62%, 48%, 0.28);
+  color: var(--text);
+}
+#newChatBtn:hover {
+  background: linear-gradient(135deg,
+    hsla(158, 62%, 48%, 0.22) 0%,
+    hsla(158, 62%, 48%, 0.10) 100%);
+  border-color: var(--accent);
+}
+.btn-icon {
+  background: transparent;
+  border: 1px solid var(--border-2);
+  color: var(--text-dim);
+}
+.btn-icon:hover {
+  background: var(--bg-hover);
+  border-color: var(--accent);
+  color: var(--text);
+}
+#input {
+  background: var(--bg-input);
+  border: 1px solid var(--border-2);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+}
+#input:focus {
+  border-color: var(--accent);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.03),
+    0 0 0 4px var(--accent-soft);
+}
+#send {
+  background: var(--accent);
+  box-shadow: var(--shadow-sm);
+}
+#send:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 4px 12px var(--accent-soft);
+}
+#micBtn {
+  border: 1px solid var(--border-2);
+  background: var(--bg-input);
+}
+.msg.user {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+.msg.agent {
+  border-left: 2px solid var(--accent);
+  padding-left: var(--sp-3);
+}
+.msg.agent code {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+}
+.msg.agent pre {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.02);
+}
+.badge {
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+.overflow-panel {
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border-2);
+}
+.modal-panel {
+  border: 1px solid var(--border-2);
+  box-shadow: var(--shadow-lg);
+}
+.usage-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+}
+.usage-card .v {
+  color: var(--accent);
+}
+.usage-table th {
+  background: var(--bg-hover);
+  color: var(--accent-2);
+}
+.usage-table tr:hover td {
+  background: var(--bg-hover);
+}
+::selection { background: var(--accent-soft); color: var(--text); }
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--border-3);
+  border-radius: var(--r-full);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-faint); background-clip: padding-box; }
 </style>
 </head>
 <body>
