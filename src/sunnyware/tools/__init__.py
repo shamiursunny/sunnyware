@@ -29,6 +29,9 @@ from .document_diff import DocumentDiffTool
 from .pdf_report import PdfReportTool
 from .pdf_read import PdfReadTool
 from .report_batch import ReportBatchTool
+from .kpi_watch_add import KpiWatchAddTool
+from .kpi_watch_list import KpiWatchListTool
+from .kpi_watch_run import KpiWatchRunTool
 from .workspace_snapshot import WorkspaceSnapshotTool
 from .excel_write import ExcelWriteTool
 from .excel_read import ExcelReadTool
@@ -67,6 +70,9 @@ _TOOLS = {
     PdfReportTool.name: PdfReportTool(),
     PdfReadTool.name: PdfReadTool(),
     ReportBatchTool.name: ReportBatchTool(),
+    KpiWatchAddTool.name: KpiWatchAddTool(),
+    KpiWatchListTool.name: KpiWatchListTool(),
+    KpiWatchRunTool.name: KpiWatchRunTool(),
     WorkspaceSnapshotTool.name: WorkspaceSnapshotTool(),
     ExcelWriteTool.name: ExcelWriteTool(),
     ExcelReadTool.name: ExcelReadTool(),
