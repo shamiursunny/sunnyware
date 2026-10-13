@@ -43,6 +43,10 @@ from .schedule_list import ScheduleListTool
 from .schedule_delete import ScheduleDeleteTool
 from .schedule_run_now import ScheduleRunNowTool
 from .metrics_batch import MetricsBatchTool
+from .webhook_add import WebhookAddTool
+from .webhook_list import WebhookListTool
+from .webhook_delete import WebhookDeleteTool
+from .webhook_events import WebhookEventsTool
 from .workspace_snapshot import WorkspaceSnapshotTool
 from .excel_write import ExcelWriteTool
 from .excel_read import ExcelReadTool
@@ -95,6 +99,10 @@ _TOOLS = {
     ScheduleDeleteTool.name: ScheduleDeleteTool(),
     ScheduleRunNowTool.name: ScheduleRunNowTool(),
     MetricsBatchTool.name: MetricsBatchTool(),
+    WebhookAddTool.name: WebhookAddTool(),
+    WebhookListTool.name: WebhookListTool(),
+    WebhookDeleteTool.name: WebhookDeleteTool(),
+    WebhookEventsTool.name: WebhookEventsTool(),
     WorkspaceSnapshotTool.name: WorkspaceSnapshotTool(),
     ExcelWriteTool.name: ExcelWriteTool(),
     ExcelReadTool.name: ExcelReadTool(),

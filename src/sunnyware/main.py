@@ -30,6 +30,7 @@ from .routes import tools as tools_routes
 from .routes import sessions as sessions_routes
 from .routes import memory_routes
 from .routes import rag as rag_routes
+from .routes import webhooks as webhooks_routes
 
 
 async def _preload_local_task():
@@ -122,6 +123,7 @@ app.include_router(mcp_routes.router)
 app.include_router(auth_routes.router)
 app.include_router(schedule_routes.router)
 app.include_router(rag_routes.router)
+app.include_router(webhooks_routes.router)
 
 
 
