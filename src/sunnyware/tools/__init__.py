@@ -35,6 +35,8 @@ from .kpi_watch_run import KpiWatchRunTool
 from .email_send import EmailSendTool
 from .email_list_sent import EmailListSentTool
 from .email_configured import EmailConfiguredTool
+from .url_metadata import UrlMetadataTool
+from .html_to_text import HtmlToTextTool
 from .workspace_snapshot import WorkspaceSnapshotTool
 from .excel_write import ExcelWriteTool
 from .excel_read import ExcelReadTool
@@ -79,6 +81,8 @@ _TOOLS = {
     EmailSendTool.name: EmailSendTool(),
     EmailListSentTool.name: EmailListSentTool(),
     EmailConfiguredTool.name: EmailConfiguredTool(),
+    UrlMetadataTool.name: UrlMetadataTool(),
+    HtmlToTextTool.name: HtmlToTextTool(),
     WorkspaceSnapshotTool.name: WorkspaceSnapshotTool(),
     ExcelWriteTool.name: ExcelWriteTool(),
     ExcelReadTool.name: ExcelReadTool(),
