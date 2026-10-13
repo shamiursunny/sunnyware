@@ -136,12 +136,21 @@ async def execute(name: str, sql: str, params=None) -> dict:
                 if is_query or has_returning:
                     rows = await conn.fetch(s, *args)
                     out_rows = [dict(r) for r in rows[:_MAX_ROWS_RETURNED]]
+                    # Part 84-fix2: normalize non-JSON types (Decimal,
+                    # date/time, bytes, timedelta, UUID, etc.)
+                    import decimal as _dec
                     for r in out_rows:
                         for k, v in list(r.items()):
-                            if hasattr(v, "isoformat"):
+                            if v is None or isinstance(v, (str, int, float, bool)):
+                                continue
+                            if isinstance(v, _dec.Decimal):
+                                r[k] = float(v)
+                            elif hasattr(v, "isoformat"):
                                 r[k] = v.isoformat()
                             elif isinstance(v, (bytes, memoryview)):
                                 r[k] = "<" + str(len(v)) + " bytes>"
+                            else:
+                                r[k] = str(v)
                     truncated = len(rows) > _MAX_ROWS_RETURNED
                 else:
                     out_rows = []

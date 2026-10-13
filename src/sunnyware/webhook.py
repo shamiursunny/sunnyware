@@ -45,8 +45,17 @@ async def add(name: str, trigger_prompt: str = "", notify_email: str = "") -> di
     except Exception as e:
         return {"error": type(e).__name__ + ": " + str(e)[:200]}
 
+    # Part 84-fix2: return absolute URL so external services can use it directly
+    import os as _os
+    base = (_os.getenv("SUNNYWARE_PUBLIC_URL")
+            or _os.getenv("SPACE_HOST")
+            or "https://shamiur-sunnyware.hf.space")
+    if base and not base.startswith("http"):
+        base = "https://" + base
+    base = base.rstrip("/")
     return {"ok": True, "token": token, "name": name,
-            "url_path": "/webhook/" + token}
+            "url_path": "/webhook/" + token,
+            "url": base + "/webhook/" + token}
 
 
 async def list_all() -> dict:
