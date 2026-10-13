@@ -40,6 +40,29 @@ def _browser_cached() -> bool:
     return any(c.name.startswith("chromium-") for c in d.iterdir())
 
 
+def _chmod_cache():
+    """Best-effort chmod +x on cached Chromium binaries."""
+    try:
+        cache = _cache_dir()
+        if not cache.exists():
+            return
+        for root, dirs, files in os.walk(str(cache)):
+            for d in dirs:
+                try:
+                    os.chmod(os.path.join(root, d), 0o755)
+                except Exception:
+                    pass
+            for f in files:
+                fp = os.path.join(root, f)
+                try:
+                    st = os.stat(fp)
+                    os.chmod(fp, st.st_mode | 0o111)
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+
 def _install_browser_sync():
     """Run `playwright install chromium` with cache dir set."""
     global _install_done
@@ -91,14 +114,27 @@ async def _ensure_installed():
     await loop.run_in_executor(None, _install_browser_sync)
 
 
+def _browser_alive(b) -> bool:
+    """True if the browser process is still connected."""
+    if b is None:
+        return False
+    try:
+        return bool(b.is_connected())
+    except Exception:
+        return False
+
+
 async def get_browser():
-    """Return shared Chromium. Lazy-starts Playwright on first call."""
+    """Return shared Chromium. Lazy-starts Playwright on first call.
+    Re-launches if the singleton has died (TargetClosedError protection)."""
     global _browser, _playwright
-    if _browser is not None:
+    if _browser_alive(_browser):
         return _browser
     async with _lock:
-        if _browser is not None:
+        if _browser_alive(_browser):
             return _browser
+        # Singleton is dead (or was never set) — reset and relaunch
+        _browser = None
         await _ensure_installed()
         # Ensure Playwright sees the cached browser
         os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(_cache_dir())
@@ -121,24 +157,41 @@ async def get_browser():
             )
             return _browser
         except Exception as first_err:
-            # Part 63.1: on EACCES / launch failure, wipe cache, reinstall,
-            # chmod, retry once.
+            # Part 63.2: on EACCES / permission error, try chmod-only first
+            # (instant). Only wipe + reinstall if that still fails.
             msg = str(first_err)
-            if "EACCES" not in msg and "permission" not in msg.lower() \
-                    and "executable" not in msg.lower():
+            is_perm = ("EACCES" in msg or "permission" in msg.lower()
+                       or "executable" in msg.lower())
+            if not is_perm:
+                # Non-permission error: reset singleton so next call retries
+                _browser = None
                 raise
+            print("[browser] launch failed with permission error, chmod retry")
+            _chmod_cache()
             try:
-                import shutil
-                shutil.rmtree(str(_cache_dir()), ignore_errors=True)
-            except Exception:
-                pass
-            global _install_done
-            _install_done = False
-            await _ensure_installed()
-            _browser = await _playwright.chromium.launch(
-                headless=True, args=args,
-            )
-            return _browser
+                _browser = await _playwright.chromium.launch(
+                    headless=True, args=args,
+                )
+                return _browser
+            except Exception as second_err:
+                print(f"[browser] chmod retry failed: {second_err}")
+                # Last resort: wipe + reinstall
+                try:
+                    import shutil
+                    shutil.rmtree(str(_cache_dir()), ignore_errors=True)
+                except Exception:
+                    pass
+                global _install_done
+                _install_done = False
+                await _ensure_installed()
+                _chmod_cache()
+                _browser = await _playwright.chromium.launch(
+                    headless=True, args=args,
+                )
+                return _browser
+
+        # unreachable, but silence linters
+        raise RuntimeError("browser launch exhausted retries")
 
 
 async def new_context():
