@@ -139,36 +139,65 @@ def _flatten_openapi_routes(routes):
     return out
 
 
-def _clean_openapi_schemas(schema: dict) -> dict:
-    """Part 77: strip Gradio-internal Pydantic models from /docs.
+def _collect_refs(obj, out: set):
+    """Walk an object and collect every $ref string."""
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if k == "$ref" and isinstance(v, str):
+                out.add(v)
+            else:
+                _collect_refs(v, out)
+    elif isinstance(obj, list):
+        for v in obj:
+            _collect_refs(v, out)
+    return out
 
-    Gradio auto-generates request/response models (Body_undo_vibe_edit_*,
-    Body_login_login_*, etc.) that leak into OpenAPI components when we
-    pass its routes through. Filter them out by naming pattern.
+
+def _clean_openapi_schemas(schema: dict) -> dict:
+    """Part 77: keep only schemas referenced by our own paths.
+
+    Gradio leaks dozens of internal Pydantic models (PredictBody,
+    CancelBody, ConnectBody, EstimationMessage, Body_undo_vibe_edit_*,
+    Body_login_login_*, etc.) into components/schemas. Rather than
+    blacklisting names, we resolve refs from paths and drop everything
+    else — orphaned schemas are exactly the Gradio leftovers.
     """
     try:
         components = schema.get("components") or {}
         schemas = components.get("schemas") or {}
         if not schemas:
             return schema
-        drop_prefixes = ("Body_undo_vibe_edit", "Body_login_login",
-                         "Body_predict", "Body_process_api",
-                         "Body_upload", "Body_")
-        drop_substr = ("gradio_api", "gradio")
-        kept = {}
-        dropped = []
-        for key, val in schemas.items():
-            k_lower = str(key).lower()
-            if any(k_lower.startswith(pp.lower()) for pp in drop_prefixes):
-                dropped.append(key); continue
-            if any(s in k_lower for s in drop_substr):
-                dropped.append(key); continue
-            # Also drop anything only referenced by gradio paths
-            kept[key] = val
-        components["schemas"] = kept
+
+        # Collect all $refs referenced by paths + responses + requests
+        refs = set()
+        _collect_refs(schema.get("paths") or {}, refs)
+        # Some schemas reference other schemas; iterate to fixpoint
+        prefix = "#/components/schemas/"
+        keep = set()
+        for r in refs:
+            if r.startswith(prefix):
+                keep.add(r[len(prefix):])
+        # Transitive closure
+        changed = True
+        while changed:
+            changed = False
+            for name in list(keep):
+                body = schemas.get(name)
+                if body is None:
+                    continue
+                sub_refs = set()
+                _collect_refs(body, sub_refs)
+                for r in sub_refs:
+                    if r.startswith(prefix):
+                        cand = r[len(prefix):]
+                        if cand not in keep:
+                            keep.add(cand); changed = True
+
+        dropped = [k for k in schemas if k not in keep]
+        components["schemas"] = {k: v for k, v in schemas.items() if k in keep}
         schema["components"] = components
         if dropped:
-            print("[openapi] dropped gradio schemas: " + str(len(dropped)))
+            print("[openapi] dropped orphan schemas: " + str(len(dropped)))
         return schema
     except Exception:
         return schema
