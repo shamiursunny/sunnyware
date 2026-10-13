@@ -59,6 +59,25 @@ def _install_browser_sync():
             raise RuntimeError(
                 f"playwright install failed: {r.stderr[-300:]}"
             )
+        # Part 63.1: ensure Chromium binaries are executable. HF Spaces
+        # sometimes extracts them without +x — first launch works, then
+        # EACCES on cold restart.
+        try:
+            for root, dirs, files in os.walk(str(cache)):
+                for d in dirs:
+                    try:
+                        os.chmod(os.path.join(root, d), 0o755)
+                    except Exception:
+                        pass
+                for f in files:
+                    fp = os.path.join(root, f)
+                    try:
+                        st = os.stat(fp)
+                        os.chmod(fp, st.st_mode | 0o111)
+                    except Exception:
+                        pass
+        except Exception:
+            pass
         _install_done = True
     except subprocess.TimeoutExpired:
         raise RuntimeError("playwright install timed out (10 min)")
@@ -85,16 +104,41 @@ async def get_browser():
         os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(_cache_dir())
         from playwright.async_api import async_playwright
         _playwright = await async_playwright().start()
-        _browser = await _playwright.chromium.launch(
-            headless=True,
-            args=[
-                "--no-sandbox",
-                "--disable-dev-shm-usage",
-                "--disable-gpu",
-                "--disable-software-rasterizer",
-            ],
-        )
-        return _browser
+
+        args = [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-gpu",
+            "--disable-software-rasterizer",
+            "--no-zygote",
+            "--single-process",
+        ]
+
+        try:
+            _browser = await _playwright.chromium.launch(
+                headless=True, args=args,
+            )
+            return _browser
+        except Exception as first_err:
+            # Part 63.1: on EACCES / launch failure, wipe cache, reinstall,
+            # chmod, retry once.
+            msg = str(first_err)
+            if "EACCES" not in msg and "permission" not in msg.lower() \
+                    and "executable" not in msg.lower():
+                raise
+            try:
+                import shutil
+                shutil.rmtree(str(_cache_dir()), ignore_errors=True)
+            except Exception:
+                pass
+            global _install_done
+            _install_done = False
+            await _ensure_installed()
+            _browser = await _playwright.chromium.launch(
+                headless=True, args=args,
+            )
+            return _browser
 
 
 async def new_context():
