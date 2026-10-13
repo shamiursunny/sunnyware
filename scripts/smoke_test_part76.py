@@ -36,8 +36,8 @@ def main():
     check("list_sent defined", "async def list_sent" in core)
     check("is_configured defined", "def is_configured" in core)
     check("config_summary defined", "def config_summary" in core)
-    check("uses smtplib", "smtplib.SMTP" in core)
-    check("STARTTLS used", "starttls" in core)
+    check("uses httpx for Resend", "httpx.AsyncClient" in core)
+    check("posts to Resend API", "api.resend.com" in core)
     check("attachment cap", "_MAX_ATTACH_BYTES" in core)
 
     try:
@@ -65,7 +65,7 @@ def main():
     from sunnyware.email_send import config_summary, is_configured
     summary = config_summary()
     check("config_summary has configured key", "configured" in summary)
-    check("default host smtp.gmail.com", summary.get("host") == "smtp.gmail.com")
+    check("provider is resend", summary.get("provider") == "resend")
 
     async def run(**kw2):
         from sunnyware.email_send import send_email

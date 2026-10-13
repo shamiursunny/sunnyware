@@ -1,53 +1,61 @@
 # SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Email send core (Part 76).
+"""Email send core (Part 76, Resend API).
 
-Gmail SMTP via smtplib. Degrades gracefully when env vars missing.
-Logs every attempt to Neon email_send_log.
+HF Spaces blocks outbound SMTP (ports 25/465/587). We use Resend's
+HTTPS API (port 443) instead. Same function signatures as the SMTP
+version, so tools + kpi_watch wiring are unchanged.
+
+Env vars:
+  RESEND_API_KEY        (required)    e.g. re_xxxxxxxx
+  RESEND_FROM           (optional)    default: onboarding@resend.dev
+  RESEND_FROM_NAME      (optional)    default: Sunnyware
 """
+import base64
 import os
-import smtplib
-from email.mime.multipart import MIMEMultipart
-from email.mime.text import MIMEText
-from email.mime.base import MIMEBase
-from email import encoders
 from pathlib import Path
-from typing import Optional
+
+try:
+    import httpx
+    _HAS_HTTPX = True
+except Exception:
+    _HAS_HTTPX = False
+
 from . import state as app_state
 
 
+_RESEND_URL = "https://api.resend.com/emails"
 _MAX_TO = 10
 _MAX_ATTACH_MB = 2
 _MAX_ATTACH_BYTES = _MAX_ATTACH_MB * 1024 * 1024
 _ATTACH_EXTS = {".pdf", ".csv", ".txt", ".md", ".xlsx", ".png", ".jpg", ".json"}
+_TIMEOUT = 20.0
 
 
 def _cfg():
     return {
-        "host": os.getenv("SUNNYWARE_SMTP_HOST", "smtp.gmail.com"),
-        "port": int(os.getenv("SUNNYWARE_SMTP_PORT", "587")),
-        "user": os.getenv("SUNNYWARE_SMTP_USER", ""),
-        "password": os.getenv("SUNNYWARE_SMTP_PASS", ""),
-        "from_addr": os.getenv("SUNNYWARE_EMAIL_FROM", os.getenv("SUNNYWARE_SMTP_USER", "")),
-        "from_name": os.getenv("SUNNYWARE_EMAIL_FROM_NAME", "Sunnyware"),
+        "api_key": os.getenv("RESEND_API_KEY", "").strip(),
+        "from_addr": os.getenv("RESEND_FROM", "onboarding@resend.dev").strip(),
+        "from_name": os.getenv("RESEND_FROM_NAME", "Sunnyware").strip(),
     }
 
 
 def is_configured() -> bool:
-    c = _cfg()
-    return bool(c["user"] and c["password"] and c["from_addr"])
+    return bool(_cfg()["api_key"])
 
 
 def config_summary() -> dict:
     c = _cfg()
     return {
         "configured": is_configured(),
-        "host": c["host"],
-        "port": c["port"],
-        "from": c["from_addr"] if c["from_addr"] else None,
+        "provider": "resend",
+        "from": c["from_addr"],
         "from_name": c["from_name"],
-        "user_set": bool(c["user"]),
-        "password_set": bool(c["password"]),
+        "api_key_set": bool(c["api_key"]),
+        "note": (
+            "Resend sends only to verified emails unless a domain is "
+            "verified. Free tier: 3000/month, 100/day."
+        ),
     }
 
 
@@ -94,24 +102,19 @@ async def _log_send(to, cc, bcc, subject, body_preview, attach_names, ok, error)
         pass
 
 
-async def send_email(
-    to,
-    subject: str,
-    body: str,
-    html: bool = False,
-    cc=None,
-    bcc=None,
-    attachments=None,
-) -> dict:
-    """Send an email. Returns {ok, message_id} or {error, setup_hint}."""
+async def send_email(to, subject, body, html=False, cc=None, bcc=None,
+                     attachments=None) -> dict:
+    if not _HAS_HTTPX:
+        return {"error": "httpx not available"}
+
     if not is_configured():
         return {
-            "error": "SMTP not configured",
+            "error": "Resend API not configured",
             "setup_hint": (
-                "Set SUNNYWARE_SMTP_USER, SUNNYWARE_SMTP_PASS, "
-                "SUNNYWARE_EMAIL_FROM on the HF Space (Settings -> "
-                "Variables and secrets). For Gmail, generate a 16-char "
-                "app password at myaccount.google.com/apppasswords."
+                "Set RESEND_API_KEY on the HF Space (Settings -> Variables "
+                "and secrets). Sign up at https://resend.com/signup to get "
+                "a free API key. Optional: RESEND_FROM (verified sender), "
+                "RESEND_FROM_NAME."
             ),
         }
 
@@ -133,25 +136,29 @@ async def send_email(
     if len(body) > 500_000:
         return {"error": "body too large (max 500 KB)"}
 
-    # Build message
     c = _cfg()
-    msg = MIMEMultipart()
-    msg["From"] = "{} <{}>".format(c["from_name"], c["from_addr"])
-    msg["To"] = ", ".join(to_list)
+    from_field = c["from_name"] + " <" + c["from_addr"] + ">" if c["from_name"] else c["from_addr"]
+
+    payload = {
+        "from": from_field,
+        "to": to_list,
+        "subject": subject,
+    }
     if cc_list:
-        msg["Cc"] = ", ".join(cc_list)
-    msg["Subject"] = subject
-
+        payload["cc"] = cc_list
+    if bcc_list:
+        payload["bcc"] = bcc_list
     if html:
-        msg.attach(MIMEText(body, "html", "utf-8"))
+        payload["html"] = body
     else:
-        msg.attach(MIMEText(body, "plain", "utf-8"))
+        payload["text"] = body
 
-    # Attachments from workspace
+    # Attachments (base64)
     attach_names = []
     if attachments:
         if not isinstance(attachments, list):
             attachments = [attachments]
+        att_list = []
         total = 0
         root = _workspace_root()
         for fname in attachments[:5]:
@@ -171,49 +178,64 @@ async def send_email(
             total += len(data)
             if total > _MAX_ATTACH_BYTES:
                 return {"error": "total attachment size exceeds " + str(_MAX_ATTACH_MB) + " MB"}
-            part = MIMEBase("application", "octet-stream")
-            part.set_payload(data)
-            encoders.encode_base64(part)
-            part.add_header("Content-Disposition",
-                            "attachment; filename=\"" + candidate.name + "\"")
-            msg.attach(part)
+            att_list.append({
+                "filename": candidate.name,
+                "content": base64.b64encode(data).decode("ascii"),
+            })
             attach_names.append(candidate.name)
+        if att_list:
+            payload["attachments"] = att_list
 
-    # Send
+    # Send via Resend
     try:
-        with smtplib.SMTP(c["host"], c["port"], timeout=20) as server:
-            server.ehlo()
-            server.starttls()
-            server.ehlo()
-            server.login(c["user"], c["password"])
-            result = server.send_message(
-                msg, from_addr=c["from_addr"],
-                to_addrs=to_list + cc_list + bcc_list,
+        async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
+            r = await client.post(
+                _RESEND_URL,
+                json=payload,
+                headers={
+                    "Authorization": "Bearer " + c["api_key"],
+                    "Content-Type": "application/json",
+                },
             )
-        errs = {k: v for k, v in (result or {}).items() if v}
-        ok = not errs
-        err_msg = None if ok else str(errs)[:500]
-    except smtplib.SMTPAuthenticationError as e:
-        ok = False
-        err_msg = "SMTP auth failed: " + str(e)[:200]
+    except httpx.TimeoutException:
+        await _log_send(to_list, cc_list, bcc_list, subject,
+                        body[:500], attach_names, False, "timeout")
+        return {"error": "Resend API timeout after " + str(_TIMEOUT) + "s"}
     except Exception as e:
-        ok = False
-        err_msg = type(e).__name__ + ": " + str(e)[:200]
+        err = type(e).__name__ + ": " + str(e)[:200]
+        await _log_send(to_list, cc_list, bcc_list, subject,
+                        body[:500], attach_names, False, err)
+        return {"error": err}
+
+    ok = 200 <= r.status_code < 300
+    body_snip = r.text[:500] if not ok else ""
+    message_id = None
+    if ok:
+        try:
+            message_id = r.json().get("id")
+        except Exception:
+            pass
 
     await _log_send(to_list, cc_list, bcc_list, subject,
-                    body[:500], attach_names, ok, err_msg)
+                    body[:500], attach_names, ok,
+                    None if ok else "HTTP " + str(r.status_code) + ": " + body_snip)
 
     if not ok:
-        return {"error": err_msg or "send failed"}
+        return {
+            "error": "Resend API error: HTTP " + str(r.status_code),
+            "details": body_snip,
+        }
 
     return {
         "ok": True,
+        "message_id": message_id,
         "to": to_list,
         "cc": cc_list,
         "bcc_count": len(bcc_list),
         "subject": subject,
         "attachments": attach_names,
         "chars_sent": len(body),
+        "provider": "resend",
     }
 
 
