@@ -27,6 +27,7 @@ from .financial_metrics import FinancialMetricsTool
 from .api_call import ApiCallTool
 from .document_diff import DocumentDiffTool
 from .pdf_report import PdfReportTool
+from .pdf_read import PdfReadTool
 from .workspace_snapshot import WorkspaceSnapshotTool
 from .excel_write import ExcelWriteTool
 from .excel_read import ExcelReadTool
@@ -63,6 +64,7 @@ _TOOLS = {
     ApiCallTool.name: ApiCallTool(),
     DocumentDiffTool.name: DocumentDiffTool(),
     PdfReportTool.name: PdfReportTool(),
+    PdfReadTool.name: PdfReadTool(),
     WorkspaceSnapshotTool.name: WorkspaceSnapshotTool(),
     ExcelWriteTool.name: ExcelWriteTool(),
     ExcelReadTool.name: ExcelReadTool(),
