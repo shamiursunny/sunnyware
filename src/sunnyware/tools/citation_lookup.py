@@ -1,24 +1,22 @@
 # SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Citation lookup tool (Part 52).
+"""Citation lookup tool (Part 52, strengthened in Part 73).
+
+Returns full chunk text + sha256 provenance. Every result carries a
+pre-formatted citation_string the LLM is instructed to quote verbatim.
 
 Two modes:
-  1. Exact: given {source, chunk_id} -> return the FULL chunk text plus
-     sha256 hash for provenance.
-  2. Search: given {query} -> semantic search + return full chunk text
-     (not the 1200-char truncated excerpt that rag_search emits).
-
-Reg-AI use: pin every claim to a specific chunk with a hash.
+  - exact:  {source, chunk_id} -> full text + hash + char offsets
+  - search: {query} -> semantic search returning full text
 """
 import hashlib
+import re
+
+_PAGE_SUFFIX = re.compile(r"\s*\(page\s+\d+\)\s*$", re.IGNORECASE)
 
 
 def _sha256(text: str) -> str:
     return hashlib.sha256((text or "").encode("utf-8")).hexdigest()[:16]
-
-
-import re as _re
-_PAGE_SUFFIX = _re.compile(r"\s*\(page\s+\d+\)\s*$", _re.IGNORECASE)
 
 
 def _normalize_source(s: str) -> str:
@@ -28,14 +26,41 @@ def _normalize_source(s: str) -> str:
     return _PAGE_SUFFIX.sub("", str(s)).strip()
 
 
+def _cite_string(source, chunk_id, h):
+    return "[citation: " + str(source) + " chunk " + str(chunk_id) + " sha256:" + h + "]"
+
+
+def _make_result(md, distance=None):
+    text = md.get("text") or ""
+    h = _sha256(text)
+    src = md.get("source")
+    cid = md.get("chunk_id")
+    out = {
+        "source": src,
+        "chunk_id": cid,
+        "char_start": md.get("char_start"),
+        "char_end": md.get("char_end"),
+        "page": md.get("page"),
+        "text": text,
+        "sha256_16": h,
+        "citation_string": _cite_string(src, cid, h),
+    }
+    if distance is not None:
+        out["distance"] = distance
+    return out
+
+
 class CitationLookupTool:
     name = "citation_lookup"
     description = (
-        "Look up the full, untruncated text of a specific RAG chunk plus a "
-        "sha256 hash for provenance. Use when you need to quote a source "
-        "verbatim or pin a claim to an exact citation. Two modes: pass "
-        "{source, chunk_id} for exact lookup, or {query} for semantic search "
-        "that returns full-text chunks."
+        "Look up full RAG chunk text + sha256 provenance. Two modes: "
+        "{source, chunk_id} for exact, or {query} for semantic search. "
+        "MANDATORY OUTPUT RULE: when citing a result, you MUST quote the "
+        "sha256_16 hash VERBATIM (all 16 hex characters, no abbreviation) "
+        "and print a citation line exactly like the 'citation_string' "
+        "field. Do NOT paraphrase the hash. Do NOT say 'the hash is in "
+        "metadata'. For every result you quote to the user, print a line "
+        "verbatim from the 'cite_these' array of the response."
     )
     parameters = {
         "source": {
@@ -88,51 +113,44 @@ class CitationLookupTool:
             return {"org_id": org_id, "count": 0, "results": [],
                     "note": "no documents in store"}
 
-        # ── Exact mode ─────────────────────────────────────────
+        # ── Exact mode ──────────────────────────────────────────
         if source and chunk_id is not None:
             try:
                 cid = int(chunk_id)
             except (TypeError, ValueError):
                 return {"error": "chunk_id must be an integer"}
-            # Pass 1: exact source match (page suffix included)
-            # Pass 2: normalized match (strip ' (page N)')
-            # Prefer pass 1 to avoid ambiguity when chunk_id repeats
-            # across pages of the same document.
+
             want_exact = source
             want_norm = _normalize_source(source)
             match = None
+            # Pass 1: exact source string
             for md in meta_list:
                 if md.get("source") == want_exact and md.get("chunk_id") == cid:
                     match = md
                     break
+            # Pass 2: normalized source
             if match is None:
                 for md in meta_list:
-                    if (_normalize_source(md.get("source")) == want_norm and
-                            md.get("chunk_id") == cid):
+                    if (_normalize_source(md.get("source")) == want_norm
+                            and md.get("chunk_id") == cid):
                         match = md
                         break
-            if match is not None:
-                md = match
-                text = md.get("text") or ""
+
+            if match is None:
+                return {"mode": "exact", "org_id": org_id, "count": 0,
+                        "results": [],
+                        "error": f"chunk not found: source={source} chunk_id={cid}"}
+
+            result = _make_result(match)
             return {
                 "mode": "exact",
-                    "org_id": org_id,
-                    "count": 1,
-                    "results": [{
-                        "source": md.get("source"),
-                        "chunk_id": md.get("chunk_id"),
-                        "char_start": md.get("char_start"),
-                        "char_end": md.get("char_end"),
-                        "page": md.get("page"),
-                        "text": text,
-                        "sha256_16": _sha256(text),
-                    }],
-                }
-            return {"mode": "exact", "org_id": org_id, "count": 0,
-                    "results": [],
-                    "error": f"chunk not found: source={source} chunk_id={cid}"}
+                "org_id": org_id,
+                "count": 1,
+                "cite_these": [result["citation_string"]],
+                "results": [result],
+            }
 
-        # ── Search mode ────────────────────────────────────────
+        # ── Search mode ─────────────────────────────────────────
         if query:
             try:
                 k = int(args.get("k") or 3)
@@ -149,22 +167,14 @@ class CitationLookupTool:
             results = []
             for h in hits:
                 md = h.get("metadata") or {}
-                text = md.get("text") or ""
-            results.append({
-                "source": md.get("source"),
-                "chunk_id": md.get("chunk_id"),
-                "char_start": md.get("char_start"),
-                "char_end": md.get("char_end"),
-                "page": md.get("page"),
-                "distance": h.get("distance"),
-                "text": text,
-                "sha256_16": _sha256(text),
-            })
+                results.append(_make_result(md, distance=h.get("distance")))
+
             return {
                 "mode": "search",
                 "org_id": org_id,
                 "query": query,
                 "count": len(results),
+                "cite_these": [r["citation_string"] for r in results],
                 "results": results,
             }
 
