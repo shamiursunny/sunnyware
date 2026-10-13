@@ -147,8 +147,10 @@ async def get_browser():
             "--disable-dev-shm-usage",
             "--disable-gpu",
             "--disable-software-rasterizer",
-            "--no-zygote",
-            "--single-process",
+            "--disable-background-timer-throttling",
+            "--disable-backgrounding-occluded-windows",
+            "--disable-renderer-backgrounding",
+            "--disable-features=IsolateOrigins,site-per-process",
         ]
 
         try:
@@ -195,15 +197,32 @@ async def get_browser():
 
 
 async def new_context():
-    """Return a fresh BrowserContext (isolated cookies/storage)."""
+    """Return a fresh BrowserContext (isolated cookies/storage).
+    Retries once if the browser died mid-flight."""
+    global _browser
     b = await get_browser()
-    ctx = await b.new_context(
-        user_agent=_DEFAULT_UA,
-        viewport={"width": 1280, "height": 800},
-        ignore_https_errors=True,
-    )
-    ctx.set_default_timeout(_NAV_TIMEOUT_MS)
-    return ctx
+    try:
+        ctx = await b.new_context(
+            user_agent=_DEFAULT_UA,
+            viewport={"width": 1280, "height": 800},
+            ignore_https_errors=True,
+        )
+        ctx.set_default_timeout(_NAV_TIMEOUT_MS)
+        return ctx
+    except Exception as e:
+        msg = str(e)
+        if "TargetClosedError" in type(e).__name__ or "closed" in msg.lower():
+            # Browser died — reset and relaunch once
+            _browser = None
+            b = await get_browser()
+            ctx = await b.new_context(
+                user_agent=_DEFAULT_UA,
+                viewport={"width": 1280, "height": 800},
+                ignore_https_errors=True,
+            )
+            ctx.set_default_timeout(_NAV_TIMEOUT_MS)
+            return ctx
+        raise
 
 
 # ── SSRF guard (reuse api_call's logic) ────────────────────────
