@@ -64,7 +64,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - Streaming provider fallback (Part 57) — stream_chat tries all providers
 - document_diff tool (Part 58) — diff files/RAG chunks/inline text
 - pdf_report tool (Part 59) — multi-page PDF (text/table/chart pages)
-- workspace_snapshot tool (Part 60) — zip workspace to retrievable archive
+- workspace_snapshot tool (Part 71) — zip workspace to retrievable archive
 - excel_write tool (Part 61) — formatted .xlsx (sheets, formulas, formats)
 - excel_read tool (Part 62) — read .xlsx (sheets, headers, formulas)
 - Playwright browser automation (Part 63/63.3) — 5 tools:
