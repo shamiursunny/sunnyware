@@ -37,6 +37,7 @@ from .email_list_sent import EmailListSentTool
 from .email_configured import EmailConfiguredTool
 from .url_metadata import UrlMetadataTool
 from .html_to_text import HtmlToTextTool
+from .data_quality_report import DataQualityReportTool
 from .workspace_snapshot import WorkspaceSnapshotTool
 from .excel_write import ExcelWriteTool
 from .excel_read import ExcelReadTool
@@ -83,6 +84,7 @@ _TOOLS = {
     EmailConfiguredTool.name: EmailConfiguredTool(),
     UrlMetadataTool.name: UrlMetadataTool(),
     HtmlToTextTool.name: HtmlToTextTool(),
+    DataQualityReportTool.name: DataQualityReportTool(),
     WorkspaceSnapshotTool.name: WorkspaceSnapshotTool(),
     ExcelWriteTool.name: ExcelWriteTool(),
     ExcelReadTool.name: ExcelReadTool(),
