@@ -204,8 +204,13 @@ def _clean_openapi_schemas(schema: dict) -> dict:
 
 
 def _patched_openapi():
-    if getattr(app, "openapi_schema", None):
-        return app.openapi_schema
+    # Part 77c: FastAPI caches `openapi_schema`. Something (Gradio init)
+    # may have cached an uncleaned schema before we took over. So we
+    # clean on EVERY return, and reset the cached attribute once at
+    # first invocation.
+    cached = getattr(app, "openapi_schema", None)
+    if cached is not None:
+        return _clean_openapi_schemas(cached)
     from fastapi.openapi.utils import get_openapi as _go
     flat = _flatten_openapi_routes(list(app.routes))
     _raw = _go(
@@ -222,6 +227,9 @@ def _patched_openapi():
 
 try:
     app.openapi = _patched_openapi
+    # Force-clear any pre-cached schema so the first real request rebuilds
+    # with our cleaning logic applied.
+    app.openapi_schema = None
 except Exception:
     pass
 
