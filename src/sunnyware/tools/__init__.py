@@ -47,6 +47,10 @@ from .webhook_add import WebhookAddTool
 from .webhook_list import WebhookListTool
 from .webhook_delete import WebhookDeleteTool
 from .webhook_events import WebhookEventsTool
+from .sql_sandbox_create import SqlSandboxCreateTool
+from .sql_sandbox_execute import SqlSandboxExecuteTool
+from .sql_sandbox_list import SqlSandboxListTool
+from .sql_sandbox_load_csv import SqlSandboxLoadCsvTool
 from .workspace_snapshot import WorkspaceSnapshotTool
 from .excel_write import ExcelWriteTool
 from .excel_read import ExcelReadTool
@@ -103,6 +107,10 @@ _TOOLS = {
     WebhookListTool.name: WebhookListTool(),
     WebhookDeleteTool.name: WebhookDeleteTool(),
     WebhookEventsTool.name: WebhookEventsTool(),
+    SqlSandboxCreateTool.name: SqlSandboxCreateTool(),
+    SqlSandboxExecuteTool.name: SqlSandboxExecuteTool(),
+    SqlSandboxListTool.name: SqlSandboxListTool(),
+    SqlSandboxLoadCsvTool.name: SqlSandboxLoadCsvTool(),
     WorkspaceSnapshotTool.name: WorkspaceSnapshotTool(),
     ExcelWriteTool.name: ExcelWriteTool(),
     ExcelReadTool.name: ExcelReadTool(),
