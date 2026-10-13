@@ -180,13 +180,19 @@ in .env. Dynamic latency-based selection does not exist today.
 
 ## Key gotchas (do not re-learn)
 - /docs Schemas section shows 7 orphan Gradio Pydantic models
-  (PredictBody, CancelBody, EstimationMessage, etc). All 41
-  endpoints work. Attempted fix (Parts 77, 77-fix, 77-fix-2, 77d):
-  module-level app.openapi override + /openapi.json route
-  re-registration. Local works; live still serves Gradio version
-  because Gradio Server.setup() re-registers routes at runtime.
-  Impact: COSMETIC ONLY. Future fix path: ASGI middleware before
-  router dispatch (untested).
+  (PredictBody, CancelBody, EstimationMessage, VibeCodeBody, etc).
+  All 43 tools work. COSMETIC ONLY.
+  TRUE ROOT CAUSE: `from gradio import Server` subclasses FastAPI
+  and Gradio's Server overrides openapi() AT THE CLASS LEVEL. Python
+  method resolution order means instance-level `app.openapi = ...`
+  and route overrides and ASGI middleware all lose to the class method.
+  FIX ATTEMPTS (all failed on live, succeeded locally):
+    Part 77:      ref-based schema whitelist (local only)
+    Part 77-fix:  cache-aware override  (local only)
+    Part 77d:     /openapi.json route re-registration (local only)
+    Part 79:      ASGI middleware (local only — Gradio's response wins)
+  WON'''T FIX without replacing Gradio Server with our own subclass —
+  major refactor, risk to /ui endpoint. Status: accepted limitation.
 - qwen/qwen3.8-27b (Groq, retired Part 46): reasoning models do not reliably
   call tools + hit 7000 ITPM rate limit. Do NOT re-enable as primary.
 - Memory payloads capped at 2000 chars (Groq TPM 413 protection)
