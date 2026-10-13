@@ -42,6 +42,7 @@ from .schedule_add import ScheduleAddTool
 from .schedule_list import ScheduleListTool
 from .schedule_delete import ScheduleDeleteTool
 from .schedule_run_now import ScheduleRunNowTool
+from .metrics_batch import MetricsBatchTool
 from .workspace_snapshot import WorkspaceSnapshotTool
 from .excel_write import ExcelWriteTool
 from .excel_read import ExcelReadTool
@@ -93,6 +94,7 @@ _TOOLS = {
     ScheduleListTool.name: ScheduleListTool(),
     ScheduleDeleteTool.name: ScheduleDeleteTool(),
     ScheduleRunNowTool.name: ScheduleRunNowTool(),
+    MetricsBatchTool.name: MetricsBatchTool(),
     WorkspaceSnapshotTool.name: WorkspaceSnapshotTool(),
     ExcelWriteTool.name: ExcelWriteTool(),
     ExcelReadTool.name: ExcelReadTool(),
