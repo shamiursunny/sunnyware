@@ -227,9 +227,24 @@ def _patched_openapi():
 
 try:
     app.openapi = _patched_openapi
-    # Force-clear any pre-cached schema so the first real request rebuilds
-    # with our cleaning logic applied.
     app.openapi_schema = None
+
+    # Part 77d: The /openapi.json HTTP route was registered by FastAPI's
+    # setup() BEFORE we replaced app.openapi. That route bound the
+    # original method reference, so HTTP requests to /openapi.json
+    # bypassed our patch. Remove the old route and re-register with a
+    # handler that calls our cleaner.
+    from fastapi.responses import JSONResponse as _JR
+    _default_openapi_path = getattr(app, "openapi_url", "/openapi.json")
+    app.router.routes = [
+        r for r in app.router.routes
+        if getattr(r, "path", None) != _default_openapi_path
+    ]
+
+    @app.get(_default_openapi_path, include_in_schema=False)
+    async def _openapi_route_override():
+        return _JR(_patched_openapi())
+
 except Exception:
     pass
 
