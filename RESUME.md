@@ -19,7 +19,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 ## Current state (last session: 2026-10-12, Part 63)
 - Commit:  run `git log -1 --oneline` for current hash
-- Health:  /health/ready -> status ok, tools: 33
+- Health:  /health/ready -> status ok, tools: 38
 - LLM:     multi-provider (groq, gemini, openrouter) with auto-failover
   - Groq:       openai/gpt-oss-120b      (primary, ~200ms)
   - Gemini:     gemini-2.5-flash        (backup, ~500ms)
