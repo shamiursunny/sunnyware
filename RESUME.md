@@ -19,7 +19,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 ## Current state (last session: 2026-10-12, Part 63)
 - Commit:  run `git log -1 --oneline` for current hash
-- Health:  /health/ready -> status ok, tools: 41
+- Health:  /health/ready -> status ok, tools: 49
 - LLM:     multi-provider (groq, gemini, openrouter) with auto-failover
   - Groq:       openai/gpt-oss-120b      (primary, ~200ms)
   - Gemini:     gemini-2.5-flash        (backup, ~500ms)
@@ -67,8 +67,8 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - pdf_read tool (Part 72) — extract text from workspace PDFs
 - citation_lookup strengthened (Part 73) — citation_string + cite_these
 - report_batch tool (Part 74) — parallel multi-prompt runner
-- kpi_watch_add/list/run (Part 76) — log-only KPI monitoring
-  (Neon tables: kpi_watches, kpi_watch_events; email deferred to Part 76)
+- kpi_watch_add/list/run (Part 82) — log-only KPI monitoring
+  (Neon tables: kpi_watches, kpi_watch_events; email deferred to Part 82)
 - workspace_snapshot tool (Part 60) — zip workspace to retrievable archive
 - Full UI redesign (Parts 65-71): responsive, Inter font, SVG icons,
   neutral palette, glass drawer, ChatGPT/Claude message layout, session search
