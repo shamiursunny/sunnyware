@@ -1393,6 +1393,7 @@ footer { padding: 14px 20px 18px; }
     const t0 = performance.now();
     let agentBubble = null;
     let agentText = '';
+    let streamError = '';  // Part 88: surface backend error instead of blank bubble
 
     function ensureBubble() {
       if (!agentBubble) {
@@ -1472,6 +1473,9 @@ footer { padding: 14px 20px 18px; }
                 agentText = ans;
                 ensureBubble().innerHTML = renderAgentHtml(agentText);
                 chat.scrollTop = chat.scrollHeight;
+              } else if (data.ok === false && data.error) {
+                // Part 88: backend reported failure -- remember it for end-of-stream
+                streamError = String(data.error);
               }
               if (data.provider) {
                 const pb = document.getElementById('providerBadge');
@@ -1491,7 +1495,11 @@ footer { padding: 14px 20px 18px; }
       latEl.textContent = ms + ' ms';
 
       if (!agentText) {
-        addMsg('(empty response)', 'error');
+        if (streamError) {
+          addMsg('⚠️ ' + streamError, 'error');  // Part 88
+        } else {
+          addMsg('(empty response)', 'error');
+        }
       } else {
         // Part 35: persist the final streamed answer
         try { persistMessage('agent', agentText); } catch (e) { /* ignore */ }
