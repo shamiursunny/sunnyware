@@ -32,6 +32,9 @@ from .report_batch import ReportBatchTool
 from .kpi_watch_add import KpiWatchAddTool
 from .kpi_watch_list import KpiWatchListTool
 from .kpi_watch_run import KpiWatchRunTool
+from .email_send import EmailSendTool
+from .email_list_sent import EmailListSentTool
+from .email_configured import EmailConfiguredTool
 from .workspace_snapshot import WorkspaceSnapshotTool
 from .excel_write import ExcelWriteTool
 from .excel_read import ExcelReadTool
@@ -73,6 +76,9 @@ _TOOLS = {
     KpiWatchAddTool.name: KpiWatchAddTool(),
     KpiWatchListTool.name: KpiWatchListTool(),
     KpiWatchRunTool.name: KpiWatchRunTool(),
+    EmailSendTool.name: EmailSendTool(),
+    EmailListSentTool.name: EmailListSentTool(),
+    EmailConfiguredTool.name: EmailConfiguredTool(),
     WorkspaceSnapshotTool.name: WorkspaceSnapshotTool(),
     ExcelWriteTool.name: ExcelWriteTool(),
     ExcelReadTool.name: ExcelReadTool(),

@@ -24,6 +24,8 @@ class KpiWatchAddTool:
                             "description": "Optional regex to extract number (default: first number in answer)"},
         "interval_seconds": {"type": "integer", "required": False,
                              "description": "Check interval in seconds (60-604800, default 3600)"},
+        "notify_email": {"type": "string", "required": False,
+                         "description": "Email to notify on breach (leave empty to disable)"},
     }
 
     async def run(self, args: dict) -> dict:
@@ -35,4 +37,5 @@ class KpiWatchAddTool:
             threshold_value=args.get("threshold_value", 0),
             extract_pattern=args.get("extract_pattern"),
             interval_seconds=args.get("interval_seconds") or 3600,
+            notify_email=args.get("notify_email") or "",
         )

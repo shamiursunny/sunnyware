@@ -42,7 +42,8 @@ def _compare(value: float, op: str, threshold: float) -> bool:
 
 
 async def add_watch(kpi_name, check_prompt, comparison, threshold_value,
-                    extract_pattern=None, interval_seconds=3600):
+                    extract_pattern=None, interval_seconds=3600,
+                    notify_email=""):
     kpi_name = (kpi_name or "").strip()
     check_prompt = (check_prompt or "").strip()
     comparison = (comparison or "").strip().lower()
@@ -65,19 +66,20 @@ async def add_watch(kpi_name, check_prompt, comparison, threshold_value,
             row = await conn.fetchrow(
                 """INSERT INTO kpi_watches
                    (kpi_name, check_prompt, comparison, threshold_value,
-                    extract_pattern, interval_seconds, enabled)
-                   VALUES ($1, $2, $3, $4, $5, $6, TRUE)
+                    extract_pattern, interval_seconds, enabled, notify_email)
+                   VALUES ($1, $2, $3, $4, $5, $6, TRUE, $7)
                    ON CONFLICT (kpi_name) DO UPDATE SET
                      check_prompt = EXCLUDED.check_prompt,
                      comparison = EXCLUDED.comparison,
                      threshold_value = EXCLUDED.threshold_value,
                      extract_pattern = EXCLUDED.extract_pattern,
                      interval_seconds = EXCLUDED.interval_seconds,
+                     notify_email = EXCLUDED.notify_email,
                      enabled = TRUE
                    RETURNING id""",
                 kpi_name, check_prompt, comparison,
                 float(threshold_value), extract_pattern,
-                int(interval_seconds))
+                int(interval_seconds), (notify_email or "").strip() or None)
             return {"ok": True, "id": int(row["id"]), "kpi_name": kpi_name}
     except Exception as e:
         return {"error": type(e).__name__ + ": " + str(e)}
@@ -94,7 +96,8 @@ async def list_watches(include_events: bool = False, events_limit: int = 5):
                 """SELECT id, kpi_name, check_prompt, comparison,
                           threshold_value, extract_pattern, enabled,
                           interval_seconds, last_run_at, last_value,
-                          last_status, last_error, created_at
+                          last_status, last_error, created_at,
+                          notify_email
                    FROM kpi_watches ORDER BY created_at DESC""")
     except Exception as e:
         return {"error": type(e).__name__ + ": " + str(e)}
@@ -114,6 +117,7 @@ async def list_watches(include_events: bool = False, events_limit: int = 5):
             "last_value": float(r["last_value"]) if r["last_value"] is not None else None,
             "last_status": r["last_status"],
             "last_error": r["last_error"],
+            "notify_email": r["notify_email"] or "",
         })
 
     if include_events and watches:
@@ -198,6 +202,33 @@ async def run_watch(watch_row: dict):
             return {"error": "db write failed: " + str(e),
                     "status": status, "value": value}
 
+    # Part 76: send email on breach if notify_email configured
+    email_result = None
+    if status == "breach":
+        notify_email = (watch_row.get("notify_email") or "").strip()
+        if notify_email:
+            try:
+                from . import email_send as _em
+                if _em.is_configured():
+                    subject = "[KPI BREACH] " + kpi_name
+                    body = (
+                        "KPI watch breach detected.\n\n"
+                        "KPI:       " + kpi_name + "\n"
+                        "Value:     " + str(value) + "\n"
+                        "Threshold: " + op + " " + str(threshold) + "\n"
+                        "Answer:    " + (answer or "")[:400] + "\n"
+                        "Latency:   " + str(latency_ms) + " ms\n"
+                    )
+                    email_result = await _em.send_email(
+                        to=[notify_email],
+                        subject=subject,
+                        body=body,
+                    )
+                else:
+                    email_result = {"error": "SMTP not configured"}
+            except Exception as e:
+                email_result = {"error": type(e).__name__ + ": " + str(e)}
+
     return {
         "kpi_name": kpi_name,
         "status": status,
@@ -207,6 +238,8 @@ async def run_watch(watch_row: dict):
         "latency_ms": latency_ms,
         "answer_preview": (answer or "")[:200],
         "error": err,
+        "email_sent": bool(email_result and email_result.get("ok")),
+        "email_error": email_result.get("error") if email_result else None,
     }
 
 
