@@ -10,6 +10,9 @@ HTML = """<!DOCTYPE html>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0e1014">
 <title>sunnyware</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 <style>
   :root {
@@ -254,6 +257,113 @@ HTML = """<!DOCTYPE html>
     body { background: #fff; color: #000; height: auto; }
     .msg { page-break-inside: avoid; }
   }
+/* ═══ Part 68: professional typography + icon polish ═══ */
+:root {
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --r-md: 10px;
+  --r-lg: 12px;
+  --r-xl: 24px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.25);
+  --shadow-md: 0 2px 8px rgba(0,0,0,0.3);
+  --shadow-lg: 0 12px 32px rgba(0,0,0,0.45);
+  --accent: hsl(155 65% 52%);
+  --accent-hover: hsl(155 65% 58%);
+}
+body, input, button, textarea {
+  font-family: var(--font-ui);
+  font-feature-settings: "cv02","cv03","cv04","cv11";
+  font-variation-settings: "opsz" 14;
+  letter-spacing: -0.008em;
+}
+h1, h2, h3, .modal-hdr { letter-spacing: -0.02em; font-weight: 600; }
+header h1 {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-size: var(--fs-lg);
+}
+code, pre, .usage-table td.num {
+  font-family: var(--font-mono);
+  font-feature-settings: "calt" 0;
+}
+.btn-icon {
+  border-radius: var(--r-md);
+  color: var(--text-dim);
+  transition: background 0.15s var(--ease), color 0.15s var(--ease),
+              transform 0.1s var(--ease);
+}
+.btn-icon svg { width: 20px; height: 20px; display: block; pointer-events: none; }
+.btn-icon:hover { background: var(--bg-hover); color: var(--text); }
+.btn-icon:active { transform: scale(0.92); }
+#mobileMenuBtn svg, #overflowMenuBtn svg { width: 22px; height: 22px; }
+#newChatBtn, .icon-btn-wide {
+  border-radius: var(--r-md);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+#newChatBtn svg, .icon-btn-wide svg { width: 16px; height: 16px; flex-shrink: 0; }
+#newChatBtn:hover, .icon-btn-wide:hover {
+  background: var(--bg-active);
+  border-color: var(--accent);
+  color: var(--text);
+}
+.sess {
+  border-radius: var(--r-sm);
+  margin: 1px 8px;
+  border-left: none !important;
+  transition: background 0.15s var(--ease);
+}
+.sess.active {
+  background: var(--bg-active) !important;
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.sess .del svg, .sess .ren svg { width: 14px; height: 14px; display: block; }
+.sess .del, .sess .ren {
+  display: flex; align-items: center; justify-content: center;
+  padding: 4px; border-radius: 6px;
+  transition: background 0.15s, color 0.15s;
+}
+.sess .del:hover, .sess .ren:hover { background: rgba(255,255,255,0.06); }
+#send {
+  border-radius: var(--r-xl);
+  padding: 12px 16px;
+  min-width: 48px;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+#send svg { width: 18px; height: 18px; display: block; }
+#send:hover { background: var(--accent-hover); transform: translateY(-1px); }
+#micBtn svg { width: 18px; height: 18px; display: block; }
+#micBtn { border-radius: var(--r-xl); }
+#input {
+  border-radius: var(--r-xl);
+  padding: 14px 18px;
+  font-size: var(--fs-base);
+  font-weight: 400;
+  letter-spacing: -0.005em;
+}
+.msg.user { font-weight: 450; }
+.msg.agent { font-weight: 400; }
+.msg.step {
+  font-weight: 500;
+  font-size: var(--fs-xs);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+.modal-hdr {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.usage-card .k {
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  font-size: 11px;
+}
+.usage-card .v {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-family: var(--font-mono);
+}
 </style>
 </head>
 <body>
@@ -1449,6 +1559,68 @@ HTML = """<!DOCTYPE html>
     });
   }
   setInterval(syncAll, 1200);
+})();
+// ═══ Part 68: Lucide-style SVG icon set ═══
+(function initIcons68() {
+  var S = 'xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
+  var I = {
+    menu:    '<svg '+S+'><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>',
+    more:    '<svg '+S+'><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="5" r="1.2" fill="currentColor"/><circle cx="12" cy="19" r="1.2" fill="currentColor"/></svg>',
+    plus:    '<svg '+S+'><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+    download:'<svg '+S+'><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>',
+    upload:  '<svg '+S+'><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>',
+    chart:   '<svg '+S+'><line x1="12" y1="20" x2="12" y2="10"/><line x1="18" y1="20" x2="18" y2="4"/><line x1="6" y1="20" x2="6" y2="16"/></svg>',
+    mic:     '<svg '+S+'><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>',
+    send:    '<svg '+S+'><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>',
+    trash:   '<svg '+S+'><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+    pencil:  '<svg '+S+'><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>',
+    x:       '<svg '+S+'><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>'
+  };
+  window.__ICONS = I;
+
+  function applyStatic() {
+    var ids = { mobileMenuBtn:'menu', overflowMenuBtn:'more',
+                exportBtn:'download', importBtn:'upload',
+                micBtn:'mic', usageClose:'x' };
+    for (var id in ids) {
+      var el = document.getElementById(id);
+      if (el && I[ids[id]]) el.innerHTML = I[ids[id]];
+    }
+    var nc = document.getElementById('newChatBtn');
+    if (nc && !nc.querySelector('svg'))
+      nc.innerHTML = I.plus + '<span style="margin-left:6px">New chat</span>';
+    var ub = document.getElementById('usageBtn');
+    if (ub && !ub.querySelector('svg'))
+      ub.innerHTML = I.chart + '<span style="margin-left:6px">Stats</span>';
+    var sb = document.getElementById('send');
+    if (sb && !sb.querySelector('svg'))
+      sb.innerHTML = I.send;
+  }
+
+  function applySessIcons() {
+    var dels = document.querySelectorAll('.sess .del');
+    var rens = document.querySelectorAll('.sess .ren');
+    for (var i = 0; i < dels.length; i++)
+      if (!dels[i].querySelector('svg')) dels[i].innerHTML = I.trash;
+    for (var j = 0; j < rens.length; j++)
+      if (!rens[j].querySelector('svg')) rens[j].innerHTML = I.pencil;
+  }
+
+  function boot() {
+    applyStatic();
+    applySessIcons();
+    var sl = document.getElementById('sessionList');
+    if (sl && window.MutationObserver) {
+      new MutationObserver(applySessIcons).observe(sl, { childList: true, subtree: true });
+    }
+  }
+
+  if (document.readyState === 'loading')
+    document.addEventListener('DOMContentLoaded', boot);
+  else
+    setTimeout(boot, 50);
+  setTimeout(boot, 800);
+  setTimeout(boot, 2000);
 })();
 })();
 
