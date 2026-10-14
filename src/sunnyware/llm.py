@@ -199,7 +199,9 @@ async def _chat_single(
             content = msg.get("content") or ""
             tool_calls = msg.get("tool_calls")
 
-            # Usage tracking (Part 29)
+            # Usage tracking (Part 29) + Part 96: expose real token counts
+            in_tok = 0
+            out_tok = 0
             try:
                 from . import usage as _usage
                 u = data.get("usage") or {}
@@ -223,6 +225,9 @@ async def _chat_single(
                 "tool_calls": tool_calls,
                 "model": data.get("model", model or DEFAULT_MODEL),
                 "latency_ms": latency_ms,
+                "tokens_in": in_tok,
+                "tokens_out": out_tok,
+                "tokens_total": in_tok + out_tok,
             }
     except Exception as e:
         return {

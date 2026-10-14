@@ -354,7 +354,12 @@ async def run_agent(
     _last_provider = None
     _seen_calls = {}          # Part 88c: tool_name -> list[(args, result)]
     _dup_streak = 0
-    _tokens_used = 0          # Part 90: cumulative estimated tokens
+    _tokens_used = 0          # Part 90: cumulative tokens
+    # Part 96: fixed overhead to subtract from real usage so the
+    # budget guard measures conversational cost, not tool schemas.
+    _tools_overhead = 0
+    if use_native_tools and tools_schema:
+        _tools_overhead = _estimate_tokens(str(tools_schema))
 
     def _find_duplicate(tool_name, args):
         """Subset/superset match: LLMs sometimes drop optional keys on
@@ -395,10 +400,18 @@ async def run_agent(
         # fixed infrastructure cost (~8700 tokens for 58 tool schemas) that
         # would trip the budget on any request. We only count conversational
         # content: prompt, system, response, and the growing message history.
-        _tokens_used += _estimate_tokens(
-            prompt, system_prompt, content,
-            "".join(str(m) for m in messages),
-        )
+        # Part 96: prefer real provider-reported tokens (accurate);
+        # fall back to char/4 heuristic for providers that omit usage.
+        _real = int(result.get("tokens_total", 0) or 0)
+        if _real > 0:
+            _tokens_used += max(0, _real - _tools_overhead)
+        else:
+            # heuristic fallback -- prompt is already inside messages,
+            # so skip it to avoid double-counting (Part 96 fix)
+            _tokens_used += _estimate_tokens(
+                system_prompt, content,
+                "".join(str(m) for m in messages),
+            )
         if _tokens_used >= MAX_REQUEST_TOKENS:
             _budget_text = _BUDGET_MESSAGE.format(
                 used=_tokens_used, cap=MAX_REQUEST_TOKENS
