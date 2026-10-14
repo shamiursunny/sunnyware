@@ -874,3 +874,13 @@ for a future session).
 - NEW: scripts/smoke_test_part101.py (22 checks)
 - HEAD: 1214276
 - NEXT: monitor 429s; NVIDIA NIM; video gen; TTS; possible retry cycle
+
+## 2026-10-15 — Part 102
+- Retry policy for full failover cycle
+- When all providers cooling AND recovery imminent (<= 20s):
+  wait min(min_cool + 0.5, 8.0)s then retry once
+- _retry_depth=1 guard prevents infinite retries
+- Metric llm_request_retried + diagnostic print lines
+- NEW: scripts/smoke_test_part102.py (18 checks)
+- HEAD: 0da91ab
+- NEXT: monitor 429s; NVIDIA NIM; video gen; TTS; provider metrics dashboard

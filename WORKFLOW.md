@@ -568,3 +568,14 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Verified live: 30k prompt -> openrouter -> 3,850-char real answer
 - Smoke test: scripts/smoke_test_part101.py (22 checks)
 - Commit: 1214276
+
+## Part 102 — Retry policy for full failover cycle (2026-10-15)
+- llm.py: after failover loop, if _retry_depth == 0
+- Reload providers to see fresh cooldown state
+- If all cooling AND soonest cooldown <= 20s:
+  wait min(min_cool + 0.5, 8.0)s, recurse once with _retry_depth=1
+- Exactly ONE retry (guarded by _retry_depth)
+- Wait capped at 8s (never stalls interactive requests)
+- Metric llm_request_retried + diagnostic print lines
+- Smoke test: scripts/smoke_test_part102.py (18 checks)
+- Commit: 0da91ab

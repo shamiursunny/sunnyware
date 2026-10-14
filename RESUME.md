@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 101)
+## Current state (last session: 2026-10-15, Part 102)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -355,6 +355,18 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
     returned success HTTP with hollow body
   • Verified live: 30k prompt -> openrouter -> 3,850-char real answer
   • Smoke test: scripts/smoke_test_part101.py (22 checks)
+- Retry policy for full failover cycle (Part 102):
+  • llm.py: after the failover loop, if _retry_depth == 0
+  • Reload providers to see fresh cooldown state
+  • If NO provider is ready AND soonest cooldown <= 20s:
+    wait min(min_cool + 0.5, 8.0)s then recurse once with
+    _retry_depth=1
+  • Guard ensures exactly ONE retry (no infinite loop)
+  • Wait capped at 8s to never stall an interactive request
+  • Metric llm_request_retried + diagnostic print lines
+  • Only fires when ALL providers cooling AND recovery imminent
+    — if any provider is ready, first pass used it
+  • Smoke test: scripts/smoke_test_part102.py (18 checks)
 
 
 ### RAG over documents
