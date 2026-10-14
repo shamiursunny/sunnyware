@@ -751,3 +751,16 @@ for a future session).
   causing (empty response). Normal window works. Part 89 will self-host marked.js.
 - Next: Part 89 (self-host marked.js), Part 90 (token budget guard), cleanup old sandboxes.
 - Current HEAD: ac66e30
+
+## 2026-10-14 — Part 90 + 90b
+- Per-request token budget guard: MAX_REQUEST_TOKENS = 8000
+- _estimate_tokens helper (char-based, ~4 chars/token)
+- Trips on cumulative >= 8000, returns friendly message + budget_exceeded flag
+- SSE event 'budget_exceeded' emitted
+- Part 90b fix: excluded tools_schema (~8700 tokens) from estimate
+- routes/agent.py: propagates budget_exceeded + tokens_used to client
+- NEW: scripts/smoke_test_part90.py (11 checks, ASCII-safe)
+- Verified: hi -> ~700 tokens, budget_exceeded False
+- Verified: 67k chars -> trips at 34837/8000, budget_exceeded True
+- HEAD: 65ad114
+- NEXT: monitor 429s; NVIDIA NIM integration; optional WebUI budget styling

@@ -449,3 +449,17 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Verified live: HTTP 200 | 35479 bytes on /static/marked.min.js
 - Verified live: InPrivate Firefox loads UI clean + chat works
 - Commit: 3732fb5
+
+## Part 90 + 90b — Per-request token budget guard (2026-10-14)
+- MAX_REQUEST_TOKENS = 8000 in orchestrator.py
+- _estimate_tokens(*parts): char-based heuristic (~4 chars/token)
+- _tokens_used accumulator + trip check each iteration
+- Friendly message on trip: 'Token budget reached (X / 8,000 tokens)...'
+- SSE event type 'budget_exceeded' emitted to WebUI
+- Response flags: budget_exceeded, tokens_used (propagated via routes/agent.py)
+- Part 90b fix: excluded tools_schema (~8700 tokens for 58 tools) from
+  estimate; otherwise 'hi' tripped the guard
+- Smoke test: scripts/smoke_test_part90.py (11 checks, ASCII-safe)
+- Verified: hi -> ~700 tokens, budget_exceeded False
+- Verified: 67k chars -> trips at 34837 / 8000, budget_exceeded True
+- Commits: 0bebe62 (initial), 65ad114 (Part 90b fix)

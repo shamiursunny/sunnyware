@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-14, Part 89)
+## Current state (last session: 2026-10-14, Part 90)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -223,6 +223,17 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • Verified live: HTTP 200 | 35479 bytes | uvicorn; 0 CDN refs in src/
   • InPrivate Firefox loads clean (0 Console errors) + chat works
   • Smoke test: scripts/smoke_test_part89.py (8 checks, ASCII-safe)
+- Per-request token budget guard (Part 90 + 90b):
+  • MAX_REQUEST_TOKENS = 8000 (top of orchestrator.py)
+  • _estimate_tokens(*parts): ~4 chars/token, provider-agnostic
+  • _tokens_used accumulator incremented each LLM iteration
+  • Trips at cumulative >= 8000 -> friendly message + break
+  • Response flags: budget_exceeded: True, tokens_used: N
+  • SSE event type 'budget_exceeded' emitted to WebUI
+  • tools_schema (~8700 tokens for 58 tools) EXCLUDED from count
+    (Part 90b - otherwise every request tripped on 'hi')
+  • routes/agent.py propagates both flags to the client
+  • Smoke test: scripts/smoke_test_part90.py (11 checks)
 
 
 ### RAG over documents
@@ -264,13 +275,14 @@ When running pre_push_check.py, if HF push times out, retry
 
 
 ## What's next (priority order)
-1. Part 90 — per-request token budget guard (defense-in-depth)
-   Hard cap total tokens per request (~8k), abort gracefully with a
-   friendly message. Protects against future runaway loops.
-2. Cleanup — prune old test sandboxes (test_sb_87, final_test, etc.)
-3. Monitor /api/providers/status over next few days — 429s should
-   now be rare because of Parts 88-88d token economy fixes.
-4. NVIDIA NIM integration — pending support verification
+1. Monitor /api/providers/status over next few days — 429s should
+   now be rare because of Parts 87-90 token economy fixes.
+2. NVIDIA NIM integration — pending support verification
+3. Future: consider WebUI styling for 'budget_exceeded' SSE event
+   (currently shown as regular message; optional polish)
+4. Future: exact token counts via llm.py usage data (currently ~4
+   chars/token heuristic; over-counts by ~2x on long prompts but
+   never under-counts — safe direction)
 
 ## Key files
 
@@ -469,6 +481,13 @@ in .env. Dynamic latency-based selection does not exist today.
   network requests. Pre-Part-89 it was InPrivate tracking protection +
   VPN blocking cdn.jsdelivr.net; now it would mean /static/marked.min.js
   is not served (check main.py mount + restart).
+- Token budget guard (Part 90) trips at 8000 estimated tokens. The
+  estimate is char-based (~4 chars/token) and deliberately over-counts
+  long prompts (counts prompt twice: once as 'prompt', once inside
+  'messages'). Safe direction — never trips late. tools_schema is
+  EXCLUDED: 58 tool definitions = ~8700 tokens of fixed infra cost;
+  including them tripped every request. DO NOT re-add tools_schema
+  to the estimator without raising MAX_REQUEST_TOKENS to 20000+.
 - Memory payloads capped at 2000 chars (Groq TPM 413 protection)
 
 - Tool-result truncation in orchestrator: strips base64 + caps at 500 chars
