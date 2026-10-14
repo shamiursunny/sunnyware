@@ -884,3 +884,13 @@ for a future session).
 - NEW: scripts/smoke_test_part102.py (18 checks)
 - HEAD: 0da91ab
 - NEXT: monitor 429s; NVIDIA NIM; video gen; TTS; provider metrics dashboard
+
+## 2026-10-15 — Part 103
+- Provider health metrics dashboard
+- New endpoint: GET /api/providers/metrics
+- Aggregates session stats + lifetime counters + storage diag
+- Uses _sum_prefix() over metrics.snapshot() for extensibility
+- NEW: scripts/smoke_test_part103.py (33 checks)
+- Verified: 4 providers, learned=8403 for groq, storage=hf:/data
+- HEAD: b48173f
+- NEXT: monitor metrics; NVIDIA NIM; video gen; TTS; WebUI health panel

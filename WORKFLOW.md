@@ -579,3 +579,15 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Metric llm_request_retried + diagnostic print lines
 - Smoke test: scripts/smoke_test_part102.py (18 checks)
 - Commit: 0da91ab
+
+## Part 103 — Provider health metrics dashboard (2026-10-15)
+- New endpoint: GET /api/providers/metrics
+- Aggregates three sources:
+  1. Session stats (per-process): success/fail counts, cooldowns
+  2. Lifetime counters (persistent): attempts, empty-responses,
+     learned-limits, retries (from metrics.py / Neon)
+  3. Storage diagnostics (from provider_limits)
+- _sum_prefix() helper over metrics.snapshot() for extensibility
+- Verified live: groq learned=8403 but max_pt=7500 (tighter wins)
+- Smoke test: scripts/smoke_test_part103.py (33 checks)
+- Commit: b48173f

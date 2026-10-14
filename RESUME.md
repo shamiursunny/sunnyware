@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 102)
+## Current state (last session: 2026-10-15, Part 103)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -367,6 +367,17 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • Only fires when ALL providers cooling AND recovery imminent
     — if any provider is ready, first pass used it
   • Smoke test: scripts/smoke_test_part102.py (18 checks)
+- Provider health metrics dashboard (Part 103):
+  • New endpoint: GET /api/providers/metrics
+  • Aggregates three sources:
+    1. Session stats (per-process): success/fail counts,
+       success_rate, cooldowns, last_error, last_success_ts
+    2. Lifetime counters (persistent via metrics.py / Neon):
+       attempts, empty-responses, learned-limits, retries
+    3. Storage diagnostics (from provider_limits)
+  • _sum_prefix() helper auto-includes future labeled counters
+  • Verified live: groq learned=8403 but max_pt=7500 (tighter wins)
+  • Smoke test: scripts/smoke_test_part103.py (33 checks)
 
 
 ### RAG over documents
