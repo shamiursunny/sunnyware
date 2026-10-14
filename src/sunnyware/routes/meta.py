@@ -3,7 +3,7 @@
 """Root, about, and health endpoints."""
 
 from fastapi import APIRouter
-from fastapi.responses import JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from .. import meta
 from ..runtime import state, ensure_pool
