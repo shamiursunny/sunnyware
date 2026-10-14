@@ -816,3 +816,20 @@ for a future session).
   duplicate name -> 'Collision on variables and secrets names' -> crash
 - HEAD: 97d7123
 - NEXT: monitor status; NVIDIA NIM; optional Pollinations image gen tool
+
+## 2026-10-15 — Parts 98 + 98b + 98c
+- New tool: image_generate (free text-to-image via Pollinations.AI)
+- Models: flux (default), turbo, gptimage, qwen-image, kontext, nanobanana
+- Returns {image_base64, image_format} — same contract as chart_from_data
+- 128-2048px clamp, 45s timeout, 2 MB size cap, magic-byte detection
+- Part 98b: 'call EXACTLY ONCE' (rate limit 1/15s)
+- Part 98c: WebUI 'tool_result' SSE case + .msg-image CSS — renders
+  any tool's image_base64 result inline (also benefits chart_from_data
+  and browser_screenshot)
+- Part 98c: tool description says 'Do NOT include base64 in reply'
+- Tools count: 58 -> 59
+- Verified: photorealistic orange cat JPEG @ 1024x1024, model=flux,
+  rendered inline in WebUI (screenshot proof)
+- NEW: scripts/smoke_test_part98.py (24 checks)
+- HEAD: e27a541
+- NEXT: monitor 429s; NVIDIA NIM; video gen; long-prompt routing; TTS

@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-14, Part 97b)
+## Current state (last session: 2026-10-15, Part 98c)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -292,6 +292,23 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • Verified live: 'POLLINATIONS WORKS' returned with
     provider=pollinations, iterations=1
   • Smoke test: scripts/smoke_test_part97.py (10 checks)
+- Image generation tool (Parts 98 + 98b + 98c):
+  • New tool: image_generate — free text-to-image via Pollinations.AI
+  • Returns {image_base64, image_format, ...} — same contract as
+    chart_from_data
+  • Models: flux (default), turbo, gptimage, qwen-image, kontext,
+    nanobanana (free tier)
+  • Parameters: prompt, model, width, height, seed
+  • Size clamp: 128-2048px (default 1024), 45s timeout, 2 MB cap
+  • Magic-byte detection: JPEG / PNG / WebP
+  • Part 98b: 'call EXACTLY ONCE' instruction (free tier 1/15s limit)
+  • Part 98c: WebUI 'tool_result' SSE case renders image_base64 inline
+    as <img class='msg-image'> — works for image_generate,
+    chart_from_data, browser_screenshot (any tool returning image_base64)
+  • Part 98c: tool description says 'Do NOT include base64 in reply'
+  • Tools: 58 -> 59
+  • Verified live: 'Draw a cute orange cat' -> 52 KB JPEG rendered inline
+  • Smoke test: scripts/smoke_test_part98.py (24 checks)
 
 
 ### RAG over documents

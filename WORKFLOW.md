@@ -511,3 +511,15 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Note: developer's VPN DNS-blocks pollinations.ai; HF cloud reaches it
 - Smoke test: scripts/smoke_test_part97.py (10 checks)
 - Commits: 46a5a25 (97), 97d7123 (97b)
+
+## Parts 98 + 98b + 98c — Image generation tool (2026-10-15)
+- New tool: image_generate (Pollinations.AI free text-to-image)
+- Models: flux (default), turbo, gptimage, qwen-image, kontext, nanobanana
+- Returns {image_base64, image_format} — same contract as chart_from_data
+- Part 98b: 'call EXACTLY ONCE' instruction (free tier rate-limit 1/15s)
+- Part 98c: WebUI 'tool_result' SSE case renders images inline as
+  <img class='msg-image'> — also benefits chart_from_data / browser_screenshot
+- Tools: 58 -> 59
+- Verified live: 52 KB JPEG @ 1024x1024, model=flux, rendered inline
+- Smoke test: scripts/smoke_test_part98.py (24 checks)
+- Commits: 6498e3d (98), a0a0df8 (98b), e27a541 (98c)
