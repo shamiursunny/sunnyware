@@ -523,3 +523,17 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Verified live: 52 KB JPEG @ 1024x1024, model=flux, rendered inline
 - Smoke test: scripts/smoke_test_part98.py (24 checks)
 - Commits: 6498e3d (98), a0a0df8 (98b), e27a541 (98c)
+
+## Part 99 — Long-prompt routing (2026-10-15)
+- Provider dataclass: max_prompt_tokens field (0 = no limit)
+- Defaults: groq=7500, gemini=1M, openrouter/pollinations=32000,
+  mistral=32000, nvidia=8000, local=0
+- Env override: {PREFIX}_MAX_PROMPT_TOKENS
+- llm.py: _estimate_prompt_tokens() char/4 over prompt + system + history
+- Router skips providers that can't fit the prompt; falls through if
+  no eligible provider (safety)
+- status() exposes max_prompt_tokens
+- FIXES earlier 'empty LLM response' on 30k-char prompts (Groq 413)
+- Verified live: 30k chars -> openrouter (Groq auto-skipped)
+- Smoke test: scripts/smoke_test_part99.py (17 checks)
+- Commit: 20ed50b

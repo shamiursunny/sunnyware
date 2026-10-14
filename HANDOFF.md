@@ -833,3 +833,14 @@ for a future session).
 - NEW: scripts/smoke_test_part98.py (24 checks)
 - HEAD: e27a541
 - NEXT: monitor 429s; NVIDIA NIM; video gen; long-prompt routing; TTS
+
+## 2026-10-15 — Part 99
+- Long-prompt routing: skip providers that can't fit the prompt
+- Provider.max_prompt_tokens field (defaults per provider)
+- Env override: {PREFIX}_MAX_PROMPT_TOKENS
+- llm.py: _estimate_prompt_tokens() + skip logic in multi-provider loop
+- status() exposes max_prompt_tokens
+- FIXES: 30k-char prompt now routes to openrouter (Groq auto-skipped)
+- NEW: scripts/smoke_test_part99.py (17 checks)
+- HEAD: 20ed50b
+- NEXT: monitor 429s; NVIDIA NIM; video gen; TTS; learn real limits

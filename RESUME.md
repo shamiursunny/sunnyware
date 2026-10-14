@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 98c)
+## Current state (last session: 2026-10-15, Part 99)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -309,6 +309,19 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • Tools: 58 -> 59
   • Verified live: 'Draw a cute orange cat' -> 52 KB JPEG rendered inline
   • Smoke test: scripts/smoke_test_part98.py (24 checks)
+- Long-prompt routing (Part 99):
+  • Per-provider max_prompt_tokens field on Provider dataclass
+  • Defaults: groq=7500, gemini=1M, openrouter/pollinations=32000,
+    mistral=32000, nvidia=8000, local=0 (no limit)
+  • Override per-provider via {PREFIX}_MAX_PROMPT_TOKENS env
+  • llm.py: _estimate_prompt_tokens() char/4 heuristic over
+    prompt + system + history
+  • Router skips providers where estimated tokens > their limit
+  • Safety: if NO provider eligible, tries all anyway (avoid total fail)
+  • status() exposes max_prompt_tokens for each provider
+  • Fixes earlier 'empty LLM response' on 30k-char prompts
+  • Verified live: 30k chars -> openrouter (Groq auto-skipped)
+  • Smoke test: scripts/smoke_test_part99.py (17 checks)
 
 
 ### RAG over documents
