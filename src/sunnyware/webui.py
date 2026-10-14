@@ -111,8 +111,9 @@ HTML = """<!DOCTYPE html>
   }
   .btn-icon:hover { background: var(--bg-hover); border-color: var(--accent); color: var(--text); }
   .btn-icon:active { transform: scale(0.94); }
-  #mobileMenuBtn, #overflowMenuBtn { display: none; }
-  #mobileMenuBtn.show, #overflowMenuBtn.show { display: flex; }
+  #mobileMenuBtn { display: none; }
+  #mobileMenuBtn.show { display: flex; }
+  /* Part 94: overflow menu button always visible (ChatGPT-style) */
   .overflow-panel {
     display: none; position: fixed;
     top: calc(var(--header-h) + 4px); right: var(--sp-2);
@@ -958,10 +959,11 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
 .icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .pill-badge {
   position: absolute; top: 3px; right: 3px;
-  min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px;
+  min-width: 15px; height: 15px; padding: 0 4px; border-radius: 8px;
   background: var(--accent); color: #0a0a0b;
-  font-size: 10px; font-weight: 700; line-height: 16px; text-align: center;
+  font-size: 9.5px; font-weight: 700; line-height: 15px; text-align: center;
   border: 2px solid var(--bg-elev); box-sizing: content-box;
+  font-family: inherit;
 }
 .pill-badge:empty { display: none; }
 .provider-pill {
@@ -1052,8 +1054,14 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
 .attach-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .attach-btn svg { display: block; }
 .attach-btn .pill-badge {
-  top: -4px; right: -4px;
-  border-color: var(--bg-elev);
+  top: -2px; right: -2px;
+  min-width: 15px; height: 15px;
+  padding: 0 4px;
+  line-height: 15px;
+  font-size: 9.5px;
+  border-width: 2px;
+  border-color: var(--bg, #0c0c0d);
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.35);
 }
 @media (max-width: 480px) {
   .attach-btn { width: 30px; height: 30px; left: 4px; }
@@ -2003,9 +2011,11 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     try {
       const r = await fetch('/api/rag/status');
       const d = await r.json();
-      docCountEl.textContent = 'docs: ' + (d.count || 0);
+      // Part 94: just the number as a small badge (ChatGPT-style)
+      var _n = d.count || 0;
+      docCountEl.textContent = _n > 0 ? String(_n) : '';
     } catch (e) {
-      docCountEl.textContent = 'docs: \u2014';
+      docCountEl.textContent = '';
     }
   }
 

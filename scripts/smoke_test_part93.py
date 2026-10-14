@@ -67,6 +67,20 @@ check("input has left-padding for paperclip", "padding-left: 46px" in src)
 # id="upload" appears exactly once (in composer, not header)
 check("id='upload' appears exactly once", src.count('id="upload"') == 1)
 
+# 6c. Part 94: overflow button visible + doc badge as number only
+# (base CSS for #overflowMenuBtn must NOT be display: none without .show)
+import re as _re
+_hidden_default = _re.search(
+    r"#overflowMenuBtn\s*\{\s*display:\s*none", src
+)
+check("overflowMenuBtn NOT hidden by default",
+      _hidden_default is None)
+check("doc count JS writes number not 'docs:' text",
+      "docCountEl.textContent = 'docs: '" not in src
+      and "String(_n)" in src)
+check("attach-badge CSS tightened (15px)",
+      "min-width: 15px; height: 15px" in src and ".attach-btn .pill-badge" in src)
+
 # 7. Parses
 import ast
 try:
