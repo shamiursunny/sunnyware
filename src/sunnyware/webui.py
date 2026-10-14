@@ -1128,6 +1128,19 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
   .ph-foot { font-size: 11.5px; color: var(--text-mute); margin-top: 7px; }
   .ph-empty { color: var(--text-mute); font-size: 13px; }
 
+
+  /* Part 105: per-message provider chip */
+  .provider-chip {
+    font-size: 11px;
+    color: var(--text-mute);
+    padding-left: calc(var(--sp-3) + 3px);
+    margin-top: -4px;
+    margin-bottom: var(--sp-3);
+    letter-spacing: 0.02em;
+    opacity: 0.7;
+    user-select: none;
+  }
+
 </style>
 </head>
 <body>
@@ -1644,6 +1657,7 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     let agentText = '';
     let streamError = '';  // Part 88: surface backend error instead of blank bubble
     let budgetExceeded = false;  // Part 91: mark bubble if budget guard tripped
+    let lastProvider = '';       // Part 105: track provider for the trailing chip
 
     function ensureBubble() {
       if (!agentBubble) {
@@ -1745,11 +1759,13 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
                 streamError = String(data.error);
               }
               if (data.provider) {
+                lastProvider = data.provider;  // Part 105
                 const pb = document.getElementById('providerBadge');
                 if (pb) pb.textContent = 'via ' + data.provider;
               }
             } else if (type === 'done') {
               if (data.provider) {
+                lastProvider = data.provider;  // Part 105
                 const pb = document.getElementById('providerBadge');
                 if (pb) pb.textContent = 'via ' + data.provider;
               }
@@ -1760,6 +1776,17 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
 
       const ms = Math.round(performance.now() - t0);
       latEl.textContent = ms + ' ms';
+
+      // Part 105: append provider chip under the assistant bubble
+      if (agentBubble && lastProvider) {
+        try {
+          const _chip = document.createElement('div');
+          _chip.className = 'provider-chip';
+          _chip.textContent = 'via ' + lastProvider
+                              + ' · ' + (ms / 1000).toFixed(1) + 's';
+          agentBubble.insertAdjacentElement('afterend', _chip);
+        } catch (e) { /* silent */ }
+      }
 
       if (!agentText) {
         if (streamError) {
