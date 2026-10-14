@@ -390,6 +390,7 @@ async def run_agent(
                 "error": result.get("error", "LLM call failed"),
                 "steps": steps,
                 "iterations": iteration + 1,
+                "attachments": _attachments,
             }
 
         content = (result.get("content") or "").strip()
@@ -579,6 +580,7 @@ async def run_agent(
                 "steps": steps,
                 "provider": _last_provider,
                 "iterations": iteration + 1,
+                "attachments": _attachments,
             }
 
         if content:
@@ -608,6 +610,7 @@ async def run_agent(
                 "steps": steps,
                 "provider": _last_provider,
                 "iterations": iteration + 1,
+                "attachments": _attachments,
             }
 
         if steps:
@@ -635,12 +638,14 @@ async def run_agent(
                 "answer": f"(completed {len(steps)} tool call(s), no final answer)",
                 "steps": steps,
                 "iterations": iteration + 1,
+                "attachments": _attachments,
             }
         return {
             "ok": False,
             "error": "empty LLM response (model returned no content and no tool calls)",
             "steps": steps,
             "iterations": iteration + 1,
+            "attachments": _attachments,
         }
 
     # Part 32: on iteration exhaustion, force the model to summarize what
