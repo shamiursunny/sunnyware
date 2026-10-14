@@ -334,8 +334,21 @@ async def run_agent(
 
     _placeholder_retry_used = False
     _last_provider = None
-    _seen_calls = {}          # (tool_name, canonical_args) -> tool_result
-    _dup_streak = 0           # consecutive duplicate-tool-call count
+    _seen_calls = {}          # Part 88c: tool_name -> list[(args, result)]
+    _dup_streak = 0
+
+    def _find_duplicate(tool_name, args):
+        """Subset/superset match: LLMs sometimes drop optional keys on
+        repeat calls. {name, sql} and {sql} are the SAME call."""
+        for prev_args, prev_result in _seen_calls.get(tool_name, []):
+            if all(k in prev_args and prev_args[k] == v for k, v in args.items()):
+                return prev_result
+            if all(k in args and args[k] == v for k, v in prev_args.items()):
+                return prev_result
+        return None
+
+    def _record_call(tool_name, args, result):
+        _seen_calls.setdefault(tool_name, []).append((args, result))
 
     for iteration in range(MAX_ITERATIONS):
         result = await llm_client.chat(
@@ -377,16 +390,16 @@ async def run_agent(
                     tool_name = "unknown"
                     tool_result = {"error": f"parse error: {e}"}
                 else:
-                    call_key = (tool_name, json.dumps(tool_args, sort_keys=True, default=str))
-                    if call_key in _seen_calls:
+                    cached = _find_duplicate(tool_name, tool_args)
+                    if cached is not None:
                         _dup_streak += 1
-                        tool_result = _seen_calls[call_key]
+                        tool_result = cached
                         await _emit(on_event, {"type": "tool_result", "tool": tool_name, "result": tool_result, "cached": True})
                     else:
                         _dup_streak = 0
                         await _emit(on_event, {"type": "tool_call", "tool": tool_name, "args": tool_args, "protocol": "native"})
                         tool_result = await _execute_tool(tool_name, tool_args)
-                        _seen_calls[call_key] = tool_result
+                        _record_call(tool_name, tool_args, tool_result)
                         await _emit(on_event, {"type": "tool_result", "tool": tool_name, "result": tool_result})
                 steps.append({
                     "iteration": iteration + 1,
@@ -431,20 +444,20 @@ async def run_agent(
             tool_args = parsed.get("args") or {}
             if not isinstance(tool_args, dict):
                 tool_args = {}
-            call_key = (tool_name, json.dumps(tool_args, sort_keys=True, default=str))
-            if call_key in _seen_calls:
+            cached = _find_duplicate(tool_name, tool_args)
+            if cached is not None:
                 _dup_streak += 1
-                tool_result = _seen_calls[call_key]
+                tool_result = cached
                 await _emit(on_event, {"type": "tool_result", "tool": tool_name, "result": tool_result, "cached": True})
                 feedback = ("DUPLICATE CALL — you already called '" + tool_name
-                            + "' with identical args. Previous result: "
+                            + "' with equivalent args. Previous result: "
                             + json.dumps(_truncate_tool_result(tool_result))
                             + ". STOP calling tools and give final answer NOW.")
             else:
                 _dup_streak = 0
                 await _emit(on_event, {"type": "tool_call", "tool": tool_name, "args": tool_args, "protocol": "prompt-json"})
                 tool_result = await _execute_tool(tool_name, tool_args)
-                _seen_calls[call_key] = tool_result
+                _record_call(tool_name, tool_args, tool_result)
                 await _emit(on_event, {"type": "tool_result", "tool": tool_name, "result": tool_result})
                 feedback = ("Tool result: "
                             + json.dumps(_truncate_tool_result(tool_result))
