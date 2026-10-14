@@ -180,6 +180,8 @@ HTML = """<!DOCTYPE html>
   .msg.user { color: var(--text-dim); padding: var(--sp-2) var(--sp-3); background: var(--bg-elev); border-radius: var(--r-lg) var(--r-lg) var(--r-sm) var(--r-lg); max-width: 88%; margin-left: auto; }
   .msg.agent { color: var(--text); padding-left: var(--sp-3); border-left: 3px solid var(--accent); background: transparent; white-space: normal; }
   .msg.error { color: var(--danger); }
+  .msg.agent.budget { background: rgba(255, 176, 32, 0.08); border-left: 3px solid #ffb020; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-md); }
+  .msg.agent.budget::before { content: 'BUDGET LIMIT: '; display: block; color: #ffb020; font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0.08em; margin-bottom: var(--sp-1); }
   .msg.step { font-size: var(--fs-xs); color: var(--text-mute); font-style: italic; padding: 2px 0; }
   .msg.upload { color: var(--accent-2); font-size: var(--fs-sm); }
   .msg.upload-ok { color: var(--accent); font-size: var(--fs-sm); }
@@ -1394,6 +1396,7 @@ footer { padding: 14px 20px 18px; }
     let agentBubble = null;
     let agentText = '';
     let streamError = '';  // Part 88: surface backend error instead of blank bubble
+    let budgetExceeded = false;  // Part 91: mark bubble if budget guard tripped
 
     function ensureBubble() {
       if (!agentBubble) {
@@ -1464,14 +1467,19 @@ footer { padding: 14px 20px 18px; }
               const toolName = data.tool || '?';
               const proto = data.protocol ? (' (' + data.protocol + ')') : '';
               addMsg('[tool] ' + toolName + proto, 'step');
+            } else if (type === 'budget_exceeded') {
+              budgetExceeded = true;  // Part 91: style the final bubble
             } else if (type === 'error') {
               addMsg('error: ' + (data.error || data.text || 'unknown'), 'error');
             } else if (type === 'final') {
               // Tool-aware endpoint: final carries assembled answer + provider
               const ans = data.answer || '';
+              if (data.budget_exceeded) budgetExceeded = true;  // Part 91
               if (ans) {
                 agentText = ans;
-                ensureBubble().innerHTML = renderAgentHtml(agentText);
+                const _fbub = ensureBubble();
+                _fbub.innerHTML = renderAgentHtml(agentText);
+                if (budgetExceeded) _fbub.classList.add('budget');
                 chat.scrollTop = chat.scrollHeight;
               } else if (data.ok === false && data.error) {
                 // Part 88: backend reported failure -- remember it for end-of-stream
