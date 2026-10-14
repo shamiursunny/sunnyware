@@ -44,7 +44,7 @@ check("session prefix removed from JS",
       and "sidEl.textContent = getSession()" in src)
 
 # 4. Kept existing IDs (backward-compat with handlers)
-for eid in ['id="sid"', 'id="upload"', 'id="clear"', 'id="docCount"',
+for eid in ['id="sid"', 'id="upload"', 'id="docCount"',
             'id="providerBadge"', 'id="overflowPanel"', 'id="overflowMenuBtn"',
             'id="uploadMobile"', 'id="clearMobile"', 'id="docCountMobile"',
             'id="providerBadgeMobile"', 'id="sidMobile"']:
@@ -80,6 +80,17 @@ check("doc count JS writes number not 'docs:' text",
       and "String(_n)" in src)
 check("attach-badge CSS tightened (15px)",
       "min-width: 15px; height: 15px" in src and ".attach-btn .pill-badge" in src)
+
+# 6d. Part 95: sidebar footer + upward menu
+check("sidebar-footer wrapper present", 'class="sidebar-footer"' in src)
+check("sidebar-menu-btn present", 'class="sidebar-menu-btn"' in src)
+check("sidebar-menu-label present", 'class="sidebar-menu-label"' in src)
+check("sidebar-footer CSS defined", ".sidebar-footer {" in src)
+check("sidebar-menu-btn CSS defined", ".sidebar-menu-btn {" in src)
+check("menu opens upward (menuInUp)", "@keyframes menuInUp" in src)
+check("header no longer has id='clear' button", 'id="clear"' not in src)
+check("clearMobile redirects to newChatBtn", "getElementById('newChatBtn')" in src)
+check("sidebar-overflow-panel positioned above", ".sidebar-footer .overflow-panel" in src)
 
 # 7. Parses
 import ast

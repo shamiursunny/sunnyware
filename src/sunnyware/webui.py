@@ -1069,6 +1069,49 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
   .composer-input #input { padding-left: 40px; }
 }
 
+
+/* === Part 95: sidebar footer + upward-opening menu === */
+#sidebar { display: flex; flex-direction: column; }
+#sessionList { flex: 1; overflow-y: auto; }
+.sidebar-footer {
+  padding: var(--sp-2);
+  border-top: 1px solid var(--border);
+  background: var(--bg-sidebar);
+  flex-shrink: 0;
+}
+.sidebar-menu-btn {
+  width: 100%;
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px; border-radius: 9px;
+  background: transparent; border: none;
+  color: var(--text-dim); cursor: pointer;
+  font-size: 13px; font-weight: 500; font-family: inherit;
+  transition: background 0.14s ease, color 0.14s ease;
+  text-align: left;
+}
+.sidebar-menu-btn:hover { background: var(--bg-hover); color: var(--text); }
+.sidebar-menu-btn svg { flex-shrink: 0; transition: transform 0.4s ease; }
+.sidebar-menu-btn:hover svg { transform: rotate(90deg); }
+.sidebar-menu-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Menu opens UPWARD from bottom-left */
+.sidebar-footer .overflow-panel {
+  top: auto;
+  bottom: calc(100% + 8px);
+  right: auto;
+  left: var(--sp-2);
+  min-width: 240px;
+  animation: menuInUp 0.14s ease;
+}
+@keyframes menuInUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 640px) {
+  .sidebar-menu-label { display: none; }
+  .sidebar-menu-btn { justify-content: center; padding: 10px; }
+}
+
 </style>
 </head>
 <body>
@@ -1086,40 +1129,6 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
   </div>
   <div class="header-right">
     <span id="providerBadge" class="provider-pill" title="Serving provider"></span>
-    <a href="#" id="clear" class="icon-btn" title="New session" aria-label="New session">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-    </a>
-    <div class="overflow-wrap">
-      <button id="overflowMenuBtn" class="icon-btn" type="button" title="More" aria-label="More options">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-      </button>
-      <div class="overflow-panel" id="overflowPanel">
-        <div class="overflow-head">
-          <div class="overflow-label">Current session</div>
-          <div class="overflow-value" id="sidMobile">New chat</div>
-        </div>
-        <div class="overflow-divider"></div>
-        <a href="/about" target="_blank" rel="noopener" class="overflow-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-          <span>About</span>
-        </a>
-        <a href="/docs" target="_blank" rel="noopener" class="overflow-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          <span>API Documentation</span>
-        </a>
-        <div class="overflow-divider"></div>
-        <a href="#" id="uploadMobile" class="overflow-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          <span>Upload files</span>
-        </a>
-        <a href="#" id="clearMobile" class="overflow-item">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          <span>New session</span>
-        </a>
-        <span class="overflow-meta" id="docCountMobile" aria-hidden="true"></span>
-        <span class="overflow-meta" id="providerBadgeMobile" aria-hidden="true"></span>
-      </div>
-    </div>
   </div>
 </header>
 <input type="file" id="fileInput" multiple
@@ -1147,6 +1156,40 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     <input type="file" id="importInput" accept=".json,application/json">
     <input type="text" id="sessSearch" placeholder="Search sessions…" autocomplete="off">
 <div id="sessionList"></div>
+    <div class="sidebar-footer">
+      <div class="overflow-wrap">
+        <button id="overflowMenuBtn" class="sidebar-menu-btn" type="button" title="Settings & more" aria-label="Settings & more">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+          <span class="sidebar-menu-label">Settings &amp; more</span>
+        </button>
+        <div class="overflow-panel" id="overflowPanel">
+          <div class="overflow-head">
+            <div class="overflow-label">Current session</div>
+            <div class="overflow-value" id="sidMobile">New chat</div>
+          </div>
+          <div class="overflow-divider"></div>
+          <a href="/about" target="_blank" rel="noopener" class="overflow-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            <span>About</span>
+          </a>
+          <a href="/docs" target="_blank" rel="noopener" class="overflow-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            <span>API Documentation</span>
+          </a>
+          <div class="overflow-divider"></div>
+          <a href="#" id="uploadMobile" class="overflow-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span>Upload files</span>
+          </a>
+          <a href="#" id="clearMobile" class="overflow-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>New session</span>
+          </a>
+          <span class="overflow-meta" id="docCountMobile" aria-hidden="true"></span>
+          <span class="overflow-meta" id="providerBadgeMobile" aria-hidden="true"></span>
+        </div>
+      </div>
+    </div>
   </aside>
   <div id="main">
     <div id="chat"></div>
@@ -2289,8 +2332,8 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
   var upDesk   = document.getElementById('upload');
   if (upMobile && upDesk) { upMobile.addEventListener('click', function (e) { e.preventDefault(); upDesk.click(); closePanel(); }); }
   var clMobile = document.getElementById('clearMobile');
-  var clDesk   = document.getElementById('clear');
-  if (clMobile && clDesk) { clMobile.addEventListener('click', function (e) { e.preventDefault(); clDesk.click(); closePanel(); }); }
+  var clTarget = document.getElementById('newChatBtn') || document.getElementById('clear');
+  if (clMobile && clTarget) { clMobile.addEventListener('click', function (e) { e.preventDefault(); clTarget.click(); closePanel(); }); }
 })();
 
 // Part 67: sync mobile meta
