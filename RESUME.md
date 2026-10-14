@@ -17,9 +17,9 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - GitHub:  https://github.com/shamiursunny/sunnyware
 - Space:   https://huggingface.co/spaces/shamiur/sunnyware
 
-## Current state (last session: 2026-10-13, Part 86)
+## Current state (last session: 2026-10-14, Part 88d)
 - Commit:  run `git log -1 --oneline` for current hash
-- Health:  /health/ready -> status ok, tools: 57
+- Health:  /health/ready -> status ok, tools: 58
 - LLM:     multi-provider (groq, gemini, openrouter) with auto-failover
   - Groq:       openai/gpt-oss-120b      (primary, ~200ms)
   - Gemini:     gemini-2.5-flash        (backup, ~500ms)
@@ -97,6 +97,23 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
    cross-schema reads, main tables)
 - RESEND PRODUCTION (Part 86) — shamiur.com verified via DKIM
   (noreply@shamiur.com sends to ANY recipient; verified end-to-end)
+- Token budget raised (Part 87) — max_tokens 900 -> 2048 in llm.py.
+  Reasoning models (gpt-oss-120b) were consuming the entire 900-token
+  budget on hidden reasoning after a tool call, leaving nothing for
+  the visible answer (symptom: empty content).
+- Orchestrator token economy (Parts 88, 88b, 88c, 88d):
+  • MAX_ITERATIONS 7 -> 3 (was 6 LLM calls for "hi")
+  • System prompt rule 1: greetings/chit-chat answer directly, no tools
+  • System prompt rule 3: ONE TOOL PER STEP; never repeat same tool
+  • System prompt rule 3a: NO PREFLIGHT LISTS when resource is named
+  • echo tool description marked TEST-ONLY (was inviting abuse)
+  • Tool-call dedup: (tool_name, canonical_args) tracked in _seen_calls
+  • Subset/superset match: {name,sql} vs {sql} treated as duplicate
+  • Hard-stop after 2 consecutive duplicates with cached answer
+  • Applied to both native tool-call path AND prompt-JSON path
+  Combined effect: 10-50x reduction in tokens per typical prompt.
+  Greeting: 6 iterations/~10k tokens -> 1 iteration/~200 tokens.
+  SQL query: 7 iterations/3 calls -> 2 iterations/1 call.
 
 ### RAG over documents
 - Upload: /api/rag/upload (PDF/DOCX/CSV/XLSX/TXT/MD; 20 MB max; multi-file)
@@ -114,13 +131,25 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 Before every commit + push, run:
     python scripts/pre_push_check.py
 5 stages: syntax, HTML/JS sanity, latest part smoke test, git tree, live HF.
-Exit 0 = READY TO PUSH.
+Exit 0 = READY TO PUSH.
+When running pre_push_check.py, if HF push times out, retry
+  ./push_hf.sh standalone — the GitHub push already succeeded.
 
-## What's next (priority order)
-1. NVIDIA NIM integration — pending support verification
-2. Part 64 — next feature (define together)
-3. Optional: voice input, session rename, chart rendering polish
-
+## What's next (priority order)
+1. Part 89 — self-host marked.js (fix InPrivate/CDN failure, ~5 min)
+   Download marked.min.js -> src/sunnyware/static/marked.min.js,
+   serve via FastAPI, point <script src> in webui.py at the local path.
+   Root cause: Firefox InPrivate + tracking protection + VPN blocks
+   cdn.jsdelivr.net, which broke SSE rendering and showed
+   '(empty response)' — never a code bug, always the CDN.
+2. Part 90 — per-request token budget guard (defense-in-depth)
+   Hard cap total tokens per request (~8k), abort gracefully with a
+   friendly message. Protects against future runaway loops.
+3. Cleanup — prune old test sandboxes (test_sb_87, final_test, etc.)
+4. Monitor /api/providers/status over next few days — 429s should
+   now be rare because of Parts 88-88d token economy fixes.
+5. NVIDIA NIM integration — pending support verification
+
 ## Key files
 - src/sunnyware/main.py                FastAPI app + lifespan + preload
 - src/sunnyware/orchestrator.py        ReAct loop + tool aliases + retries
@@ -210,6 +239,22 @@ in .env. Dynamic latency-based selection does not exist today.
   major refactor, risk to /ui endpoint. Status: accepted limitation.
 - qwen/qwen3.8-27b (Groq, retired Part 46): reasoning models do not reliably
   call tools + hit 7000 ITPM rate limit. Do NOT re-enable as primary.
+- Token budget is TIGHT for reasoning models. gpt-oss-120b consumes
+  its entire max_tokens on hidden reasoning before emitting visible
+  content. If a tool call is followed by an empty answer, first check
+  that max_tokens >= 2048 in llm.py. Part 87 raised it from 900.
+- LLM WILL re-call the same tool with slightly different args (e.g.
+  dropping 'name' from {name, sql}). Exact-hash dedup misses this.
+  Use subset/superset matching in orchestrator._find_duplicate().
+  Part 88c installed this; keep it in mind if you change tool schemas.
+- LLM WILL call sql_sandbox_list / list_files as a preflight even
+  when the user named the resource. Rule 3a in prompts.py tells it
+  not to. If you see extra iterations, check rule 3a survived edits.
+- InPrivate Firefox + tracking protection + VPN blocks
+  cdn.jsdelivr.net. marked.js fails to load, SSE stream appears
+  empty, chat shows '(empty response)'. This is NOT a code bug.
+  ALWAYS test in a normal browser window. Part 89 will eliminate
+  the CDN dependency entirely.
 - Memory payloads capped at 2000 chars (Groq TPM 413 protection)
 - Tool-result truncation in orchestrator: strips base64 + caps at 500 chars
 - Tool-name aliases: python -> python_eval, rag -> rag_search
