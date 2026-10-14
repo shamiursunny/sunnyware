@@ -15,7 +15,7 @@ from . import tools as tools_registry
 MAX_ITERATIONS = 3  # Part 88: lowered 7 -> 3 (was burning 6 LLM calls per message)
 
 # Part 90: per-request token budget guard
-MAX_REQUEST_TOKENS = 8000
+MAX_REQUEST_TOKENS = 15000
 _BUDGET_MESSAGE = (
     "Token budget reached ({used:,} / {cap:,} tokens). I stopped here "
     "to protect your API quota. Try a shorter prompt, or split the "
