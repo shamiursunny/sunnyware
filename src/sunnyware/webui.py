@@ -1813,21 +1813,53 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
         } catch (e) { /* silent */ }
       }
 
-      // Part 106c: persist attachments on the last stored agent message
+      // Part 106c: persist attachments on the last stored agent message.
+      // Part 106d: if the LLM returned no text after a tool call, no
+      // agent bubble exists -- create one so the image has a home.
       if (lastAttachments && lastAttachments.length) {
         try {
           var _ss = getSessions();
           var _sid = getActiveId();
-          var _sess = _ss[_sid];
-          if (_sess && _sess.messages && _sess.messages.length) {
-            for (var _i = _sess.messages.length - 1; _i >= 0; _i--) {
-              if (_sess.messages[_i].role === 'agent') {
-                _sess.messages[_i].attachments = lastAttachments;
-                break;
-              }
-            }
-            saveSessions(_ss);
+          if (!_ss[_sid]) {
+            _ss[_sid] = { id: _sid, title: 'New chat',
+                          created: Date.now(), messages: [] };
           }
+          var _sess = _ss[_sid];
+          if (!_sess.messages) _sess.messages = [];
+
+          // Ensure agent bubble exists in DOM so we can attach image
+          var _ab = ensureBubble();
+          // If the agent bubble has no text, add a placeholder so the
+          // session survives reload with a visible assistant message.
+          if (!agentText) {
+            agentText = 'Image generated.';
+            try {
+              _ab.innerHTML = renderAgentHtml('<em>(image attached)</em>');
+            } catch (e) { /* silent */ }
+          }
+
+          // Find/create the agent message that corresponds to this turn
+          var _last = _sess.messages.length
+                      ? _sess.messages[_sess.messages.length - 1] : null;
+          if (_last && _last.role === 'agent'
+              && (!_last.text || _last.text === agentText)) {
+            _last.attachments = lastAttachments;
+            if (!_last.text) _last.text = agentText;
+          } else if (_last && _last.role === 'agent') {
+            // old agent message from previous turn -- don't overwrite;
+            // create a fresh message instead
+            _sess.messages.push({
+              role: 'agent', text: agentText,
+              ts: Date.now(), attachments: lastAttachments
+            });
+          } else {
+            // last is user (or session empty) -- append a new agent msg
+            _sess.messages.push({
+              role: 'agent', text: agentText,
+              ts: Date.now(), attachments: lastAttachments
+            });
+          }
+          saveSessions(_ss);
         } catch (e) { /* silent */ }
       }
 
