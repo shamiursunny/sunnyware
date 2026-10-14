@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-14, Part 91)
+## Current state (last session: 2026-10-14, Part 95b)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -243,6 +243,30 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • ::before prefix 'BUDGET LIMIT:' (ASCII-only, cp1252 safe)
   • Verified live: 90k-char prompt renders amber bubble with label
   • Smoke test: scripts/smoke_test_part91.py (8 checks)
+- Professional HTML /about page (Parts 92, 92b, 92c):
+  • Was raw JSON dump -> now styled HTML matching WebUI dark theme
+  • src/sunnyware/static/about.html (7.6 KB, inline CSS, no CDN)
+  • Hero with gradient S mark, version + license badges, 4-card grid
+  • Responsive: 4 cards desktop -> stacked mobile
+  • meta.py /about returns HTMLResponse with %%KEY%% substitution
+  • Part 92b: fixed HF crash (missing top-level HTMLResponse import)
+  • Part 92c: smoke test AST-verifies top-level import (not substring)
+  • Smoke test: scripts/smoke_test_part92.py (20 checks)
+- Professional WebUI redesign (Parts 93, 93b, 94, 95, 95b):
+  • Part 93: header redesign — gradient S brand mark, session pill
+    with green dot, icon buttons, overflow dropdown menu
+  • Part 93b: paperclip moved INSIDE composer (ChatGPT-style),
+    input padding-left 46px, id='upload' preserved
+  • Part 94: doc count badge = just the number (15px circle),
+    no 'docs: N' label; overflow button always visible
+  • Part 95: overflow menu moved to sidebar bottom-left, opens
+    UPWARD ('⚙ Settings & more'); header stripped to just
+    provider pill; removed redundant + and ... from header
+  • Part 95b: null-safe clearBtn lookup (JS crash fix)
+  • Full SVG icons, no CDN, no emoji
+  • Responsive: brand name hides <760px, session pill <480px,
+    menu label hides <640px
+  • Smoke test: scripts/smoke_test_part93.py (52 checks)
 
 
 ### RAG over documents
@@ -285,7 +309,7 @@ When running pre_push_check.py, if HF push times out, retry
 
 ## What's next (priority order)
 1. Monitor /api/providers/status over next few days — 429s should
-   now be rare because of Parts 87-91 token economy fixes.
+   now be rare because of Parts 87-95b token economy fixes.
 2. NVIDIA NIM integration — pending support verification
 3. Future: exact token counts via llm.py usage data (currently ~4
    chars/token heuristic; over-counts by ~2x on long prompts but
