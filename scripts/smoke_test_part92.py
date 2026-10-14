@@ -39,6 +39,22 @@ check("meta.py uses response_class=HTMLResponse on /about",
 check("meta.py reads about.html", "about.html" in meta_src)
 check("meta.py loops placeholders", "for k, v in replacements.items()" in meta_src)
 
+# Part 92b: STRICT top-level import check (a function-local import isn't
+# enough -- line 47's response_class=HTMLResponse runs at module load)
+import ast as _ast
+try:
+    _tree = _ast.parse(meta_src)
+    _top_htmlresp = any(
+        isinstance(n, _ast.ImportFrom)
+        and n.module == "fastapi.responses"
+        and any(a.name == "HTMLResponse" for a in n.names)
+        and n.col_offset == 0
+        for n in _tree.body
+    )
+    check("HTMLResponse imported at TOP LEVEL (not function-local)", _top_htmlresp)
+except Exception as e:
+    check("HTMLResponse imported at TOP LEVEL", False, str(e))
+
 # 5. No raw JSON about()
 check("old JSON about() removed",
       '"project": "sunnyware",\n        "version": meta.PROJECT_VERSION' not in meta_src)
