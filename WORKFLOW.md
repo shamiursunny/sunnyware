@@ -537,3 +537,22 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Verified live: 30k chars -> openrouter (Groq auto-skipped)
 - Smoke test: scripts/smoke_test_part99.py (17 checks)
 - Commit: 20ed50b
+
+## Parts 100 + 100b — Auto-learn provider limits (2026-10-15)
+- New module: src/sunnyware/provider_limits.py
+- On 413: learn_limit(name, sent_tokens) -> max(500, sent - 200)
+- Never raises existing lower limit; persists to disk
+- Storage path resolution (Part 100b):
+  1. SUNNYWARE_DATA_DIR
+  2. /data (HF persistent bucket, POSIX only)
+  3. ./data
+- Verified: learned={'groq': 8403} survived HF restart at
+  /data/provider_limits.json
+- providers.py: applies learned limits (env override > learned < default)
+- llm.py: _is_too_large_error() detects 413, marks cooldown 60s, learns,
+  continues to next provider
+- Debug endpoints:
+  GET  /api/providers/limits
+  POST /api/providers/limits/reset  {name} | {all: true}
+- Smoke test: scripts/smoke_test_part100.py (44 checks)
+- Commits: 91bf676 (100), ad38fcf (100b)

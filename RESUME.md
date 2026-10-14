@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 99)
+## Current state (last session: 2026-10-15, Part 100b)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -322,6 +322,27 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • Fixes earlier 'empty LLM response' on 30k-char prompts
   • Verified live: 30k chars -> openrouter (Groq auto-skipped)
   • Smoke test: scripts/smoke_test_part99.py (17 checks)
+- Auto-learn provider limits (Parts 100 + 100b):
+  • New module: src/sunnyware/provider_limits.py
+  • On 413 (or 'request too large'), learns actual limit from
+    tokens just sent — steps down 200, clamps to 500 minimum
+  • Never raises an existing lower limit
+  • Storage path (Part 100b):
+    1. SUNNYWARE_DATA_DIR env (explicit override)
+    2. /data HF persistent bucket — POSIX only (os.name == 'posix')
+    3. ./data (local dev)
+  • Persists to provider_limits.json — verified surviving HF restart
+  • Precedence: env override > learned < default (uses tighter)
+  • llm.py: _is_too_large_error() detects 413, 'request too large',
+    'payload too large', 'context length', 'maximum context',
+    'too many tokens'
+  • Part 100b: observable writes (returns bool, logs failures)
+  • Debug endpoints:
+    GET  /api/providers/limits         — diagnostics
+    POST /api/providers/limits/reset   — {name: 'groq'} or {all: true}
+  • Verified live: learned={'groq': 8403} persisted at
+    /data/provider_limits.json on HF
+  • Smoke test: scripts/smoke_test_part100.py (44 checks)
 
 
 ### RAG over documents

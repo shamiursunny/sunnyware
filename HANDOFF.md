@@ -844,3 +844,23 @@ for a future session).
 - NEW: scripts/smoke_test_part99.py (17 checks)
 - HEAD: 20ed50b
 - NEXT: monitor 429s; NVIDIA NIM; video gen; TTS; learn real limits
+
+## 2026-10-15 — Parts 100 + 100b
+- Auto-learn provider prompt limits from 413 errors
+- New module: provider_limits.py
+- learn_limit(name, sent_tokens) -> max(500, sent - 200)
+- Persisted to /data/provider_limits.json (HF bucket)
+- POSIX-only /data detection (Windows falls back to ./data)
+- Observable writes (returns bool, logs failures, verifies round-trip)
+- Precedence: env > learned (if lower) > hardcoded default
+- llm.py: _is_too_large_error() + learn call + 60s cooldown
+- Debug endpoints:
+  GET  /api/providers/limits
+  POST /api/providers/limits/reset
+- NEW: scripts/smoke_test_part100.py (44 checks)
+- Verified: learned={'groq': 8403} persisted across HF restart
+- HEAD: ad38fcf
+- NEXT: empty-response handling; NVIDIA NIM; TTS
+- KNOWN ISSUE: provider returning ok=True with empty content returns
+  "Agent failed" instead of trying next provider (surfaced during Part
+  100 test when Groq 413'd). Deferred to a future part.
