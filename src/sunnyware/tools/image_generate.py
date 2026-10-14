@@ -38,7 +38,11 @@ class ImageGenerateTool:
         "IMPORTANT: Call this tool EXACTLY ONCE per user request. The free "
         "tier is rate-limited to 1 request per 15 seconds, so a second "
         "call within that window will fail. Do not generate variations "
-        "unless the user explicitly asks for multiple images."
+        "unless the user explicitly asks for multiple images. "
+        "After calling this tool, write a SHORT 1-2 sentence "
+        "description of what was generated. Do NOT include base64 "
+        "data, data URIs, or markdown image syntax in your reply -- "
+        "the WebUI renders the image automatically from the tool result."
     )
     parameters = {
         "prompt": {

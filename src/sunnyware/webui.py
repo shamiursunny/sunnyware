@@ -196,6 +196,7 @@ HTML = """<!DOCTYPE html>
   .msg.agent h1 { font-size: var(--fs-xl); }
   .msg.agent h2 { font-size: var(--fs-lg); }
   .msg.agent h3 { font-size: var(--fs-base); }
+  .msg-image { display: block; max-width: min(560px, 90%); border-radius: 12px; margin: 10px 0; box-shadow: 0 6px 20px rgba(0,0,0,0.35); animation: msgIn 0.28s var(--ease); }
   .msg.agent ul, .msg.agent ol { margin: var(--sp-1) 0 var(--sp-1) var(--sp-4); padding: 0; }
   .msg.agent li { margin: 2px 0; }
   .msg.agent a { color: var(--link); }
@@ -1698,6 +1699,18 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
               const toolName = data.tool || '?';
               const proto = data.protocol ? (' (' + data.protocol + ')') : '';
               addMsg('[tool] ' + toolName + proto, 'step');
+            } else if (type === 'tool_result') {
+              // Part 98c: render image_base64 results inline
+              const _r = data.result || {};
+              if (_r.image_base64 && _r.image_format) {
+                const _img = document.createElement('img');
+                _img.src = 'data:image/' + _r.image_format + ';base64,' + _r.image_base64;
+                _img.className = 'msg-image';
+                _img.alt = (_r.prompt || _r.title || 'generated image').slice(0, 120);
+                _img.loading = 'lazy';
+                chat.appendChild(_img);
+                chat.scrollTop = chat.scrollHeight;
+              }
             } else if (type === 'budget_exceeded') {
               budgetExceeded = true;  // Part 91: style the final bubble
             } else if (type === 'error') {
