@@ -801,3 +801,18 @@ for a future session).
   routes to OpenRouter/Gemini
 - HEAD: ae65d27
 - NEXT: monitor 429s; NVIDIA NIM; optional long-prompt routing tweak
+
+## 2026-10-14 — Parts 97 + 97b
+- Pollinations AI added as 4th fallback provider (free tier)
+- Base URL: https://text.pollinations.ai/openai (OpenAI-compatible)
+- Model: 'openai' (GPT-OSS-20b); fallbacks registered in resolver
+- HF Space config:
+  - LLM_PROVIDERS = variable (was colliding with secret)
+  - POLLINATIONS_* = secrets
+- LIVE PROOF: 'POLLINATIONS WORKS' via /api/agent/run with
+  provider=pollinations, iterations=1
+- NEW: scripts/smoke_test_part97.py (10 checks)
+- LESSON: LLM_PROVIDERS on HF must be a variable, not a secret --
+  duplicate name -> 'Collision on variables and secrets names' -> crash
+- HEAD: 97d7123
+- NEXT: monitor status; NVIDIA NIM; optional Pollinations image gen tool

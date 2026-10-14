@@ -498,3 +498,16 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
   the orchestrator's provider-failover handles it
 - Smoke test: scripts/smoke_test_part96.py (13 checks)
 - Commits: b9342d4 (96), ae65d27 (96b)
+
+## Parts 97 + 97b — Pollinations AI fallback provider (2026-10-14)
+- Added Pollinations as 4th provider (after groq, gemini, openrouter)
+- Free anonymous tier, no API key needed (dummy 'pollinations')
+- Base URL: https://text.pollinations.ai/openai (OpenAI-compatible)
+- Model: 'openai' (GPT-OSS-20b class); fallbacks in model_resolver.py
+- HF Space config managed via huggingface_hub API:
+  - LLM_PROVIDERS as VARIABLE (not secret -- fixes collision)
+  - POLLINATIONS_BASE_URL / API_KEY / MODEL as secrets
+- LIVE PROOF: 'POLLINATIONS WORKS' returned with provider=pollinations
+- Note: developer's VPN DNS-blocks pollinations.ai; HF cloud reaches it
+- Smoke test: scripts/smoke_test_part97.py (10 checks)
+- Commits: 46a5a25 (97), 97d7123 (97b)

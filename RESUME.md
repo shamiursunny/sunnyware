@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-14, Part 96b)
+## Current state (last session: 2026-10-14, Part 97b)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -277,6 +277,21 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
     make 8000 too tight; 12k-char prompt tripped at 10,022 real)
   • Verified: 12k prompt -> tokens_used 10022, budget_exceeded True
   • Smoke test: scripts/smoke_test_part96.py (13 checks)
+- Pollinations AI fallback provider (Parts 97 + 97b):
+  • 4th provider after groq, gemini, openrouter
+  • Free anonymous tier, no API key (dummy 'pollinations')
+  • Base URL: https://text.pollinations.ai/openai (OpenAI-compat)
+  • Model: 'openai' (GPT-OSS-20b class) with fallbacks
+    (gemini, mistral, deepseek, llama)
+  • Rate limit: 1 req/15s anonymous — last-resort fallback only
+  • Files: model_resolver.py PREFERENCES, .env.example
+  • HF Space secrets: LLM_PROVIDERS (variable, not secret!),
+    POLLINATIONS_BASE_URL / API_KEY / MODEL
+  • Gotcha: LLM_PROVIDERS must be a VARIABLE not SECRET on HF
+    (collision error 'Collision on variables and secrets names')
+  • Verified live: 'POLLINATIONS WORKS' returned with
+    provider=pollinations, iterations=1
+  • Smoke test: scripts/smoke_test_part97.py (10 checks)
 
 
 ### RAG over documents
