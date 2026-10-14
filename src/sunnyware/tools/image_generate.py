@@ -34,7 +34,11 @@ class ImageGenerateTool:
         "generate, create, illustrate, or visualize something as a picture. "
         "Returns base64 image data that renders inline in the chat. "
         "Models: flux (default, best quality), turbo (fast), gptimage, "
-        "qwen-image, kontext, nanobanana."
+        "qwen-image, kontext, nanobanana. "
+        "IMPORTANT: Call this tool EXACTLY ONCE per user request. The free "
+        "tier is rate-limited to 1 request per 15 seconds, so a second "
+        "call within that window will fail. Do not generate variations "
+        "unless the user explicitly asks for multiple images."
     )
     parameters = {
         "prompt": {
