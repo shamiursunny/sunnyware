@@ -451,6 +451,52 @@ async def chat(
         else:
             p.mark_cooldown(10.0)
 
+    # Part 102: if every provider failed on this pass, consider one
+    # retry. Cooldowns are transient (10-60s); if a provider will be
+    # available within 20s, wait briefly and recurse once.
+    if _retry_depth == 0:
+        # Reload so we see updated cooldown state
+        try:
+            from . import providers as _prov_mod
+            _fresh = _prov_mod.load_providers(reload=True)
+        except Exception:
+            _fresh = provs
+
+        _cooling = [p for p in _fresh if p.is_cooling()]
+        _ready = [p for p in _fresh if not p.is_cooling()]
+        _min_cool = min(
+            (p.cooldown_remaining() for p in _cooling),
+            default=999.0,
+        )
+        print(
+            f"[llm.chat] all providers failed (last: {last_err!r}); "
+            f"cooling={len(_cooling)} ready={len(_ready)} "
+            f"min_cool={_min_cool:.1f}s retry_depth={_retry_depth}",
+            flush=True,
+        )
+
+        if _min_cool <= 20.0 and not _ready:
+            # Wait a short bit; cap at 8s so we never stall the request
+            _wait = min(_min_cool + 0.5, 8.0)
+            try:
+                from . import metrics as _m
+                _m.incr_labeled("llm_request_retried", "once")
+            except Exception:
+                pass
+            print(f"[llm.chat] retrying once after {_wait:.1f}s wait",
+                  flush=True)
+            await asyncio.sleep(_wait)
+            # Recurse with _retry_depth=1 so we never retry again
+            return await chat(
+                prompt,
+                model=model,
+                system=system,
+                history=history,
+                tools=tools,
+                timeout=timeout,
+                _retry_depth=1,
+            )
+
     return {
         "ok": False,
         "error": "all providers failed; last: " + (last_err or "unknown"),
