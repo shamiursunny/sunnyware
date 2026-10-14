@@ -3,7 +3,7 @@
 """Root, about, and health endpoints."""
 
 from fastapi import APIRouter
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 
 from .. import meta
 from ..runtime import state, ensure_pool
@@ -598,6 +598,41 @@ async def providers_metrics():
                 "provider_limits": limits_diag,
             },
         }
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+# ═══ Part 106: serve stored image attachments ═══
+
+@router.get("/api/attachments/{att_id}.{ext}")
+async def serve_attachment(att_id: str, ext: str):
+    """Serve a previously-saved attachment from the /data bucket."""
+    try:
+        from .. import attachments as _att
+        p = _att.resolve_path(att_id, ext)
+        if p is None:
+            return JSONResponse({"error": "not found"}, status_code=404)
+        # Long cache so the browser doesn't refetch on every scroll
+        return FileResponse(
+            str(p),
+            media_type=f"image/{'jpeg' if ext.lower() in ('jpg','jpeg') else ext.lower()}",
+            headers={"Cache-Control": "public, max-age=31536000, immutable"},
+        )
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.get("/api/attachments/stats")
+async def attachments_stats():
+    """Diagnostics for the attachments store."""
+    try:
+        from .. import attachments as _att
+        return _att.stats()
     except Exception as e:
         return JSONResponse(
             {"error": f"{type(e).__name__}: {e}"},

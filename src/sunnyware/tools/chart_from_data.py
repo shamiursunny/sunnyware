@@ -244,10 +244,25 @@ class ChartFromDataTool:
         if len(raw) > _MAX_CHART_BYTES:
             return {"error": "chart too large even at low DPI"}
 
-        return {
-            "image_base64": base64.b64encode(raw).decode("ascii"),
+        b64 = base64.b64encode(raw).decode("ascii")
+
+        # Part 106: persist attachment
+        attachment = None
+        try:
+            from .. import attachments as _att
+            attachment = _att.save_base64(b64, "png")
+        except Exception:
+            attachment = None
+
+        out = {
+            "image_base64": b64,
             "image_format": "png",
             "image_bytes": len(raw),
             "chart_type": ctype,
             "rows_plotted": len(values),
         }
+        if attachment:
+            out["attachment_url"] = attachment["url"]
+            out["attachment_id"] = attachment["id"]
+            out["attachment_ext"] = attachment["ext"]
+        return out

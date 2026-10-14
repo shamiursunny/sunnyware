@@ -16,6 +16,23 @@ from .. import llm as llm_client
 from .. import orchestrator
 from .. import planner
 
+# Part 106c: strip broken base64 markdown before writing to history.
+# The LLM tries to embed images as ![...](data:image/...,base64,<data>)
+# but base64 is truncated to "[image: N bytes base64]" before reaching
+# the model, so the markdown link is unusable. We render images from
+# the 'attachments' field instead.
+import re as _re
+_B64_MD_RE = _re.compile(
+    r'!\[[^\]]*\]\(data:image/[^)]*\[image: \d+ bytes base64\]\)'
+)
+
+
+def _strip_broken_b64_md(s: str) -> str:
+    if not s:
+        return s
+    return _B64_MD_RE.sub('', s).strip()
+
+
 
 router = APIRouter()
 
@@ -75,10 +92,11 @@ async def run_agent(req: Request):
             await memory_store.log_event(
                 session_uuid, "assistant_message",
                 {
-                    "content": agent_result.get("answer", ""),
+                    "content": _strip_broken_b64_md(agent_result.get("answer", "")),
                     "steps_count": len(agent_result.get("steps", [])),
                     "iterations": agent_result.get("iterations", 0),
                     "model": model or (state["config"].llm_model if state["config"] else "unknown"),
+                    "attachments": agent_result.get("attachments") or [],
                 },
             )
         else:
@@ -108,6 +126,7 @@ async def run_agent(req: Request):
             "provider": agent_result.get("provider"),
             "budget_exceeded": agent_result.get("budget_exceeded", False),
             "tokens_used": agent_result.get("tokens_used"),
+            "attachments": agent_result.get("attachments") or [],
         },
         "latency_ms": total_latency_ms,
         "served_by": "sunnyware",
@@ -155,7 +174,7 @@ async def run_agent_stream(req: Request):
             if session_uuid and full_text:
                 await memory_store.log_event(
                     session_uuid, "assistant_message",
-                    {"content": full_text, "model": model or "default", "streaming": True},
+                    {"content": _strip_broken_b64_md(full_text), "model": model or "default", "streaming": True, "attachments": []},
                 )
             try:
                 from ..llm import get_last_stream_provider as _glp
@@ -278,9 +297,10 @@ async def agent_stream(req: Request):
                         session_uuid,
                         "assistant_message",
                         {
-                            "content": result.get("answer", ""),
+                            "content": _strip_broken_b64_md(result.get("answer", "")),
                             "mode": "stream-orch",
                             "steps_count": len(result.get("steps", [])),
+                            "attachments": result.get("attachments") or [],
                         },
                     )
                 else:
@@ -291,6 +311,7 @@ async def agent_stream(req: Request):
                     )
             await queue.put({"type": "final", "ok": result.get("ok", False),
                              "answer": result.get("answer", ""),
+                             "attachments": result.get("attachments") or [],
                              "error": result.get("error"),
                              "iterations": result.get("iterations", 1),
                              "steps_count": len(result.get("steps", [])),

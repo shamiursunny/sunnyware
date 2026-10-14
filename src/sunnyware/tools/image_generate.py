@@ -140,8 +140,18 @@ class ImageGenerateTool:
         elif raw[:4] == b"RIFF":
             fmt = "webp"
 
-        return {
-            "image_base64": base64.b64encode(raw).decode("ascii"),
+        b64 = base64.b64encode(raw).decode("ascii")
+
+        # Part 106: persist attachment so it survives refresh / reload
+        attachment = None
+        try:
+            from .. import attachments as _att
+            attachment = _att.save_base64(b64, fmt)
+        except Exception:
+            attachment = None
+
+        out = {
+            "image_base64": b64,
             "image_format": fmt,
             "image_bytes": len(raw),
             "model": model,
@@ -149,3 +159,8 @@ class ImageGenerateTool:
             "width": width,
             "height": height,
         }
+        if attachment:
+            out["attachment_url"] = attachment["url"]
+            out["attachment_id"] = attachment["id"]
+            out["attachment_ext"] = attachment["ext"]
+        return out

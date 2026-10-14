@@ -355,6 +355,7 @@ async def run_agent(
     _seen_calls = {}          # Part 88c: tool_name -> list[(args, result)]
     _dup_streak = 0
     _tokens_used = 0          # Part 90: cumulative tokens
+    _attachments = []         # Part 106: list of saved image refs
     # Part 96: fixed overhead to subtract from real usage so the
     # budget guard measures conversational cost, not tool schemas.
     _tools_overhead = 0
@@ -433,6 +434,7 @@ async def run_agent(
                 "provider": _last_provider,
                 "budget_exceeded": True,
                 "tokens_used": _tokens_used,
+                "attachments": _attachments,
             }
 
         if native_calls:
@@ -464,6 +466,16 @@ async def run_agent(
                         await _emit(on_event, {"type": "tool_call", "tool": tool_name, "args": tool_args, "protocol": "native"})
                         tool_result = await _execute_tool(tool_name, tool_args)
                         _record_call(tool_name, tool_args, tool_result)
+                        # Part 106: capture any attachment URL
+                        _aurl = (tool_result or {}).get("attachment_url")
+                        if _aurl:
+                            _attachments.append({
+                                "url": _aurl,
+                                "id": (tool_result or {}).get("attachment_id"),
+                                "ext": (tool_result or {}).get("attachment_ext"),
+                                "kind": "image",
+                                "tool": tool_name,
+                            })
                         await _emit(on_event, {"type": "tool_result", "tool": tool_name, "result": tool_result})
                 steps.append({
                     "iteration": iteration + 1,
@@ -498,6 +510,7 @@ async def run_agent(
                     "steps": steps,
                     "iterations": iteration + 1,
                     "provider": _last_provider,
+                "attachments": _attachments,
                 }
             continue
 
@@ -522,6 +535,16 @@ async def run_agent(
                 await _emit(on_event, {"type": "tool_call", "tool": tool_name, "args": tool_args, "protocol": "prompt-json"})
                 tool_result = await _execute_tool(tool_name, tool_args)
                 _record_call(tool_name, tool_args, tool_result)
+                # Part 106: capture attachment URL from prompt-json path
+                _aurl = (tool_result or {}).get("attachment_url")
+                if _aurl:
+                    _attachments.append({
+                        "url": _aurl,
+                        "id": (tool_result or {}).get("attachment_id"),
+                        "ext": (tool_result or {}).get("attachment_ext"),
+                        "kind": "image",
+                        "tool": tool_name,
+                    })
                 await _emit(on_event, {"type": "tool_result", "tool": tool_name, "result": tool_result})
                 feedback = ("Tool result: "
                             + json.dumps(_truncate_tool_result(tool_result))
@@ -542,6 +565,7 @@ async def run_agent(
                     "steps": steps,
                     "iterations": iteration + 1,
                     "provider": _last_provider,
+                "attachments": _attachments,
                 }
             continue
 
@@ -652,6 +676,7 @@ async def run_agent(
                         "iterations": MAX_ITERATIONS,
                         "forced_summary": True,
                         "provider": _last_provider,
+                    "attachments": _attachments,
                     }
         except Exception:
             pass
@@ -663,4 +688,5 @@ async def run_agent(
         "iterations": MAX_ITERATIONS,
         "truncated": True,
         "provider": _last_provider,
+    "attachments": _attachments,
     }

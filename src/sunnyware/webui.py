@@ -1381,7 +1381,14 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
         if (e.event_type === 'user_message') {
           messages.push({ role: 'user', text: content, ts: ts });
         } else if (e.event_type === 'assistant_message') {
-          messages.push({ role: 'agent', text: content, ts: ts });
+          // Part 106c: strip broken base64 markdown + carry attachments
+          var _clean = content.replace(
+            /!\[[^\]]*\]\(data:image\/[^)]*\[image: \d+ bytes base64\]\)/g,
+            ''
+          ).trim();
+          var _atts = (payload && payload.attachments) || [];
+          messages.push({ role: 'agent', text: _clean, ts: ts,
+                          attachments: _atts });
         }
       }
       return messages;
@@ -1460,7 +1467,21 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
       addMsg('Welcome to sunnyware. Ask me anything.', 'step', false);
     } else {
       for (const m of sess.messages) {
-        addMsg(m.text, m.role, false);
+        const _bubble = addMsg(m.text, m.role, false);
+        // Part 106c: render stored attachments below the bubble
+        if (m.attachments && m.attachments.length && _bubble) {
+          for (const a of m.attachments) {
+            if (!a || !a.url) continue;
+            try {
+              const _img = document.createElement('img');
+              _img.src = a.url;
+              _img.className = 'msg-image';
+              _img.loading = 'lazy';
+              _img.alt = 'generated image';
+              _bubble.insertAdjacentElement('afterend', _img);
+            } catch (err) { /* silent */ }
+          }
+        }
       }
     }
     renderSidebar();
@@ -1658,6 +1679,7 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     let streamError = '';  // Part 88: surface backend error instead of blank bubble
     let budgetExceeded = false;  // Part 91: mark bubble if budget guard tripped
     let lastProvider = '';       // Part 105: track provider for the trailing chip
+    let lastAttachments = [];    // Part 106c: track attachment refs for storage
 
     function ensureBubble() {
       if (!agentBubble) {
@@ -1747,6 +1769,9 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
             } else if (type === 'final') {
               // Tool-aware endpoint: final carries assembled answer + provider
               const ans = data.answer || '';
+              if (data.attachments && data.attachments.length) {
+                lastAttachments = data.attachments;  // Part 106c
+              }
               if (data.budget_exceeded) budgetExceeded = true;  // Part 91
               if (ans) {
                 agentText = ans;
@@ -1785,6 +1810,24 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
           _chip.textContent = 'via ' + lastProvider
                               + ' · ' + (ms / 1000).toFixed(1) + 's';
           agentBubble.insertAdjacentElement('afterend', _chip);
+        } catch (e) { /* silent */ }
+      }
+
+      // Part 106c: persist attachments on the last stored agent message
+      if (lastAttachments && lastAttachments.length) {
+        try {
+          var _ss = getSessions();
+          var _sid = getActiveId();
+          var _sess = _ss[_sid];
+          if (_sess && _sess.messages && _sess.messages.length) {
+            for (var _i = _sess.messages.length - 1; _i >= 0; _i--) {
+              if (_sess.messages[_i].role === 'agent') {
+                _sess.messages[_i].attachments = lastAttachments;
+                break;
+              }
+            }
+            saveSessions(_ss);
+          }
         } catch (e) { /* silent */ }
       }
 
