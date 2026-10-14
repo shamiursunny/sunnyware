@@ -256,6 +256,18 @@ def _estimate_prompt_tokens(prompt, system, history) -> int:
     return max(1, total // 4)
 
 
+def _is_empty_response(r: dict) -> bool:
+    """Part 101: True if a provider returned ok=True but with empty
+    content AND no tool calls. Treat as failure so the next provider
+    gets a chance. When the LLM is expected to make a tool call, the
+    tool_calls field will be non-empty, so this check is safe."""
+    if not isinstance(r, dict) or not r.get("ok"):
+        return False
+    content = (r.get("content") or "").strip()
+    tool_calls = r.get("tool_calls") or []
+    return (not content) and (not tool_calls)
+
+
 def _is_too_large_error(err: str) -> bool:
     """Part 100: detect HTTP 413 / 'request too large' / context overflow."""
     e = (err or "").lower()
@@ -357,6 +369,18 @@ async def chat(
                 prompt=prompt, model=p.model, system=system,
                 history=history, tools=tools, timeout=max(timeout, 120.0),
             )
+            if r.get("ok") and _is_empty_response(r):
+                # Part 101: empty response from local model — try next
+                _err = "empty LLM response (no content, no tool calls)"
+                last_err = _err
+                p.record_failure(_err)
+                p.mark_cooldown(10.0)
+                try:
+                    from . import metrics as _m
+                    _m.incr_labeled("llm_provider_empty_response", p.name)
+                except Exception:
+                    pass
+                continue
             if r.get("ok"):
                 p.record_success()
                 return r
@@ -378,6 +402,20 @@ async def chat(
         )
         r["provider"] = p.name
         r["resolved_model"] = _resolved.get(p.name)
+
+        # Part 101: treat empty responses as failures so we try the
+        # next provider instead of returning ok=True with no content.
+        if r.get("ok") and _is_empty_response(r):
+            _err = "empty LLM response (no content, no tool calls)"
+            last_err = _err
+            p.record_failure(_err)
+            p.mark_cooldown(15.0)
+            try:
+                from . import metrics as _m
+                _m.incr_labeled("llm_provider_empty_response", p.name)
+            except Exception:
+                pass
+            continue
 
         if r.get("ok"):
             p.record_success()
