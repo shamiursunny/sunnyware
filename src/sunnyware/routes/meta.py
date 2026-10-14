@@ -444,3 +444,54 @@ async def providers_smoke():
         "failed": len(out) - passed,
         "results": out,
     }
+
+# ═══ Part 100b: provider limits inspection + admin ═══
+
+@router.get("/api/providers/limits")
+async def providers_limits():
+    """Show learned provider prompt limits + storage diagnostics."""
+    try:
+        from .. import provider_limits as _pl
+        from .. import providers as _prov
+        diag = _pl.debug_info()
+        # Also merge live provider values
+        live = []
+        for p in _prov.load_providers():
+            live.append({
+                "name": p.name,
+                "max_prompt_tokens": p.max_prompt_tokens,
+            })
+        return {
+            "storage": diag,
+            "providers_live": live,
+        }
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.post("/api/providers/limits/reset")
+async def providers_limits_reset(payload: dict = None):
+    """Reset learned limits. Body: {"name": "groq"} or {"all": true}."""
+    try:
+        from .. import provider_limits as _pl
+        payload = payload or {}
+        if payload.get("all"):
+            ok = _pl.reset(None)
+            return {"ok": ok, "reset": "all"}
+        name = (payload.get("name") or "").strip()
+        if not name:
+            return JSONResponse(
+                {"error": "provide 'name' or 'all': true"},
+                status_code=400,
+            )
+        ok = _pl.reset(name)
+        return {"ok": ok, "reset": name}
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+

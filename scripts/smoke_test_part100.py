@@ -32,7 +32,7 @@ check("reset() defined", "def reset(" in pl_src)
 check("snapshot() defined", "def snapshot(" in pl_src)
 check("_LEARN_MARGIN used", "_LEARN_MARGIN" in pl_src)
 check("_LEARN_MIN used", "_LEARN_MIN" in pl_src)
-check("HF Space /data detection", "SPACE_ID" in pl_src and "/data" in pl_src)
+check("HF Space /data detection (POSIX guarded)", 'os.name == "posix"' in pl_src and '/data' in pl_src)
 
 # 3. Providers integration
 prov = (SRC / "providers.py").read_text(encoding="utf-8")
@@ -102,6 +102,44 @@ finally:
     except Exception:
         pass
     os.environ.pop("SUNNYWARE_DATA_DIR", None)
+
+# ═══ Part 100b additions ═══
+check("debug_info() defined", "def debug_info(" in pl_src)
+check("path_source() defined", "def path_source(" in pl_src)
+check("_probe_writable() defined", "def _probe_writable(" in pl_src)
+check("_resolve_limits_path() defined", "def _resolve_limits_path(" in pl_src)
+check("POSIX guard on /data", 'os.name == "posix"' in pl_src)
+check("write probe file name", ".sunnyware_write_probe" in pl_src)
+check("_save() returns bool", "def _save() -> bool" in pl_src)
+check("_save verifies roundtrip", "save verification mismatch" in pl_src)
+check("debug_info includes path_source",
+      '"path_source": path_source()' in pl_src)
+check("debug_info includes file_content",
+      'info["file_content"] = json.loads' in pl_src)
+
+# routes/meta.py endpoints
+meta_src = (SRC / "routes" / "meta.py").read_text(encoding="utf-8")
+check("GET /api/providers/limits endpoint",
+      '@router.get("/api/providers/limits")' in meta_src)
+check("POST /api/providers/limits/reset endpoint",
+      '@router.post("/api/providers/limits/reset")' in meta_src)
+check("reset endpoint accepts all=true",
+      'payload.get("all")' in meta_src)
+
+# Live debug_info call in this process
+try:
+    sys.path.insert(0, str(SRC.parent))
+    for mod in list(sys.modules):
+        if mod.startswith("sunnyware.provider_limits"):
+            del sys.modules[mod]
+    from sunnyware import provider_limits as pl2
+    diag = pl2.debug_info()
+    check("debug_info() returns dict", isinstance(diag, dict))
+    check("debug_info has 'path_source' key", "path_source" in diag)
+    check("debug_info has 'parent_writable' key", "parent_writable" in diag)
+    check("debug_info has 'learned' key", "learned" in diag)
+except Exception as e:
+    check("live debug_info() call", False, f"{type(e).__name__}: {e}")
 
 passed = sum(1 for _, ok, _ in checks if ok)
 total = len(checks)
