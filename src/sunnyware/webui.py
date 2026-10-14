@@ -910,36 +910,179 @@ footer { padding: 14px 20px 18px; }
   min-width: 42px;
   border-radius: 10px;
 }
+
+/* ═════ Part 93: professional header redesign ═════ */
+header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
+.brand {
+  display: inline-flex; align-items: center; gap: 9px;
+  margin: 0; font-size: 15px; font-weight: 700;
+  letter-spacing: -0.01em; color: var(--text); min-width: 0;
+}
+.brand-mark {
+  width: 26px; height: 26px; border-radius: 7px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2, #22d3ee));
+  color: #0a0a0b; font-weight: 800; font-size: 14px;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0; letter-spacing: 0;
+  box-shadow: 0 2px 10px rgba(74,222,128,0.22);
+}
+.brand-name { font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; }
+.session-pill {
+  display: inline-flex; align-items: center; gap: 7px;
+  margin-left: 6px; padding: 4px 11px; border-radius: 999px;
+  background: var(--bg-hover); border: 1px solid var(--border);
+  font-size: 12px; color: var(--text-dim);
+  max-width: 240px; min-width: 0;
+}
+.session-pill #sid {
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+}
+.session-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 8px rgba(74,222,128,0.65);
+  flex-shrink: 0;
+}
+.header-right { gap: 4px; }
+.icon-btn {
+  width: 36px; height: 36px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 9px; background: transparent; border: none;
+  color: var(--text-dim); cursor: pointer; position: relative;
+  text-decoration: none; padding: 0;
+  transition: background 0.14s ease, color 0.14s ease, transform 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.icon-btn:hover { background: var(--bg-hover); color: var(--text); }
+.icon-btn:active { transform: scale(0.94); }
+.icon-btn svg { display: block; }
+.icon-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.pill-badge {
+  position: absolute; top: 3px; right: 3px;
+  min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px;
+  background: var(--accent); color: #0a0a0b;
+  font-size: 10px; font-weight: 700; line-height: 16px; text-align: center;
+  border: 2px solid var(--bg-elev); box-sizing: content-box;
+}
+.pill-badge:empty { display: none; }
+.provider-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px; margin-right: 4px; border-radius: 999px;
+  background: rgba(74,222,128,0.08); border: 1px solid rgba(74,222,128,0.24);
+  color: var(--accent); font-size: 11px; font-weight: 500;
+  letter-spacing: 0.01em; white-space: nowrap;
+}
+.provider-pill:empty { display: none !important; }
+.provider-pill::before {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); box-shadow: 0 0 6px var(--accent); flex-shrink: 0;
+}
+.overflow-wrap { position: relative; }
+.overflow-panel {
+  position: absolute; top: calc(100% + 10px); right: 0;
+  min-width: 240px; background: var(--bg-elev);
+  border: 1px solid var(--border-2); border-radius: 12px; padding: 6px;
+  box-shadow: 0 20px 44px rgba(0,0,0,0.45), 0 0 0 1px rgba(255,255,255,0.02);
+  z-index: 1000; display: none; animation: menuIn 0.14s ease;
+}
+.overflow-wrap.open .overflow-panel,
+.overflow-panel.open { display: block; }
+@keyframes menuIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.overflow-head { padding: 8px 10px 6px; }
+.overflow-label {
+  font-size: 10px; font-weight: 600; letter-spacing: 0.09em;
+  text-transform: uppercase; color: var(--text-mute); margin-bottom: 3px;
+}
+.overflow-value {
+  font-size: 12.5px; color: var(--text-dim);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.overflow-item {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 10px; border-radius: 8px;
+  color: var(--text); font-size: 13px; font-weight: 500;
+  text-decoration: none; cursor: pointer;
+  background: none; border: none; width: 100%; text-align: left;
+  font-family: inherit;
+  transition: background 0.1s ease, color 0.1s ease;
+}
+.overflow-item:hover { background: var(--bg-hover); color: var(--text); }
+.overflow-item svg { color: var(--text-mute); flex-shrink: 0; transition: color 0.1s ease; }
+.overflow-item:hover svg { color: var(--accent); }
+.overflow-divider { height: 1px; background: var(--border); margin: 5px 4px; }
+.overflow-meta {
+  display: block; padding: 5px 10px 2px;
+  font-size: 11px; color: var(--text-mute);
+}
+.overflow-meta:empty { display: none; }
+@media (max-width: 760px) {
+  .brand-name { display: none; }
+  .session-pill { max-width: 140px; font-size: 11px; padding: 3px 9px; }
+}
+@media (max-width: 480px) {
+  .session-pill { display: none; }
+  .icon-btn { width: 34px; height: 34px; }
+}
+
 </style>
 </head>
 <body>
 <header>
   <div class="header-left">
     <button id="mobileMenuBtn" class="btn-icon" type="button" title="Menu" aria-label="Open menu">&#9776;</button>
-    <h1>sunnyware</h1>
+    <h1 class="brand">
+      <span class="brand-mark" aria-hidden="true">S</span>
+      <span class="brand-name">Sunnyware</span>
+    </h1>
+    <span class="session-pill" title="Current session">
+      <span class="session-dot" aria-hidden="true"></span>
+      <span id="sid">New chat</span>
+    </span>
   </div>
   <div class="header-right">
-    <div class="header-meta-desktop">
-      <span id="sid">session: ...</span>
-      <a href="/docs" target="_blank">API docs</a>
-      <a href="/about" target="_blank">about</a>
-      <a href="#" id="upload">&#128206; upload</a>
-      <a href="#" id="clear">new session</a>
-      <span class="badge" id="docCount">docs: &mdash;</span>
-      <span class="badge" id="providerBadge" title="Serving provider">via &mdash;</span>
+    <span id="providerBadge" class="provider-pill" title="Serving provider"></span>
+    <a href="#" id="upload" class="icon-btn" title="Upload files" aria-label="Upload files">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span class="pill-badge" id="docCount" aria-hidden="true"></span>
+    </a>
+    <a href="#" id="clear" class="icon-btn" title="New session" aria-label="New session">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </a>
+    <div class="overflow-wrap">
+      <button id="overflowMenuBtn" class="icon-btn" type="button" title="More" aria-label="More options">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+      </button>
+      <div class="overflow-panel" id="overflowPanel">
+        <div class="overflow-head">
+          <div class="overflow-label">Current session</div>
+          <div class="overflow-value" id="sidMobile">New chat</div>
+        </div>
+        <div class="overflow-divider"></div>
+        <a href="/about" target="_blank" rel="noopener" class="overflow-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+          <span>About</span>
+        </a>
+        <a href="/docs" target="_blank" rel="noopener" class="overflow-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span>API Documentation</span>
+        </a>
+        <div class="overflow-divider"></div>
+        <a href="#" id="uploadMobile" class="overflow-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <span>Upload files</span>
+        </a>
+        <a href="#" id="clearMobile" class="overflow-item">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>New session</span>
+        </a>
+        <span class="overflow-meta" id="docCountMobile" aria-hidden="true"></span>
+        <span class="overflow-meta" id="providerBadgeMobile" aria-hidden="true"></span>
+      </div>
     </div>
-    <button id="overflowMenuBtn" class="btn-icon" type="button" title="More" aria-label="More options">&#8943;</button>
   </div>
 </header>
-<div class="overflow-panel" id="overflowPanel">
-  <span id="sidMobile" style="color: var(--text-dim); font-size: var(--fs-sm); padding: 4px 12px;">session: ...</span>
-  <a href="/docs" target="_blank">&#128196; API docs</a>
-  <a href="/about" target="_blank">&#8505;&#65039; about</a>
-  <a href="#" id="uploadMobile">&#128206; upload file</a>
-  <a href="#" id="clearMobile">&#10133; new session</a>
-  <span class="badge" id="docCountMobile" style="margin: 4px 12px;">docs: &mdash;</span>
-  <span class="badge" id="providerBadgeMobile" style="margin: 4px 12px;">via &mdash;</span>
-</div>
 <input type="file" id="fileInput" multiple
        accept=".pdf,.docx,.txt,.md,.csv,.xlsx,.xls">
 <div id="usageModal" class="modal-overlay" style="display:none">
@@ -1089,7 +1232,7 @@ footer { padding: 14px 20px 18px; }
   }
 
   function renderSession() {
-    sidEl.textContent = 'session: ' + getSession();
+    sidEl.textContent = getSession();
   }
 
   // Part 38: Neon fallback (fetch history from DB if localStorage lost it)
