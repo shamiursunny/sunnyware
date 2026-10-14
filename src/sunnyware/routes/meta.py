@@ -44,19 +44,31 @@ async def root():
     }
 
 
-@router.get("/about")
+@router.get("/about", response_class=HTMLResponse)
 async def about():
-    return {
-        "project": "sunnyware",
-        "version": meta.PROJECT_VERSION,
-        "author": meta.AUTHOR_NAME,
-        "email": meta.AUTHOR_EMAIL,
-        "phone": meta.AUTHOR_PHONE,
-        "website": meta.AUTHOR_WEBSITE,
-        "github": meta.AUTHOR_GITHUB,
-        "copyright": meta.COPYRIGHT,
-        "license": meta.LICENSE_ID,
+    """Part 92: professional HTML about page (was raw JSON)."""
+    from pathlib import Path as _Path
+    _html_path = _Path(__file__).resolve().parent.parent / "static" / "about.html"
+    try:
+        html = _html_path.read_text(encoding="utf-8")
+    except Exception:
+        return HTMLResponse(
+            content="<h1>Sunnyware</h1><p>About page unavailable.</p>",
+            status_code=200,
+        )
+    replacements = {
+        "%%VERSION%%": meta.PROJECT_VERSION,
+        "%%AUTHOR%%": meta.AUTHOR_NAME,
+        "%%EMAIL%%": meta.AUTHOR_EMAIL,
+        "%%PHONE%%": meta.AUTHOR_PHONE,
+        "%%WEBSITE%%": meta.AUTHOR_WEBSITE,
+        "%%GITHUB%%": meta.AUTHOR_GITHUB,
+        "%%COPYRIGHT%%": meta.COPYRIGHT,
+        "%%LICENSE%%": meta.LICENSE_ID,
     }
+    for k, v in replacements.items():
+        html = html.replace(k, str(v))
+    return HTMLResponse(content=html)
 
 
 @router.get("/health/live")

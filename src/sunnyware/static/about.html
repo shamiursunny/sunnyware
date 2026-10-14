@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>About &middot; Sunnyware</title>
+<style>
+  :root {
+    --bg:        #0c0c0d;
+    --bg-elev:   #111113;
+    --bg-hover:  #1a1a1d;
+    --border:    rgba(255,255,255,0.07);
+    --border-2:  rgba(255,255,255,0.14);
+    --text:      #ededef;
+    --text-dim:  #a0a0a6;
+    --text-mute: #6a6a70;
+    --accent:    #4ade80;
+    --accent-2:  #22d3ee;
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+    --sp-1: 6px;
+    --sp-2: 10px;
+    --sp-3: 16px;
+    --sp-4: 24px;
+    --sp-5: 32px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    min-height: 100vh;
+    padding: var(--sp-5) var(--sp-4);
+    display: flex;
+    justify-content: center;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  .container {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-5);
+  }
+
+  /* ── Top bar ── */
+  .topbar {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: var(--r-md);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 13px;
+    text-decoration: none;
+    transition: border-color 0.15s ease, color 0.15s ease;
+  }
+  .back:hover { border-color: var(--border-2); color: var(--text); }
+
+  /* ── Hero ── */
+  .hero { text-align: center; padding: var(--sp-3) var(--sp-2) var(--sp-5); }
+  .brand-mark {
+    width: 56px; height: 56px;
+    margin: 0 auto var(--sp-4);
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 28px;
+    color: var(--bg);
+    box-shadow: 0 8px 24px rgba(74, 222, 128, 0.15);
+  }
+  .hero h1 {
+    font-size: clamp(28px, 5vw, 42px);
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    margin-bottom: var(--sp-3);
+  }
+  .badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: var(--sp-4);
+  }
+  .badge {
+    padding: 4px 11px;
+    border-radius: 999px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border-2);
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-dim);
+    letter-spacing: 0.02em;
+  }
+  .badge.accent {
+    color: var(--accent);
+    border-color: rgba(74, 222, 128, 0.35);
+    background: rgba(74, 222, 128, 0.08);
+  }
+  .tagline {
+    color: var(--text-dim);
+    font-size: clamp(14px, 1.6vw, 16px);
+    max-width: 620px;
+    margin: 0 auto;
+  }
+
+  /* ── Info grid ── */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--sp-3);
+  }
+  .card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--r-lg);
+    padding: var(--sp-4);
+    transition: border-color 0.15s ease;
+  }
+  .card:hover { border-color: var(--border-2); }
+  .card-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-mute);
+    margin-bottom: var(--sp-3);
+    padding-bottom: var(--sp-2);
+    border-bottom: 1px solid var(--border);
+  }
+  .card-value {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text);
+    word-break: break-word;
+  }
+  .card-value + .card-value { margin-top: var(--sp-2); }
+  .card-value.dim {
+    font-weight: 400;
+    color: var(--text-dim);
+    font-size: 13px;
+  }
+
+  /* ── Links inside cards ── */
+  .link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-2);
+    padding: 9px 0;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+    transition: color 0.12s ease;
+  }
+  .link:first-of-type { padding-top: 0; }
+  .link:last-of-type { border-bottom: none; padding-bottom: 0; }
+  .link:hover { color: var(--accent); }
+  .link .arrow {
+    color: var(--text-mute);
+    font-size: 12px;
+    transition: transform 0.15s ease, color 0.12s ease;
+  }
+  .link:hover .arrow {
+    color: var(--accent);
+    transform: translate(2px, -2px);
+  }
+
+  /* ── Footer ── */
+  .footer {
+    margin-top: var(--sp-4);
+    padding-top: var(--sp-4);
+    border-top: 1px solid var(--border);
+    text-align: center;
+    color: var(--text-mute);
+    font-size: 13px;
+    line-height: 1.8;
+  }
+  .footer .dot { color: var(--text-mute); padding: 0 8px; }
+
+  /* ── Responsive ── */
+  @media (max-width: 640px) {
+    body { padding: var(--sp-4) var(--sp-3); }
+    .hero { padding: var(--sp-2) 0 var(--sp-4); }
+    .brand-mark { width: 48px; height: 48px; font-size: 24px; }
+    .grid { grid-template-columns: 1fr; gap: var(--sp-3); }
+    .card { padding: var(--sp-3); }
+    .footer { font-size: 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; transform: none !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="topbar">
+      <a class="back" href="/ui">&#8592; Back to chat</a>
+    </div>
+
+    <header class="hero">
+      <div class="brand-mark">S</div>
+      <h1>Sunnyware</h1>
+      <div class="badges">
+        <span class="badge accent">v%%VERSION%%</span>
+        <span class="badge">%%LICENSE%%</span>
+      </div>
+      <p class="tagline">
+        Production-grade AI agent orchestrator &mdash; multi-provider LLM routing,
+        cross-session memory, tool-aware SSE streaming, RAG over uploaded docs,
+        and a sandboxed data-science workbench.
+      </p>
+    </header>
+
+    <section class="grid">
+
+      <div class="card">
+        <div class="card-label">Author</div>
+        <div class="card-value">%%AUTHOR%%</div>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Contact</div>
+        <a class="link" href="mailto:%%EMAIL%%">
+          <span>%%EMAIL%%</span>
+          <span class="arrow">&#8599;</span>
+        </a>
+        <a class="link" href="tel:%%PHONE%%">
+          <span>%%PHONE%%</span>
+          <span class="arrow">&#8599;</span>
+        </a>
+      </div>
+
+      <div class="card">
+        <div class="card-label">Links</div>
+        <a class="link" href="%%WEBSITE%%" target="_blank" rel="noopener">
+          <span>Website</span>
+          <span class="arrow">&#8599;</span>
+        </a>
+        <a class="link" href="%%GITHUB%%" target="_blank" rel="noopener">
+          <span>GitHub</span>
+          <span class="arrow">&#8599;</span>
+        </a>
+        <a class="link" href="/docs" target="_blank" rel="noopener">
+          <span>API Documentation</span>
+          <span class="arrow">&#8599;</span>
+        </a>
+        <a class="link" href="/ui">
+          <span>WebUI</span>
+          <span class="arrow">&#8594;</span>
+        </a>
+      </div>
+
+      <div class="card">
+        <div class="card-label">License</div>
+        <div class="card-value">%%LICENSE%%</div>
+        <div class="card-value dim">%%COPYRIGHT%%</div>
+      </div>
+
+    </section>
+
+    <footer class="footer">
+      <div>Built with FastAPI &middot; Powered by Sunnyware</div>
+      <div>&copy; 2026 %%AUTHOR%% &middot; All rights reserved.</div>
+    </footer>
+
+  </div>
+</body>
+</html>
