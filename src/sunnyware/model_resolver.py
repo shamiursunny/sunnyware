@@ -51,6 +51,13 @@ PREFERENCES = {
         "google/gemma-4-31b-it:free",
         "google/gemma-4-26b-a4b-it:free",
     ],
+    "pollinations": [
+        "openai",
+        "gemini",
+        "mistral",
+        "deepseek",
+        "llama",
+    ],
     "groq": [
         "qwen/qwen3.8-27b",
         "openai/gpt-oss-120b",
