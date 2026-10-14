@@ -14,6 +14,24 @@ from . import tools as tools_registry
 
 MAX_ITERATIONS = 3  # Part 88: lowered 7 -> 3 (was burning 6 LLM calls per message)
 
+# Part 90: per-request token budget guard
+MAX_REQUEST_TOKENS = 8000
+_BUDGET_MESSAGE = (
+    "Token budget reached ({used:,} / {cap:,} tokens). I stopped here "
+    "to protect your API quota. Try a shorter prompt, or split the "
+    "task into smaller steps."
+)
+
+def _estimate_tokens(*parts) -> int:
+    """Part 90: char-based token estimate. ~4 chars per token is a
+    safe universal heuristic across GPT/Gemini/Llama tokenizers."""
+    total = 0
+    for part in parts:
+        if part is None:
+            continue
+        total += len(part if isinstance(part, str) else str(part))
+    return max(1, total // 4)
+
 
 def _build_tools_schema() -> list:
     out = []
@@ -336,6 +354,7 @@ async def run_agent(
     _last_provider = None
     _seen_calls = {}          # Part 88c: tool_name -> list[(args, result)]
     _dup_streak = 0
+    _tokens_used = 0          # Part 90: cumulative estimated tokens
 
     def _find_duplicate(tool_name, args):
         """Subset/superset match: LLMs sometimes drop optional keys on
@@ -370,6 +389,35 @@ async def run_agent(
         content = (result.get("content") or "").strip()
         native_calls = result.get("tool_calls")
         _last_provider = result.get("provider") or _last_provider
+
+        # Part 90: cumulative token budget guard
+        _tokens_used += _estimate_tokens(
+            prompt, system_prompt, content,
+            "".join(str(m) for m in messages),
+            (str(tools_schema) if use_native_tools else ""),
+        )
+        if _tokens_used >= MAX_REQUEST_TOKENS:
+            _budget_text = _BUDGET_MESSAGE.format(
+                used=_tokens_used, cap=MAX_REQUEST_TOKENS
+            )
+            try:
+                await _emit(on_event, {
+                    "type": "budget_exceeded",
+                    "used": _tokens_used,
+                    "cap": MAX_REQUEST_TOKENS,
+                })
+            except Exception:
+                pass
+            return {
+                "ok": True,
+                "answer": _budget_text,
+                "content": _budget_text,
+                "steps": steps,
+                "iterations": iteration + 1,
+                "provider": _last_provider,
+                "budget_exceeded": True,
+                "tokens_used": _tokens_used,
+            }
 
         if native_calls:
             messages.append({
