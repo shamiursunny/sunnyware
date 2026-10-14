@@ -612,3 +612,21 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Failover chain now visible message-by-message
 - Smoke test: scripts/smoke_test_part105.py (18 checks)
 - Commit: a640a80
+
+## Parts 106 + 106b/c/d — Persistent image attachments (2026-10-15)
+- Bug: images rendered live but disappeared after browser refresh /
+  session navigation. Base64 only lived in the SSE stream.
+- New module: src/sunnyware/attachments.py
+  save_base64() / resolve_path() / stats()
+  Storage: /data/attachments (HF bucket) > ./data/attachments
+- Serving: GET /api/attachments/{id}.{ext} + /stats
+- Tools (image_generate, chart_from_data) save to disk and return
+  attachment_url/id/ext
+- Orchestrator collects + returns attachments in ALL success returns
+- routes/agent.py strips broken base64 markdown from history
+- WebUI loadSession renders <img class=msg-image> from stored attachments
+- WebUI sendMessage persists to localStorage (Part 106d handles the
+  LLM-returns-no-text case)
+- Verified: image survives browser refresh + session navigation
+- Smoke test: scripts/smoke_test_part106.py (38 checks)
+- Commits: 0587c1f, c1a3845, c558e78

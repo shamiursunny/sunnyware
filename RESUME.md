@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 105)
+## Current state (last session: 2026-10-15, Part 106)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -396,6 +396,26 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • CSS .provider-chip: 11px muted, aligned with agent padding
   • Failover chain now visible message-by-message
   • Smoke test: scripts/smoke_test_part105.py (18 checks)
+- Persistent image attachments (Parts 106, 106b, 106c, 106d):
+  • New module: src/sunnyware/attachments.py
+  • save_base64(b64, ext) -> {id, ext, url, bytes}
+  • Storage: SUNNYWARE_DATA_DIR/attachments > /data/attachments
+    (POSIX) > ./data/attachments
+  • Serving: GET /api/attachments/{att_id}.{ext} (immutable cache)
+  • Diagnostics: GET /api/attachments/stats
+  • image_generate + chart_from_data save base64 to disk
+  • Orchestrator collects attachment URLs from tool results
+    (native + prompt-json paths) and returns them in ALL success
+    paths (10 return sites)
+  • routes/agent.py: _strip_broken_b64_md() removes unusable
+    '![..](data:image/..,base64,[image: N bytes base64])' markdown
+    before saving to history
+  • WebUI: loadSession renders <img class='msg-image'> from
+    stored attachments; sendMessage persists to localStorage
+  • Part 106d: handles empty-text case (LLM returns nothing after
+    tool call) by forcing ensureBubble + placeholder text
+  • Verified: image survives browser refresh + session navigation
+  • Smoke test: scripts/smoke_test_part106.py (38 checks)
 
 
 ### RAG over documents

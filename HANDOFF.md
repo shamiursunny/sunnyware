@@ -913,3 +913,17 @@ for a future session).
 - HEAD: a640a80
 - NEXT: NVIDIA NIM (waiting on user activation); video gen (deferred);
   TTS; streaming-provider attribution for instant chip display
+
+## 2026-10-15 — Parts 106 + 106b/c/d
+- Persistent image attachments
+- New module: src/sunnyware/attachments.py
+- Serving: GET /api/attachments/{id}.{ext} + /stats
+- Tools save base64 to /data/attachments on HF bucket
+- Orchestrator returns attachments in all success paths
+- routes/agent.py strips broken base64 markdown from history
+- WebUI renders from history + persists to localStorage
+- 106d handles LLM-returns-no-text case
+- NEW: scripts/smoke_test_part106.py (38 checks)
+- Verified: image survives refresh + navigation
+- HEAD: c558e78
+- NEXT: monitor attachments/stats; NVIDIA NIM (waiting); TTS; video gen
