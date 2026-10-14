@@ -1113,6 +1113,21 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
   .sidebar-menu-btn { justify-content: center; padding: 10px; }
 }
 
+
+  /* Part 104: provider health panel */
+  .ph-section { margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .ph-title { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-mute); margin-bottom: 8px; }
+  .ph-summary { font-size: 13px; color: var(--text-dim); margin-bottom: 10px; }
+  .ph-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ph-table th { text-align: left; font-weight: 500; color: var(--text-mute); padding: 6px 8px; border-bottom: 1px solid var(--border); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .ph-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); color: var(--text); }
+  .ph-table tbody tr:last-child td { border-bottom: none; }
+  .ph-dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 6px; vertical-align: middle; }
+  .ph-dot.ready { background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+  .ph-dot.cooling { background: #ffb020; box-shadow: 0 0 6px #ffb020; }
+  .ph-foot { font-size: 11.5px; color: var(--text-mute); margin-top: 7px; }
+  .ph-empty { color: var(--text-mute); font-size: 13px; }
+
 </style>
 </head>
 <body>
@@ -1137,7 +1152,7 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
 <div id="usageModal" class="modal-overlay" style="display:none">
   <div class="modal-panel">
     <div class="modal-hdr">
-      <span>Token Usage Dashboard</span>
+      <span>Stats &amp; Provider Health</span>
       <button id="usageClose" class="icon-btn" type="button" title="Close">\u00d7</button>
     </div>
     <div class="modal-body" id="usageBody">
@@ -1849,7 +1864,32 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     }
   }
 
-  // Part 40: token usage dashboard
+  // Part 40 + Part 104: stats dashboard with provider health
+  var _phRefreshTimer = null;
+
+  function _startPHRefresh() {
+    if (_phRefreshTimer) clearInterval(_phRefreshTimer);
+    _phRefreshTimer = setInterval(async () => {
+      const m = document.getElementById('usageModal');
+      if (!m || m.style.display === 'none') return;
+      try {
+        const r = await fetch('/api/providers/metrics');
+        const metrics = await r.json();
+        const old = document.getElementById('providerHealthSection');
+        if (old && old.parentNode) {
+          old.parentNode.replaceChild(renderProviderHealth(metrics), old);
+        }
+      } catch (e) { /* silent */ }
+    }, 10000);
+  }
+
+  function _stopPHRefresh() {
+    if (_phRefreshTimer) {
+      clearInterval(_phRefreshTimer);
+      _phRefreshTimer = null;
+    }
+  }
+
   async function openUsageModal() {
     const modal = document.getElementById('usageModal');
     if (!modal) return;
@@ -1858,16 +1898,22 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     body.innerHTML = '';
     const loading = document.createElement('div');
     loading.className = 'usage-loading';
-    loading.textContent = 'Loading usage data...';
+    loading.textContent = 'Loading...';
     body.appendChild(loading);
     try {
       const results = await Promise.all([
         fetch('/api/usage'),
         fetch('/api/usage/pricing'),
+        fetch('/api/providers/metrics'),
       ]);
       const usage = await results[0].json();
       const pricing = await results[1].json();
+      let metrics = null;
+      try { metrics = await results[2].json(); } catch (e) { metrics = null; }
       renderUsageDashboard(usage, pricing);
+      const ph = renderProviderHealth(metrics);
+      body.insertBefore(ph, body.firstChild);
+      _startPHRefresh();
     } catch (err) {
       body.innerHTML = '';
       const errDiv = document.createElement('div');
@@ -1880,6 +1926,112 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
   function closeUsageModal() {
     const modal = document.getElementById('usageModal');
     if (modal) modal.style.display = 'none';
+    _stopPHRefresh();
+  }
+
+  function renderProviderHealth(metrics) {
+    const sec = document.createElement('div');
+    sec.className = 'ph-section';
+    sec.id = 'providerHealthSection';
+
+    const h = document.createElement('div');
+    h.className = 'ph-title';
+    h.textContent = 'Provider Health';
+    sec.appendChild(h);
+
+    if (!metrics || metrics.error) {
+      const err = document.createElement('div');
+      err.className = 'ph-empty';
+      err.textContent = 'Unavailable';
+      sec.appendChild(err);
+      return sec;
+    }
+
+    const sum = metrics.summary || {};
+    const summ = document.createElement('div');
+    summ.className = 'ph-summary';
+    const pc = sum.total_providers || 0;
+    const ready = sum.ready || 0;
+    const cooling = sum.cooling || 0;
+    const sRate = sum.session_success_rate;
+    const rateStr = (sRate === null || sRate === undefined)
+                    ? 'n/a'
+                    : (sRate * 100).toFixed(1) + '%';
+    summ.textContent = pc + ' providers | ' + ready + ' ready | '
+                       + cooling + ' cooling | session rate ' + rateStr;
+    sec.appendChild(summ);
+
+    const tbl = document.createElement('table');
+    tbl.className = 'ph-table';
+    const thead = document.createElement('thead');
+    const trh = document.createElement('tr');
+    ['Provider', 'Model', 'Status', 'Rate'].forEach(function(txt) {
+      const th = document.createElement('th');
+      th.textContent = txt;
+      trh.appendChild(th);
+    });
+    thead.appendChild(trh);
+    tbl.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    (metrics.providers || []).forEach(function(p) {
+      const tr = document.createElement('tr');
+
+      const td1 = document.createElement('td');
+      td1.textContent = p.name;
+      tr.appendChild(td1);
+
+      const td2 = document.createElement('td');
+      const mdl = (p.model || '').replace(/^.*\//, '');
+      td2.textContent = mdl.length > 22 ? mdl.slice(0, 22) + '..' : mdl;
+      td2.title = p.model || '';
+      tr.appendChild(td2);
+
+      const td3 = document.createElement('td');
+      const dot = document.createElement('span');
+      dot.className = 'ph-dot ' + (p.cooling ? 'cooling' : 'ready');
+      td3.appendChild(dot);
+      td3.appendChild(document.createTextNode(p.cooling ? 'cooling' : 'ready'));
+      tr.appendChild(td3);
+
+      const td4 = document.createElement('td');
+      const sr = p.session && p.session.success_rate;
+      if (sr === null || sr === undefined) {
+        td4.textContent = 'n/a';
+      } else {
+        td4.textContent = (sr * 100).toFixed(1) + '%';
+      }
+      tr.appendChild(td4);
+
+      tbody.appendChild(tr);
+    });
+    tbl.appendChild(tbody);
+    sec.appendChild(tbl);
+
+    const st = metrics.storage && metrics.storage.provider_limits;
+    if (st) {
+      const foot = document.createElement('div');
+      foot.className = 'ph-foot';
+      const parts = [];
+      if (st.path_source) parts.push('storage: ' + st.path_source);
+      const learned = st.learned || {};
+      const lk = Object.keys(learned);
+      if (lk.length) {
+        parts.push('learned: ' + lk.map(function(k) { return k + '=' + learned[k]; }).join(', '));
+      }
+      foot.textContent = parts.join(' | ');
+      sec.appendChild(foot);
+    }
+
+    const lt = document.createElement('div');
+    lt.className = 'ph-foot';
+    lt.textContent = 'Lifetime: ' + (sum.lifetime_attempts_total || 0) + ' attempts | '
+                     + (sum.lifetime_empty_total || 0) + ' empty | '
+                     + (sum.lifetime_learned_total || 0) + ' learned | '
+                     + (sum.retries_total || 0) + ' retries';
+    sec.appendChild(lt);
+
+    return sec;
   }
 
   function fmtNum(n) {
