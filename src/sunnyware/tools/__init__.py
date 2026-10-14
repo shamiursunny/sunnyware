@@ -60,6 +60,7 @@ from .browser_screenshot import BrowserScreenshotTool
 from .browser_extract import BrowserExtractTool
 from .browser_click import BrowserClickTool
 from .browser_fill_submit import BrowserFillSubmitTool
+from .image_generate import ImageGenerateTool
 
 
 _TOOLS = {
@@ -121,6 +122,7 @@ _TOOLS = {
     BrowserExtractTool.name: BrowserExtractTool(),
     BrowserClickTool.name: BrowserClickTool(),
     BrowserFillSubmitTool.name: BrowserFillSubmitTool(),
+    ImageGenerateTool.name: ImageGenerateTool(),
 }
 
 
