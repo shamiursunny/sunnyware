@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 104)
+## Current state (last session: 2026-10-15, Part 105)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -387,6 +387,15 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • Auto-refresh every 10s while modal open (clears on close)
   • New .ph-* CSS classes matching existing dark theme
   • Smoke test: scripts/smoke_test_part104.py (36 checks)
+- Per-message provider chip (Part 105):
+  • Small 'via groq · 1.2s' chip appears under each
+    assistant bubble in chat
+  • Tracks lastProvider per-request (reset each sendMessage)
+  • Set from data.provider in both 'final' and 'done' SSE events
+  • Appended via agentBubble.insertAdjacentElement('afterend', chip)
+  • CSS .provider-chip: 11px muted, aligned with agent padding
+  • Failover chain now visible message-by-message
+  • Smoke test: scripts/smoke_test_part105.py (18 checks)
 
 
 ### RAG over documents

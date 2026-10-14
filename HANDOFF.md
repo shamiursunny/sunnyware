@@ -903,3 +903,13 @@ for a future session).
 - NEW: scripts/smoke_test_part104.py (36 checks)
 - HEAD: f6160ce
 - NEXT: monitor metrics; NVIDIA NIM; video gen; TTS; per-message provider badge
+
+## 2026-10-15 — Part 105
+- Per-message provider chip in chat
+- 'via groq · 1.2s' appears under each assistant bubble
+- lastProvider tracked per-request, set in 'final' + 'done' SSE handlers
+- .provider-chip CSS: muted, aligned, non-selectable
+- NEW: scripts/smoke_test_part105.py (18 checks)
+- HEAD: a640a80
+- NEXT: NVIDIA NIM (waiting on user activation); video gen (deferred);
+  TTS; streaming-provider attribution for instant chip display

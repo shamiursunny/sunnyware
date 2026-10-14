@@ -602,3 +602,13 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - New .ph-* CSS classes
 - Smoke test: scripts/smoke_test_part104.py (36 checks)
 - Commit: f6160ce
+
+## Part 105 — Per-message provider chip (2026-10-15)
+- Small 'via groq · 1.2s' chip appears under each assistant bubble
+- lastProvider tracked per-request, set from data.provider in
+  both 'final' and 'done' SSE events
+- Inserted via agentBubble.insertAdjacentElement('afterend', chip)
+- New .provider-chip CSS: 11px muted, aligned with agent padding
+- Failover chain now visible message-by-message
+- Smoke test: scripts/smoke_test_part105.py (18 checks)
+- Commit: a640a80
