@@ -742,3 +742,12 @@ for a future session).
 1. NVIDIA NIM integration (pending verification)
 2. Part 41 - define next
 3. Optional: use pre-push gate as the standard workflow going forward
+
+## 2026-10-14 — Part 87-88d
+- Token economy fixes: max_tokens 900->2048, MAX_ITERATIONS 7->3, dedup, preflight rules.
+- Token burn: 6 iterations / 10k tokens for "hi" -> 1 iteration / 200 tokens.
+- SQL query: 3 tool calls -> 1 tool call.
+- Confirmed: Firefox InPrivate mode + tracking protection + VPN blocks cdn.jsdelivr.net,
+  causing (empty response). Normal window works. Part 89 will self-host marked.js.
+- Next: Part 89 (self-host marked.js), Part 90 (token budget guard), cleanup old sandboxes.
+- Current HEAD: ac66e30

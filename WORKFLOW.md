@@ -422,3 +422,20 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Line + pie charts -> inline
 - RAG search -> correct figures + citation
 - Multi-turn, multi-chart session -> no 413, no 400, no placeholder
+
+## Part 87 — Reasoning-model token budget (2026-10-14)
+- max_tokens 900 -> 2048 in llm.py
+- Symptom fixed: empty content after tool calls on reasoning models
+- Commit: 3e33c28
+
+## Part 88 — Orchestrator token economy (2026-10-14)
+- MAX_ITERATIONS 7 -> 3
+- Greeting rule, ONE TOOL PER STEP, NO PREFLIGHT LISTS (rules 1, 3, 3a)
+- echo tool marked TEST-ONLY
+- Commit: 273b7bf (88b), d271167 (88c), 896570a (88d)
+
+## Part 88b/88c/88d — Tool-call dedup & preflight removal
+- Exact-match + subset/superset dedup in orchestrator
+- Hard-stop after 2 duplicate calls
+- Skip sql_sandbox_list when resource is named
+- Combined effect: 10-50x token reduction
