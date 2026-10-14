@@ -774,3 +774,17 @@ for a future session).
 - Verified: 90k-char prompt renders amber bubble + friendly abort message
 - HEAD: e09abd3
 - NEXT: monitor 429s; NVIDIA NIM; optional exact token counts via llm.py usage
+
+## 2026-10-14 — Parts 93, 93b, 94, 95, 95b
+- Professional WebUI redesign (5 iterations):
+  - Part 93: header (gradient S + session pill + icon buttons + menu)
+  - Part 93b: paperclip inside composer (ChatGPT-style)
+  - Part 94: doc count badge = just a number; overflow button visible
+  - Part 95: menu moved to sidebar bottom-left, opens upward
+  - Part 95b: null-safe clearBtn (fix JS crash from removed #clear)
+- NEW: scripts/smoke_test_part93.py (52 checks)
+- Verified live: sidebar menu opens, no Console errors, paperclip works
+- HEAD: a984bcb
+- LESSON: always grep for getElementById + addEventListener before
+  removing an id from HTML. Part 95 removed #clear and it crashed
+  every subsequent init call silently.

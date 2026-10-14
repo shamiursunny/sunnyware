@@ -474,3 +474,13 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Verified: 90k-char prompt -> amber bubble + friendly message
 - Smoke test: scripts/smoke_test_part91.py (8 checks, ASCII-safe)
 - Commit: e09abd3
+
+## Parts 93, 93b, 94, 95, 95b — Professional WebUI redesign (2026-10-14)
+- Part 93: header redesign (gradient S, session pill, icon buttons, dropdown)
+- Part 93b: paperclip inside composer (ChatGPT-style)
+- Part 94: doc badge shows number only; overflow menu always visible
+- Part 95: menu moved to sidebar bottom-left, opens upward; header minimal
+- Part 95b: null-safe clearBtn (removed #clear crashed init script)
+- SVG icons only (no CDN, no emoji), responsive at 760/640/480px
+- Smoke test: scripts/smoke_test_part93.py (52 checks)
+- Commits: 13585fc (93), 2574dcc (93b), dcd32f3 (94), 54e29e5 (95), a984bcb (95b)
