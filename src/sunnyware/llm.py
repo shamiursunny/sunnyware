@@ -256,6 +256,20 @@ def _estimate_prompt_tokens(prompt, system, history) -> int:
     return max(1, total // 4)
 
 
+def _is_too_large_error(err: str) -> bool:
+    """Part 100: detect HTTP 413 / 'request too large' / context overflow."""
+    e = (err or "").lower()
+    return (
+        "413" in e
+        or "request too large" in e
+        or "request entity too large" in e
+        or "payload too large" in e
+        or "context length" in e
+        or "maximum context" in e
+        or "too many tokens" in e
+    )
+
+
 def _is_rate_limit_error(err: str) -> bool:
     e = (err or "").lower()
     return "429" in e or "rate limit" in e or "tpd" in e or "tpm" in e
@@ -372,6 +386,27 @@ async def chat(
         err = r.get("error", "")
         last_err = err
         p.record_failure(err)
+
+        # Part 100: learn from 413 / context-overflow errors.
+        # Lower this provider's max_prompt_tokens and persist it.
+        if _is_too_large_error(err):
+            try:
+                from . import provider_limits as _pl
+                _old = p.max_prompt_tokens
+                _new = _pl.learn_limit(p.name, _prompt_tokens, _old)
+                if _new != _old:
+                    p.max_prompt_tokens = _new
+                    try:
+                        from . import metrics as _m
+                        _m.incr_labeled("provider_limit_learned", p.name)
+                    except Exception:
+                        pass
+            except Exception:
+                pass
+            # Short cooldown so we don't retry this provider in the
+            # same request or immediately after.
+            p.mark_cooldown(60.0)
+            continue
 
         if _is_rate_limit_error(err):
             p.mark_cooldown(60.0)

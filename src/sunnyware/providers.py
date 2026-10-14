@@ -130,6 +130,16 @@ def load_providers(reload: bool = False) -> List[Provider]:
                 max_pt = int(env_pt)
             except ValueError:
                 pass
+        else:
+            # Part 100: learned limit beats hardcoded default.
+            # Env override always wins (skipped above).
+            try:
+                from . import provider_limits as _pl
+                learned = _pl.get_learned(name)
+                if learned is not None and (not max_pt or learned < max_pt):
+                    max_pt = learned
+            except Exception:
+                pass
         out.append(Provider(
             name=name,
             base_url=base_url.rstrip("/"),
