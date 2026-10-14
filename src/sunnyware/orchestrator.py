@@ -12,7 +12,7 @@ from . import prompts
 from . import tools as tools_registry
 
 
-MAX_ITERATIONS = 7  # Part 31J: raised from 5 for complex multi-tool queries
+MAX_ITERATIONS = 3  # Part 88: lowered 7 -> 3 (was burning 6 LLM calls per message)
 
 
 def _build_tools_schema() -> list:
