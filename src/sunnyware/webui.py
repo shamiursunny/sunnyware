@@ -1217,7 +1217,7 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
   const send = document.getElementById('send');
   const sidEl = document.getElementById('sid');
   const latEl = document.getElementById('latency');
-  const clearBtn = document.getElementById('clear');
+  const clearBtn = document.getElementById('clear') || document.getElementById('newChatBtn');
 
   // Part 35: multi-session storage
   const SESS_KEY = 'sunnyware_sessions_v2';
@@ -1988,10 +1988,12 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     sendMessage(text);
   });
 
-  clearBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    createNewSession();
-  });
+  if (clearBtn) {
+    clearBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      createNewSession();
+    });
+  }
 
   // Part 35: new chat button in sidebar
   const newChatBtn = document.getElementById('newChatBtn');
