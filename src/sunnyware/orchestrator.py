@@ -334,6 +334,8 @@ async def run_agent(
 
     _placeholder_retry_used = False
     _last_provider = None
+    _seen_calls = {}          # (tool_name, canonical_args) -> tool_result
+    _dup_streak = 0           # consecutive duplicate-tool-call count
 
     for iteration in range(MAX_ITERATIONS):
         result = await llm_client.chat(
@@ -375,9 +377,17 @@ async def run_agent(
                     tool_name = "unknown"
                     tool_result = {"error": f"parse error: {e}"}
                 else:
-                    await _emit(on_event, {"type": "tool_call", "tool": tool_name, "args": tool_args, "protocol": "native"})
-                    tool_result = await _execute_tool(tool_name, tool_args)
-                    await _emit(on_event, {"type": "tool_result", "tool": tool_name, "result": tool_result})
+                    call_key = (tool_name, json.dumps(tool_args, sort_keys=True, default=str))
+                    if call_key in _seen_calls:
+                        _dup_streak += 1
+                        tool_result = _seen_calls[call_key]
+                        await _emit(on_event, {"type": "tool_result", "tool": tool_name, "result": tool_result, "cached": True})
+                    else:
+                        _dup_streak = 0
+                        await _emit(on_event, {"type": "tool_call", "tool": tool_name, "args": tool_args, "protocol": "native"})
+                        tool_result = await _execute_tool(tool_name, tool_args)
+                        _seen_calls[call_key] = tool_result
+                        await _emit(on_event, {"type": "tool_result", "tool": tool_name, "result": tool_result})
                 steps.append({
                     "iteration": iteration + 1,
                     "tool": tool_name,
@@ -385,11 +395,33 @@ async def run_agent(
                     "result": tool_result,
                     "protocol": "native",
                 })
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": call.get("id", ""),
-                    "content": json.dumps(_truncate_tool_result(tool_result)),
-                })
+                if _dup_streak > 0:
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": call.get("id", ""),
+                        "content": (
+                            "DUPLICATE CALL — you already called '"
+                            + tool_name
+                            + "' with identical arguments. Previous result: "
+                            + json.dumps(_truncate_tool_result(tool_result))
+                            + ". STOP calling tools and give your final answer NOW."
+                        ),
+                    })
+                else:
+                    messages.append({
+                        "role": "tool",
+                        "tool_call_id": call.get("id", ""),
+                        "content": json.dumps(_truncate_tool_result(tool_result)),
+                    })
+            if _dup_streak >= 2 and steps:
+                last = steps[-1]
+                return {
+                    "ok": True,
+                    "content": "Result: " + json.dumps(_truncate_tool_result(last.get("result", {}))),
+                    "steps": steps,
+                    "iterations": iteration + 1,
+                    "provider": _last_provider,
+                }
             continue
 
         parsed = _parse_json_response(content)
@@ -399,9 +431,24 @@ async def run_agent(
             tool_args = parsed.get("args") or {}
             if not isinstance(tool_args, dict):
                 tool_args = {}
-            await _emit(on_event, {"type": "tool_call", "tool": tool_name, "args": tool_args, "protocol": "prompt-json"})
-            tool_result = await _execute_tool(tool_name, tool_args)
-            await _emit(on_event, {"type": "tool_result", "tool": tool_name, "result": tool_result})
+            call_key = (tool_name, json.dumps(tool_args, sort_keys=True, default=str))
+            if call_key in _seen_calls:
+                _dup_streak += 1
+                tool_result = _seen_calls[call_key]
+                await _emit(on_event, {"type": "tool_result", "tool": tool_name, "result": tool_result, "cached": True})
+                feedback = ("DUPLICATE CALL — you already called '" + tool_name
+                            + "' with identical args. Previous result: "
+                            + json.dumps(_truncate_tool_result(tool_result))
+                            + ". STOP calling tools and give final answer NOW.")
+            else:
+                _dup_streak = 0
+                await _emit(on_event, {"type": "tool_call", "tool": tool_name, "args": tool_args, "protocol": "prompt-json"})
+                tool_result = await _execute_tool(tool_name, tool_args)
+                _seen_calls[call_key] = tool_result
+                await _emit(on_event, {"type": "tool_result", "tool": tool_name, "result": tool_result})
+                feedback = ("Tool result: "
+                            + json.dumps(_truncate_tool_result(tool_result))
+                            + ". Now give final answer.")
             steps.append({
                 "iteration": iteration + 1,
                 "tool": tool_name,
@@ -410,12 +457,15 @@ async def run_agent(
                 "protocol": "prompt-json",
             })
             messages.append({"role": "assistant", "content": content})
-            messages.append({
-                "role": "user",
-                "content": "Tool result: "
-                           + json.dumps(_truncate_tool_result(tool_result))
-                           + ". Now give final answer.",
-            })
+            messages.append({"role": "user", "content": feedback})
+            if _dup_streak >= 2:
+                return {
+                    "ok": True,
+                    "content": "Result: " + json.dumps(_truncate_tool_result(tool_result)),
+                    "steps": steps,
+                    "iterations": iteration + 1,
+                    "provider": _last_provider,
+                }
             continue
 
         if parsed is not None and "answer" in parsed:
