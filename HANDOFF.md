@@ -894,3 +894,12 @@ for a future session).
 - Verified: 4 providers, learned=8403 for groq, storage=hf:/data
 - HEAD: b48173f
 - NEXT: monitor metrics; NVIDIA NIM; video gen; TTS; WebUI health panel
+
+## 2026-10-15 — Part 104
+- WebUI provider health panel in the Stats modal
+- Renders /api/providers/metrics: table + summary + footers
+- Auto-refresh 10s while open
+- Modal title: 'Stats & Provider Health'
+- NEW: scripts/smoke_test_part104.py (36 checks)
+- HEAD: f6160ce
+- NEXT: monitor metrics; NVIDIA NIM; video gen; TTS; per-message provider badge

@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 103)
+## Current state (last session: 2026-10-15, Part 104)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -378,6 +378,15 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • _sum_prefix() helper auto-includes future labeled counters
   • Verified live: groq learned=8403 but max_pt=7500 (tighter wins)
   • Smoke test: scripts/smoke_test_part103.py (33 checks)
+- WebUI provider health panel (Part 104):
+  • Renders /api/providers/metrics inside the Stats modal
+  • Modal renamed: 'Stats & Provider Health'
+  • Table: Provider | Model | Status(dot) | Success Rate
+  • Summary: N providers | N ready | N cooling | session rate
+  • Footer: storage source + learned limits + lifetime counters
+  • Auto-refresh every 10s while modal open (clears on close)
+  • New .ph-* CSS classes matching existing dark theme
+  • Smoke test: scripts/smoke_test_part104.py (36 checks)
 
 
 ### RAG over documents

@@ -591,3 +591,14 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Verified live: groq learned=8403 but max_pt=7500 (tighter wins)
 - Smoke test: scripts/smoke_test_part103.py (33 checks)
 - Commit: b48173f
+
+## Part 104 — WebUI provider health panel (2026-10-15)
+- Renders /api/providers/metrics in the Stats modal
+- Modal title: 'Stats & Provider Health'
+- Table: Provider | Model | Status(dot) | Success Rate
+- Summary: N providers | N ready | N cooling | session rate
+- Footer: storage source + learned limits + lifetime counters
+- Auto-refresh every 10s while open (clears on close)
+- New .ph-* CSS classes
+- Smoke test: scripts/smoke_test_part104.py (36 checks)
+- Commit: f6160ce
