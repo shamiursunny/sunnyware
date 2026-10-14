@@ -495,3 +495,112 @@ async def providers_limits_reset(payload: dict = None):
             status_code=500,
         )
 
+# ═══ Part 103: provider health metrics dashboard ═══
+
+@router.get("/api/providers/metrics")
+async def providers_metrics():
+    """Part 103: aggregate health dashboard for all providers.
+
+    Combines three sources:
+      - In-memory Provider fields (per-process session stats)
+      - Persistent metric counters (lifetime, survives restart)
+      - Learned limits + storage diagnostics from provider_limits
+    """
+    try:
+        from .. import providers as _prov
+        from .. import provider_limits as _pl
+        from .. import metrics as _m
+        import time as _t
+
+        provs = _prov.load_providers()
+        counters = _m.snapshot()
+        learned = _pl.snapshot()
+        try:
+            limits_diag = _pl.debug_info()
+        except Exception:
+            limits_diag = {}
+
+        def _sum_prefix(prefix):
+            total = 0
+            per = {}
+            for k, v in counters.items():
+                if k.startswith(prefix):
+                    try:
+                        iv = int(v)
+                    except Exception:
+                        continue
+                    total += iv
+                    label = k[len(prefix):].lstrip("_")
+                    if label:
+                        per[label] = iv
+            return total, per
+
+        attempts_total, attempts_by = _sum_prefix("llm_provider_attempt")
+        empty_total, empty_by = _sum_prefix("llm_provider_empty_response")
+        learned_total, learned_by = _sum_prefix("provider_limit_learned")
+        retried_total, _ = _sum_prefix("llm_request_retried")
+
+        rows = []
+        sess_ok = 0
+        sess_fail = 0
+        cooling_n = 0
+        for p in provs:
+            cool = p.is_cooling()
+            if cool:
+                cooling_n += 1
+            sess_ok += p.success_count
+            sess_fail += p.fail_count
+            total = p.success_count + p.fail_count
+            rate = (p.success_count / total) if total else None
+            rows.append({
+                "name": p.name,
+                "model": p.model,
+                "type": p.provider_type,
+                "cooling": cool,
+                "cooldown_remaining_s": round(p.cooldown_remaining(), 1),
+                "max_prompt_tokens": p.max_prompt_tokens,
+                "learned_limit": learned.get(p.name),
+                "session": {
+                    "success_count": p.success_count,
+                    "fail_count": p.fail_count,
+                    "success_rate": round(rate, 4) if rate is not None else None,
+                    "last_success_ts": p.last_success_ts,
+                },
+                "lifetime": {
+                    "attempts": attempts_by.get(p.name, 0),
+                    "empty_responses": empty_by.get(p.name, 0),
+                    "limits_learned": learned_by.get(p.name, 0),
+                },
+                "last_error": p.last_error,
+            })
+
+        sess_total = sess_ok + sess_fail
+        overall_rate = (sess_ok / sess_total) if sess_total else None
+
+        return {
+            "timestamp": _t.time(),
+            "summary": {
+                "total_providers": len(provs),
+                "ready": len(provs) - cooling_n,
+                "cooling": cooling_n,
+                "session_success_total": sess_ok,
+                "session_fail_total": sess_fail,
+                "session_success_rate": (
+                    round(overall_rate, 4) if overall_rate is not None else None
+                ),
+                "lifetime_attempts_total": attempts_total,
+                "lifetime_empty_total": empty_total,
+                "lifetime_learned_total": learned_total,
+                "retries_total": retried_total,
+            },
+            "providers": rows,
+            "storage": {
+                "provider_limits": limits_diag,
+            },
+        }
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
