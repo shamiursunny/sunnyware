@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-14, Part 90)
+## Current state (last session: 2026-10-14, Part 91)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -234,6 +234,15 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
     (Part 90b - otherwise every request tripped on 'hi')
   • routes/agent.py propagates both flags to the client
   • Smoke test: scripts/smoke_test_part90.py (11 checks)
+- WebUI budget_exceeded styling (Part 91):
+  • budgetExceeded flag declared per-request in streaming handler
+  • SSE case for 'budget_exceeded' event type
+  • Reads data.budget_exceeded from 'final' event as fallback
+  • Applies class 'budget' to assistant bubble
+  • CSS .msg.agent.budget: amber bg + left border #ffb020
+  • ::before prefix 'BUDGET LIMIT:' (ASCII-only, cp1252 safe)
+  • Verified live: 90k-char prompt renders amber bubble with label
+  • Smoke test: scripts/smoke_test_part91.py (8 checks)
 
 
 ### RAG over documents
@@ -276,11 +285,9 @@ When running pre_push_check.py, if HF push times out, retry
 
 ## What's next (priority order)
 1. Monitor /api/providers/status over next few days — 429s should
-   now be rare because of Parts 87-90 token economy fixes.
+   now be rare because of Parts 87-91 token economy fixes.
 2. NVIDIA NIM integration — pending support verification
-3. Future: consider WebUI styling for 'budget_exceeded' SSE event
-   (currently shown as regular message; optional polish)
-4. Future: exact token counts via llm.py usage data (currently ~4
+3. Future: exact token counts via llm.py usage data (currently ~4
    chars/token heuristic; over-counts by ~2x on long prompts but
    never under-counts — safe direction)
 

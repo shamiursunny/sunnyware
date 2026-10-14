@@ -463,3 +463,14 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Verified: hi -> ~700 tokens, budget_exceeded False
 - Verified: 67k chars -> trips at 34837 / 8000, budget_exceeded True
 - Commits: 0bebe62 (initial), 65ad114 (Part 90b fix)
+
+## Part 91 — WebUI budget_exceeded styling (2026-10-14)
+- budgetExceeded flag declared per-request in webui.py stream handler
+- SSE event 'budget_exceeded' sets the flag
+- 'final' event also reads data.budget_exceeded as fallback
+- Class 'budget' added to assistant bubble on trip
+- CSS .msg.agent.budget: amber bg + #ffb020 left border
+- ::before prefix 'BUDGET LIMIT:' (ASCII-only)
+- Verified: 90k-char prompt -> amber bubble + friendly message
+- Smoke test: scripts/smoke_test_part91.py (8 checks, ASCII-safe)
+- Commit: e09abd3

@@ -764,3 +764,13 @@ for a future session).
 - Verified: 67k chars -> trips at 34837/8000, budget_exceeded True
 - HEAD: 65ad114
 - NEXT: monitor 429s; NVIDIA NIM integration; optional WebUI budget styling
+
+## 2026-10-14 — Part 91
+- WebUI styling for budget_exceeded SSE event
+- webui.py: budgetExceeded flag, SSE handler case, classList.add('budget')
+- webui.py: new .msg.agent.budget CSS (amber, #ffb020 border)
+- webui.py: 'BUDGET LIMIT:' ::before prefix (ASCII-safe)
+- NEW: scripts/smoke_test_part91.py (8 checks, ASCII-safe)
+- Verified: 90k-char prompt renders amber bubble + friendly abort message
+- HEAD: e09abd3
+- NEXT: monitor 429s; NVIDIA NIM; optional exact token counts via llm.py usage
