@@ -58,6 +58,15 @@ check("old header-meta-desktop markup removed",
 check("760px breakpoint (hide brand name)", "@media (max-width: 760px)" in src)
 check("480px breakpoint (hide session pill)", "@media (max-width: 480px)" in src)
 
+# 6b. Part 93b: paperclip moved into composer
+check("composer-input wrapper present", 'class="composer-input"' in src)
+check("attach-btn class present", 'class="attach-btn"' in src)
+check("attach-btn CSS defined", ".attach-btn {" in src)
+check("composer-input CSS defined", ".composer-input {" in src)
+check("input has left-padding for paperclip", "padding-left: 46px" in src)
+# id="upload" appears exactly once (in composer, not header)
+check("id='upload' appears exactly once", src.count('id="upload"') == 1)
+
 # 7. Parses
 import ast
 try:

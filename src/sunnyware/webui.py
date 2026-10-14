@@ -1026,6 +1026,41 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
   .icon-btn { width: 34px; height: 34px; }
 }
 
+
+/* === Part 93b: paperclip inside composer === */
+.composer-input {
+  flex: 1; min-width: 0; position: relative;
+  display: flex; align-items: center;
+}
+.composer-input #input {
+  flex: 1; width: 100%;
+  padding-left: 46px;
+}
+.attach-btn {
+  position: absolute; left: 5px; top: 50%;
+  transform: translateY(-50%);
+  width: 34px; height: 34px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 50%; background: transparent; border: none;
+  color: var(--text-mute); cursor: pointer;
+  text-decoration: none; padding: 0;
+  transition: background 0.14s ease, color 0.14s ease, transform 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.attach-btn:hover { background: var(--bg-hover); color: var(--text); }
+.attach-btn:active { transform: translateY(-50%) scale(0.92); }
+.attach-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.attach-btn svg { display: block; }
+.attach-btn .pill-badge {
+  top: -4px; right: -4px;
+  border-color: var(--bg-elev);
+}
+@media (max-width: 480px) {
+  .attach-btn { width: 30px; height: 30px; left: 4px; }
+  .attach-btn svg { width: 16px; height: 16px; }
+  .composer-input #input { padding-left: 40px; }
+}
+
 </style>
 </head>
 <body>
@@ -1043,10 +1078,6 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
   </div>
   <div class="header-right">
     <span id="providerBadge" class="provider-pill" title="Serving provider"></span>
-    <a href="#" id="upload" class="icon-btn" title="Upload files" aria-label="Upload files">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      <span class="pill-badge" id="docCount" aria-hidden="true"></span>
-    </a>
     <a href="#" id="clear" class="icon-btn" title="New session" aria-label="New session">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
     </a>
@@ -1113,7 +1144,13 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     <div id="chat"></div>
     <footer>
       <form id="form">
-        <input type="text" id="input" placeholder="Ask anything..." autocomplete="off" required>
+        <div class="composer-input">
+          <a href="#" id="upload" class="attach-btn" title="Upload files" aria-label="Upload files">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            <span class="pill-badge" id="docCount" aria-hidden="true"></span>
+          </a>
+          <input type="text" id="input" placeholder="Ask anything..." autocomplete="off" required>
+        </div>
         <button type="button" id="micBtn" title="Voice input (click to start/stop)">\U0001F3A4</button>
         <button type="submit" id="send">Send</button>
       </form>
