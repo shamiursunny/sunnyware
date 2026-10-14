@@ -237,6 +237,25 @@ async def _chat_single(
         }
 
 
+def _estimate_prompt_tokens(prompt, system, history) -> int:
+    """Part 99: char/4 heuristic for total conversation size.
+
+    Counts prompt + system + all history message contents. Used to
+    pre-filter providers that would reject the request (e.g. Groq's
+    8k input cap returns HTTP 413)."""
+    total = 0
+    if isinstance(prompt, str):
+        total += len(prompt)
+    if isinstance(system, str):
+        total += len(system)
+    for m in (history or []):
+        if isinstance(m, dict):
+            c = m.get("content")
+            if isinstance(c, str):
+                total += len(c)
+    return max(1, total // 4)
+
+
 def _is_rate_limit_error(err: str) -> bool:
     e = (err or "").lower()
     return "429" in e or "rate limit" in e or "tpd" in e or "tpm" in e
@@ -291,9 +310,26 @@ async def chat(
         return r
 
     # Multi-provider router
+    # Part 99: pre-filter providers whose max_prompt_tokens would reject
+    # this request (e.g. Groq 413 on >8k input). Falls back to trying all
+    # non-cooling providers if the size filter would exclude everything.
+    _prompt_tokens = _estimate_prompt_tokens(prompt, system, history)
+    _any_eligible = any(
+        (not p.is_cooling())
+        and (not p.max_prompt_tokens or _prompt_tokens <= p.max_prompt_tokens)
+        for p in provs
+    )
+
     last_err = ""
     for p in provs:
         if p.is_cooling():
+            continue
+        if (
+            _any_eligible
+            and p.max_prompt_tokens
+            and _prompt_tokens > p.max_prompt_tokens
+        ):
+            # Part 99: skip provider that can't fit the prompt
             continue
 
         # Local provider: bypass HTTP, call in-process

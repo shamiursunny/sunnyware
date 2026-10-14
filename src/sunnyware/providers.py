@@ -37,6 +37,7 @@ class Provider:
     base_url: str
     api_key: str
     model: str
+    max_prompt_tokens: int = 0   # Part 99: 0 = no limit
     provider_type: str = "http"  # "http" or "local"
     cooldown_until: float = 0.0
     last_error: str = ""
@@ -67,6 +68,7 @@ class Provider:
             "name": self.name,
             "type": self.provider_type,
             "model": self.model,
+            "max_prompt_tokens": self.max_prompt_tokens,
             "base_url": self.base_url.split("/")[2] if "://" in self.base_url else self.base_url,
             "cooling": self.is_cooling(),
             "cooldown_remaining_s": round(self.cooldown_remaining(), 1),
@@ -97,6 +99,19 @@ def load_providers(reload: bool = False) -> List[Provider]:
         )]
         return _PROVIDERS
 
+    # Part 99: per-provider default max prompt tokens (0 = no limit).
+    # These are conservative defaults based on each provider's documented
+    # or observed input limits. Override with {PREFIX}_MAX_PROMPT_TOKENS.
+    _default_max_pt = {
+        "groq": 7500,          # 8k hard limit; leave 500-token headroom
+        "gemini": 1000000,     # 1M context
+        "openrouter": 32000,   # varies by model; safe default
+        "pollinations": 32000,
+        "mistral": 32000,
+        "nvidia": 8000,
+        "local": 0,            # in-process, no HTTP limits
+    }
+
     out: List[Provider] = []
     for name in [n.strip().lower() for n in priority.split(",") if n.strip()]:
         prefix = name.upper()
@@ -107,11 +122,20 @@ def load_providers(reload: bool = False) -> List[Provider]:
             # Skip misconfigured providers (missing URL or model)
             continue
         ptype = "local" if name == "local" else "http"
+        # Part 99: max prompt tokens — env override, else default
+        max_pt = _default_max_pt.get(name, 0)
+        env_pt = (os.getenv(f"{prefix}_MAX_PROMPT_TOKENS") or "").strip()
+        if env_pt:
+            try:
+                max_pt = int(env_pt)
+            except ValueError:
+                pass
         out.append(Provider(
             name=name,
             base_url=base_url.rstrip("/"),
             api_key=api_key or "local",
             model=model,
+            max_prompt_tokens=max_pt,
             provider_type=ptype,
         ))
 
