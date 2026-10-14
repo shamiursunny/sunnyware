@@ -390,11 +390,14 @@ async def run_agent(
         native_calls = result.get("tool_calls")
         _last_provider = result.get("provider") or _last_provider
 
-        # Part 90: cumulative token budget guard
+        # Part 90: cumulative token budget guard.
+        # NOTE: tools_schema is intentionally NOT counted here - it's a
+        # fixed infrastructure cost (~8700 tokens for 58 tool schemas) that
+        # would trip the budget on any request. We only count conversational
+        # content: prompt, system, response, and the growing message history.
         _tokens_used += _estimate_tokens(
             prompt, system_prompt, content,
             "".join(str(m) for m in messages),
-            (str(tools_schema) if use_native_tools else ""),
         )
         if _tokens_used >= MAX_REQUEST_TOKENS:
             _budget_text = _BUDGET_MESSAGE.format(

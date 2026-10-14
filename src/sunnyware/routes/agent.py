@@ -106,6 +106,8 @@ async def run_agent(req: Request):
             "steps": agent_result.get("steps", []),
             "iterations": agent_result.get("iterations", 1),
             "provider": agent_result.get("provider"),
+            "budget_exceeded": agent_result.get("budget_exceeded", False),
+            "tokens_used": agent_result.get("tokens_used"),
         },
         "latency_ms": total_latency_ms,
         "served_by": "sunnyware",
