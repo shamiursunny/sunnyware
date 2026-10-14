@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-14, Part 95b)
+## Current state (last session: 2026-10-14, Part 96b)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -267,6 +267,16 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • Responsive: brand name hides <760px, session pill <480px,
     menu label hides <640px
   • Smoke test: scripts/smoke_test_part93.py (52 checks)
+- Real token counts from provider usage (Part 96 + 96b):
+  • llm.py now returns tokens_in / tokens_out / tokens_total
+    (was only written to usage DB, not passed to orchestrator)
+  • orchestrator prefers result['tokens_total'] over the
+    char/4 heuristic; subtracts _tools_overhead (schema size)
+  • fallback heuristic no longer double-counts 'prompt'
+  • Part 96b: MAX_REQUEST_TOKENS 8000 -> 15000 (accurate counts
+    make 8000 too tight; 12k-char prompt tripped at 10,022 real)
+  • Verified: 12k prompt -> tokens_used 10022, budget_exceeded True
+  • Smoke test: scripts/smoke_test_part96.py (13 checks)
 
 
 ### RAG over documents
@@ -309,11 +319,10 @@ When running pre_push_check.py, if HF push times out, retry
 
 ## What's next (priority order)
 1. Monitor /api/providers/status over next few days — 429s should
-   now be rare because of Parts 87-95b token economy fixes.
+   now be rare because of Parts 87-96b token economy fixes.
 2. NVIDIA NIM integration — pending support verification
-3. Future: exact token counts via llm.py usage data (currently ~4
-   chars/token heuristic; over-counts by ~2x on long prompts but
-   never under-counts — safe direction)
+3. Future: secondary long-prompt path (Groq's 8k input limit rejects
+   very large prompts; could route big-prompt requests to Gemini first)
 
 ## Key files
 

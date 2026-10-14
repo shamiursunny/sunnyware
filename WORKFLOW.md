@@ -484,3 +484,17 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - SVG icons only (no CDN, no emoji), responsive at 760/640/480px
 - Smoke test: scripts/smoke_test_part93.py (52 checks)
 - Commits: 13585fc (93), 2574dcc (93b), dcd32f3 (94), 54e29e5 (95), a984bcb (95b)
+
+## Parts 96 + 96b — Real token counts from provider usage (2026-10-14)
+- llm.py: return tokens_in / tokens_out / tokens_total in result dict
+  (previously only written to usage DB)
+- orchestrator.py: prefer result['tokens_total'] - _tools_overhead over
+  char/4 heuristic; fallback no longer double-counts 'prompt'
+- Part 96b: MAX_REQUEST_TOKENS 8000 -> 15000 (accurate counts made
+  8000 too tight)
+- Verified: 12k prompt -> tokens_used 10022 (real, not inflated),
+  budget_exceeded True
+- Note: Groq has hard 8k input limit (HTTP 413 for very large prompts);
+  the orchestrator's provider-failover handles it
+- Smoke test: scripts/smoke_test_part96.py (13 checks)
+- Commits: b9342d4 (96), ae65d27 (96b)

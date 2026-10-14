@@ -788,3 +788,16 @@ for a future session).
 - LESSON: always grep for getElementById + addEventListener before
   removing an id from HTML. Part 95 removed #clear and it crashed
   every subsequent init call silently.
+
+## 2026-10-14 — Parts 96 + 96b
+- Real token counts from provider usage (replaces char/4 heuristic)
+- llm.py: returns tokens_in / tokens_out / tokens_total
+- orchestrator.py: prefers real tokens; subtracts tools_schema overhead;
+  fallback heuristic no longer double-counts prompt
+- MAX_REQUEST_TOKENS: 8000 -> 15000 (real counts made 8000 tight)
+- NEW: scripts/smoke_test_part96.py (13 checks)
+- Verified: 12k prompt -> tokens_used 10022, budget_exceeded True
+- Known limit: Groq rejects very large prompts (HTTP 413); failover
+  routes to OpenRouter/Gemini
+- HEAD: ae65d27
+- NEXT: monitor 429s; NVIDIA NIM; optional long-prompt routing tweak
