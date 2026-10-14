@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 100b)
+## Current state (last session: 2026-10-15, Part 101)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -343,6 +343,18 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • Verified live: learned={'groq': 8403} persisted at
     /data/provider_limits.json on HF
   • Smoke test: scripts/smoke_test_part100.py (44 checks)
+- Empty-response fallback (Part 101):
+  • llm.py: _is_empty_response(r) detects ok=True with no content
+    AND no tool_calls
+  • Both HTTP and local provider paths treat empty as failure:
+    record failure, cooldown (15s HTTP / 10s local), metric
+    llm_provider_empty_response, continue to next provider
+  • Safety: only triggers when BOTH content and tool_calls are empty
+    — when LLM makes a tool call, check returns False
+  • Fixes 'Agent failed | empty LLM response' when a provider
+    returned success HTTP with hollow body
+  • Verified live: 30k prompt -> openrouter -> 3,850-char real answer
+  • Smoke test: scripts/smoke_test_part101.py (22 checks)
 
 
 ### RAG over documents

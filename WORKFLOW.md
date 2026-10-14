@@ -556,3 +556,15 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
   POST /api/providers/limits/reset  {name} | {all: true}
 - Smoke test: scripts/smoke_test_part100.py (44 checks)
 - Commits: 91bf676 (100), ad38fcf (100b)
+
+## Part 101 — Empty-response fallback (2026-10-15)
+- llm.py: _is_empty_response(r) detects ok=True with blank content
+  AND empty tool_calls
+- Both HTTP and local provider paths treat empty as failure:
+  record failure, cooldown 15s HTTP / 10s local, metric
+  llm_provider_empty_response, continue to next provider
+- FIXES: 'Agent failed | empty LLM response' when a provider
+  returned HTTP 200 with no actionable content
+- Verified live: 30k prompt -> openrouter -> 3,850-char real answer
+- Smoke test: scripts/smoke_test_part101.py (22 checks)
+- Commit: 1214276

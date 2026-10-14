@@ -864,3 +864,13 @@ for a future session).
 - KNOWN ISSUE: provider returning ok=True with empty content returns
   "Agent failed" instead of trying next provider (surfaced during Part
   100 test when Groq 413'd). Deferred to a future part.
+
+## 2026-10-15 — Part 101
+- Empty-response fallback in multi-provider chain
+- _is_empty_response(r): ok=True + no content + no tool_calls
+- Both HTTP and local paths: cooldown + metric + continue
+- Fixes "Agent failed | empty LLM response" bug (surfaced in Part 100)
+- Verified: 30k prompt -> openrouter -> 3,850-char real answer
+- NEW: scripts/smoke_test_part101.py (22 checks)
+- HEAD: 1214276
+- NEXT: monitor 429s; NVIDIA NIM; video gen; TTS; possible retry cycle
