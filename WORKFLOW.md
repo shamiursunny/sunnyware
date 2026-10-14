@@ -439,3 +439,13 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Hard-stop after 2 duplicate calls
 - Skip sql_sandbox_list when resource is named
 - Combined effect: 10-50x token reduction
+
+## Part 89 — Self-host marked.js, no CDN dependency (2026-10-14)
+- Root cause of InPrivate '(empty response)': tracking protection + VPN blocked cdn.jsdelivr.net
+- marked@12 -> src/sunnyware/static/marked.min.js (35 KB) + __init__.py
+- main.py: /static mounted via FastAPI StaticFiles after include_router block
+- webui.py: <script src="/static/marked.min.js"> (was CDN)
+- scripts/smoke_test_part89.py: 8 checks (ASCII-safe for cp1252 Windows stdout)
+- Verified live: HTTP 200 | 35479 bytes on /static/marked.min.js
+- Verified live: InPrivate Firefox loads UI clean + chat works
+- Commit: 3732fb5
