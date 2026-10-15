@@ -1151,3 +1151,94 @@ async def guardrails_self_test():
             {"error": f"{type(e).__name__}: {e}"},
             status_code=500,
         )
+
+
+@router.get("/api/evals/status")
+async def evals_status():
+    """Part 137b: evals config + case counts + last-run summary."""
+    try:
+        from .. import evals as _evals
+        return _evals.status()
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.get("/api/evals/latest")
+async def evals_latest():
+    """Part 137b: full payload of the most recent run."""
+    try:
+        from .. import evals as _evals
+        run = _evals.latest_run()
+        if not run:
+            return JSONResponse(
+                {"error": "no_runs", "detail": "no eval runs recorded yet"},
+                status_code=404,
+            )
+        return run
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.get("/api/evals/trends")
+async def evals_trends(n: int = 10):
+    """Part 137b: time-series of run summaries (most recent last)."""
+    try:
+        from .. import evals as _evals
+        try:
+            n = max(1, min(int(n), 100))
+        except Exception:
+            n = 10
+        return {"n": n, "runs": _evals.trends(n=n)}
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.post("/api/evals/run")
+async def evals_run(req: Request):
+    """Part 137b: run the eval suite now.
+
+    Body:
+      {"tags": ["safety"]}   - optional filter
+      {"dry_run": true}      - use canned responses (no LLM)
+      {"triggered_by": "..."} - tag for provenance (default 'api')
+
+    Admin-only when auth is enabled (Part 135).
+    """
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        from .. import evals as _evals
+        try:
+            body = await req.json()
+        except Exception:
+            body = {}
+        body = body or {}
+        tags = body.get("tags")
+        if tags is not None and not isinstance(tags, list):
+            tags = None
+        dry_run = bool(body.get("dry_run", False))
+        triggered_by = str(body.get("triggered_by") or "api")[:32]
+
+        call_fn = _evals.dry_run_call_fn if dry_run else _evals.default_call_fn
+        run = await _evals.run_suite(
+            call_fn,
+            tags=tags,
+            triggered_by=triggered_by,
+            dry_run=dry_run,
+        )
+        return run
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
