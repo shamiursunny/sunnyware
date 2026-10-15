@@ -5,9 +5,16 @@
 from . import tools as tools_registry
 
 
-def compact_prompt(context: str = "") -> str:
-    """Compact prompt for small models using prompt-JSON tools protocol."""
-    names = ", ".join(tools_registry.tool_names()) or "(none)"
+def compact_prompt(context: str = "", allowed_tools=None) -> str:
+    """Compact prompt for small models using prompt-JSON tools protocol.
+
+    Part 114d: optional `allowed_tools` restricts the listed tool names
+    to a role-specific subset (or None = full registry).
+    """
+    if allowed_tools is not None:
+        names = ", ".join(sorted(allowed_tools)) or "(none)"
+    else:
+        names = ", ".join(tools_registry.tool_names()) or "(none)"
     base = (
         f"You are Sunnyware. Available tools: {names}. "
         'Reply with JSON only: {"answer": "..."} or {"tool": "name", "args": {...}}. '

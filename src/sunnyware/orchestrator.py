@@ -355,6 +355,16 @@ async def _run_agent_body(
     on_event=None,
     role: Optional[str] = None,
 ) -> dict:
+    # Part 114d: resolve role -> allowed tool set for both native and
+    # compact paths. None means "no filtering" (general role).
+    _allowed = None
+    try:
+        from . import roles as _roles_mod
+        _allowed = _roles_mod.active_tool_names(role)
+    except Exception:
+        _allowed = None
+    _allowed_set = set(_allowed) if _allowed else None
+
     history = []
     if session_uuid:
         history = await memory_store.build_context(session_uuid, max_turns=4)
@@ -388,7 +398,9 @@ async def _run_agent_body(
     if use_native_tools:
         system_prompt = prompts.native_prompt(context_str)
     else:
-        system_prompt = prompts.compact_prompt(context_str)
+        system_prompt = prompts.compact_prompt(
+            context_str, allowed_tools=_allowed
+        )
 
     # Part 112: inject role persona prompt addon (prepended before base)
     _role_addon = ""
@@ -524,7 +536,14 @@ async def _run_agent_body(
                     else:
                         _dup_streak = 0
                         await _emit(on_event, {"type": "tool_call", "tool": tool_name, "args": tool_args, "protocol": "native"})
-                        tool_result = await _execute_tool(tool_name, tool_args)
+                        if _allowed_set is not None and tool_name not in _allowed_set:
+                            tool_result = {
+                                "error": "tool '" + str(tool_name) +
+                                         "' not allowed for role '" + str(role) + "'",
+                                "allowed": sorted(_allowed_set),
+                            }
+                        else:
+                            tool_result = await _execute_tool(tool_name, tool_args)
                         _record_call(tool_name, tool_args, tool_result)
                         # Part 106: capture any attachment URL
                         _aurl = (tool_result or {}).get("attachment_url")
