@@ -834,3 +834,20 @@ ff2054f (108b Tiingo fix)
 - Fix: spending_by_category requires category in URL path (404 otherwise)
 - cfo role now has govcon_data in its subset
 - Smoke: smoke_test_part118.py (20 checks)
+
+## Parts 119-128 — Multi-platform feature roadmap (2026-10-15)
+Sourced from verified research of high-value platforms (Bloomberg,
+Kensho, AlphaSense, Hebbia, ServiceNow, Workday).
+
+- 119: per-role agent monitoring metrics + GET /api/agents/metrics
+- 120: save-as-script on python_eval + script_registry tool
+- 121: lexicon sentiment on insurance_research (Part 121 _sentiment.py)
+- 122: workflow_registry tool (named multi-step workflows)
+- 123: interactive Plotly charts (capture_plotly + WebUI renderer)
+- 124: narrate_table tool (deterministic table-to-narrative)
+- 125: research_search tool (parallel edgar+fred+govcon)
+- 126: document_library tool (persistent text docs w/ tags + search)
+- 127: earnings_call tool (8-theme transcript summarizer)
+- 128: clause_extractor tool (14-type contract clause extraction)
+
+Tools: 71 → 78. Zero regressions across all 10 parts.

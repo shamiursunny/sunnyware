@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 118)
+## Current state (last session: 2026-10-15, Part 128)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -564,6 +564,27 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
     — POST /api/roles/import → validated (version, keys, fields)
     — export_roles() / import_roles() helpers in roles.py
   • Part 117 — insurance_research tool (70th tool, 23 checks)
+- Multi-platform feature roadmap (Parts 119–128):
+  • 10 features from verified high-value platforms, all shipped:
+    1. 119 — agent monitoring dashboard (runs/success/failure/latency)
+    2. 120 — save-as-script on python_eval (Bloomberg BQL-style)
+    3. 121 — lexicon sentiment on filings (AlphaSense-style)
+    4. 122 — workflow registry (Bloomberg ASKB-style)
+    5. 123 — interactive Plotly charts in chat (Kensho MCP Apps)
+    6. 124 — narrate_table (Hebbia Matrix-style)
+    7. 125 — research_search (edgar+fred+govcon parallel)
+    8. 126 — document_library (Bloomberg Drive-style)
+    9. 127 — earnings_call transcript summarizer
+    10. 128 — clause_extractor (Hebbia ISD-style)
+  • Tools: 71 → 78 (+7 new tools)
+  • New endpoints:
+    — GET  /api/agents/metrics
+    — GET  /api/cache/stats
+    — POST /api/cache/clear
+  • WebUI: Plotly CDN + auto-render pipeline
+  • Roles updated: fpa, actuary, cfo, tax gain new tools
+  • All zero-LLM, zero-network (pure Python) except 119/123
+    which only instrument existing paths — no new LLM calls
     — honest reframe: NAIC (404) + AmericasSuretyBonds (403)
       had no public APIs, so we shipped real verified sources
     — SEC EDGAR full-text: https://efts.sec.gov/LATEST/search-index
@@ -649,8 +670,11 @@ When running pre_push_check.py, if HF push times out, retry
 
 
 ## What's next (priority order)
-1. Monitor CFO/CDO/worker orchestration + 71-tool stack in production.
+1. Monitor the full 78-tool stack + supervisor pipeline in production.
 2. NVIDIA NIM integration — WAITING on user to activate account.
+3. Future: verify remaining role coverage — add research_search /
+   document_library / earnings_call / clause_extractor to quant role
+   (currently fpa+actuary+cfo+tax have them).
 3. Future: NAIC Content JSON:API + AmericasSuretyBonds MCP (6,900+ bonds)
    — additional insurance sources beyond the state-DOI Socrata portals
    shipped in Part 113D.

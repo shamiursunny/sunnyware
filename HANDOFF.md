@@ -1046,3 +1046,13 @@ for a future session).
 - Fix: spending_by_category needs category in URL path
 - HEAD: d2cdf9c
 - NEXT: NVIDIA NIM (blocked on account activation)
+
+## 2026-10-15 — Parts 119-128 (roadmap complete)
+- 10 of 10 multi-platform roadmap features shipped
+- 78 tools total (was 71 at start of roadmap)
+- All zero-LLM deterministic, except 119 (metrics wrapper around
+  existing calls) and 123 (chart capture only)
+- Live-verified each part on HF before moving to next
+- HEAD: 2179f16
+- NEXT: NVIDIA NIM (blocked on account); add roadmap tools to
+  quant role for full symmetry
