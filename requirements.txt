@@ -31,5 +31,4 @@ playwright>=1.40.0
 # Part 111: Actuarial / insurance / risk-management libraries
 chainladder>=0.10
 lifelib>=0.17
-haute>=0.6
 solvency2-data>=0.5
