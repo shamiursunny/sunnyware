@@ -88,6 +88,14 @@ class PythonEvalTool:
         if chart:
             result.update(chart)
 
+        # Part 123: also capture Plotly figures for interactive rendering
+        try:
+            pl_cap = _sandbox.capture_plotly(g)
+            if pl_cap:
+                result.update(pl_cap)
+        except Exception:
+            pass
+
         # Part 120: optional save-as-script (best-effort, never fatal)
         save_as = str(args.get("save_as", "")).strip()
         if save_as and not result.get("error"):

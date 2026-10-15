@@ -459,3 +459,44 @@ def capture_chart(plt_mod) -> dict:
         }
     except Exception:
         return {}
+
+
+def capture_plotly(g: dict) -> dict:
+    """Part 123: if a Plotly figure exists in the exec globals, return its
+    JSON serialization for interactive client-side rendering.
+
+    Returns {"plotly_json": "<json-string>"} or {} if nothing to capture.
+    Uses plotly.io.to_json so the client gets a portable figure spec.
+    """
+    if not isinstance(g, dict):
+        return {}
+    try:
+        from plotly.io import to_json as _pio_to_json
+    except Exception:
+        return {}
+    try:
+        # Find the last go.Figure instance in globals (skip private names).
+        try:
+            from plotly.graph_objects import Figure as _Fig
+        except Exception:
+            _Fig = None
+        last_fig = None
+        if _Fig is not None:
+            for name, val in g.items():
+                if not isinstance(name, str) or name.startswith("_"):
+                    continue
+                if isinstance(val, _Fig):
+                    last_fig = val
+        if last_fig is None:
+            return {}
+        js = _pio_to_json(last_fig)
+        if not isinstance(js, str) or not js.strip():
+            return {}
+        # Cap size to avoid blowing up the response payload
+        MAX_PLOTLY_BYTES = 400 * 1024
+        if len(js) > MAX_PLOTLY_BYTES:
+            return {"plotly_error": "plotly figure too large (>" +
+                                    str(MAX_PLOTLY_BYTES) + " bytes)"}
+        return {"plotly_json": js}
+    except Exception:
+        return {}

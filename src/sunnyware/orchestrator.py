@@ -272,6 +272,39 @@ def _inject_chart_base64(answer: str, steps: list) -> str:
     return answer
 
 
+def _inject_plotly_div(answer: str, steps: list) -> str:
+    """Part 123: if any tool step returned plotly_json, append an
+    interactive chart container div to the answer.
+
+    Uses a base64-encoded data attribute so the marker survives
+    markdown parsing. Safe no-op if there is no plotly payload."""
+    if not answer or not steps:
+        return answer
+    if "sunnyware-plotly" in answer:
+        return answer
+    plotly_json = None
+    for s in reversed(steps):
+        if not isinstance(s, dict):
+            continue
+        r = s.get("result") or {}
+        if not isinstance(r, dict):
+            continue
+        pj = r.get("plotly_json")
+        if isinstance(pj, str) and pj.strip():
+            plotly_json = pj
+            break
+    if not plotly_json:
+        return answer
+    try:
+        import base64 as _b64
+        b64 = _b64.b64encode(plotly_json.encode("utf-8")).decode("ascii")
+        return (answer
+                + "\n\n<div class=\"sunnyware-plotly\" "
+                + "data-plotly-b64=\"" + b64 + "\"></div>\n")
+    except Exception:
+        return answer
+
+
 async def _execute_tool(tool_name: str, tool_args: dict) -> dict:
     from . import metrics as _metrics
     # Part 31E-ext2: resolve alias -> canonical name
@@ -694,7 +727,7 @@ async def _run_agent_body(
 
         if parsed is not None and "answer" in parsed:
             _ans = str(parsed.get("answer", ""))
-            _ans = _inject_chart_base64(_ans, steps)
+            _ans = _inject_chart_base64(_inject_plotly_div(_ans, steps), steps)
             await _emit(on_event, {"type": "answer", "text": _ans})
             return {
                 "ok": True,
@@ -728,7 +761,7 @@ async def _run_agent_body(
                 continue
             return {
                 "ok": True,
-                "answer": _inject_chart_base64(content, steps),
+                "answer": _inject_chart_base64(_inject_plotly_div(content, steps), steps),
                 "steps": steps,
                 "provider": _last_provider,
                 "iterations": iteration + 1,

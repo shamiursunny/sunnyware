@@ -14,6 +14,7 @@ HTML = """<!DOCTYPE html>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="/static/marked.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" defer></script>
 <style>
   :root {
     --fs-xs: 11px;
@@ -299,6 +300,7 @@ HTML = """<!DOCTYPE html>
   .msg.agent th { background: var(--bg-hover); color: var(--accent-2); }
   .msg.agent hr { border: none; border-top: 1px solid var(--border-2); margin: var(--sp-3) 0; }
   .msg.agent img { max-width: 100%; border: 1px solid var(--border); border-radius: var(--r-md); margin: var(--sp-2) 0; cursor: zoom-in; }
+  .sunnyware-plotly { min-height: 320px; max-width: 100%; margin: 8px 0; }
   .msg.agent img.zoomed { position: fixed; inset: 4vh 4vw; width: 92vw; height: 92vh; object-fit: contain; z-index: 2000; cursor: zoom-out; background: var(--bg); padding: var(--sp-3); border-radius: var(--r-lg); }
   footer { padding: var(--sp-2) var(--sp-3) var(--sp-3); border-top: 1px solid var(--border); background: var(--bg-elev); flex-shrink: 0; }
   #form { max-width: var(--composer-max); margin: 0 auto; display: flex; gap: var(--sp-1); align-items: center; }
@@ -1817,6 +1819,47 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     return out;
   }
 
+  // ── Part 123: interactive Plotly chart renderer ──
+  var _plotlyRenderScheduled = false;
+  function _renderPendingPlotly() {
+    _plotlyRenderScheduled = false;
+    var els = document.querySelectorAll(
+      '.sunnyware-plotly:not([data-plotly-rendered])'
+    );
+    if (!els || !els.length) return;
+    if (typeof Plotly === 'undefined') {
+      for (var k = 0; k < els.length; k++) {
+        els[k].setAttribute('data-plotly-rendered', '1');
+        els[k].textContent = '[interactive chart unavailable]';
+        els[k].style.cssText = 'padding:8px;color:#888;font-style:italic';
+      }
+      return;
+    }
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      try {
+        var b64 = el.getAttribute('data-plotly-b64');
+        el.setAttribute('data-plotly-rendered', '1');
+        if (!b64) continue;
+        var spec = JSON.parse(atob(b64));
+        Plotly.newPlot(el, spec.data || [], spec.layout || {}, {
+          responsive: true, displayModeBar: false,
+          margin: { l: 50, r: 20, t: 40, b: 40 },
+        });
+        el.style.cssText = 'min-height:320px;max-width:100%;margin:8px 0';
+      } catch (e) {
+        el.textContent = '[chart render error]';
+        el.style.cssText = 'padding:8px;color:#c66;font-style:italic';
+      }
+    }
+  }
+  function _schedulePlotlyRender() {
+    if (_plotlyRenderScheduled) return;
+    _plotlyRenderScheduled = true;
+    setTimeout(_renderPendingPlotly, 0);
+    setTimeout(_renderPendingPlotly, 250);
+  }
+
   function renderAgentHtml(text) {
     if (!text) return '';
     if (typeof marked === 'undefined' || !marked.parse) return escapeHtml(text);
@@ -1824,6 +1867,9 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
       var raw = marked.parse(wrapBareBase64(text));
       raw = raw.split('<\/script').join('&lt;/script');
       raw = raw.split('javascript:').join('');
+      if (raw.indexOf('sunnyware-plotly') >= 0) {
+        _schedulePlotlyRender();
+      }
       return raw;
     } catch (e) {
       return escapeHtml(text);
