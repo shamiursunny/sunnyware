@@ -59,3 +59,29 @@ def reset_rate_limit_key() -> None:
         _rl_key.set("")
     except Exception:
         pass
+
+
+_role: contextvars.ContextVar = contextvars.ContextVar(
+    "current_role", default=""
+)
+
+
+def set_role(role: str) -> None:
+    try:
+        _role.set(role or "")
+    except Exception:
+        pass
+
+
+def get_role() -> str:
+    try:
+        return _role.get() or ""
+    except Exception:
+        return ""
+
+
+def reset_role() -> None:
+    try:
+        _role.set("")
+    except Exception:
+        pass

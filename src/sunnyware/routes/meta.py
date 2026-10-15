@@ -3,6 +3,41 @@
 """Root, about, and health endpoints."""
 
 from fastapi import APIRouter, Request
+
+
+def _forbidden(role: str, required: str):
+    """Part 135: 403 response with role context."""
+    return JSONResponse(
+        {
+            "error": "forbidden",
+            "detail": f"requires '{required}' role (you have '{role}')",
+            "required_role": required,
+            "current_role": role,
+        },
+        status_code=403,
+    )
+
+
+def _check_admin():
+    """Part 135: None if OK, else a 403 JSONResponse.
+
+    Permissive when auth is OFF (preserves pre-135 behavior).
+    When auth is ON, requires current role >= admin.
+    """
+    try:
+        from .. import auth as _auth
+        from .. import tenant as _tenant
+    except Exception:
+        return None
+    try:
+        if not _auth.auth_enabled():
+            return None
+        cur = _tenant.get_role() or _auth.default_role()
+        if not _auth.has_role(cur, "admin"):
+            return _forbidden(cur, "admin")
+    except Exception:
+        return None
+    return None
 from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
 
 from .. import meta
@@ -904,7 +939,13 @@ async def rate_limit_status(tenant: str = None):
 
 @router.get("/api/rate_limit/tenants")
 async def rate_limit_tenants():
-    """Part 134: snapshot of all active tenants (admin read)."""
+    """Part 134: snapshot of all active tenants (admin read).
+
+    Part 135: admin-only when auth is enabled.
+    """
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
     try:
         from .. import auth as _auth
         return {
@@ -922,7 +963,13 @@ async def rate_limit_tenants():
 
 @router.post("/api/rate_limit/reset")
 async def rate_limit_reset(req: Request):
-    """Part 134: reset buckets. Body {} = all; {"tenant": "..."} = one."""
+    """Part 134: reset buckets. Body {} = all; {"tenant": "..."} = one.
+
+    Part 135: admin-only when auth is enabled.
+    """
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
     try:
         from .. import auth as _auth
         try:
@@ -944,11 +991,45 @@ async def rate_limit_reset(req: Request):
 
 @router.post("/api/rate_limit/evict")
 async def rate_limit_evict():
-    """Part 134: force-prune stale buckets, return count pruned."""
+    """Part 134: force-prune stale buckets, return count pruned.
+
+    Part 135: admin-only when auth is enabled.
+    """
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
     try:
         from .. import auth as _auth
         n = _auth.evict_stale()
         return {"evicted": n, "remaining": len(_auth._buckets)}
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.get("/api/auth/whoami")
+async def auth_whoami(req: Request):
+    """Part 135: identify the current caller's key, role, and level."""
+    try:
+        from .. import auth as _auth
+        from .. import tenant as _tenant
+        raw = req.headers.get("x-api-key") or ""
+        if not raw:
+            authz = req.headers.get("authorization") or ""
+            if authz.lower().startswith("bearer "):
+                raw = authz[7:].strip()
+        role = _tenant.get_role() or _auth.role_for_key(raw)
+        return {
+            "auth_enabled": _auth.auth_enabled(),
+            "key_masked": _auth.mask_key(raw) if raw else "",
+            "valid_key": _auth.is_valid_key(raw) if raw else False,
+            "role": role,
+            "role_level": _auth.role_level(role),
+            "available_roles": list(_auth._ROLE_HIERARCHY.keys()),
+            "default_role": _auth.default_role(),
+        }
     except Exception as e:
         return JSONResponse(
             {"error": f"{type(e).__name__}: {e}"},

@@ -15,6 +15,16 @@ from typing import Optional
 
 
 _KEYS_CACHE: Optional[list] = None
+
+# Part 135: RBAC hierarchy. Higher level implies lower.
+_ROLE_HIERARCHY = {
+    "readonly": 1,
+    "analyst": 2,
+    "admin": 3,
+}
+_DEFAULT_ROLE_ENV = "SUNNYWARE_DEFAULT_ROLE"
+_DEFAULT_ROLE_FALLBACK = "admin"
+_ROLES_CACHE = None
 _buckets = defaultdict(deque)
 _WINDOW_SEC = 60.0
 
@@ -31,6 +41,54 @@ def load_keys(reload: bool = False) -> list:
     if _KEYS_CACHE is None or reload:
         _KEYS_CACHE = _parse_keys()
     return _KEYS_CACHE
+
+
+def _parse_roles() -> dict:
+    """Parse SUNNYWARE_API_ROLES="k1:admin,k2:analyst,k3:readonly"."""
+    raw = (os.getenv("SUNNYWARE_API_ROLES") or "").strip()
+    if not raw:
+        return {}
+    out = {}
+    for pair in raw.split(","):
+        pair = pair.strip()
+        if not pair or ":" not in pair:
+            continue
+        k, _, role = pair.partition(":")
+        k = k.strip()
+        role = role.strip().lower()
+        if not k or role not in _ROLE_HIERARCHY:
+            continue
+        out[k] = role
+    return out
+
+
+def load_roles(reload: bool = False) -> dict:
+    global _ROLES_CACHE
+    if _ROLES_CACHE is None or reload:
+        _ROLES_CACHE = _parse_roles()
+    return _ROLES_CACHE
+
+
+def default_role() -> str:
+    raw = (os.getenv(_DEFAULT_ROLE_ENV) or _DEFAULT_ROLE_FALLBACK).strip().lower()
+    if raw not in _ROLE_HIERARCHY:
+        return _DEFAULT_ROLE_FALLBACK
+    return raw
+
+
+def role_for_key(key: str) -> str:
+    if not key:
+        return default_role()
+    roles = load_roles() or {}
+    return roles.get(key, default_role())
+
+
+def role_level(role: str) -> int:
+    return _ROLE_HIERARCHY.get((role or "").lower(), 0)
+
+
+def has_role(current: str, required: str) -> bool:
+    return role_level(current) >= role_level(required)
 
 
 def auth_enabled() -> bool:
@@ -209,6 +267,9 @@ def status() -> dict:
         "rate_limit_enabled": rate_limit_enabled(),
         "rate_limit_per_minute": rate_limit_per_minute(),
         "rate_limit_bypass_prefixes": list(rate_limit_bypass_prefixes()),
+        "roles_configured": len(load_roles() or {}),
+        "roles_hierarchy": list(_ROLE_HIERARCHY.keys()),
+        "default_role": default_role(),
         "window_seconds": int(_WINDOW_SEC),
         "protected_prefixes": ["/api/"],
         "public_endpoints": [

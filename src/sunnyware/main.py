@@ -333,6 +333,12 @@ class _MetricsMiddleware:
             _incoming_key = _auth.extract_key_from_headers(scope.get("headers") or []) or ""
             # Only use key as tenant if auth is enabled (else shared namespace)
             _tenant.set_key(_incoming_key if _auth.auth_enabled() else "")
+            # Part 135: set the request role from the key's mapping (or default)
+            try:
+                _role = _auth.role_for_key(_incoming_key) if _auth.auth_enabled() else _auth.default_role()
+                _tenant.set_role(_role)
+            except Exception:
+                pass
             is_protected = path.startswith("/api/") and path != "/api/auth/status"
             
             # Part 134c: auth gate (only when SUNNYWARE_API_KEYS is set).
