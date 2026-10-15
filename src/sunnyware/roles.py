@@ -44,6 +44,7 @@ ROLES = {
             "python_eval", "sql_sandbox_execute", "duckdb_query",
             "read_file", "write_file", "list_files", "rag_search",
             "calculator", "web_search", "echo",
+            "earnings_call",
         ],
         "tools": None,
     },
@@ -97,6 +98,7 @@ ROLES = {
             "calculator", "web_search",
             "research_search",
             "document_library",
+            "earnings_call",
         ],
         "tools": None,
     },
@@ -177,7 +179,8 @@ ROLES = {
             "current_time",
             "govcon_data",         # federal contract + spending lookup
             "research_search",    # unified edgar+fred+govcon search
-            "document_library",   # persistent text docs
+            "document_library",   # persistent text docs,
+            "earnings_call",
         ],
         "tools": None,
     },

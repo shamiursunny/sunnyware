@@ -77,6 +77,7 @@ from .workflow_registry import WorkflowRegistryTool
 from .narrate_table import NarrateTableTool
 from .research_search import ResearchSearchTool
 from .document_library import DocumentLibraryTool
+from .earnings_call import EarningsCallTool
 from .delegate_to_agent import DelegateToAgentTool
 
 
@@ -156,6 +157,7 @@ _TOOLS = {
     NarrateTableTool.name: NarrateTableTool(),
     ResearchSearchTool.name: ResearchSearchTool(),
     DocumentLibraryTool.name: DocumentLibraryTool(),
+    EarningsCallTool.name: EarningsCallTool(),
     DelegateToAgentTool.name: DelegateToAgentTool(),
 }
 
