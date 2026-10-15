@@ -105,6 +105,11 @@ class InsuranceResearchTool:
             "description": "For fred_search: if true, don't append 'insurance' to query",
             "required": False,
         },
+        "text": {
+            "type": "string",
+            "description": "Free-form text to score (for action=sentiment). Returns lexicon-based sentiment.",
+            "required": False,
+        },
     }
 
     async def run(self, args: dict) -> dict:
@@ -303,8 +308,20 @@ class InsuranceResearchTool:
                 "observations": obs,
             }
 
+        # ── sentiment (Part 121) ─────────────────────────
+        if action == "sentiment":
+            text = (args.get("text") or "").strip()
+            if not text:
+                return {"error": "text is required for sentiment"}
+            from ._sentiment import score_text
+            return {
+                "action": "sentiment",
+                "text_length": len(text),
+                "sentiment": score_text(text),
+            }
+
         return {
             "error": f"unknown action '{action}'",
             "available": ["search_filings", "company_filings",
-                          "fred_search", "fred_series"],
+                          "fred_search", "fred_series", "sentiment"],
         }
