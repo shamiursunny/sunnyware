@@ -80,11 +80,15 @@ class TiingoPricesTool:
             cached = cache_get(ck)
             if cached:
                 return cached
-            r = await get_json(f"{_BASE}/daily/{sym}", headers=headers, params=params or None)
+            # Part 108b: use the /prices suffix for OHLCV data
+            # (/daily/{sym} alone returns metadata dict, not bars)
+            r = await get_json(f"{_BASE}/daily/{sym}/prices",
+                               headers=headers, params=params or None)
             if isinstance(r, dict) and "_http_error" in r:
                 return {"error": r["_http_error"], "detail": r.get("_body","")[:200]}
             if not isinstance(r, list):
-                return {"error": "unexpected shape", "detail": str(r)[:200]}
+                return {"error": "unexpected shape (expected list)",
+                        "detail": str(r)[:300]}
             rows = r[-500:]
             out = {"ticker": sym, "count": len(rows), "bars": [
                 {"date": b.get("date"), "close": b.get("close"),
