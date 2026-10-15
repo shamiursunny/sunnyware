@@ -67,6 +67,7 @@ ROLES = {
             "eulerpool_alt_", "eulerpool_stocks_", "fred_", "finnhub_",
         ],
         "extra_tools": [
+            "risk_metrics",
             "python_eval", "sql_sandbox_execute", "duckdb_query",
             "read_file", "write_file", "list_files", "rag_search",
             "calculator", "web_search",
@@ -312,6 +313,7 @@ ROLES = {
         ],
         "extra_tools": [
             "python_eval",
+            "risk_metrics",
             "sql_sandbox_execute",
             "duckdb_query",
             "insurance_research",
