@@ -870,3 +870,18 @@ Tools: 71 → 78. Zero regressions across all 10 parts.
   - Every result carries 'methodology' field
 - Zero changes to orchestrator.py or delegate_to_agent.py
 - Smoke: 129 (48/48), 130 (47/47), 114 (50/50), 112 (28/28)
+
+## Phase C-1 — legal_citation_check (2026-10-16)
+- New tool #80: legal_citation_check (CourtListener REST API v4)
+- Actions: verify_one / verify_text / search_cases / get_opinion
+- Status codes: 200 found | 404 valid-not-found | 400 invalid reporter
+                | 300 ambiguous | 429 throttled
+- Free tier: 5 req/min, 50 req/hr, 125 req/day
+- Requires COURTLISTENER_API_KEY (HF Space secret) - graceful fallback
+- Smart caching: 1w for cites, SHA-256 for text blobs
+- Legal role now has 15 tools
+- VERIFIED live:
+  * Obergefell v. Hodges (576 U.S. 644) verified=True
+  * Miranda v. Arizona (384 U.S. 436) verified=True
+  * Fabricated citation 9999 F.99d 99999 verified=False
+- Smoke: smoke_test_part131.py (32 checks)

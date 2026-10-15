@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Phase A + C-2)
+## Current state (last session: 2026-10-16, Phase C-1)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -703,14 +703,14 @@ When running pre_push_check.py, if HF push times out, retry
 
 
 ## What's next (priority order)
-1. Monitor the 79-tool stack + 9-role supervisor pipeline in production.
+1. Monitor the 80-tool stack + 9-role supervisor pipeline in production.
 2. NVIDIA NIM integration — WAITING on user to activate account.
-3. Future: Phase C-1 legal_citation_check (CourtListener free API) —
-   add case-law verification tool for the legal role.
-4. Future: add Phase A + roadmap tools to remaining roles (general)
+3. Future: add Phase A + roadmap tools to remaining roles (general)
    for full symmetry.
-5. Future: legal/risk_ins metrics in /api/agents/metrics — they
+4. Future: legal/risk_ins metrics in /api/agents/metrics — they
    automatically appear since Part 119 instruments every run_agent.
+5. Future: expand legal_citation_check actions (get_cluster detail,
+   cited_by graph) if the free tier proves sufficient.
 3. Future: NAIC Content JSON:API + AmericasSuretyBonds MCP (6,900+ bonds)
    — additional insurance sources beyond the state-DOI Socrata portals
    shipped in Part 113D.
