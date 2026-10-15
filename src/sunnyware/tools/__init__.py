@@ -78,6 +78,7 @@ from .narrate_table import NarrateTableTool
 from .research_search import ResearchSearchTool
 from .document_library import DocumentLibraryTool
 from .earnings_call import EarningsCallTool
+from .clause_extractor import ClauseExtractorTool
 from .delegate_to_agent import DelegateToAgentTool
 
 
@@ -158,6 +159,7 @@ _TOOLS = {
     ResearchSearchTool.name: ResearchSearchTool(),
     DocumentLibraryTool.name: DocumentLibraryTool(),
     EarningsCallTool.name: EarningsCallTool(),
+    ClauseExtractorTool.name: ClauseExtractorTool(),
     DelegateToAgentTool.name: DelegateToAgentTool(),
 }
 
