@@ -235,9 +235,19 @@ class GovconDataTool:
             if cat not in allowed:
                 return {"error": f"unknown category '{cat}'",
                         "available": sorted(allowed)}
+            import datetime as _dt
             body = {
-                "category": cat,
-                "filters": {"award_type_codes": _DEFAULT_AWARD_TYPES},
+                "filters": {
+                    "award_type_codes": _DEFAULT_AWARD_TYPES,
+                    "time_period": [{
+                        "start_date": (args.get("start_date")
+                                       or (_dt.date.today()
+                                           - _dt.timedelta(days=364)
+                                           ).isoformat()),
+                        "end_date":   (args.get("end_date")
+                                       or _dt.date.today().isoformat()),
+                    }],
+                },
                 "limit": limit, "page": 1,
             }
             naics = (args.get("naics") or "").strip()
@@ -248,22 +258,35 @@ class GovconDataTool:
                 body["filters"]["recipient_locations"] = [{
                     "country": "USA", "state": state,
                 }]
-            ck = "govcon_cat:" + _json.dumps(body, sort_keys=True)
+            ck = f"govcon_cat:{cat}:" + _json.dumps(body, sort_keys=True)
             cached = cache_get(ck)
             if cached is not None:
                 cached = dict(cached); cached["_cached"] = True
                 return cached
 
-            resp = await _post_json(_BASE + "/search/spending_by_category/",
-                                    body)
+            # Category belongs in the URL path (verified live), NOT in
+            # the request body — body-form returns HTTP 404.
+            resp = await _post_json(
+                _BASE + "/search/spending_by_category/" + cat + "/",
+                body,
+            )
             if isinstance(resp, dict) and resp.get("_http_error"):
                 return {"error": resp["_http_error"],
                         "status": resp.get("_status")}
 
+            rows = []
+            for r in (resp.get("results") or [])[:limit]:
+                rows.append({
+                    "code": r.get("code"),
+                    "name": r.get("name"),
+                    "amount": r.get("amount"),
+                    "recipient_id": r.get("recipient_id"),
+                    "uei": r.get("uei"),
+                })
             out = {
                 "action": action, "category": cat,
-                "returned": len((resp.get("results") or [])[:limit]),
-                "results": (resp.get("results") or [])[:limit],
+                "returned": len(rows),
+                "results": rows,
             }
             cache_set(ck, out, _TTL_CAT)
             return out
