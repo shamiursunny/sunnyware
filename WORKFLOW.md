@@ -885,3 +885,18 @@ Tools: 71 → 78. Zero regressions across all 10 parts.
   * Miranda v. Arizona (384 U.S. 436) verified=True
   * Fabricated citation 9999 F.99d 99999 verified=False
 - Smoke: smoke_test_part131.py (32 checks)
+
+## Parts 132-133 - Production readiness (2026-10-16)
+- Part 132: execution tracing
+  * tracing.py: in-memory ring buffer (200 traces)
+  * Wraps _execute_tool into _execute_tool_impl + span wrapper
+  * run_agent starts/finishes trace on happy+failure paths
+  * Endpoints: /api/traces, /api/traces/stats, /api/traces/{id}, /api/traces/clear
+  * Smoke: smoke_test_part132.py (37 checks)
+- Part 133: prompt externalization
+  * static/prompts.json (v1) with 9 role addons
+  * roles._load_external_prompts() loads at import
+  * Silent fallback to embedded prompts
+  * Endpoints: /api/prompts, /api/prompts/status, POST /api/prompts/reload
+  * Smoke: smoke_test_part133.py (43 checks)
+- VERIFIED live: 80 tools, 9 roles, 4/4 providers, external prompts loaded

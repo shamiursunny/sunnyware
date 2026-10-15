@@ -1068,3 +1068,10 @@ for a future session).
 - HEAD: 85beac3
 - NEXT: Phase C-1 (legal_citation_check via CourtListener) if pursued;
         NVIDIA NIM (blocked); tool-to-role symmetry cleanup
+
+## 2026-10-16 - Parts 132-133 (production readiness)
+- Part 132: execution tracing (trace_id per run, span per tool call)
+- Part 133: prompt externalization (static/prompts.json, reloadable)
+- Both live-verified on HF
+- HEAD: 73d0a87
+- NEXT: Part 134 (per-tenant rate limiting); RBAC; injection guard

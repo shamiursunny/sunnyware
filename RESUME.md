@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-16, Phase C-1)
+## Current state (last session: 2026-10-16, Part 133)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
