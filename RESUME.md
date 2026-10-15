@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 114)
+## Current state (last session: 2026-10-15, Part 117)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -554,6 +554,25 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   "      goes through delegate_to_agent(cdo), no exceptions",
   "    — VERIFIED live: '15% of $2400' → 1 delegation to CDO → '360'",
   "      in 12.3s, no local calculator/rag_search abuse
+- UI + role tooling (Parts 115–117):
+  • Part 115 — role-specific content styling (22 checks)
+    — CSS per role on tables / code / list markers / headings
+    — FP&A blue, Quant purple, Actuary emerald, Tax amber,
+      CFO violet, CDO cyan
+  • Part 116 — role config export/import (25 checks)
+    — GET /api/roles/export  → shareable JSON snapshot
+    — POST /api/roles/import → validated (version, keys, fields)
+    — export_roles() / import_roles() helpers in roles.py
+  • Part 117 — insurance_research tool (70th tool, 23 checks)
+    — honest reframe: NAIC (404) + AmericasSuretyBonds (403)
+      had no public APIs, so we shipped real verified sources
+    — SEC EDGAR full-text: https://efts.sec.gov/LATEST/search-index
+      query='IBNR' forms='10-K' returned 2,082 real filings
+    — SEC EDGAR submissions by CIK: data.sec.gov/submissions/
+    — FRED search + observations (existing FRED_API_KEY)
+      'health' insurance query returned 4,330 real series
+    — CCSA (insured unemployment) = 1.71M, 2026-10-03
+    — actuary role now includes insurance_research
 - Eulerpool multi-source data (Part 110) — 8th financial data source:
   • New tool: eulerpool_data — curated 70-endpoint wrapper over
     Eulerpool's 447-endpoint API
@@ -619,7 +638,7 @@ When running pre_push_check.py, if HF push times out, retry
 
 
 ## What's next (priority order)
-1. Monitor CFO/CDO/worker orchestration in production.
+1. Monitor CFO/CDO/worker orchestration + 70-tool stack in production.
 2. NVIDIA NIM integration — WAITING on user to activate account.
 3. Future: NAIC Content JSON:API + AmericasSuretyBonds MCP (6,900+ bonds)
    — additional insurance sources beyond the state-DOI Socrata portals

@@ -801,3 +801,23 @@ ff2054f (108b Tiingo fix)
 - 114e: STRICT PIPELINE RULE in CFO prompt overrides base
         'answer simple questions directly' clause
 - VERIFIED: '15% of $2400' → 1 delegation → '360' in 12.3s
+
+## Part 115 — Role-specific content styling (2026-10-15)
+- Per-role CSS on agent-bubble content (tables, code, lists, headings)
+- FP&A blue | Quant purple | Actuary emerald | Tax amber | CFO violet | CDO cyan
+- Smoke: smoke_test_part115.py (22 checks)
+
+## Part 116 — Role config export/import (2026-10-15)
+- roles.export_roles() / roles.import_roles(payload)
+- GET /api/roles/export, POST /api/roles/import (validate-only)
+- Smoke: smoke_test_part116.py (25 checks)
+
+## Part 117 — insurance_research tool (2026-10-15)
+- 70th tool: SEC EDGAR (search_filings, company_filings) + FRED
+  (fred_search, fred_series)
+- Honest reframe: NAIC (no API) + AmericasSuretyBonds (blocks bots)
+  were dropped; real sources are EDGAR + FRED (verified live)
+- Live: 'IBNR' 10-K search = 2,082 filings; health-insurance FRED
+  search = 4,330 series; CCSA = 1.71M insured unemployment
+- actuary role now includes insurance_research
+- Smoke: smoke_test_part117.py (23 checks)

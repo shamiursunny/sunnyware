@@ -1027,3 +1027,13 @@ for a future session).
 - Live-verified: User → CFO → CDO → workers → CDO → CFO → User
   on trivial task; correct answer, single delegation, no local tools
 - HEAD: 16e1462
+
+## 2026-10-15 — Parts 115, 116, 117
+- Part 115: role-specific content CSS (tables/code/lists/headings)
+- Part 116: role config export/import (GET /api/roles/export,
+  POST /api/roles/import)
+- Part 117: insurance_research tool (EDGAR + FRED)
+  Verified live: 2,082 IBNR filings, 4,330 FRED series, CCSA obs.
+- HEAD: 79eaaf0
+- NEXT: NVIDIA NIM (blocked); optional SAM.gov federal surety
+  (needs free API key from api.data.gov/signup)
