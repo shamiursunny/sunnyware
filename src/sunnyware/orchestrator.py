@@ -329,11 +329,30 @@ async def run_agent(
     on_event=None,
     role: Optional[str] = None,
 ) -> dict:
-    """Part 114: public entry — sets role context for nested delegation."""
+    """Part 114: public entry — sets role context for nested delegation.
+
+    Part 119: also records per-role run/success/failure/latency metrics.
+    Every metric call is wrapped in try/except and never affects behavior.
+    """
     from .tools.delegate_to_agent import _CURRENT_ROLE
     _role_token = _CURRENT_ROLE.set(role or "general")
+
+    # ── Part 119: metric instrumentation (safe) ──
+    import time as _t119
+    _t0_119 = _t119.time()
+    _role_key = (str(role or "general").strip().lower() or "general")
     try:
-        return await _run_agent_body(
+        from . import metrics as _m119
+    except Exception:
+        _m119 = None
+    try:
+        if _m119 is not None:
+            _m119.incr_labeled("agent_runs_total", _role_key)
+    except Exception:
+        pass
+
+    try:
+        _result_119 = await _run_agent_body(
             prompt=prompt,
             session_uuid=session_uuid,
             model=model,
@@ -342,8 +361,33 @@ async def run_agent(
             on_event=on_event,
             role=role,
         )
-    finally:
+    except Exception:
+        try:
+            if _m119 is not None:
+                _m119.incr_labeled("agent_failure_total", _role_key)
+        except Exception:
+            pass
         _CURRENT_ROLE.reset(_role_token)
+        raise
+
+    try:
+        if _m119 is not None:
+            _m119.incr_labeled("agent_success_total", _role_key)
+            _ms = int((_t119.time() - _t0_119) * 1000)
+            _m119.incr_labeled("agent_latency_ms_total", _role_key, _ms)
+            _m119.incr_labeled("agent_latency_ms_count", _role_key, 1)
+            try:
+                _iters = int((_result_119 or {}).get("iterations") or 0)
+                if _iters > 0:
+                    _m119.incr_labeled("agent_iterations_total",
+                                       _role_key, _iters)
+            except Exception:
+                pass
+    except Exception:
+        pass
+
+    _CURRENT_ROLE.reset(_role_token)
+    return _result_119
 
 
 async def _run_agent_body(

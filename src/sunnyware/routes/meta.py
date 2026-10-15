@@ -691,3 +691,61 @@ async def attachments_stats():
             status_code=500,
         )
 
+
+@router.get("/api/agents/metrics")
+async def agents_metrics():
+    """Part 119: per-role agent run/success/failure/latency metrics."""
+    try:
+        from .. import metrics as _m
+        from .. import roles as _roles
+        snap = _m.snapshot()
+
+        def _bucket(name):
+            v = snap.get(name)
+            return v if isinstance(v, dict) else {}
+
+        runs = _bucket("agent_runs_total")
+        succ = _bucket("agent_success_total")
+        fail = _bucket("agent_failure_total")
+        lat_sum = _bucket("agent_latency_ms_total")
+        lat_cnt = _bucket("agent_latency_ms_count")
+        iters = _bucket("agent_iterations_total")
+
+        keys = sorted(set(runs) | set(succ) | set(fail))
+        rows = []
+        for role in keys:
+            r = int(runs.get(role, 0) or 0)
+            s = int(succ.get(role, 0) or 0)
+            f = int(fail.get(role, 0) or 0)
+            total = s + f
+            rate = round(s / total, 4) if total else None
+            ls = int(lat_sum.get(role, 0) or 0)
+            lc = int(lat_cnt.get(role, 0) or 0)
+            avg_ms = int(ls / lc) if lc else None
+            it = int(iters.get(role, 0) or 0)
+            rows.append({
+                "role": role,
+                "label": (_roles.ROLES.get(role, {}) or {}).get("label", role),
+                "runs": r,
+                "success": s,
+                "failure": f,
+                "success_rate": rate,
+                "avg_latency_ms": avg_ms,
+                "iterations_total": it,
+                "avg_iterations": round(it / r, 2) if r else None,
+            })
+
+        return {
+            "roles": rows,
+            "totals": {
+                "runs": sum(int(runs.get(k, 0) or 0) for k in keys),
+                "success": sum(int(succ.get(k, 0) or 0) for k in keys),
+                "failure": sum(int(fail.get(k, 0) or 0) for k in keys),
+            },
+            "known_roles": _roles.role_names(),
+        }
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
