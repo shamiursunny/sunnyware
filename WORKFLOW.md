@@ -712,3 +712,18 @@ ff2054f (108b Tiingo fix)
     solvency2_data imports cleanly
 - Smoke test: scripts/smoke_test_part111.py (11 checks)
 - Commits: a2bef46 (111), b37dd00 (111b haute removal), 3c927ce (111c allowlist)
+
+## Part 112 — Role personas + tool subsetting (2026-10-15)
+- New module src/sunnyware/roles.py (5 roles)
+- Backend:
+  * orchestrator._build_tools_schema(role=None) — filters by role
+  * orchestrator.run_agent(..., role=None) — injects role prompt addon
+  * routes/agent.py: /run + /stream read `role` field
+  * NEW endpoint: GET /api/roles
+- WebUI:
+  * <select id="roleSelect"> in header-right
+  * getRole()/setRole() helpers, ROLE_KEY='sunnyware.role'
+  * initRoleSelector() fetches /api/roles on boot
+  * fetch body includes `role: getRole()`
+- Token savings: 4-6K/request in non-general roles
+- Smoke test: scripts/smoke_test_part112.py (28 checks)

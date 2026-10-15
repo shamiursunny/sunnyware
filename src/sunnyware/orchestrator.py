@@ -33,9 +33,20 @@ def _estimate_tokens(*parts) -> int:
     return max(1, total // 4)
 
 
-def _build_tools_schema() -> list:
+def _build_tools_schema(role=None) -> list:
+    """Build the tools schema, optionally filtered by role (Part 112)."""
+    allowed = None
+    try:
+        from . import roles as _roles
+        allowed = _roles.active_tool_names(role)
+    except Exception:
+        allowed = None
+    allowed_set = set(allowed) if allowed is not None else None
+
     out = []
     for t in tools_registry.list_tools():
+        if allowed_set is not None and t["name"] not in allowed_set:
+            continue
         props = {}
         required = []
         for pname, pmeta in (t.get("parameters") or {}).items():
@@ -316,12 +327,13 @@ async def run_agent(
     system: Optional[str] = None,
     use_native_tools: Optional[bool] = None,
     on_event=None,
+    role: Optional[str] = None,
 ) -> dict:
     history = []
     if session_uuid:
         history = await memory_store.build_context(session_uuid, max_turns=4)
 
-    await _emit(on_event, {"type": "start"})
+    await _emit(on_event, {"type": "start", "role": role or "general"})
 
     if use_native_tools is None:
         try:
@@ -341,10 +353,20 @@ async def run_agent(
     else:
         system_prompt = prompts.compact_prompt(context_str)
 
+    # Part 112: inject role persona prompt addon (prepended before base)
+    _role_addon = ""
+    try:
+        from . import roles as _roles
+        _role_addon = _roles.prompt_addon(role) or ""
+    except Exception:
+        _role_addon = ""
+    if _role_addon:
+        system_prompt = _role_addon + "\n\n" + system_prompt
+
     if system:
         system_prompt = system + "\n\n" + system_prompt
 
-    tools_schema = _build_tools_schema() if use_native_tools else None
+    tools_schema = _build_tools_schema(role=role) if use_native_tools else None
     steps = []
 
     messages = list(history)

@@ -95,6 +95,32 @@ HTML = """<!DOCTYPE html>
   .header-left { display: flex; align-items: center; gap: var(--sp-2); flex: 1; min-width: 0; }
   header h1 { font-size: var(--fs-lg); font-weight: 700; color: var(--accent-2); white-space: nowrap; }
   .header-right { display: flex; align-items: center; gap: var(--sp-1); flex-shrink: 0; }
+
+  /* Part 112: role persona selector */
+  #roleSelect {
+    background: rgba(255,255,255,.06);
+    color: inherit;
+    border: 1px solid rgba(255,255,255,.15);
+    border-radius: 6px;
+    padding: 4px 26px 4px 10px;
+    font-size: var(--fs-xs);
+    font-family: inherit;
+    cursor: pointer;
+    outline: none;
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'><path fill='%23888' d='M0 0l5 6 5-6z'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    max-width: 160px;
+    transition: border-color .15s ease, background-color .15s ease;
+  }
+  #roleSelect:hover { border-color: rgba(255,255,255,.3); }
+  #roleSelect:focus { border-color: var(--accent, #5ba3ff); }
+  #roleSelect option { background: #1a1a1a; color: #e6e6e6; }
+  @media (max-width: 720px) {
+    #roleSelect { max-width: 90px; padding-right: 22px; }
+  }
   .header-meta-desktop { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-xs); color: var(--text-mute); margin-right: var(--sp-2); }
   .header-meta-desktop > * { white-space: nowrap; }
   .header-meta-desktop a { color: var(--link); text-decoration: none; font-size: var(--fs-xs); }
@@ -1157,6 +1183,13 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     </span>
   </div>
   <div class="header-right">
+    <select id="roleSelect" title="Role persona" aria-label="Role persona">
+      <option value="general">✨ General</option>
+      <option value="fpa">📊 FP&amp;A Analyst</option>
+      <option value="quant">🧮 Quant Researcher</option>
+      <option value="actuary">🏦 Actuarial Analyst</option>
+      <option value="tax">🧾 Tax Accountant</option>
+    </select>
     <span id="providerBadge" class="provider-pill" title="Serving provider"></span>
   </div>
 </header>
@@ -1298,6 +1331,39 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
 
   function makeId() {
     return 'web-' + Math.random().toString(36).slice(2, 10);
+  }
+
+  // ── Part 112: role persona helpers ──
+  const ROLE_KEY = 'sunnyware.role';
+  function getRole() {
+    try { return localStorage.getItem(ROLE_KEY) || 'general'; }
+    catch (e) { return 'general'; }
+  }
+  function setRole(v) {
+    const r = (v || 'general').toString().toLowerCase();
+    try { localStorage.setItem(ROLE_KEY, r); } catch (e) {}
+  }
+  function initRoleSelector() {
+    const sel = document.getElementById('roleSelect');
+    if (!sel) return;
+    sel.value = getRole();
+    sel.addEventListener('change', () => setRole(sel.value));
+    // Sync options from server (best-effort)
+    fetch('/api/roles', { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (!d || !Array.isArray(d.roles)) return;
+        const current = sel.value;
+        sel.innerHTML = '';
+        for (const r of d.roles) {
+          const o = document.createElement('option');
+          o.value = r.key;
+          o.textContent = (r.icon ? r.icon + ' ' : '') + r.label;
+          sel.appendChild(o);
+        }
+        sel.value = current || d.default || 'general';
+      })
+      .catch(() => {});
   }
 
   function getSession() {
@@ -1697,7 +1763,7 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
       const r = await fetch('/api/agent/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ input: text, session_id: getSession() }),
+        body: JSON.stringify({ input: text, session_id: getSession(), role: getRole() }),
       });
 
       if (!r.ok) {
@@ -2680,6 +2746,7 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
 
   if (document.readyState === 'loading')
     document.addEventListener('DOMContentLoaded', boot);
+    document.addEventListener('DOMContentLoaded', initRoleSelector);
   else
     setTimeout(boot, 50);
   setTimeout(boot, 800);

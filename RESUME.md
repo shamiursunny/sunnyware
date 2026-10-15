@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 111)
+## Current state (last session: 2026-10-15, Part 112)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -446,6 +446,22 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • haute rejected (Py3.11+ only)
   • chainladder IBNR on RAA verified = 52,135.23 on HF
   • Smoke test: scripts/smoke_test_part111.py (11 checks)
+- Role personas with per-role tool subsetting (Part 112):
+  • New module src/sunnyware/roles.py defines 5 roles:
+    — general   (all 67 tools, no addon)
+    — fpa       FP&A Analyst     12 tools, statements/ratios/forecasting
+    — quant     Quant Researcher  12 tools, time series/backtests/options
+    — actuary   Actuarial Analyst 10 tools, chainladder/lifelib/solvency2
+    — tax       Tax Accountant    10 tools, filings/insider/RFR
+  • Tool filtering: prefix-based (e.g. edgar_*, fmp_*) + curated extras
+  • Per-role prompt addon prepended to system prompt (persona + guidance)
+  • Saves ~4-6K tokens/request in non-general roles; improves tool pick
+  • Backend: orchestrator._build_tools_schema(role), run_agent(role=...)
+  • API: both /api/agent/run and /api/agent/stream accept 'role' field
+  • New endpoint: GET /api/roles — returns {roles:[{key,label,icon}],default}
+  • WebUI: <select id="roleSelect"> in header-right, persists to
+    localStorage ('sunnyware.role'), synced from /api/roles on boot
+  • Smoke test: scripts/smoke_test_part112.py (28 checks)
 - Eulerpool multi-source data (Part 110) — 8th financial data source:
   • New tool: eulerpool_data — curated 70-endpoint wrapper over
     Eulerpool's 447-endpoint API

@@ -979,3 +979,12 @@ for a future session).
 - HEAD: 3c927ce
 - NEXT: role personas (FP&A / Quant / Actuary); NVIDIA NIM; insurance
   data sources (AmericasSuretyBonds MCP, NAIC API)
+
+## 2026-10-15 — Part 112
+- Role personas + per-role tool subsetting
+- New module: src/sunnyware/roles.py (5 roles: general, fpa, quant, actuary, tax)
+- Backend wiring: orchestrator + routes/agent (both /run and /stream)
+- New endpoint: GET /api/roles
+- WebUI: roleSelect dropdown in header, localStorage-persisted
+- Verified: 28/28 smoke checks + 6/6 pre-push gate
+- NEXT: NVIDIA NIM; per-session role; role-specific result formatting

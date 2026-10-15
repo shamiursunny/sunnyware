@@ -49,15 +49,26 @@ async def run_agent(req: Request):
     session_id = body.get("session_id", "default")
     model = body.get("model")
     system = body.get("system")
+    role = body.get("role")   # Part 112
 
     if not prompt:
         return JSONResponse({"error": "input required"}, status_code=400)
+
+    # Part 112: inject role prompt addon for the streaming path
+    try:
+        from .. import roles as _roles
+        _addon = _roles.prompt_addon(role) or ""
+        if _addon:
+            system = (_addon + "\n\n" + (system or "")).strip()
+    except Exception:
+        pass
 
     session_uuid = await sessions_store.get_or_create(session_id)
     if session_uuid:
         await memory_store.log_event(
             session_uuid, "user_message",
-            {"content": prompt, "model": model or "default"},
+            {"content": prompt, "model": model or "default",
+             "role": role or "general"},
         )
 
     _t0 = _time.time()
@@ -71,7 +82,8 @@ async def run_agent(req: Request):
     try:
         agent_result = await asyncio.wait_for(
             orchestrator.run_agent(
-                prompt, session_uuid=session_uuid, model=model, system=system
+                prompt, session_uuid=session_uuid, model=model, system=system,
+                role=role,
             ),
             timeout=_agent_timeout,
         )
@@ -148,6 +160,7 @@ async def run_agent_stream(req: Request):
     session_id = body.get("session_id", "default")
     model = body.get("model")
     system = body.get("system")
+    role = body.get("role")   # Part 112: role persona
 
     if not prompt:
         return JSONResponse({"error": "input required"}, status_code=400)
@@ -345,3 +358,23 @@ async def agent_stream(req: Request):
         },
     )
 
+
+
+
+@router.get("/api/roles")
+async def list_roles():
+    """Part 112: return available role personas for the UI selector."""
+    try:
+        from .. import roles as _roles
+        return JSONResponse({
+            "roles": [
+                {"key": k, "label": v["label"], "icon": v["icon"]}
+                for k, v in _roles.ROLES.items()
+            ],
+            "default": _roles.DEFAULT_ROLE,
+        })
+    except Exception as e:
+        return JSONResponse(
+            {"error": type(e).__name__ + ": " + str(e)},
+            status_code=500,
+        )
