@@ -209,6 +209,29 @@ HTML = """<!DOCTYPE html>
   .msg.error { color: var(--danger); }
   .msg.agent.budget { background: rgba(255, 176, 32, 0.08); border-left: 3px solid #ffb020; padding: var(--sp-2) var(--sp-3); border-radius: var(--r-md); }
   .msg.agent.budget::before { content: 'BUDGET LIMIT: '; display: block; color: #ffb020; font-size: var(--fs-xs); font-weight: 600; letter-spacing: 0.08em; margin-bottom: var(--sp-1); }
+
+  /* Part 113B: per-role visual identity on agent bubbles */
+  #chat[data-role="fpa"] .msg.agent     { border-left-color: #4a90e2; }
+  #chat[data-role="quant"] .msg.agent   { border-left-color: #a855f7; }
+  #chat[data-role="actuary"] .msg.agent { border-left-color: #10b981; }
+  #chat[data-role="tax"] .msg.agent     { border-left-color: #f59e0b; }
+
+  #chat[data-role="fpa"] .msg.agent::before,
+  #chat[data-role="quant"] .msg.agent::before,
+  #chat[data-role="actuary"] .msg.agent::before,
+  #chat[data-role="tax"] .msg.agent::before {
+    display: block;
+    font-size: var(--fs-xs);
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    opacity: 0.8;
+  }
+  #chat[data-role="fpa"] .msg.agent::before     { content: '\U0001F4CA FP&A'; color: #4a90e2; }
+  #chat[data-role="quant"] .msg.agent::before   { content: '\U0001F9EE QUANT'; color: #a855f7; }
+  #chat[data-role="actuary"] .msg.agent::before { content: '\U0001F3E6 ACTUARY'; color: #10b981; }
+  #chat[data-role="tax"] .msg.agent::before     { content: '\U0001F9FE TAX'; color: #f59e0b; }
   .msg.step { font-size: var(--fs-xs); color: var(--text-mute); font-style: italic; padding: 2px 0; }
   .msg.upload { color: var(--accent-2); font-size: var(--fs-sm); }
   .msg.upload-ok { color: var(--accent); font-size: var(--fs-sm); }
@@ -1352,6 +1375,9 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ role: role }),
       });
+      // Part 113B: reflect role color immediately
+      const _chat = document.getElementById('chat');
+      if (_chat) _chat.dataset.role = role;
     } catch (e) { /* best-effort */ }
   }
 
@@ -1368,6 +1394,9 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
         setRole(d.role);
         const sel = document.getElementById('roleSelect');
         if (sel) sel.value = d.role;
+        // Part 113B: sync chat container role styling
+        const _chat = document.getElementById('chat');
+        if (_chat) _chat.dataset.role = d.role;
       }
     } catch (e) { /* best-effort */ }
   }
@@ -1376,6 +1405,9 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     const sel = document.getElementById('roleSelect');
     if (!sel) return;
     sel.value = getRole();
+    // Part 113B: apply session role on boot
+    const _chat = document.getElementById('chat');
+    if (_chat) _chat.dataset.role = getRole();
     sel.addEventListener('change', () => {
       setRole(sel.value);
       persistRoleToSession(sel.value);   // Part 113A
@@ -1831,6 +1863,11 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
               continue;
             }
             const type = data.type || '';
+            // Part 113B: apply role identity to chat container
+            if (data.role) {
+              chat.dataset.role = data.role;
+              if (data.accent) chat.style.setProperty('--role-accent', data.accent);
+            }
             if (type === 'content') {
               const piece = data.text || '';
               if (piece) {

@@ -738,3 +738,16 @@ ff2054f (108b Tiingo fix)
 - WebUI: persistRoleToSession + syncRoleFromSession, hooked into loadSession
 - No schema migration (reuses sessions.metadata)
 - Smoke test: scripts/smoke_test_part113a.py (18 checks)
+
+## Part 113B — Role-specific result rendering (2026-10-15)
+- roles.py: style(role) returns {accent, chip} per role
+  general #8899aa | fpa #4a90e2 | quant #a855f7 | actuary #10b981 | tax #f59e0b
+- routes/agent.py /stream: start event carries role + accent + chip
+- routes/agent.py /run: response includes role
+- WebUI CSS: #chat[data-role=X] .msg.agent gets colored border + ::before chip
+- WebUI JS:
+    SSE handler reads data.role / data.accent
+    initRoleSelector sets chat.dataset.role on boot
+    persistRoleToSession + syncRoleFromSession keep it in sync
+- Session-level: switching role re-colors ALL bubbles in the active chat
+- Smoke test: scripts/smoke_test_part113b.py (25 checks)

@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 113A)
+## Current state (last session: 2026-10-15, Part 113B)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -478,6 +478,20 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • Behavior: switching Actuary on chat A stores actuary on A;
     opening chat B restores B's own role (or general)
   • Smoke test: scripts/smoke_test_part113a.py (18 checks)
+- Role-specific result rendering (Part 113B):
+  • roles.py: style(role) helper — per-role accent color + chip label
+    — general #8899aa  fpa #4a90e2  quant #a855f7
+    — actuary #10b981  tax #f59e0b
+  • routes/agent.py /stream: 'start' event now includes role + accent + chip
+  • routes/agent.py /run: response includes role
+  • WebUI:
+    — #chat[data-role="X"] CSS rules set agent-bubble border-left accent
+    — role chip via .msg.agent::before (e.g. 📊 FP&A, 🧮 QUANT)
+    — SSE handler reads data.role + data.accent from start event
+    — initRoleSelector sets chat.dataset.role on boot
+    — persistRoleToSession + syncRoleFromSession keep it in sync
+  • Session-level styling: switching role re-colors whole chat (old + new msgs)
+  • Smoke test: scripts/smoke_test_part113b.py (25 checks)
 - Eulerpool multi-source data (Part 110) — 8th financial data source:
   • New tool: eulerpool_data — curated 70-endpoint wrapper over
     Eulerpool's 447-endpoint API

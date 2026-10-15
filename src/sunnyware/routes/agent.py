@@ -198,7 +198,14 @@ async def run_agent_stream(req: Request):
         full_text = ""
         _prov_name = None
         try:
-            yield f"data: {_json.dumps({'type': 'start', 'session_uuid': session_uuid})}\n\n"
+            _role_meta = {"role": role or "general"}
+            try:
+                from .. import roles as _roles
+                _role_meta["accent"] = _roles.style(role).get("accent", "")
+                _role_meta["chip"] = _roles.style(role).get("chip", "")
+            except Exception:
+                pass
+            yield f"data: {_json.dumps({'type': 'start', 'session_uuid': session_uuid, **_role_meta})}\n\n"
             async for chunk in llm_client.stream_chat(
                 prompt, model=model, system=system, history=history
             ):

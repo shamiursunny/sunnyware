@@ -192,6 +192,21 @@ def active_tool_names(role_name):
     return [n for n in all_names if n in selected]
 
 
+_STYLE = {
+    "general": {"accent": "#8899aa", "chip": "General"},
+    "fpa":     {"accent": "#4a90e2", "chip": "FP&A"},
+    "quant":   {"accent": "#a855f7", "chip": "Quant"},
+    "actuary": {"accent": "#10b981", "chip": "Actuary"},
+    "tax":     {"accent": "#f59e0b", "chip": "Tax"},
+}
+
+
+def style(role_name):
+    """Return visual style metadata for a role (accent color, chip label)."""
+    key = _canonical(role_name) or DEFAULT_ROLE
+    return _STYLE.get(key, _STYLE[DEFAULT_ROLE])
+
+
 def prompt_addon(role_name):
     """Return the role's prompt addon (may be empty string)."""
     return get_role(role_name).get("prompt_addon", "")
