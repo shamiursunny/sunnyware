@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 109)
+## Current state (last session: 2026-10-15, Part 110)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -440,6 +440,30 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • All 7 API keys on HF Space secrets (FRED, FINNHUB, TIINGO,
     MARKETAUX, TWELVEDATA, FMP, SEC_USER_AGENT)
   • Smoke test: scripts/smoke_test_part107.py (73 checks)
+- Eulerpool multi-source data (Part 110) — 8th financial data source:
+  • New tool: eulerpool_data — curated 70-endpoint wrapper over
+    Eulerpool's 447-endpoint API
+  • NEW capabilities (not in any other tool):
+    — Bonds / Treasury yields / interest rate spreads
+    — Fixed income analytics / spot & forward curves
+    — Options chains / Greeks / IV surface / flow
+    — 13F institutional holdings (per ticker + per CIK)
+    — Superinvestor tracking (holdings, recent activity, top)
+    — Congressional trading (STOCK Act)
+    — Insider trades (Form 4) + insider sentiment
+    — Economic calendar (macro, earnings, dividends, IPO, M&A)
+    — Google Trends / Reddit / Fear & Greed / Wikipedia views
+    — Commodity prices + futures curves
+    — Crypto global stats + candles + fear/greed
+    — Risk models (covariance, factors, portfolio risk)
+    — Fama-French factors + CFTC COT
+    — Earnings call transcripts
+  • SUPPLEMENTS: FRED/IMF/BIS/ECB/Eurostat/World Bank via same key
+  • Single unified tool: action + optional identifier + optional params
+  • 1-hour TTL cache to preserve free tier budget
+  • Verified live: 10/10 actions return real data on HF
+  • Tools: 66 -> 67
+  • EULERPOOL_API_KEY on HF Space secrets
 
 
 ### RAG over documents

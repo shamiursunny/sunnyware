@@ -947,3 +947,19 @@ for a future session).
 - Live verified: all 7 tools return real data on HF
 - HEAD: ff2054f
 - NEXT: FP&A/Quant role prompts; NVIDIA NIM; options data (Polygon)
+
+## 2026-10-15 — Part 110
+- Eulerpool multi-source financial data tool (8th data source)
+- Curated 70 endpoints over Eulerpool's 447-endpoint API
+- NEW capabilities over other tools: bonds / yield curves / fixed income,
+  options chains + Greeks + IV + flow, 13F holdings, superinvestors,
+  congressional trading, insider trades, economic calendar, Google Trends,
+  Reddit, Fear & Greed, Wikipedia views, commodity futures, risk models,
+  Fama-French factors, CFTC COT, earnings call transcripts
+- Single 'action' parameter; optional 'identifier' and 'params' (JSON)
+- 1h TTL cache
+- Verified live: 10/10 actions return real data on HF
+- Tools: 66 -> 67
+- EULERPOOL_API_KEY on HF Space secrets
+- HEAD: d26718f
+- NEXT: FP&A / Quant role personas; NVIDIA NIM (waiting); options caching

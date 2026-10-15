@@ -668,3 +668,33 @@ Verified live on HF: all 8 endpoints return real data
 
 Commits: c180d24 (initial), b881954 (107b EDGAR fix), 1f6c789 (109b FMP fix),
 ff2054f (108b Tiingo fix)
+
+## Part 110 — Eulerpool multi-source data (2026-10-15)
+- New tool: eulerpool_data (curated 70 endpoints of 447-endpoint API)
+- Base URL: https://api.eulerpool.com/api/1 (query-param auth ?token=)
+- Fills gaps not covered by other tools:
+  * Bonds / Treasury yields / interest rate spreads
+  * Fixed income analytics / spot + forward curves
+  * Options chains / Greeks / IV surface / flow
+  * 13F institutional holdings (per ticker + per CIK)
+  * Superinvestor tracking
+  * Congressional trading (STOCK Act)
+  * Insider trades (Form 4) + sentiment
+  * Economic calendar (macro, earnings, dividends, IPO, M&A)
+  * Google Trends / Reddit / Fear & Greed / Wikipedia views
+  * Commodity prices + futures curves
+  * Crypto global + candles + fear/greed
+  * Risk models (covariance, factors, portfolio risk)
+  * Fama-French factors + CFTC COT
+  * Earnings call transcripts
+- Uses 'action' + optional 'identifier' + optional 'params' (JSON string)
+- 1-hour TTL cache to preserve free tier budget
+- Path fix: /fundamentals/company/ was 500 — correct is /equity/profile/
+  (and /equity/overview/ as bonus with description)
+- Verified live on HF: 10/10 actions return real data
+  profile, overview, bonds_yield_curve, options_greeks, macro_fred,
+  congress_trades, fama_french, institutional_holders, crypto_global,
+  commodity_prices
+- Tools: 66 -> 67
+- EULERPOOL_API_KEY on HF Space secrets (len 32)
+- Commit: d26718f
