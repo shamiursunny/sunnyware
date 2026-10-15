@@ -91,6 +91,83 @@ def reset_rate_limits() -> None:
     _buckets.clear()
 
 
+def reset_tenant(tenant_key: str) -> bool:
+    """Clear the rate-limit bucket for one tenant. Returns True if it existed."""
+    if not tenant_key:
+        return False
+    existed = tenant_key in _buckets
+    if existed:
+        try:
+            del _buckets[tenant_key]
+        except Exception:
+            pass
+    return existed
+
+
+def evict_stale(max_age_sec: float = None) -> int:
+    """Drop buckets whose newest entry is older than 2x window. Returns
+    number of tenants evicted. Cheap; safe to call periodically."""
+    if max_age_sec is None:
+        max_age_sec = _WINDOW_SEC * 2.0
+    now = time.time()
+    stale = []
+    for tk, bucket in list(_buckets.items()):
+        try:
+            if not bucket or (now - bucket[-1]) > max_age_sec:
+                stale.append(tk)
+        except Exception:
+            stale.append(tk)
+    for tk in stale:
+        try:
+            del _buckets[tk]
+        except Exception:
+            pass
+    return len(stale)
+
+
+def per_tenant_snapshot() -> dict:
+    """Return current usage per active tenant (within the sliding window)."""
+    now = time.time()
+    out = {}
+    for tk, bucket in _buckets.items():
+        try:
+            fresh = [t for t in bucket if (now - t) <= _WINDOW_SEC]
+            if not fresh:
+                continue
+            out[tk] = {
+                "used": len(fresh),
+                "oldest_sec_ago": int(now - fresh[0]),
+            }
+        except Exception:
+            continue
+    return out
+
+
+def tenant_status(tenant_key: str) -> dict:
+    """Return rate-limit status for one tenant."""
+    limit = rate_limit_per_minute()
+    enabled = rate_limit_enabled()
+    now = time.time()
+    bucket = _buckets.get(tenant_key) if tenant_key else None
+    used = 0
+    oldest = None
+    if bucket:
+        fresh = [t for t in bucket if (now - t) <= _WINDOW_SEC]
+        used = len(fresh)
+        if fresh:
+            oldest = int(now - fresh[0])
+    remaining = max(0, limit - used) if limit > 0 else -1
+    return {
+        "tenant_key": tenant_key or "",
+        "rate_limit_enabled": enabled,
+        "limit_per_minute": limit,
+        "window_seconds": int(_WINDOW_SEC),
+        "used_in_window": used,
+        "remaining_in_window": remaining,
+        "oldest_request_sec_ago": oldest,
+    }
+
+
 def status() -> dict:
     keys = load_keys(reload=True)
     return {

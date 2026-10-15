@@ -354,7 +354,50 @@ class _MetricsMiddleware:
                     log.info("auth_rejected", path=path, rid=req_id, reason="invalid_key")
                     return
                 # Rate limit
-                rl = _auth.check_rate_limit(key or "")
+                # Part 134: richer tenant discriminator so anonymous traffic
+                # is isolated per-session / per-IP instead of sharing one
+                # empty-string bucket when auth is off.
+                _eff_key = key or ""
+                if not _eff_key:
+                    try:
+                        # Prefer explicit session header (WebUI sends this)
+                        for _k, _v in scope.get("headers", []):
+                            if _k.lower() == b"x-session-id":
+                                _eff_key = "sess:" + _v.decode(
+                                    "ascii", errors="replace"
+                                )[:64]
+                                break
+                    except Exception:
+                        pass
+                if not _eff_key:
+                    try:
+                        # Then X-Forwarded-For first hop
+                        for _k, _v in scope.get("headers", []):
+                            if _k.lower() == b"x-forwarded-for":
+                                _ip = _v.decode("ascii", errors="replace").split(",")[0].strip()
+                                if _ip:
+                                    _eff_key = "ip:" + _ip[:64]
+                                break
+                    except Exception:
+                        pass
+                if not _eff_key:
+                    try:
+                        # Then raw client host from ASGI scope
+                        _cli = scope.get("client") or ()
+                        if _cli and _cli[0]:
+                            _eff_key = "ip:" + str(_cli[0])[:64]
+                    except Exception:
+                        pass
+                if not _eff_key:
+                    _eff_key = "anonymous"
+
+                # Part 134: periodic eviction so buckets don't leak
+                try:
+                    _auth.evict_stale()
+                except Exception:
+                    pass
+
+                rl = _auth.check_rate_limit(_eff_key)
                 if not rl.get("ok"):
                     body = _json.dumps({
                         "error": "rate_limited",

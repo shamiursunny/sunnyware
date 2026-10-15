@@ -870,3 +870,72 @@ async def prompts_reload():
             {"error": f"{type(e).__name__}: {e}"},
             status_code=500,
         )
+
+
+@router.get("/api/rate_limit/status")
+async def rate_limit_status():
+    """Part 134: rate-limit status for the calling tenant."""
+    try:
+        from .. import auth as _auth
+        from .. import tenant as _tenant
+        tk = _tenant.get_key() or "anonymous"
+        return _auth.tenant_status(tk)
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.get("/api/rate_limit/tenants")
+async def rate_limit_tenants():
+    """Part 134: snapshot of all active tenants (admin read)."""
+    try:
+        from .. import auth as _auth
+        return {
+            "enabled": _auth.rate_limit_enabled(),
+            "limit_per_minute": _auth.rate_limit_per_minute(),
+            "window_seconds": int(_auth._WINDOW_SEC),
+            "tenants": _auth.per_tenant_snapshot(),
+        }
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.post("/api/rate_limit/reset")
+async def rate_limit_reset(req: Request):
+    """Part 134: reset buckets. Body {} = all; {"tenant": "..."} = one."""
+    try:
+        from .. import auth as _auth
+        try:
+            body = await req.json()
+        except Exception:
+            body = {}
+        tk = (body or {}).get("tenant")
+        if tk:
+            ok = _auth.reset_tenant(str(tk))
+            return {"reset": True, "tenant": str(tk), "existed": ok}
+        _auth.reset_rate_limits()
+        return {"reset": True, "scope": "all"}
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.post("/api/rate_limit/evict")
+async def rate_limit_evict():
+    """Part 134: force-prune stale buckets, return count pruned."""
+    try:
+        from .. import auth as _auth
+        n = _auth.evict_stale()
+        return {"evicted": n, "remaining": len(_auth._buckets)}
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
