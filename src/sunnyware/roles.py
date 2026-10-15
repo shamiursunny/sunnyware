@@ -95,6 +95,7 @@ ROLES = {
             "python_eval", "sql_sandbox_execute", "duckdb_query",
             "read_file", "write_file", "list_files", "rag_search",
             "calculator", "web_search",
+            "research_search",
         ],
         "tools": None,
     },
@@ -173,6 +174,7 @@ ROLES = {
             "read_file",           # only to pass attachment contents to CDO
             "current_time",
             "govcon_data",         # federal contract + spending lookup
+            "research_search",    # unified edgar+fred+govcon search
         ],
         "tools": None,
     },
