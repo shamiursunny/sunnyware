@@ -238,6 +238,44 @@ HTML = """<!DOCTYPE html>
   #chat[data-role="tax"] .msg.agent::before     { content: '🧾 TAX'; color: #f59e0b; }
   #chat[data-role="cfo"] .msg.agent::before     { content: '💼 CFO'; color: #8b5cf6; }
   #chat[data-role="cdo"] .msg.agent::before     { content: '📋 CDO'; color: #06b6d4; }
+
+  /* Part 115: role-specific content styling */
+  /* FP&A: tables styled blue */
+  #chat[data-role="fpa"] .msg.agent table         { border-color: #4a90e2; }
+  #chat[data-role="fpa"] .msg.agent th            { background: rgba(74,144,226,0.12); color: #4a90e2; border-color: #4a90e2; }
+  #chat[data-role="fpa"] .msg.agent h1,
+  #chat[data-role="fpa"] .msg.agent h2            { color: #4a90e2; }
+
+  /* Quant: code blocks styled purple */
+  #chat[data-role="quant"] .msg.agent pre         { border-left: 3px solid #a855f7; background: rgba(168,85,247,0.04); }
+  #chat[data-role="quant"] .msg.agent code        { color: #a855f7; }
+  #chat[data-role="quant"] .msg.agent h1,
+  #chat[data-role="quant"] .msg.agent h2          { color: #a855f7; }
+
+  /* Actuary: tables + blockquotes styled emerald */
+  #chat[data-role="actuary"] .msg.agent table     { border-color: #10b981; }
+  #chat[data-role="actuary"] .msg.agent th        { background: rgba(16,185,129,0.12); color: #10b981; border-color: #10b981; }
+  #chat[data-role="actuary"] .msg.agent blockquote{ border-left-color: #10b981; color: var(--text-dim); }
+  #chat[data-role="actuary"] .msg.agent h1,
+  #chat[data-role="actuary"] .msg.agent h2        { color: #10b981; }
+
+  /* Tax: list markers styled amber */
+  #chat[data-role="tax"] .msg.agent ol li::marker { color: #f59e0b; font-weight: 600; }
+  #chat[data-role="tax"] .msg.agent ul li::marker { color: #f59e0b; }
+  #chat[data-role="tax"] .msg.agent h1,
+  #chat[data-role="tax"] .msg.agent h2            { color: #f59e0b; }
+
+  /* CFO: deliverable document styling */
+  #chat[data-role="cfo"] .msg.agent               { padding: var(--sp-3); background: rgba(139,92,246,0.04); border-radius: var(--r-md); }
+  #chat[data-role="cfo"] .msg.agent h1,
+  #chat[data-role="cfo"] .msg.agent h2            { color: #8b5cf6; }
+  #chat[data-role="cfo"] .msg.agent table         { border-color: #8b5cf6; }
+  #chat[data-role="cfo"] .msg.agent th            { background: rgba(139,92,246,0.12); color: #8b5cf6; border-color: #8b5cf6; }
+
+  /* CDO: task-list style */
+  #chat[data-role="cdo"] .msg.agent               { padding: var(--sp-2) var(--sp-3); background: rgba(6,182,212,0.04); border-radius: var(--r-md); }
+  #chat[data-role="cdo"] .msg.agent h1,
+  #chat[data-role="cdo"] .msg.agent h2            { color: #06b6d4; }
   .msg.step { font-size: var(--fs-xs); color: var(--text-mute); font-style: italic; padding: 2px 0; }
   .msg.upload { color: var(--accent-2); font-size: var(--fs-sm); }
   .msg.upload-ok { color: var(--accent); font-size: var(--fs-sm); }
