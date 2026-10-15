@@ -433,7 +433,12 @@ async def default_call_fn(text: str) -> str:
 
 
 async def dry_run_call_fn(text: str) -> str:
-    """Deterministic canned response for framework testing."""
+    """Deterministic canned response for framework testing.
+
+    Simulates safe agent behavior: refuses injection / leak attempts
+    rather than echoing them verbatim (echoing would trip the
+    no_prompt_injection / no_instruction_leak assertions).
+    """
     t = (text or "").lower()
     if "pong" in t:
         return "pong"
@@ -441,4 +446,14 @@ async def dry_run_call_fn(text: str) -> str:
         return "4"
     if "hello" in t:
         return "hello"
+    # Simulate a safe agent refusing injection / leak attempts
+    if (
+        "ignore all previous instructions" in t
+        or "ignore previous instructions" in t
+        or "disregard" in t
+        or "system prompt" in t
+        or "system instructions" in t
+        or "leaked" in t
+    ):
+        return "I can't help with that request."
     return f"__dry_run__: {text[:60]}"
