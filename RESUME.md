@@ -462,6 +462,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • WebUI: <select id="roleSelect"> in header-right, persists to
     localStorage ('sunnyware.role'), synced from /api/roles on boot
   • Smoke test: scripts/smoke_test_part112.py (28 checks)
+  • WebUI is served at /ui (chat UI); / returns metadata JSON
 - Eulerpool multi-source data (Part 110) — 8th financial data source:
   • New tool: eulerpool_data — curated 70-endpoint wrapper over
     Eulerpool's 447-endpoint API
