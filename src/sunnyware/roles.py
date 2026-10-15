@@ -172,6 +172,7 @@ ROLES = {
             "pdf_report", "report_batch",
             "read_file",           # only to pass attachment contents to CDO
             "current_time",
+            "govcon_data",         # federal contract + spending lookup
         ],
         "tools": None,
     },

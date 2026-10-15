@@ -71,6 +71,7 @@ from .fmp_fundamentals import FmpFundamentalsTool
 from .eulerpool_data import EulerpoolDataTool
 from .insurance_data import InsuranceDataTool
 from .insurance_research import InsuranceResearchTool
+from .govcon_data import GovconDataTool
 from .delegate_to_agent import DelegateToAgentTool
 
 
@@ -144,6 +145,7 @@ _TOOLS = {
     EulerpoolDataTool.name: EulerpoolDataTool(),
     InsuranceDataTool.name: InsuranceDataTool(),
     InsuranceResearchTool.name: InsuranceResearchTool(),
+    GovconDataTool.name: GovconDataTool(),
     DelegateToAgentTool.name: DelegateToAgentTool(),
 }
 
