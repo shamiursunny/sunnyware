@@ -996,3 +996,8 @@ for a future session).
 - /run + /stream auto-persist role on first message
 - WebUI syncs role on session open; PUTs role on selector change
 - NEXT: role-specific result rendering (Part 113B)
+
+### Part 113B hotfix
+- /api/agent/stream (WebUI's route) now passes role to orchestrator
+- orchestrator._emit start event carries accent + chip
+- Fixes accent=None / chip=None in the live SSE start event

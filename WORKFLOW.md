@@ -751,3 +751,10 @@ ff2054f (108b Tiingo fix)
     persistRoleToSession + syncRoleFromSession keep it in sync
 - Session-level: switching role re-colors ALL bubbles in the active chat
 - Smoke test: scripts/smoke_test_part113b.py (25 checks)
+
+### Part 113B hotfix — orchestrator + agent_stream
+- orchestrator._emit start event now includes accent + chip (from roles.style)
+- routes/agent.py agent_stream() reads role from body + passes role=role to orchestrator
+- agent_stream "session" SSE event also enriched with role/accent/chip
+- Root cause: WebUI calls /api/agent/stream (not /api/agent/run/stream); that
+  route goes through orchestrator, which previously emitted only {type, role}

@@ -487,6 +487,8 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • WebUI:
     — #chat[data-role="X"] CSS rules set agent-bubble border-left accent
     — role chip via .msg.agent::before (e.g. 📊 FP&A, 🧮 QUANT)
+    — orchestrator._emit start event carries role + accent + chip
+    — agent_stream reads role from body + passes to orchestrator
     — SSE handler reads data.role + data.accent from start event
     — initRoleSelector sets chat.dataset.role on boot
     — persistRoleToSession + syncRoleFromSession keep it in sync

@@ -309,16 +309,30 @@ async def agent_stream(req: Request):
     prompt = body.get("input", "")
     session_id = body.get("session_id", "stream-default")
     model = body.get("model")
+    role = body.get("role")   # Part 112/113B: role persona
 
     if not prompt:
         return JSONResponse({"error": "input required"}, status_code=400)
 
     session_uuid = await _sessions.get_or_create(session_id)
+
+    # Part 113A: persist role on session (best-effort, never fatal)
+    if session_uuid and role:
+        try:
+            from .. import roles as _roles_mod
+            if _roles_mod.is_valid(role):
+                await _sessions.set_role(
+                    session_id, _roles_mod.canonical(role) or role
+                )
+        except Exception:
+            pass
+
     if session_uuid:
         await _memory.log_event(
             session_uuid,
             "user_message",
-            {"content": prompt, "model": model or "default", "mode": "stream-orch"},
+            {"content": prompt, "model": model or "default",
+             "mode": "stream-orch", "role": role or "general"},
         )
 
     queue: asyncio.Queue = asyncio.Queue()
@@ -329,7 +343,8 @@ async def agent_stream(req: Request):
     async def _runner():
         try:
             result = await _orch.run_agent(
-                prompt, session_uuid=session_uuid, model=model, on_event=_cb
+                prompt, session_uuid=session_uuid, model=model, on_event=_cb,
+                role=role,
             )
             if session_uuid:
                 if result.get("ok"):
@@ -364,7 +379,16 @@ async def agent_stream(req: Request):
     async def _event_stream():
         runner_task = asyncio.create_task(_runner())
         try:
-            yield f"data: {_json.dumps({'type': 'session', 'session_uuid': session_uuid})}\n\n"
+            _sess_meta = {"type": "session", "session_uuid": session_uuid}
+            try:
+                from .. import roles as _roles_s
+                _st = _roles_s.style(role) or {}
+                _sess_meta["role"] = role or "general"
+                _sess_meta["accent"] = _st.get("accent", "")
+                _sess_meta["chip"] = _st.get("chip", "")
+            except Exception:
+                pass
+            yield f"data: {_json.dumps(_sess_meta)}\n\n"
             while True:
                 ev = await queue.get()
                 if ev.get("type") == "__END__":

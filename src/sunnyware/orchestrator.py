@@ -333,7 +333,18 @@ async def run_agent(
     if session_uuid:
         history = await memory_store.build_context(session_uuid, max_turns=4)
 
-    await _emit(on_event, {"type": "start", "role": role or "general"})
+    _role_style = {}
+    try:
+        from . import roles as _roles
+        _role_style = _roles.style(role) or {}
+    except Exception:
+        _role_style = {}
+    await _emit(on_event, {
+        "type": "start",
+        "role": role or "general",
+        "accent": _role_style.get("accent", ""),
+        "chip": _role_style.get("chip", ""),
+    })
 
     if use_native_tools is None:
         try:

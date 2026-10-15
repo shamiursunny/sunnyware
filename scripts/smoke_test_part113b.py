@@ -50,6 +50,20 @@ check("persistRoleToSession updates dataset.role",
 check("syncRoleFromSession updates dataset.role",
       "Part 113B: sync chat container role" in ui)
 
+# 3b. Orchestrator start emit includes accent + chip
+orch = (SRC / "orchestrator.py").read_text(encoding="utf-8")
+check("orchestrator start emit has accent", '"accent": _role_style' in orch)
+check("orchestrator start emit has chip",   '"chip": _role_style' in orch)
+check("orchestrator uses roles.style",      "_roles.style(role)" in orch)
+
+# 3c. agent_stream passes role to orchestrator
+check("agent_stream parses role from body",
+      'role = body.get("role")   # Part 112/113B' in agent)
+check("agent_stream passes role=role",
+      "on_event=_cb," in agent and "role=role," in agent)
+check("agent_stream session event enriched",
+      "_sess_meta" in agent)
+
 # 4. Files parse
 for f in [SRC / "roles.py", SRC / "routes" / "agent.py", SRC / "webui.py"]:
     try:
