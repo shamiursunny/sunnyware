@@ -168,6 +168,38 @@ def tenant_status(tenant_key: str) -> dict:
     }
 
 
+_BYPASS_PREFIXES_DEFAULT = (
+    "/api/rate_limit/status",
+    "/api/rate_limit/tenants",
+    "/api/rate_limit/reset",
+    "/api/rate_limit/evict",
+)
+
+
+def rate_limit_bypass_prefixes() -> tuple:
+    """Paths that don't consume rate-limit budget.
+
+    Configurable via SUNNYWARE_RATE_LIMIT_BYPASS (comma-separated).
+    Defaults to the admin rate-limit endpoints so operators can
+    always inspect/reset the limiter even when they've hit the limit.
+    """
+    raw = os.getenv("SUNNYWARE_RATE_LIMIT_BYPASS")
+    if raw is None:
+        return _BYPASS_PREFIXES_DEFAULT
+    if not raw.strip():
+        return ()
+    return tuple(p.strip() for p in raw.split(",") if p.strip())
+
+
+def is_bypass_path(path: str) -> bool:
+    if not path:
+        return False
+    for prefix in rate_limit_bypass_prefixes():
+        if path == prefix or path.startswith(prefix + "/"):
+            return True
+    return False
+
+
 def status() -> dict:
     keys = load_keys(reload=True)
     return {
@@ -176,6 +208,7 @@ def status() -> dict:
         "masked_keys": [mask_key(k) for k in keys],
         "rate_limit_enabled": rate_limit_enabled(),
         "rate_limit_per_minute": rate_limit_per_minute(),
+        "rate_limit_bypass_prefixes": list(rate_limit_bypass_prefixes()),
         "window_seconds": int(_WINDOW_SEC),
         "protected_prefixes": ["/api/"],
         "public_endpoints": [

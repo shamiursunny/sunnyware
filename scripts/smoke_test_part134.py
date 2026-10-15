@@ -137,6 +137,37 @@ for fp in [SRC / "auth.py", SRC / "main.py",
     except SyntaxError as e:
         check(f"{fp.name} parses", False, str(e))
 
+# 15. Part 134d: bypass path helpers
+check("auth.py has is_bypass_path", "def is_bypass_path" in at)
+check("auth.py has rate_limit_bypass_prefixes",
+      "def rate_limit_bypass_prefixes" in at)
+check("bypass: /api/rate_limit/status",
+      A.is_bypass_path("/api/rate_limit/status") is True)
+check("bypass: /api/rate_limit/tenants",
+      A.is_bypass_path("/api/rate_limit/tenants") is True)
+check("bypass: /api/rate_limit/reset",
+      A.is_bypass_path("/api/rate_limit/reset") is True)
+check("bypass: /api/rate_limit/evict",
+      A.is_bypass_path("/api/rate_limit/evict") is True)
+check("no bypass: /api/agent/run",
+      A.is_bypass_path("/api/agent/run") is False)
+check("no bypass: empty path",
+      A.is_bypass_path("") is False)
+check("bypass: prefix match /api/rate_limit/status/extra",
+      A.is_bypass_path("/api/rate_limit/status/extra") is True)
+check("main.py has Part 134d marker",
+      "Part 134d: admin/status endpoints" in mt)
+# env override
+os.environ["SUNNYWARE_RATE_LIMIT_BYPASS"] = "/custom/path"
+check("env override: /custom/path bypassed",
+      A.is_bypass_path("/custom/path") is True)
+check("env override: default path NOT bypassed",
+      A.is_bypass_path("/api/rate_limit/status") is False)
+check("env override: /custom/path/sub bypassed",
+      A.is_bypass_path("/custom/path/sub") is True)
+del os.environ["SUNNYWARE_RATE_LIMIT_BYPASS"]
+check("default restored: /api/rate_limit/status bypassed",
+      A.is_bypass_path("/api/rate_limit/status") is True)
 passed = sum(1 for _, ok, _ in checks if ok)
 total = len(checks)
 print(f"\n{passed}/{total} checks passed")

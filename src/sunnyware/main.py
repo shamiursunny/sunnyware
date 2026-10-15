@@ -399,32 +399,34 @@ class _MetricsMiddleware:
                 except Exception:
                     pass
                 
-                # Part 134: periodic eviction so buckets don't leak
-                try:
-                    _auth.evict_stale()
-                except Exception:
-                    pass
+                # Part 134d: admin/status endpoints don't consume budget
+                if not _auth.is_bypass_path(path):
+                    # Part 134: periodic eviction so buckets don't leak
+                    try:
+                        _auth.evict_stale()
+                    except Exception:
+                        pass
                 
-                rl = _auth.check_rate_limit(_eff_key)
-                if not rl.get("ok"):
-                    body = _json.dumps({
-                        "error": "rate_limited",
-                        "limit": rl.get("limit"),
-                        "retry_after": rl.get("retry_after"),
-                    }).encode()
-                    await send({
-                        "type": "http.response.start",
-                        "status": 429,
-                        "headers": [
-                            (b"content-type", b"application/json"),
-                            (b"retry-after", str(rl.get("retry_after", 60)).encode("ascii")),
-                            (b"x-request-id", req_id.encode("ascii")),
-                        ],
-                    })
-                    await send({"type": "http.response.body", "body": body})
-                    _metrics.incr("errors_total")
-                    log.info("rate_limited", path=path, rid=req_id)
-                    return
+                    rl = _auth.check_rate_limit(_eff_key)
+                    if not rl.get("ok"):
+                        body = _json.dumps({
+                            "error": "rate_limited",
+                            "limit": rl.get("limit"),
+                            "retry_after": rl.get("retry_after"),
+                        }).encode()
+                        await send({
+                            "type": "http.response.start",
+                            "status": 429,
+                            "headers": [
+                                (b"content-type", b"application/json"),
+                                (b"retry-after", str(rl.get("retry_after", 60)).encode("ascii")),
+                                (b"x-request-id", req_id.encode("ascii")),
+                            ],
+                        })
+                        await send({"type": "http.response.body", "body": body})
+                        _metrics.incr("errors_total")
+                        log.info("rate_limited", path=path, rid=req_id)
+                        return
         except Exception as _e:
             # Never break the app if auth code fails
             try:
