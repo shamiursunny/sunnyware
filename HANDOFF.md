@@ -963,3 +963,19 @@ for a future session).
 - EULERPOOL_API_KEY on HF Space secrets
 - HEAD: d26718f
 - NEXT: FP&A / Quant role personas; NVIDIA NIM (waiting); options caching
+
+## 2026-10-15 — Part 111
+- Actuarial / insurance / risk libraries
+- Added to requirements.txt + python_eval sandbox allowlist:
+  * chainladder 0.10.1 (P&C IBNR)
+  * lifelib 0.17.2 (life/pension models)
+  * solvency2-data 0.5.0 (EIOPA RFR curves)
+- haute rejected — requires Python 3.11+, HF runs 3.10.13
+- Sandbox ALLOWED_MODULES extended with 12 modules (incl. transitive deps
+  sparse, numba, llvmlite, modelx, libcst, asttokens, bs4, configparser,
+  diskcache)
+- Verified live: chainladder IBNR on RAA sample = 52,135.23
+- Smoke test: scripts/smoke_test_part111.py (11 checks)
+- HEAD: 3c927ce
+- NEXT: role personas (FP&A / Quant / Actuary); NVIDIA NIM; insurance
+  data sources (AmericasSuretyBonds MCP, NAIC API)

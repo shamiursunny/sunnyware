@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 110)
+## Current state (last session: 2026-10-15, Part 111)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -440,6 +440,12 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • All 7 API keys on HF Space secrets (FRED, FINNHUB, TIINGO,
     MARKETAUX, TWELVEDATA, FMP, SEC_USER_AGENT)
   • Smoke test: scripts/smoke_test_part107.py (73 checks)
+- Actuarial / insurance / risk libraries (Part 111):
+  • chainladder 0.10.1, lifelib 0.17.2, solvency2-data 0.5.0
+  • All in requirements.txt + python_eval sandbox allowlist
+  • haute rejected (Py3.11+ only)
+  • chainladder IBNR on RAA verified = 52,135.23 on HF
+  • Smoke test: scripts/smoke_test_part111.py (11 checks)
 - Eulerpool multi-source data (Part 110) — 8th financial data source:
   • New tool: eulerpool_data — curated 70-endpoint wrapper over
     Eulerpool's 447-endpoint API

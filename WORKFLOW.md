@@ -698,3 +698,17 @@ ff2054f (108b Tiingo fix)
 - Tools: 66 -> 67
 - EULERPOOL_API_KEY on HF Space secrets (len 32)
 - Commit: d26718f
+
+## Part 111 — Actuarial / insurance / risk libraries (2026-10-15)
+- Added 3 PyPI packages to requirements.txt:
+  * chainladder 0.10.1   — P&C IBNR reserving
+  * lifelib     0.17.2   — Life/pension actuarial models
+  * solvency2-data 0.5.0 — EIOPA risk-free rate curves
+- haute removed (requires Python 3.11+, HF runs 3.10.13)
+- Sandbox ALLOWED_MODULES extended with 12 modules (top-level + transitive deps)
+- Verified live on HF:
+    chainladder IBNR on RAA = 52,135.23
+    lifelib v0.17.2 imports instantly
+    solvency2_data imports cleanly
+- Smoke test: scripts/smoke_test_part111.py (11 checks)
+- Commits: a2bef46 (111), b37dd00 (111b haute removal), 3c927ce (111c allowlist)
