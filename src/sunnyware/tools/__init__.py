@@ -72,6 +72,7 @@ from .eulerpool_data import EulerpoolDataTool
 from .insurance_data import InsuranceDataTool
 from .insurance_research import InsuranceResearchTool
 from .govcon_data import GovconDataTool
+from .script_registry import ScriptRegistryTool
 from .delegate_to_agent import DelegateToAgentTool
 
 
@@ -146,6 +147,7 @@ _TOOLS = {
     InsuranceDataTool.name: InsuranceDataTool(),
     InsuranceResearchTool.name: InsuranceResearchTool(),
     GovconDataTool.name: GovconDataTool(),
+    ScriptRegistryTool.name: ScriptRegistryTool(),
     DelegateToAgentTool.name: DelegateToAgentTool(),
 }
 

@@ -34,7 +34,17 @@ class PythonEvalTool:
             "type": "string",
             "description": "Python code. Set `result = ...` to return a value.",
             "required": True,
-        }
+        },
+        "save_as": {
+            "type": "string",
+            "description": "Optional script name. On success, saves the code into the script registry for reuse.",
+            "required": False,
+        },
+        "description": {
+            "type": "string",
+            "description": "Optional description stored alongside a saved script.",
+            "required": False,
+        },
     }
 
     async def run(self, args: dict) -> dict:
@@ -77,5 +87,17 @@ class PythonEvalTool:
         chart = _sandbox.capture_chart(g.get("plt"))
         if chart:
             result.update(chart)
+
+        # Part 120: optional save-as-script (best-effort, never fatal)
+        save_as = str(args.get("save_as", "")).strip()
+        if save_as and not result.get("error"):
+            try:
+                from .script_registry import save_script_internal
+                _meta120 = save_script_internal(
+                    save_as, code, args.get("description") or ""
+                )
+                result["_saved_as"] = _meta120
+            except Exception as e:
+                result["_save_error"] = type(e).__name__ + ": " + str(e)
 
         return result
