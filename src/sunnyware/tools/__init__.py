@@ -80,6 +80,7 @@ from .document_library import DocumentLibraryTool
 from .earnings_call import EarningsCallTool
 from .clause_extractor import ClauseExtractorTool
 from .risk_metrics import RiskMetricsTool
+from .legal_citation_check import LegalCitationCheckTool
 from .delegate_to_agent import DelegateToAgentTool
 
 
@@ -162,6 +163,7 @@ _TOOLS = {
     EarningsCallTool.name: EarningsCallTool(),
     ClauseExtractorTool.name: ClauseExtractorTool(),
     RiskMetricsTool.name: RiskMetricsTool(),
+    LegalCitationCheckTool.name: LegalCitationCheckTool(),
     DelegateToAgentTool.name: DelegateToAgentTool(),
 }
 

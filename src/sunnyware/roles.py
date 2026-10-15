@@ -264,6 +264,7 @@ ROLES = {
         "tool_prefixes": [],
         "extra_tools": [
             "clause_extractor",
+            "legal_citation_check",
             "research_search",
             "document_library",
             "narrate_table",
