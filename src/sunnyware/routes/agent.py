@@ -9,7 +9,7 @@ import time as _time
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from ..runtime import state, ensure_pool
+from ..runtime import state, ensure_pool, log as _log
 from .. import sessions as sessions_store
 from .. import memory as memory_store
 from .. import llm as llm_client
@@ -52,17 +52,18 @@ def _guard_check(text: str):
     except Exception:
         return None
 
-    # Always log when guard is on (warn or block)
+    # Part 136c: log via shared structured logger so hits show up
+    # in HF logs alongside the {"event": "request"} stream.
     try:
-        import logging as _logging
-        _gl = _logging.getLogger("sunnyware.guardrails")
         if not result.get("clean"):
-            _gl.info(
-                "guardrail_hit mode=%s severity=%s findings=%d names=%s",
-                mode,
-                result.get("highest_severity"),
-                len(result.get("findings", [])),
-                [f.get("name") for f in result.get("findings", [])][:5],
+            _log.info(
+                "guardrail_hit",
+                mode=mode,
+                severity=result.get("highest_severity"),
+                findings=len(result.get("findings", [])),
+                names=[f.get("name") for f in result.get("findings", [])][:5],
+                input_len=result.get("input_length"),
+                truncated=result.get("truncated"),
             )
     except Exception:
         pass

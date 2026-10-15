@@ -72,6 +72,10 @@ check("off mode: no block",
       G.should_block(attack) is False)
 
 # 6. Route signature unchanged (guard doesn't touch req handling)
+check("agent.py uses structured _log for guard hits",
+      "Part 136c: log via shared structured logger" in ap)
+check("agent.py imports log as _log",
+      "log as _log" in ap)
 check("agent.py still has run_agent handler",
       "async def run_agent" in ap)
 check("agent.py still has stream handler",
