@@ -343,3 +343,57 @@ def delegation_targets(from_role):
     frm = _canonical(from_role) or DEFAULT_ROLE
     return sorted(_DELEGATION_MATRIX.get(frm, frozenset()))
 
+
+# ── Part 116: role config export/import ─────────────────────
+
+def export_roles():
+    """Return a JSON-safe snapshot of the role registry.
+
+    Used by GET /api/roles/export to let teams standardize workflows.
+    """
+    out = []
+    for key, r in ROLES.items():
+        st = _STYLE.get(key, {})
+        out.append({
+            "key": key,
+            "label": r["label"],
+            "icon": r["icon"],
+            "accent": st.get("accent", ""),
+            "chip": st.get("chip", ""),
+            "tool_prefixes": list(r.get("tool_prefixes") or []),
+            "extra_tools": list(r.get("extra_tools") or []),
+            "delegate_to": sorted(_DELEGATION_MATRIX.get(key, [])),
+        })
+    return {
+        "version": 1,
+        "default_role": DEFAULT_ROLE,
+        "roles": out,
+    }
+
+
+def import_roles(payload):
+    """Validate an exported snapshot. Returns (ok, errors)."""
+    errors = []
+    if not isinstance(payload, dict):
+        return False, ["payload must be an object"]
+    if payload.get("version") != 1:
+        errors.append("unsupported version: " + str(payload.get("version")))
+    roles_in = payload.get("roles")
+    if not isinstance(roles_in, list):
+        errors.append("'roles' must be a list")
+        return False, errors
+    known = set(ROLES.keys())
+    for i, r in enumerate(roles_in):
+        if not isinstance(r, dict):
+            errors.append(f"roles[{i}] must be an object")
+            continue
+        k = r.get("key")
+        if not k:
+            errors.append(f"roles[{i}]: missing 'key'")
+        elif k not in known:
+            errors.append(f"roles[{i}]: unknown role '{k}'")
+        for f in ("label", "icon"):
+            if not r.get(f):
+                errors.append(f"roles[{i}]: missing '{f}'")
+    return (len(errors) == 0), errors
+

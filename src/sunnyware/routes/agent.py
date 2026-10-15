@@ -436,3 +436,42 @@ async def list_roles():
             {"error": type(e).__name__ + ": " + str(e)},
             status_code=500,
         )
+
+
+
+@router.get("/api/roles/export")
+async def roles_export():
+    """Part 116: JSON snapshot of the role registry for sharing."""
+    try:
+        from .. import roles as _roles
+        return JSONResponse(_roles.export_roles())
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.post("/api/roles/import")
+async def roles_import(req: Request):
+    """Part 116: validate an exported role snapshot (does NOT mutate)."""
+    try:
+        from .. import roles as _roles
+        try:
+            body = await req.json()
+        except Exception:
+            return JSONResponse(
+                {"error": "body must be valid JSON"},
+                status_code=400,
+            )
+        ok, errors = _roles.import_roles(body)
+        return JSONResponse({
+            "valid": ok,
+            "errors": errors,
+            "roles_in_payload": len(body.get("roles") or []) if isinstance(body, dict) else 0,
+        }, status_code=200 if ok else 400)
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
