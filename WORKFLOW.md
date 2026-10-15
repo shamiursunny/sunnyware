@@ -758,3 +758,14 @@ ff2054f (108b Tiingo fix)
 - agent_stream "session" SSE event also enriched with role/accent/chip
 - Root cause: WebUI calls /api/agent/stream (not /api/agent/run/stream); that
   route goes through orchestrator, which previously emitted only {type, role}
+
+## Part 113C — Options-cache TTL differentiation (2026-10-15)
+- _financial_http.py: cache_stats() + cache_clear() helpers
+- eulerpool_data.py: _TTL_OVERRIDES per action
+    options_greeks/chain/iv/flow → 60s
+    candles                     → 300s
+    profile/overview/dividends/esg/analyst_grades → 24h
+    everything else             → 1h default
+- eulerpool_data.py: metrics counters (hit/miss per action, api_calls_total)
+- routes/meta.py: GET /api/cache/stats, POST /api/cache/clear
+- Smoke test: scripts/smoke_test_part113c.py (24 checks)

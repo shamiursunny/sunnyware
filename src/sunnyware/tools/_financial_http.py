@@ -38,6 +38,26 @@ def cache_set(key: str, value, ttl: float = _DEFAULT_TTL):
     _CACHE[key] = (time.time() + ttl, value)
 
 
+def cache_stats() -> dict:
+    """Part 113C: diagnostics snapshot of the in-memory cache."""
+    now = time.time()
+    total = len(_CACHE)
+    live = sum(1 for exp, _ in _CACHE.values() if exp > now)
+    return {
+        "total_keys": total,
+        "live_keys": live,
+        "expired_keys": total - live,
+        "default_ttl": _DEFAULT_TTL,
+    }
+
+
+def cache_clear() -> int:
+    """Part 113C: wipe the in-memory cache. Returns number of keys removed."""
+    n = len(_CACHE)
+    _CACHE.clear()
+    return n
+
+
 def env_required(name: str) -> Optional[str]:
     """Return env value or None if missing. Caller returns friendly error."""
     v = (os.getenv(name) or "").strip()

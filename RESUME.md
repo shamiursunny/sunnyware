@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 113B)
+## Current state (last session: 2026-10-15, Part 113C)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -494,6 +494,24 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
     — persistRoleToSession + syncRoleFromSession keep it in sync
   • Session-level styling: switching role re-colors whole chat (old + new msgs)
   • Smoke test: scripts/smoke_test_part113b.py (25 checks)
+- Options-cache TTL differentiation (Part 113C):
+  • _financial_http.py: cache_stats() + cache_clear() helpers
+    — cache_stats: {total_keys, live_keys, expired_keys, default_ttl}
+    — cache_clear: wipe the in-memory cache (admin escape hatch)
+  • eulerpool_data.py: per-action TTL table (_TTL_OVERRIDES)
+    — options_greeks/chain/iv/flow → 60s (live derivatives)
+    — candles                     → 300s
+    — profile/overview/dividends/esg/analyst_grades → 24h
+    — everything else              → 1h (default _TTL)
+  • eulerpool_data.py: metrics hooks
+    — eulerpool_cache_hit_<action>   (labeled)
+    — eulerpool_cache_miss_<action>  (labeled)
+    — eulerpool_api_calls_total
+  • routes/meta.py: NEW endpoints
+    — GET  /api/cache/stats — cache + per-action hit rates
+    — POST /api/cache/clear — wipe cache, returns count
+  • Effect: 2nd options_greeks call within 60s is instant (0 API quota)
+  • Smoke test: scripts/smoke_test_part113c.py (24 checks)
 - Eulerpool multi-source data (Part 110) — 8th financial data source:
   • New tool: eulerpool_data — curated 70-endpoint wrapper over
     Eulerpool's 447-endpoint API

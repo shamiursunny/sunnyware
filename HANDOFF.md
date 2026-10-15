@@ -1001,3 +1001,11 @@ for a future session).
 - /api/agent/stream (WebUI's route) now passes role to orchestrator
 - orchestrator._emit start event carries accent + chip
 - Fixes accent=None / chip=None in the live SSE start event
+
+## 2026-10-15 — Part 113C
+- Options-cache TTL differentiation
+- In-memory cache now differentiated per action (60s / 300s / 24h / 1h)
+- Metrics: eulerpool_cache_hit_<action>, eulerpool_cache_miss_<action>, eulerpool_api_calls_total
+- Endpoints: GET /api/cache/stats, POST /api/cache/clear
+- Smoke test: scripts/smoke_test_part113c.py (24 checks)
+- NEXT: Part 113D insurance data sources (AmericasSuretyBonds, NAIC, state TDI)

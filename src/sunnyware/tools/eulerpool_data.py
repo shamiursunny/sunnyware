@@ -7,7 +7,31 @@ import json as _json
 from ._financial_http import env_required, cache_get, cache_set
 
 _BASE = "https://api.eulerpool.com/api/1"
-_TTL = 3600.0
+_TTL = 3600.0   # default cache TTL (1 hour)
+
+# Part 113C: per-action TTL overrides — differentiate freshness needs.
+#   options_*  live derivatives   -> 60s
+#   candles    intraday stock     -> 300s
+#   profile / dividends / esg     -> 24h (rarely changes)
+# Anything not listed uses _TTL (1h).
+_TTL_OVERRIDES = {
+    "options_greeks":  60.0,
+    "options_chain":   60.0,
+    "options_iv":      60.0,
+    "options_flow":    60.0,
+    "candles":         300.0,
+    "macro_fred":      3600.0,
+    "profile":         86400.0,
+    "overview":        86400.0,
+    "dividends":       86400.0,
+    "esg":             86400.0,
+    "analyst_grades":  86400.0,
+}
+
+
+def _ttl_for(action: str) -> float:
+    """Return the cache TTL (seconds) for a given eulerpool action."""
+    return _TTL_OVERRIDES.get(action, _TTL)
 
 ACTIONS = {
     "profile":                ("/equity/profile/{id}",                          "Company profile. id = ticker or ISIN"),
@@ -146,8 +170,20 @@ class EulerpoolDataTool:
         ck = f"euler:{action}:{ident}:{sorted(extra.items())}"
         cached = cache_get(ck)
         if cached is not None:
+            try:
+                from .. import metrics as _m
+                _m.incr_labeled("eulerpool_cache_hit", action)
+            except Exception:
+                pass
             cached = dict(cached); cached["_cached"] = True
             return cached
+
+        # Miss -> count it (hit rate = hits / (hits + misses))
+        try:
+            from .. import metrics as _m
+            _m.incr_labeled("eulerpool_cache_miss", action)
+        except Exception:
+            pass
         params = dict(extra); params["token"] = key
         try:
             async with httpx.AsyncClient(timeout=25.0, follow_redirects=True) as cli:
@@ -165,5 +201,10 @@ class EulerpoolDataTool:
         except Exception:
             return {"error": "non-JSON response", "body": r.text[:300]}
         out = {"action": action, "identifier": ident or None, "description": desc, "data": data}
-        cache_set(ck, out, _TTL)
+        cache_set(ck, out, _ttl_for(action))
+        try:
+            from .. import metrics as _m
+            _m.incr("eulerpool_api_calls_total")
+        except Exception:
+            pass
         return out

@@ -199,6 +199,58 @@ async def metrics_endpoint():
     from .. import metrics as _metrics
     return _metrics.snapshot()
 
+
+@router.get("/api/cache/stats")
+async def cache_stats_endpoint():
+    """Part 113C: in-memory cache diagnostics + eulerpool hit rates."""
+    try:
+        from ..tools import _financial_http as _fh
+        from .. import metrics as _m
+        base = _fh.cache_stats()
+        snap = _m.snapshot()
+        hits = {k[len("eulerpool_cache_hit_"):]: v
+                for k, v in snap.items()
+                if k.startswith("eulerpool_cache_hit_")}
+        misses = {k[len("eulerpool_cache_miss_"):]: v
+                  for k, v in snap.items()
+                  if k.startswith("eulerpool_cache_miss_")}
+        actions = sorted(set(hits) | set(misses))
+        per_action = []
+        for a in actions:
+            h = int(hits.get(a, 0) or 0)
+            ms = int(misses.get(a, 0) or 0)
+            total = h + ms
+            per_action.append({
+                "action": a,
+                "hits": h,
+                "misses": ms,
+                "hit_rate": round(h / total, 3) if total else None,
+            })
+        return {
+            "cache": base,
+            "per_action": per_action,
+            "eulerpool_api_calls_total": int(snap.get("eulerpool_api_calls_total", 0) or 0),
+        }
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.post("/api/cache/clear")
+async def cache_clear_endpoint():
+    """Part 113C: wipe the in-memory cache. Admin-only escape hatch."""
+    try:
+        from ..tools import _financial_http as _fh
+        n = _fh.cache_clear()
+        return {"cleared_keys": n}
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
 @router.post("/api/metrics/flush")
 async def metrics_flush():
     """Force-flush dirty counters to persistent storage (Neon)."""
