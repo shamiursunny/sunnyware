@@ -61,6 +61,13 @@ from .browser_extract import BrowserExtractTool
 from .browser_click import BrowserClickTool
 from .browser_fill_submit import BrowserFillSubmitTool
 from .image_generate import ImageGenerateTool
+from .edgar_fundamentals import EdgarFundamentalsTool
+from .fred_economic import FredEconomicTool
+from .finnhub_quote import FinnhubTool
+from .tiingo_prices import TiingoPricesTool
+from .marketaux_news import MarketauxNewsTool
+from .twelvedata_prices import TwelveDataTool
+from .fmp_fundamentals import FmpFundamentalsTool
 
 
 _TOOLS = {
@@ -123,6 +130,13 @@ _TOOLS = {
     BrowserClickTool.name: BrowserClickTool(),
     BrowserFillSubmitTool.name: BrowserFillSubmitTool(),
     ImageGenerateTool.name: ImageGenerateTool(),
+    EdgarFundamentalsTool.name: EdgarFundamentalsTool(),
+    FredEconomicTool.name: FredEconomicTool(),
+    FinnhubTool.name: FinnhubTool(),
+    TiingoPricesTool.name: TiingoPricesTool(),
+    MarketauxNewsTool.name: MarketauxNewsTool(),
+    TwelveDataTool.name: TwelveDataTool(),
+    FmpFundamentalsTool.name: FmpFundamentalsTool(),
 }
 
 

@@ -1846,7 +1846,7 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
             _last.attachments = lastAttachments;
             if (!_last.text) _last.text = agentText;
           } else if (_last && _last.role === 'agent') {
-            // old agent message from previous turn -- don't overwrite;
+            // old agent message from previous turn, do not overwrite
             // create a fresh message instead
             _sess.messages.push({
               role: 'agent', text: agentText,

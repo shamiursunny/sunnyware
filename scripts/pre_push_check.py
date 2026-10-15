@@ -170,11 +170,16 @@ def stage_git_status():
     print("  changes:")
     suspicious = []
     secret_patterns = (".env", "id_rsa", ".pem", ".key", "credentials")
+    # Part 107: allow example/template files (they have empty values
+    # and are meant to be committed)
+    secret_whitelist = (".env.example", ".env.sample", ".env.template", ".env.dist")
     junk_patterns = (".pyc", "__pycache__", ".bak", ".tmp", ".log", ".DS_Store")
     for ln in lines:
         print("    " + ln)
         low = ln.lower()
-        if any(s in low for s in secret_patterns):
+        if any(s in low for s in secret_patterns) and not any(
+            w in low for w in secret_whitelist
+        ):
             suspicious.append(("secret", ln))
         if any(j in low for j in junk_patterns):
             suspicious.append(("junk", ln))
