@@ -90,7 +90,7 @@ ROLES = {
             "macro inputs (rates, inflation). Always state assumptions: "
             "LDF selection, tail factor, discount rate. Verify your numbers."
         ),
-        "tool_prefixes": ["edgar_", "fred_", "insurance_"],
+        "tool_prefixes": ["edgar_", "fred_", "insurance_", "insurance_research"],
         "extra_tools": [
             "python_eval", "sql_sandbox_execute", "duckdb_query",
             "read_file", "write_file", "list_files", "rag_search",
