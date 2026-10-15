@@ -749,3 +749,68 @@ async def agents_metrics():
             {"error": f"{type(e).__name__}: {e}"},
             status_code=500,
         )
+
+
+@router.get("/api/traces")
+async def traces_list(limit: int = 20, role: str = None):
+    """Part 132: recent execution traces (newest first)."""
+    try:
+        from .. import tracing as _tr
+        items = _tr.get_recent_traces(limit=limit, role=role)
+        return {
+            "count": len(items),
+            "limit": limit,
+            "role_filter": role,
+            "traces": items,
+        }
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.get("/api/traces/stats")
+async def traces_stats():
+    """Part 132: trace buffer diagnostics."""
+    try:
+        from .. import tracing as _tr
+        return _tr.stats()
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.get("/api/traces/{trace_id}")
+async def traces_detail(trace_id: str):
+    """Part 132: full trace with all spans by id."""
+    try:
+        from .. import tracing as _tr
+        t = _tr.get_trace(trace_id)
+        if not t:
+            return JSONResponse(
+                {"error": "trace not found", "trace_id": trace_id},
+                status_code=404,
+            )
+        return t
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.post("/api/traces/clear")
+async def traces_clear():
+    """Part 132: wipe in-memory trace buffer (admin)."""
+    try:
+        from .. import tracing as _tr
+        n = _tr.clear_traces()
+        return {"cleared_traces": n}
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )

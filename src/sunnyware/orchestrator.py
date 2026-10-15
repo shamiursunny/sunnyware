@@ -306,6 +306,50 @@ def _inject_plotly_div(answer: str, steps: list) -> str:
 
 
 async def _execute_tool(tool_name: str, tool_args: dict) -> dict:
+    """Part 132: span-wrapped wrapper for _execute_tool_impl."""
+    _span = None
+    try:
+        from . import tracing as _tr132
+        _span = _tr132.add_span("tool_call", str(tool_name), attributes={
+            "tool.name": str(tool_name),
+            "tool.args_keys": list((tool_args or {}).keys())[:20],
+        })
+    except Exception:
+        _span = None
+    try:
+        _res = await _execute_tool_impl(tool_name, tool_args)
+    except Exception as _e:
+        try:
+            if _span is not None:
+                from . import tracing as _tr132
+                _tr132.finish_span(_span, status="error",
+                                   extra={"error": str(_e)[:200]})
+        except Exception:
+            pass
+        raise
+    try:
+        if _span is not None:
+            from . import tracing as _tr132
+            _is_err = bool(isinstance(_res, dict) and _res.get("error"))
+            _keys = (list(_res.keys())[:20]
+                     if isinstance(_res, dict) else [])
+            _err_str = ""
+            if isinstance(_res, dict) and _res.get("error"):
+                _err_str = str(_res.get("error"))[:200]
+            _tr132.finish_span(
+                _span,
+                status="error" if _is_err else "ok",
+                extra={
+                    "tool.result_keys": _keys,
+                    "tool.result_error": _err_str,
+                },
+            )
+    except Exception:
+        pass
+    return _res
+
+
+async def _execute_tool_impl(tool_name: str, tool_args: dict) -> dict:
     from . import metrics as _metrics
     # Part 31E-ext2: resolve alias -> canonical name
     resolved = _resolve_tool_name(tool_name)
@@ -370,6 +414,20 @@ async def run_agent(
     from .tools.delegate_to_agent import _CURRENT_ROLE
     _role_token = _CURRENT_ROLE.set(role or "general")
 
+    # Part 132: trace instrumentation (safe)
+    _tr132 = None
+    _trace_id = None
+    try:
+        from . import tracing as _tr132
+        _parent_trace = _tr132.current_trace_id()
+        _trace_id = _tr132.start_trace(
+            role=role, session_uuid=session_uuid, prompt=prompt,
+            parent_trace_id=_parent_trace,
+        )
+    except Exception:
+        _tr132 = None
+        _trace_id = None
+
     # ── Part 119: metric instrumentation (safe) ──
     import time as _t119
     _t0_119 = _t119.time()
@@ -400,6 +458,11 @@ async def run_agent(
                 _m119.incr_labeled("agent_failure_total", _role_key)
         except Exception:
             pass
+        try:
+            if _tr132 is not None and _trace_id:
+                _tr132.finish_trace(status="error")
+        except Exception:
+            pass
         _CURRENT_ROLE.reset(_role_token)
         raise
 
@@ -416,6 +479,23 @@ async def run_agent(
                                        _role_key, _iters)
             except Exception:
                 pass
+    except Exception:
+        pass
+
+    try:
+        if _tr132 is not None and _trace_id:
+            _tr132.finish_trace(
+                status="ok",
+                result_summary={
+                    "iterations": (_result_119 or {}).get("iterations"),
+                    "steps_count": len(
+                        (_result_119 or {}).get("steps") or []
+                    ),
+                    "answer_preview": (
+                        (_result_119 or {}).get("answer") or ""
+                    )[:200],
+                },
+            )
     except Exception:
         pass
 
