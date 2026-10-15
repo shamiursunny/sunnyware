@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 117)
+## Current state (last session: 2026-10-15, Part 118)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -573,6 +573,17 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
       'health' insurance query returned 4,330 real series
     — CCSA (insured unemployment) = 1.71M, 2026-10-03
     — actuary role now includes insurance_research
+  • Part 118 — govcon_data tool (71st tool, 20 checks)
+    — honest replacement for SAM.gov plan (no OTP delivery)
+    — source: USAspending.gov API v2 (Treasury, keyless)
+    — actions: award_search / recipient_search /
+      spending_by_category
+    — VERIFIED live on HF:
+      award_search NAICS 524126 → real P&C insurer contracts
+      recipient_search 'American International Group' → real UEIs
+      spending_by_category naics → Direct Health & Medical
+      Insurance = $48.5B in federal contracts
+    — cfo role extra_tools now include govcon_data
 - Eulerpool multi-source data (Part 110) — 8th financial data source:
   • New tool: eulerpool_data — curated 70-endpoint wrapper over
     Eulerpool's 447-endpoint API
@@ -638,7 +649,7 @@ When running pre_push_check.py, if HF push times out, retry
 
 
 ## What's next (priority order)
-1. Monitor CFO/CDO/worker orchestration + 70-tool stack in production.
+1. Monitor CFO/CDO/worker orchestration + 71-tool stack in production.
 2. NVIDIA NIM integration — WAITING on user to activate account.
 3. Future: NAIC Content JSON:API + AmericasSuretyBonds MCP (6,900+ bonds)
    — additional insurance sources beyond the state-DOI Socrata portals

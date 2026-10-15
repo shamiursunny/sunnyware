@@ -821,3 +821,16 @@ ff2054f (108b Tiingo fix)
   search = 4,330 series; CCSA = 1.71M insured unemployment
 - actuary role now includes insurance_research
 - Smoke: smoke_test_part117.py (23 checks)
+
+## Part 118 — govcon_data tool (USAspending.gov) (2026-10-15)
+- 71st tool: federal contracts + spending (Treasury, keyless)
+- Honest replacement for SAM.gov (OTP never arrived)
+- Actions: award_search / recipient_search / spending_by_category
+- Live verified:
+    NAICS 524126 P&C insurers hold federal contracts
+    AIG recipient lookup (real UEI)
+    Direct Health & Medical Insurance = $48.5B in federal contracts
+- Cache TTLs: awards 15m, recipients 1h, category 15m
+- Fix: spending_by_category requires category in URL path (404 otherwise)
+- cfo role now has govcon_data in its subset
+- Smoke: smoke_test_part118.py (20 checks)

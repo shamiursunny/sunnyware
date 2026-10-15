@@ -1037,3 +1037,12 @@ for a future session).
 - HEAD: 79eaaf0
 - NEXT: NVIDIA NIM (blocked); optional SAM.gov federal surety
   (needs free API key from api.data.gov/signup)
+
+## 2026-10-15 — Part 118
+- govcon_data tool (71st, USAspending.gov keyless federal contracts)
+- Honest replacement for SAM.gov plan
+- Live: NAICS 524126 P&C insurer contracts, AIG UEI lookup,
+  $48.5B Direct Health & Medical Insurance federal contracts
+- Fix: spending_by_category needs category in URL path
+- HEAD: d2cdf9c
+- NEXT: NVIDIA NIM (blocked on account activation)
