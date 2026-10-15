@@ -884,7 +884,16 @@ async def rate_limit_status(tenant: str = None):
         if tenant:
             tk = tenant
         else:
-            tk = _tenant.get_key() or "anonymous"
+            # Part 134c: prefer the rate-limit key set by middleware,
+            # fall back to tenant key (API key), then anonymous.
+            try:
+                tk = _tenant.get_rate_limit_key()
+            except Exception:
+                tk = ""
+            if not tk:
+                tk = _tenant.get_key()
+            if not tk:
+                tk = "anonymous"
         return _auth.tenant_status(tk)
     except Exception as e:
         return JSONResponse(

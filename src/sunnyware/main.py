@@ -334,6 +334,8 @@ class _MetricsMiddleware:
             # Only use key as tenant if auth is enabled (else shared namespace)
             _tenant.set_key(_incoming_key if _auth.auth_enabled() else "")
             is_protected = path.startswith("/api/") and path != "/api/auth/status"
+            
+            # Part 134c: auth gate (only when SUNNYWARE_API_KEYS is set).
             if is_protected and _auth.auth_enabled():
                 key = _incoming_key
                 if not _auth.is_valid_key(key or ""):
@@ -353,14 +355,15 @@ class _MetricsMiddleware:
                     _metrics.incr("errors_total")
                     log.info("auth_rejected", path=path, rid=req_id, reason="invalid_key")
                     return
-                # Rate limit
-                # Part 134: richer tenant discriminator so anonymous traffic
-                # is isolated per-session / per-IP instead of sharing one
-                # empty-string bucket when auth is off.
-                _eff_key = key or ""
+            
+            # Part 134c: rate-limit gate — runs INDEPENDENTLY of auth.
+            # Part 134: richer tenant discriminator so anonymous traffic
+            # is isolated per-session / per-IP instead of sharing one
+            # empty-string bucket when auth is off.
+            if is_protected and _auth.rate_limit_enabled():
+                _eff_key = _incoming_key or ""
                 if not _eff_key:
                     try:
-                        # Prefer explicit session header (WebUI sends this)
                         for _k, _v in scope.get("headers", []):
                             if _k.lower() == b"x-session-id":
                                 _eff_key = "sess:" + _v.decode(
@@ -371,7 +374,6 @@ class _MetricsMiddleware:
                         pass
                 if not _eff_key:
                     try:
-                        # Then X-Forwarded-For first hop
                         for _k, _v in scope.get("headers", []):
                             if _k.lower() == b"x-forwarded-for":
                                 _ip = _v.decode("ascii", errors="replace").split(",")[0].strip()
@@ -382,7 +384,6 @@ class _MetricsMiddleware:
                         pass
                 if not _eff_key:
                     try:
-                        # Then raw client host from ASGI scope
                         _cli = scope.get("client") or ()
                         if _cli and _cli[0]:
                             _eff_key = "ip:" + str(_cli[0])[:64]
@@ -390,22 +391,20 @@ class _MetricsMiddleware:
                         pass
                 if not _eff_key:
                     _eff_key = "anonymous"
-
-                # Part 134b: propagate _eff_key into the tenant contextvar
-                # so route handlers (/api/rate_limit/status etc.) see the
-                # same tenant the middleware is billing.
+                
+                # Part 134c: propagate rate-limit key into dedicated contextvar
+                # so route handlers read the SAME key the middleware billed.
                 try:
-                    from . import tenant as _tenant_134
-                    _tenant_134.set_key(_eff_key)
+                    _tenant.set_rate_limit_key(_eff_key)
                 except Exception:
                     pass
-
+                
                 # Part 134: periodic eviction so buckets don't leak
                 try:
                     _auth.evict_stale()
                 except Exception:
                     pass
-
+                
                 rl = _auth.check_rate_limit(_eff_key)
                 if not rl.get("ok"):
                     body = _json.dumps({

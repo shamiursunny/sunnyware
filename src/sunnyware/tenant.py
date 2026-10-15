@@ -33,3 +33,29 @@ def reset() -> None:
         _current_key.set("")
     except Exception:
         pass
+
+
+_rl_key: contextvars.ContextVar = contextvars.ContextVar(
+    "current_rate_limit_key", default=""
+)
+
+
+def set_rate_limit_key(key: str) -> None:
+    try:
+        _rl_key.set(key or "")
+    except Exception:
+        pass
+
+
+def get_rate_limit_key() -> str:
+    try:
+        return _rl_key.get() or ""
+    except Exception:
+        return ""
+
+
+def reset_rate_limit_key() -> None:
+    try:
+        _rl_key.set("")
+    except Exception:
+        pass
