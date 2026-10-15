@@ -1019,3 +1019,11 @@ for a future session).
 - Bonus fix: 113B chip emoji now render correctly
 - Smoke test: scripts/smoke_test_part114.py (49 checks)
 - NEXT: NVIDIA NIM (blocked on account); NAIC JSON:API; AmericasSuretyBonds
+
+### Part 114b-e — Pipeline hardening
+- 114b CFO tool trim + 114c CDO tool trim + 600s timeout
+- 114d compact_prompt(allowed_tools) + _execute_tool guard
+- 114e STRICT PIPELINE RULE overrides base prompt
+- Live-verified: User → CFO → CDO → workers → CDO → CFO → User
+  on trivial task; correct answer, single delegation, no local tools
+- HEAD: 16e1462

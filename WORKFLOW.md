@@ -790,3 +790,14 @@ ff2054f (108b Tiingo fix)
 - WebUI: cfo + cdo options, borders, chips (with real emoji)
 - Bonus fix: 113B chip emoji now render correctly (were literal \U escapes)
 - Smoke test: scripts/smoke_test_part114.py (49 checks)
+
+### Part 114b-e — Pipeline hardening (2026-10-15)
+- 114b: CFO tools trimmed to 8 (delegate/email/pdf/read/current_time);
+        MANDATORY-first delegation; 300s timeout
+- 114c: CDO tools 6→2 (delegate_to_agent + read_file);
+        CDO prompt hardened FORBIDDEN ACTIONS; timeout 300s→600s
+- 114d: compact_prompt(allowed_tools=) filters prompt tool list
+        by role; orchestrator guards _execute_tool at runtime
+- 114e: STRICT PIPELINE RULE in CFO prompt overrides base
+        'answer simple questions directly' clause
+- VERIFIED: '15% of $2400' → 1 delegation → '360' in 12.3s

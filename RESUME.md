@@ -540,7 +540,20 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   • WebUI: CFO + CDO in role dropdown; borders + chips
   • Bonus fix: Part 113B chip emoji were literal \U escapes in CSS
     (never rendered) — replaced with real emoji bytes
-  • Smoke test: scripts/smoke_test_part114.py (49 checks)
+  • Smoke test: scripts/smoke_test_part114.py (50 checks)
+  • Part 114b-e: pipeline hardening (5 commits)",
+  "    — 114b: trimmed CFO tools (rag_search, list_files, write_file,",
+  "      calculator removed); MANDATORY-first-action prompt",
+  "    — 114c: CDO tools 6→2 (delegate_to_agent + read_file only);",
+  "      CDO prompt hardened; timeout 300s→600s for cfo/cdo roles",
+  "    — 114d: compact_prompt(allowed_tools=...) enforces role subset",
+  "      on the default (non-native-tools) path; orchestrator guards",
+  "      _execute_tool to reject out-of-role tool calls",
+  "    — 114e: STRICT PIPELINE RULE in CFO prompt overrides the base",
+  "      'answer simple questions directly' clause — every user request",
+  "      goes through delegate_to_agent(cdo), no exceptions",
+  "    — VERIFIED live: '15% of $2400' → 1 delegation to CDO → '360'",
+  "      in 12.3s, no local calculator/rag_search abuse
 - Eulerpool multi-source data (Part 110) — 8th financial data source:
   • New tool: eulerpool_data — curated 70-endpoint wrapper over
     Eulerpool's 447-endpoint API
