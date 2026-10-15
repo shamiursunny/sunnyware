@@ -15,6 +15,7 @@ from .. import memory as memory_store
 from .. import llm as llm_client
 from .. import orchestrator
 from .. import planner
+from .. import guardrails as _guard
 
 # Part 106c: strip broken base64 markdown before writing to history.
 # The LLM tries to embed images as ![...](data:image/...,base64,<data>)
@@ -32,6 +33,62 @@ def _strip_broken_b64_md(s: str) -> str:
         return s
     return _B64_MD_RE.sub('', s).strip()
 
+
+
+def _guard_check(text: str):
+    """Part 136b: run injection guard on user input.
+
+    Returns None (proceed) or JSONResponse 400 (blocked). Never raises.
+    In 'off' mode (default) this is a no-op.
+    """
+    try:
+        mode = _guard.guard_mode()
+    except Exception:
+        return None
+    if mode == "off":
+        return None
+    try:
+        result = _guard.scan(text or "")
+    except Exception:
+        return None
+
+    # Always log when guard is on (warn or block)
+    try:
+        import logging as _logging
+        _gl = _logging.getLogger("sunnyware.guardrails")
+        if not result.get("clean"):
+            _gl.info(
+                "guardrail_hit mode=%s severity=%s findings=%d names=%s",
+                mode,
+                result.get("highest_severity"),
+                len(result.get("findings", [])),
+                [f.get("name") for f in result.get("findings", [])][:5],
+            )
+    except Exception:
+        pass
+
+    try:
+        if _guard.should_block(result):
+            return JSONResponse(
+                {
+                    "error": "input_rejected",
+                    "detail": "input triggered prompt-injection guard",
+                    "severity": result.get("highest_severity"),
+                    "mode": mode,
+                    "findings": [
+                        {
+                            "category": f.get("category"),
+                            "severity": f.get("severity"),
+                            "name": f.get("name"),
+                        }
+                        for f in result.get("findings", [])
+                    ],
+                },
+                status_code=400,
+            )
+    except Exception:
+        return None
+    return None
 
 
 router = APIRouter()
@@ -53,6 +110,11 @@ async def run_agent(req: Request):
 
     if not prompt:
         return JSONResponse({"error": "input required"}, status_code=400)
+
+    # Part 136b: prompt-injection guard (mode=off by default; no-op)
+    _g_deny = _guard_check(prompt)
+    if _g_deny is not None:
+        return _g_deny
 
     # Part 112: inject role prompt addon for the streaming path
     try:
@@ -182,6 +244,11 @@ async def run_agent_stream(req: Request):
     if not prompt:
         return JSONResponse({"error": "input required"}, status_code=400)
 
+    # Part 136b: prompt-injection guard (mode=off by default; no-op)
+    _g_deny = _guard_check(prompt)
+    if _g_deny is not None:
+        return _g_deny
+
     session_uuid = await sessions_store.get_or_create(session_id)
     # Part 113A: persist role on the session (best-effort, never fatal)
     if session_uuid and role:
@@ -260,6 +327,11 @@ async def run_agent_plan(req: Request):
     if not task:
         return JSONResponse({"error": "input required"}, status_code=400)
 
+    # Part 136b: prompt-injection guard (mode=off by default; no-op)
+    _g_deny = _guard_check(task)
+    if _g_deny is not None:
+        return _g_deny
+
     session_uuid = await sessions_store.get_or_create(session_id)
     if session_uuid:
         await memory_store.log_event(
@@ -320,6 +392,11 @@ async def agent_stream(req: Request):
 
     if not prompt:
         return JSONResponse({"error": "input required"}, status_code=400)
+
+    # Part 136b: prompt-injection guard (mode=off by default; no-op)
+    _g_deny = _guard_check(prompt)
+    if _g_deny is not None:
+        return _g_deny
 
     session_uuid = await _sessions.get_or_create(session_id)
 
