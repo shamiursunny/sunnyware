@@ -139,6 +139,10 @@ def _canonical(name):
     return _ALIASES.get(key, key)
 
 
+# Part 113A: public alias so external modules don't touch a private name
+canonical = _canonical
+
+
 def get_role(name):
     """Return the role dict or the default role if name is unknown/None."""
     key = _canonical(name)

@@ -1343,11 +1343,43 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     const r = (v || 'general').toString().toLowerCase();
     try { localStorage.setItem(ROLE_KEY, r); } catch (e) {}
   }
+  async function persistRoleToSession(role) {
+    try {
+      const sid = getSession();
+      if (!sid) return;
+      await fetch('/api/sessions/' + encodeURIComponent(sid) + '/role', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: role }),
+      });
+    } catch (e) { /* best-effort */ }
+  }
+
+  async function syncRoleFromSession(sid) {
+    try {
+      if (!sid) return;
+      const r = await fetch(
+        '/api/sessions/' + encodeURIComponent(sid) + '/role',
+        { cache: 'no-store' }
+      );
+      if (!r.ok) return;
+      const d = await r.json();
+      if (d && d.role) {
+        setRole(d.role);
+        const sel = document.getElementById('roleSelect');
+        if (sel) sel.value = d.role;
+      }
+    } catch (e) { /* best-effort */ }
+  }
+
   function initRoleSelector() {
     const sel = document.getElementById('roleSelect');
     if (!sel) return;
     sel.value = getRole();
-    sel.addEventListener('change', () => setRole(sel.value));
+    sel.addEventListener('change', () => {
+      setRole(sel.value);
+      persistRoleToSession(sel.value);   // Part 113A
+    });
     // Sync options from server (best-effort)
     fetch('/api/roles', { cache: 'no-store' })
       .then(r => r.ok ? r.json() : null)
@@ -1522,6 +1554,7 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
   }
 
   function loadSession(id) {
+    syncRoleFromSession(id);   // Part 113A
     if (!id) return;
     const sessions = getSessions();
     const sess = sessions[id];

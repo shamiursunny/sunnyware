@@ -988,3 +988,11 @@ for a future session).
 - WebUI: roleSelect dropdown in header, localStorage-persisted
 - Verified: 28/28 smoke checks + 6/6 pre-push gate
 - NEXT: NVIDIA NIM; per-session role; role-specific result formatting
+
+## 2026-10-15 — Part 113A
+- Per-session role persistence
+- Stored in existing sessions.metadata JSONB (no migration)
+- New endpoints: GET/PUT /api/sessions/{key}/role
+- /run + /stream auto-persist role on first message
+- WebUI syncs role on session open; PUTs role on selector change
+- NEXT: role-specific result rendering (Part 113B)

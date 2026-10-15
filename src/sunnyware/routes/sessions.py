@@ -93,3 +93,49 @@ async def session_rewind(session_key: str, req: Request):
         "kept_up_to_event_id": to_event,
         "deleted_count": deleted,
     }
+
+
+# ── Part 113A: per-session role persistence ─────────────────
+
+
+@router.get("/api/sessions/{session_key}/role")
+async def session_role_get(session_key: str):
+    """Read the role persona attached to a session."""
+    await ensure_pool()
+    sess = await sessions_store.get(session_key)
+    if not sess:
+        return JSONResponse({"error": "session not found"}, status_code=404)
+    role = await sessions_store.get_role(session_key)
+    return {"session_key": session_key, "role": role or "general"}
+
+
+@router.put("/api/sessions/{session_key}/role")
+async def session_role_put(session_key: str, req: Request):
+    """Set the role persona on a session (validated against roles registry)."""
+    await ensure_pool()
+    sess = await sessions_store.get(session_key)
+    if not sess:
+        return JSONResponse({"error": "session not found"}, status_code=404)
+    try:
+        body = await req.json()
+    except Exception:
+        body = {}
+    role = (body.get("role") or "").strip().lower()
+    if not role:
+        return JSONResponse({"error": "role required"}, status_code=400)
+
+    # Validate + canonicalize via roles registry
+    try:
+        from .. import roles as _roles
+        if not _roles.is_valid(role):
+            return JSONResponse(
+                {"error": f"unknown role: {role}",
+                 "valid": _roles.role_names()},
+                status_code=400,
+            )
+        role = _roles.canonical(role) or role
+    except Exception:
+        pass
+
+    ok = await sessions_store.set_role(session_key, role)
+    return {"session_key": session_key, "role": role, "persisted": ok}

@@ -118,6 +118,56 @@ async def delete(session_key: str) -> bool:
         return False
 
 
+async def set_role(session_key: str, role: str) -> bool:
+    """Part 113A: attach a role persona to a session (best-effort).
+
+    Stored inside the metadata JSONB column so no schema migration
+    is required. Merges the key into existing metadata.
+    """
+    pool = app_state.get_pool()
+    if pool is None or not session_key or not role:
+        return False
+    owner = _owner()
+    try:
+        async with pool.acquire() as conn:
+            result = await conn.execute(
+                """
+                UPDATE sessions
+                SET metadata = COALESCE(metadata, '{}'::jsonb)
+                               || jsonb_build_object('role', $1::text),
+                    updated_at = NOW()
+                WHERE session_key = $2 AND owner_key = $3
+                """,
+                str(role), session_key, owner,
+            )
+            return result.startswith("UPDATE 1")
+    except Exception:
+        return False
+
+
+async def get_role(session_key: str) -> Optional[str]:
+    """Part 113A: read the role persona attached to a session."""
+    pool = app_state.get_pool()
+    if pool is None or not session_key:
+        return None
+    owner = _owner()
+    try:
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT metadata->>'role' AS role
+                FROM sessions
+                WHERE session_key = $1 AND owner_key = $2
+                """,
+                session_key, owner,
+            )
+            if not row:
+                return None
+            return row["role"]
+    except Exception:
+        return None
+
+
 async def health_check() -> dict:
     """Verify sessions table accessible."""
     pool = app_state.get_pool()

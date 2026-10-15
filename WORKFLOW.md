@@ -727,3 +727,14 @@ ff2054f (108b Tiingo fix)
   * fetch body includes `role: getRole()`
 - Token savings: 4-6K/request in non-general roles
 - Smoke test: scripts/smoke_test_part112.py (28 checks)
+
+## Part 113A — Per-session role persistence (2026-10-15)
+- sessions.py: set_role + get_role (stored in existing metadata JSONB)
+- routes/sessions.py:
+    GET  /api/sessions/{key}/role  -> {role}
+    PUT  /api/sessions/{key}/role  -> validated, 400 on unknown
+- routes/agent.py: /run + /stream auto-persist role on send
+- roles.py: canonical() now public alias
+- WebUI: persistRoleToSession + syncRoleFromSession, hooked into loadSession
+- No schema migration (reuses sessions.metadata)
+- Smoke test: scripts/smoke_test_part113a.py (18 checks)

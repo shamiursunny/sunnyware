@@ -64,6 +64,16 @@ async def run_agent(req: Request):
         pass
 
     session_uuid = await sessions_store.get_or_create(session_id)
+    # Part 113A: persist role on the session (best-effort, never fatal)
+    if session_uuid and role:
+        try:
+            from .. import roles as _roles
+            if _roles.is_valid(role):
+                await sessions_store.set_role(
+                    session_id, _roles.canonical(role) or role
+                )
+        except Exception:
+            pass
     if session_uuid:
         await memory_store.log_event(
             session_uuid, "user_message",
@@ -166,6 +176,16 @@ async def run_agent_stream(req: Request):
         return JSONResponse({"error": "input required"}, status_code=400)
 
     session_uuid = await sessions_store.get_or_create(session_id)
+    # Part 113A: persist role on the session (best-effort, never fatal)
+    if session_uuid and role:
+        try:
+            from .. import roles as _roles
+            if _roles.is_valid(role):
+                await sessions_store.set_role(
+                    session_id, _roles.canonical(role) or role
+                )
+        except Exception:
+            pass
     history = []
     if session_uuid:
         history = await memory_store.build_context(session_uuid, max_turns=5)

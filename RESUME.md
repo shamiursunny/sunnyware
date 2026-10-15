@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 112)
+## Current state (last session: 2026-10-15, Part 113A)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -463,6 +463,21 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
     localStorage ('sunnyware.role'), synced from /api/roles on boot
   • Smoke test: scripts/smoke_test_part112.py (28 checks)
   • WebUI is served at /ui (chat UI); / returns metadata JSON
+- Per-session role persistence (Part 113A):
+  • sessions.py: set_role(session_key, role) + get_role(session_key)
+    — role stored in existing metadata JSONB column (no migration)
+  • routes/sessions.py:
+    — GET /api/sessions/{key}/role  -> {"role": "actuary"} or "general"
+    — PUT /api/sessions/{key}/role  -> {role}, validated, 400 on unknown
+  • routes/agent.py: /run + /stream persist role to session on send
+  • roles.py: canonical() now public alias
+  • WebUI:
+    — persistRoleToSession() PUTs on selector change
+    — syncRoleFromSession(id) reads role on session open
+    — loadSession + loadSessionWithFallback hook the sync
+  • Behavior: switching Actuary on chat A stores actuary on A;
+    opening chat B restores B's own role (or general)
+  • Smoke test: scripts/smoke_test_part113a.py (18 checks)
 - Eulerpool multi-source data (Part 110) — 8th financial data source:
   • New tool: eulerpool_data — curated 70-endpoint wrapper over
     Eulerpool's 447-endpoint API
