@@ -454,6 +454,74 @@ def can_delegate(from_role, to_role):
     return to in _DELEGATION_MATRIX.get(frm, frozenset())
 
 
+# ── Part 133: externalized prompt addons ─────────────────
+# Optional. Loads static/prompts.json at import; overrides each role's
+# prompt_addon in-place. If the file is missing, unreadable, or invalid,
+# embedded prompts from ROLES remain in effect. Zero behavior change
+# when JSON is absent.
+
+_EXTERNAL_PROMPTS_PATH = None
+_EXTERNAL_PROMPTS_VERSION = 0
+
+
+def _load_external_prompts(path=None):
+    """Load role prompt addons from JSON. Returns (loaded_count, err)."""
+    global _EXTERNAL_PROMPTS_VERSION
+    try:
+        from pathlib import Path as _P
+        if path is None:
+            path = _P(__file__).resolve().parent / "static" / "prompts.json"
+        p = _P(path)
+        if not p.exists():
+            return 0, None
+        raw = p.read_text(encoding="utf-8")
+        data = json.loads(raw)
+        if not isinstance(data, dict):
+            return 0, "root is not an object"
+        roles_block = data.get("roles") or {}
+        if not isinstance(roles_block, dict):
+            return 0, "roles is not an object"
+        loaded = 0
+        for key, block in roles_block.items():
+            if key not in ROLES:
+                continue
+            if not isinstance(block, dict):
+                continue
+            addon = block.get("prompt_addon")
+            if isinstance(addon, str):
+                ROLES[key]["prompt_addon"] = addon
+                loaded += 1
+        v = data.get("version")
+        if isinstance(v, int):
+            _EXTERNAL_PROMPTS_VERSION = v
+        return loaded, None
+    except Exception as e:
+        return 0, type(e).__name__ + ": " + str(e)
+
+
+def _external_status():
+    """Return diagnostics for the /api/prompts endpoints."""
+    return {
+        "path": str(_EXTERNAL_PROMPTS_PATH
+                    or (Path(__file__).resolve().parent
+                        / "static" / "prompts.json")),
+        "version": _EXTERNAL_PROMPTS_VERSION,
+        "source": ("external"
+                   if _EXTERNAL_PROMPTS_VERSION > 0 else "embedded"),
+    }
+
+
+# Import-time load (best-effort, silent on failure)
+try:
+    from pathlib import Path
+    import json
+    _EXTERNAL_PROMPTS_PATH = (Path(__file__).resolve().parent
+                              / "static" / "prompts.json")
+    _load_external_prompts(_EXTERNAL_PROMPTS_PATH)
+except Exception:
+    _EXTERNAL_PROMPTS_PATH = None
+
+
 def delegation_targets(from_role):
     """Return sorted list of roles the from_role may delegate to."""
     frm = _canonical(from_role) or DEFAULT_ROLE

@@ -814,3 +814,59 @@ async def traces_clear():
             {"error": f"{type(e).__name__}: {e}"},
             status_code=500,
         )
+
+
+@router.get("/api/prompts")
+async def prompts_list():
+    """Part 133: current effective prompt addons for every role."""
+    try:
+        from .. import roles as _roles
+        return {
+            "source": _roles._external_status(),
+            "roles": {
+                k: {
+                    "label": _roles.ROLES[k].get("label", k),
+                    "addon_length": len(
+                        _roles.ROLES[k].get("prompt_addon") or ""
+                    ),
+                    "prompt_addon": _roles.ROLES[k].get("prompt_addon") or "",
+                }
+                for k in _roles.role_names()
+            },
+        }
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.get("/api/prompts/status")
+async def prompts_status():
+    """Part 133: external-prompt diagnostics (path, version, source)."""
+    try:
+        from .. import roles as _roles
+        return _roles._external_status()
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.post("/api/prompts/reload")
+async def prompts_reload():
+    """Part 133: re-read static/prompts.json without a restart."""
+    try:
+        from .. import roles as _roles
+        loaded, err = _roles._load_external_prompts()
+        return {
+            "loaded_roles": loaded,
+            "error": err,
+            "status": _roles._external_status(),
+        }
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
