@@ -589,11 +589,15 @@ When running pre_push_check.py, if HF push times out, retry
 
 
 ## What's next (priority order)
-1. Monitor /api/providers/status over next few days — 429s should
-   now be rare because of Parts 87-96b token economy fixes.
-2. NVIDIA NIM integration — pending support verification
-3. Future: secondary long-prompt path (Groq's 8k input limit rejects
-   very large prompts; could route big-prompt requests to Gemini first)
+1. Monitor financial + actuarial + role + insurance stack.
+2. NVIDIA NIM integration — WAITING on user to activate account.
+3. Future: NAIC Content JSON:API + AmericasSuretyBonds MCP (6,900+ bonds)
+   — additional insurance sources beyond the state-DOI Socrata portals
+   shipped in Part 113D.
+4. Future: per-role result-rendering defaults (FP&A → tables,
+   Quant → charts, Actuary → assumption blocks).
+5. Future: role selection import/export — save a role's tool subset
+   to a shareable JSON so teams can standardize workflows.
 
 ## Key files
 
