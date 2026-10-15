@@ -1260,6 +1260,8 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
       <option value="tax">🧾 Tax Accountant</option>
       <option value="cfo">💼 Chief Financial Officer</option>
       <option value="cdo">📋 Chief Delivery Officer</option>
+      <option value="legal">⚖️ Financial Legal Assistant</option>
+      <option value="risk_ins">🛡️ Financial Risk & Insurance</option>
     </select>
     <span id="providerBadge" class="provider-pill" title="Serving provider"></span>
   </div>

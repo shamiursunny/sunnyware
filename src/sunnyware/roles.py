@@ -235,6 +235,99 @@ ROLES = {
         ],
         "tools": None,
     },
+
+    "legal": {
+        "label": "Financial Legal Assistant",
+        "icon": "\u2696\ufe0f",
+        "prompt_addon": (
+            "You are operating in Financial Legal Assistant mode. "
+            "Focus on contract review, compliance analysis, regulatory "
+            "research, and legal risk assessment. You do NOT provide "
+            "legal advice; you extract, summarize, and flag issues "
+            "for attorney review.\n\n"
+            "CRITICAL RULES (non-negotiable):\n"
+            "  1. Every citation must be verified. Never fabricate case "
+            "law, statute references, or regulatory guidance. If a "
+            "citation cannot be verified, say so explicitly.\n"
+            "  2. Flag privileged content with [PRIVILEGED] markers "
+            "before any analysis; treat all client documents as "
+            "confidential by default.\n"
+            "  3. Classify inputs by sensitivity before processing.\n"
+            "  4. Prefer clause_extractor for contract analysis, "
+            "research_search (EDGAR full-text) for public filing "
+            "research, document_library for matter-based storage.\n"
+            "  5. End every substantive answer with the disclaimer: "
+            "'Analysis for attorney review, not legal advice.'\n"
+            "  6. Do NOT draft binding language; flag for counsel."
+        ),
+        "tool_prefixes": [],
+        "extra_tools": [
+            "clause_extractor",
+            "research_search",
+            "document_library",
+            "narrate_table",
+            "earnings_call",
+            "python_eval",
+            "sql_sandbox_execute",
+            "read_file", "write_file", "list_files",
+            "rag_search",
+            "web_search",
+            "calculator",
+            "delegate_to_agent",
+        ],
+        "tools": None,
+    },
+
+    "risk_ins": {
+        "label": "Financial Risk & Insurance",
+        "icon": "\U0001F6E1\ufe0f",
+        "prompt_addon": (
+            "You are operating in Financial Risk & Insurance mode. "
+            "Focus on portfolio risk (VaR, CVaR, stress testing, "
+            "drawdown), credit risk, market risk, and insurance "
+            "actuarial analysis (loss reserving, IBNR, pricing, "
+            "solvency capital).\n\n"
+            "CRITICAL RULES (non-negotiable):\n"
+            "  1. Every risk metric MUST state: methodology "
+            "(historical / parametric / Monte Carlo), confidence level, "
+            "holding period, and data window.\n"
+            "  2. For insurance: use chainladder for IBNR/loss "
+            "triangles, lifelib for life/pension projections, "
+            "solvency2_data for EIOPA risk-free rate curves, all "
+            "via python_eval.\n"
+            "  3. Never present a risk number without its confidence "
+            "interval or scenario context.\n"
+            "  4. Flag any result that would require human sign-off "
+            "before regulatory submission.\n"
+            "  5. Prefer insurance_research + govcon_data + "
+            "research_search for source data; narrate_table for "
+            "structured risk narratives.\n"
+            "  6. Do NOT execute trades or autonomous actions; "
+            "provide analysis for human decision-making."
+        ),
+        "tool_prefixes": [
+            "tiingo_", "twelvedata_", "fred_",
+            "eulerpool_options_", "eulerpool_alt_", "eulerpool_stocks_",
+            "finnhub_", "edgar_",
+        ],
+        "extra_tools": [
+            "python_eval",
+            "sql_sandbox_execute",
+            "duckdb_query",
+            "insurance_research",
+            "insurance_data",
+            "govcon_data",
+            "research_search",
+            "narrate_table",
+            "clause_extractor",
+            "earnings_call",
+            "delegate_to_agent",
+            "read_file", "write_file", "list_files",
+            "rag_search", "web_search",
+            "calculator",
+        ],
+        "tools": None,
+    },
 }
 
 
@@ -249,6 +342,11 @@ _ALIASES = {
     "cfo": "cfo", "chief financial officer": "cfo",
     "cdo": "cdo", "chief delivery officer": "cdo",
     "chief": "cfo",
+    "legal": "legal", "attorney": "legal", "counsel": "legal",
+    "legal_risk": "legal", "compliance": "legal",
+    "risk_ins": "risk_ins", "risk": "risk_ins",
+    "insurance_risk": "risk_ins", "actuarial_risk": "risk_ins",
+    "investment_risk": "risk_ins",
 }
 
 
@@ -320,6 +418,8 @@ _STYLE = {
     "tax":     {"accent": "#f59e0b", "chip": "Tax"},
     "cfo":     {"accent": "#8b5cf6", "chip": "CFO"},
     "cdo":     {"accent": "#06b6d4", "chip": "CDO"},
+    "legal":   {"accent": "#64748b", "chip": "LEGAL"},
+    "risk_ins":{"accent": "#ef4444", "chip": "RISK/INS"},
 }
 
 
@@ -338,7 +438,7 @@ def prompt_addon(role_name):
 # Which role may delegate to which roles. Absent = no delegation.
 _DELEGATION_MATRIX = {
     "cfo": frozenset({"cdo"}),
-    "cdo": frozenset({"actuary", "quant", "fpa", "tax", "general"}),
+    "cdo": frozenset({"actuary", "quant", "fpa", "tax", "general", "legal", "risk_ins"}),
 }
 
 

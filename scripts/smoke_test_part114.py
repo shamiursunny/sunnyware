@@ -49,8 +49,8 @@ check("actuary -> anything DENIED", not _roles.can_delegate("actuary", "cdo"))
 check("general -> anything DENIED", not _roles.can_delegate("general", "cdo"))
 check("cfo targets == ['cdo']", _roles.delegation_targets("cfo") == ["cdo"])
 check("cdo targets include actuary+quant+fpa+tax+general",
-      set(_roles.delegation_targets("cdo")) ==
-      {"actuary", "quant", "fpa", "tax", "general"})
+      {"actuary", "quant", "fpa", "tax", "general"} <=
+      set(_roles.delegation_targets("cdo")))
 
 # 5. Delegate tool registered
 from sunnyware import tools as tools_registry
