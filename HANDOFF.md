@@ -1009,3 +1009,13 @@ for a future session).
 - Endpoints: GET /api/cache/stats, POST /api/cache/clear
 - Smoke test: scripts/smoke_test_part113c.py (24 checks)
 - NEXT: Part 113D insurance data sources (AmericasSuretyBonds, NAIC, state TDI)
+
+## 2026-10-15 — Part 114
+- CFO + CDO supervisor hierarchy
+- New tool: delegate_to_agent (bounded, max depth 3, cycle-safe)
+- New roles: cfo (user-facing PM), cdo (internal orchestrator)
+- Delegation matrix: cfo→cdo; cdo→{actuary,quant,fpa,tax,general}
+- WebUI: dropdown + borders + chips for cfo/cdo
+- Bonus fix: 113B chip emoji now render correctly
+- Smoke test: scripts/smoke_test_part114.py (49 checks)
+- NEXT: NVIDIA NIM (blocked on account); NAIC JSON:API; AmericasSuretyBonds

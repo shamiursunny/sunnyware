@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 113D)
+## Current state (last session: 2026-10-15, Part 114)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -524,6 +524,23 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
     — actuary prompt addon mentions insurance_data usage
   • Cache: discovery 24h, inspect 24h, fetch 1h (via existing cache_get/set)
   • Smoke test: scripts/smoke_test_part113d.py (20 checks)
+- CFO + CDO supervisor hierarchy (Part 114):
+  • New tool: delegate_to_agent (69th tool)
+    — contextvars track current role / depth / path (async-safe)
+    — max depth 3 (CFO → CDO → worker), cycle detection by path
+  • New roles:
+    — cfo (Chief Financial Officer)  accent #8b5cf6, chip 💼 CFO
+    — cdo (Chief Delivery Officer)   accent #06b6d4, chip 📋 CDO
+  • Delegation matrix (enforced in roles.py):
+    — cfo → {cdo}
+    — cdo → {actuary, quant, fpa, tax, general}
+    — workers → nothing
+  • orchestrator.run_agent wrapped to set role contextvar (nested calls)
+  • routes/agent.py extends timeout to 300s for cfo + cdo roles
+  • WebUI: CFO + CDO in role dropdown; borders + chips
+  • Bonus fix: Part 113B chip emoji were literal \U escapes in CSS
+    (never rendered) — replaced with real emoji bytes
+  • Smoke test: scripts/smoke_test_part114.py (49 checks)
 - Eulerpool multi-source data (Part 110) — 8th financial data source:
   • New tool: eulerpool_data — curated 70-endpoint wrapper over
     Eulerpool's 447-endpoint API
@@ -589,7 +606,7 @@ When running pre_push_check.py, if HF push times out, retry
 
 
 ## What's next (priority order)
-1. Monitor financial + actuarial + role + insurance stack.
+1. Monitor CFO/CDO/worker orchestration in production.
 2. NVIDIA NIM integration — WAITING on user to activate account.
 3. Future: NAIC Content JSON:API + AmericasSuretyBonds MCP (6,900+ bonds)
    — additional insurance sources beyond the state-DOI Socrata portals

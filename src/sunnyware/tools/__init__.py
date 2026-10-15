@@ -70,6 +70,7 @@ from .twelvedata_prices import TwelveDataTool
 from .fmp_fundamentals import FmpFundamentalsTool
 from .eulerpool_data import EulerpoolDataTool
 from .insurance_data import InsuranceDataTool
+from .delegate_to_agent import DelegateToAgentTool
 
 
 _TOOLS = {
@@ -141,6 +142,7 @@ _TOOLS = {
     FmpFundamentalsTool.name: FmpFundamentalsTool(),
     EulerpoolDataTool.name: EulerpoolDataTool(),
     InsuranceDataTool.name: InsuranceDataTool(),
+    DelegateToAgentTool.name: DelegateToAgentTool(),
 }
 
 

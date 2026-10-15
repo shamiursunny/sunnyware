@@ -89,6 +89,13 @@ async def run_agent(req: Request):
         _agent_timeout = float(_os.getenv("SUNNYWARE_AGENT_TIMEOUT", "90"))
     except Exception:
         _agent_timeout = 90.0
+    # Part 114: supervisor roles chain sub-agents; allow up to 5 min
+    try:
+        _role_norm = (role or "general").strip().lower()
+        if _role_norm in ("cfo", "cdo"):
+            _agent_timeout = max(_agent_timeout, 300.0)
+    except Exception:
+        pass
     try:
         agent_result = await asyncio.wait_for(
             orchestrator.run_agent(

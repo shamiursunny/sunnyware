@@ -215,11 +215,15 @@ HTML = """<!DOCTYPE html>
   #chat[data-role="quant"] .msg.agent   { border-left-color: #a855f7; }
   #chat[data-role="actuary"] .msg.agent { border-left-color: #10b981; }
   #chat[data-role="tax"] .msg.agent     { border-left-color: #f59e0b; }
+  #chat[data-role="cfo"] .msg.agent     { border-left-color: #8b5cf6; }
+  #chat[data-role="cdo"] .msg.agent     { border-left-color: #06b6d4; }
 
   #chat[data-role="fpa"] .msg.agent::before,
   #chat[data-role="quant"] .msg.agent::before,
   #chat[data-role="actuary"] .msg.agent::before,
-  #chat[data-role="tax"] .msg.agent::before {
+  #chat[data-role="tax"] .msg.agent::before,
+  #chat[data-role="cfo"] .msg.agent::before,
+  #chat[data-role="cdo"] .msg.agent::before {
     display: block;
     font-size: var(--fs-xs);
     font-weight: 600;
@@ -228,10 +232,12 @@ HTML = """<!DOCTYPE html>
     margin-bottom: 6px;
     opacity: 0.8;
   }
-  #chat[data-role="fpa"] .msg.agent::before     { content: '\U0001F4CA FP&A'; color: #4a90e2; }
-  #chat[data-role="quant"] .msg.agent::before   { content: '\U0001F9EE QUANT'; color: #a855f7; }
-  #chat[data-role="actuary"] .msg.agent::before { content: '\U0001F3E6 ACTUARY'; color: #10b981; }
-  #chat[data-role="tax"] .msg.agent::before     { content: '\U0001F9FE TAX'; color: #f59e0b; }
+  #chat[data-role="fpa"] .msg.agent::before     { content: '📊 FP&A'; color: #4a90e2; }
+  #chat[data-role="quant"] .msg.agent::before   { content: '🧮 QUANT'; color: #a855f7; }
+  #chat[data-role="actuary"] .msg.agent::before { content: '🏦 ACTUARY'; color: #10b981; }
+  #chat[data-role="tax"] .msg.agent::before     { content: '🧾 TAX'; color: #f59e0b; }
+  #chat[data-role="cfo"] .msg.agent::before     { content: '💼 CFO'; color: #8b5cf6; }
+  #chat[data-role="cdo"] .msg.agent::before     { content: '📋 CDO'; color: #06b6d4; }
   .msg.step { font-size: var(--fs-xs); color: var(--text-mute); font-style: italic; padding: 2px 0; }
   .msg.upload { color: var(--accent-2); font-size: var(--fs-sm); }
   .msg.upload-ok { color: var(--accent); font-size: var(--fs-sm); }
@@ -1212,6 +1218,8 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
       <option value="quant">🧮 Quant Researcher</option>
       <option value="actuary">🏦 Actuarial Analyst</option>
       <option value="tax">🧾 Tax Accountant</option>
+      <option value="cfo">💼 Chief Financial Officer</option>
+      <option value="cdo">📋 Chief Delivery Officer</option>
     </select>
     <span id="providerBadge" class="provider-pill" title="Serving provider"></span>
   </div>

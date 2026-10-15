@@ -120,6 +120,81 @@ ROLES = {
         ],
         "tools": None,
     },
+    "cfo": {
+        "label": "Chief Financial Officer",
+        "icon": "\U0001F4BC",
+        "prompt_addon": (
+            "You are the CFO agent \u2014 the user's virtual Chief Financial "
+            "Officer. Your job:\n"
+            "  1. Receive the client brief from the user.\n"
+            "  2. PLAN the deliverable (what format, what sections, what "
+            "assumptions).\n"
+            "  3. DELEGATE the whole job to the CDO agent via "
+            "delegate_to_agent(agent='cdo', task='...', context='...'). "
+            "Include EVERYTHING the CDO needs: the client brief, the "
+            "required format, the deadline, any files mentioned.\n"
+            "  4. When CDO returns the completed work, VERIFY it matches "
+            "the brief, then FORMAT it for delivery (markdown by default).\n"
+            "  5. If the user asked to email the result, call email_send "
+            "with the formatted body. Ask for confirmation if the "
+            "recipient is unclear.\n"
+            "Rules:\n"
+            "  - You DO NOT execute specialist work yourself.\n"
+            "  - You delegate ONLY to 'cdo'. Never to workers directly.\n"
+            "  - Your final answer to the user is the deliverable itself, "
+            "not a plan or meta-commentary.\n"
+            "  - Be concise and professional."
+        ),
+        "tool_prefixes": [],
+        "extra_tools": [
+            "delegate_to_agent",
+            "email_send", "email_configured", "email_list_sent",
+            "pdf_report", "report_batch",
+            "read_file", "write_file", "list_files",
+            "rag_search", "rag_list",
+            "calculator", "current_time",
+        ],
+        "tools": None,
+    },
+
+    "cdo": {
+        "label": "Chief Delivery Officer",
+        "icon": "\U0001F4CB",
+        "prompt_addon": (
+            "You are the CDO agent \u2014 the Chief Delivery Officer inside "
+            "Sunnyware. You receive tasks ONLY from the CFO agent. You "
+            "NEVER talk to the user. Your job:\n"
+            "  1. DECOMPOSE the CFO's task into 1-N independent sub-tasks. "
+            "Prefer 1-3 well-scoped sub-tasks; never more than 5.\n"
+            "  2. For each sub-task, pick the best worker from: actuary, "
+            "quant, fpa, tax, general.\n"
+            "  3. Call delegate_to_agent(agent='<worker>', task='<sub-task>', "
+            "context='<shared context>') once per sub-task.\n"
+            "  4. Wait for every result. If a worker fails, retry once with "
+            "a clearer task; if it still fails, note the gap and move on.\n"
+            "  5. COMBINE all results into ONE cohesive deliverable: a "
+            "single structured document with all sections, no raw "
+            "scratch work, no per-worker headers unless the CFO asked for "
+            "them.\n"
+            "  6. Return the combined deliverable as your final answer. No "
+            "meta-commentary, no 'let me know' \u2014 just the finished work.\n"
+            "Rules:\n"
+            "  - NEVER delegate to 'cfo' (circular).\n"
+            "  - NEVER delegate to 'cdo' (self-recursion).\n"
+            "  - Keep sub-tasks self-contained; workers do not share "
+            "memory across calls.\n"
+            "  - When you have all results, produce the FINAL combined "
+            "answer and stop."
+        ),
+        "tool_prefixes": [],
+        "extra_tools": [
+            "delegate_to_agent",
+            "read_file", "write_file", "list_files",
+            "python_eval",
+            "calculator",
+        ],
+        "tools": None,
+    },
 }
 
 
@@ -131,6 +206,9 @@ _ALIASES = {
     "actuary": "actuary", "actuarial": "actuary",
     "tax": "tax", "accountant": "tax",
     "general": "general", "default": "general",
+    "cfo": "cfo", "chief financial officer": "cfo",
+    "cdo": "cdo", "chief delivery officer": "cdo",
+    "chief": "cfo",
 }
 
 
@@ -200,6 +278,8 @@ _STYLE = {
     "quant":   {"accent": "#a855f7", "chip": "Quant"},
     "actuary": {"accent": "#10b981", "chip": "Actuary"},
     "tax":     {"accent": "#f59e0b", "chip": "Tax"},
+    "cfo":     {"accent": "#8b5cf6", "chip": "CFO"},
+    "cdo":     {"accent": "#06b6d4", "chip": "CDO"},
 }
 
 
@@ -212,3 +292,27 @@ def style(role_name):
 def prompt_addon(role_name):
     """Return the role's prompt addon (may be empty string)."""
     return get_role(role_name).get("prompt_addon", "")
+
+
+# ── Part 114: delegation matrix + helpers ─────────────────
+# Which role may delegate to which roles. Absent = no delegation.
+_DELEGATION_MATRIX = {
+    "cfo": frozenset({"cdo"}),
+    "cdo": frozenset({"actuary", "quant", "fpa", "tax", "general"}),
+}
+
+
+def can_delegate(from_role, to_role):
+    """Return True if from_role is permitted to delegate to to_role."""
+    frm = _canonical(from_role) or DEFAULT_ROLE
+    to = _canonical(to_role) or ""
+    if not to:
+        return False
+    return to in _DELEGATION_MATRIX.get(frm, frozenset())
+
+
+def delegation_targets(from_role):
+    """Return sorted list of roles the from_role may delegate to."""
+    frm = _canonical(from_role) or DEFAULT_ROLE
+    return sorted(_DELEGATION_MATRIX.get(frm, frozenset()))
+

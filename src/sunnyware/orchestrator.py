@@ -329,6 +329,32 @@ async def run_agent(
     on_event=None,
     role: Optional[str] = None,
 ) -> dict:
+    """Part 114: public entry — sets role context for nested delegation."""
+    from .tools.delegate_to_agent import _CURRENT_ROLE
+    _role_token = _CURRENT_ROLE.set(role or "general")
+    try:
+        return await _run_agent_body(
+            prompt=prompt,
+            session_uuid=session_uuid,
+            model=model,
+            system=system,
+            use_native_tools=use_native_tools,
+            on_event=on_event,
+            role=role,
+        )
+    finally:
+        _CURRENT_ROLE.reset(_role_token)
+
+
+async def _run_agent_body(
+    prompt: str,
+    session_uuid: Optional[str] = None,
+    model: Optional[str] = None,
+    system: Optional[str] = None,
+    use_native_tools: Optional[bool] = None,
+    on_event=None,
+    role: Optional[str] = None,
+) -> dict:
     history = []
     if session_uuid:
         history = await memory_store.build_context(session_uuid, max_turns=4)

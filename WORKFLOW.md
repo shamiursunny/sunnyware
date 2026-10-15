@@ -778,3 +778,15 @@ ff2054f (108b Tiingo fix)
 - Roles: actuary prefix now includes insurance_; active tools = 11
 - Cache: discovery 24h, inspect 24h, fetch 1h
 - Smoke test: scripts/smoke_test_part113d.py (20 checks)
+
+## Part 114 — CFO + CDO supervisor delegation (2026-10-15)
+- New tool: delegate_to_agent (69th tool)
+  - contextvars: role / depth / path
+  - max depth 3; cycle detection by path
+  - permission matrix: cfo→cdo; cdo→workers; workers→nothing
+- New roles: cfo (Chief Financial Officer), cdo (Chief Delivery Officer)
+- orchestrator.run_agent wrapped: sets _CURRENT_ROLE contextvar
+- routes/agent.py: timeout for cfo/cdo bumped to 300s
+- WebUI: cfo + cdo options, borders, chips (with real emoji)
+- Bonus fix: 113B chip emoji now render correctly (were literal \U escapes)
+- Smoke test: scripts/smoke_test_part114.py (49 checks)
