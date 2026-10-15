@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 128)
+## Current state (last session: 2026-10-15, Phase A + C-2)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -576,6 +576,39 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
     8. 126 — document_library (Bloomberg Drive-style)
     9. 127 — earnings_call transcript summarizer
     10. 128 — clause_extractor (Hebbia ISD-style)
+- Specialist sub-agents + risk computation (Phase A + C-2):
+  • Phase A — two new roles added to the supervisor hierarchy:
+    — legal    Financial Legal Assistant   slate #64748b  chip LEGAL
+    — risk_ins Financial Risk & Insurance  red   #ef4444  chip RISK/INS
+  • legal (14 tools): clause_extractor, research_search,
+    document_library, narrate_table, earnings_call, python_eval,
+    sql_sandbox_execute, read/write/list, rag_search, web_search,
+    calculator, delegate_to_agent
+  • risk_ins (22 tools): python_eval, risk_metrics, sql_sandbox,
+    duckdb_query, insurance_research, insurance_data, govcon_data,
+    research_search, narrate_table, clause_extractor,
+    earnings_call, + tiingo/twelvedata/fred/finnhub/edgar/eulerpool
+  • Delegation: cdo → {actuary, quant, fpa, tax, general, legal, risk_ins}
+    cfo → {cdo}  (unchanged)  |  legal, risk_ins → {} (workers)
+  • Aliases: attorney/counsel/compliance → legal;
+    risk/insurance_risk/investment_risk → risk_ins
+  • Compliance baked into prompts: legal has [PRIVILEGED] markers
+    + no-legal-advice disclaimer + citation verification; risk_ins
+    requires methodology + confidence + holding period + human
+    sign-off flagging + no autonomous execution
+  • Phase C-2 — new tool #79 risk_metrics (pure numpy/scipy):
+    — 12 actions: summary, var (historical/parametric/MC), cvar,
+      volatility, sharpe, sortino, drawdown, calmar, stress_test,
+      correlation, beta, from_prices
+    — Every result carries a 'methodology' field (audit-ready)
+    — Monte Carlo reproducible (seed=42)
+    — Assigned to risk_ins + quant roles
+  • VERIFIED live on HF:
+    — 9 roles in /api/roles
+    — Legal answered indemnification vs liability distinction
+    — risk_ins computed VaR/Sharpe via risk_metrics end-to-end
+  • Zero changes to orchestrator.py or delegate_to_agent.py
+  • Smoke tests: 129 (48/48), 130 (47/47)
   • Tools: 71 → 78 (+7 new tools)
   • New endpoints:
     — GET  /api/agents/metrics
@@ -670,11 +703,14 @@ When running pre_push_check.py, if HF push times out, retry
 
 
 ## What's next (priority order)
-1. Monitor the full 78-tool stack + supervisor pipeline in production.
+1. Monitor the 79-tool stack + 9-role supervisor pipeline in production.
 2. NVIDIA NIM integration — WAITING on user to activate account.
-3. Future: verify remaining role coverage — add research_search /
-   document_library / earnings_call / clause_extractor to quant role
-   (currently fpa+actuary+cfo+tax have them).
+3. Future: Phase C-1 legal_citation_check (CourtListener free API) —
+   add case-law verification tool for the legal role.
+4. Future: add Phase A + roadmap tools to remaining roles (general)
+   for full symmetry.
+5. Future: legal/risk_ins metrics in /api/agents/metrics — they
+   automatically appear since Part 119 instruments every run_agent.
 3. Future: NAIC Content JSON:API + AmericasSuretyBonds MCP (6,900+ bonds)
    — additional insurance sources beyond the state-DOI Socrata portals
    shipped in Part 113D.

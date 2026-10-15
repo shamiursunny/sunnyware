@@ -851,3 +851,22 @@ Kensho, AlphaSense, Hebbia, ServiceNow, Workday).
 - 128: clause_extractor tool (14-type contract clause extraction)
 
 Tools: 71 → 78. Zero regressions across all 10 parts.
+
+## Phase A + C-2 — Specialist sub-agents (2026-10-15)
+- Added 2 new roles to the supervisor hierarchy:
+  * legal    (14 tools)  slate #64748b  LEGAL
+  * risk_ins (22 tools)  red   #ef4444  RISK/INS
+- Extended _DELEGATION_MATRIX.cdo with legal + risk_ins
+- Aliases: attorney/counsel/compliance -> legal;
+           risk/insurance_risk/investment_risk -> risk_ins
+- WebUI dropdown: 2 new <option> entries
+- Compliance guardrails baked into role prompts:
+  * legal    -- no legal advice + [PRIVILEGED] + citation verify
+  * risk_ins -- methodology + confidence + holding + human sign-off
+- New tool #79: risk_metrics (12 actions, pure numpy/scipy, deterministic)
+  - VaR (historical/parametric/Monte Carlo with seed=42)
+  - CVaR, volatility, Sharpe, Sortino, Calmar, max drawdown
+  - stress_test, correlation, beta, from_prices
+  - Every result carries 'methodology' field
+- Zero changes to orchestrator.py or delegate_to_agent.py
+- Smoke: 129 (48/48), 130 (47/47), 114 (50/50), 112 (28/28)

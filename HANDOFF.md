@@ -1056,3 +1056,15 @@ for a future session).
 - HEAD: 2179f16
 - NEXT: NVIDIA NIM (blocked on account); add roadmap tools to
   quant role for full symmetry
+
+## 2026-10-15 — Phase A + C-2 (specialist sub-agents)
+- 2 new roles: legal (Financial Legal Assistant) + risk_ins
+  (Financial Risk & Insurance)
+- Extended cdo delegation to include legal + risk_ins
+- New tool #79: risk_metrics (12 deterministic actions)
+- Zero orchestrator changes — pure registry extension
+- VERIFIED live: 9 roles in /api/roles, both new roles answer
+  correctly, risk_ins autonomously calls risk_metrics end-to-end
+- HEAD: 85beac3
+- NEXT: Phase C-1 (legal_citation_check via CourtListener) if pursued;
+        NVIDIA NIM (blocked); tool-to-role symmetry cleanup
