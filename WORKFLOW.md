@@ -630,3 +630,41 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Verified: image survives browser refresh + session navigation
 - Smoke test: scripts/smoke_test_part106.py (38 checks)
 - Commits: 0587c1f, c1a3845, c558e78
+
+## Parts 107-109 + 108b/109b — Financial data tools (2026-10-15)
+7 new tools for FP&A and quantitative finance roles:
+
+- edgar_fundamentals: SEC EDGAR /companyfacts (no key, US public cos)
+  UA: 'Sunnyware Financial Research shamiur@engineer.com'
+  Company: 'CIK{cik}.json' single-request pattern
+- fred_economic: FRED macro (free key, 120/min), popular presets + search
+- finnhub_quote: quote, profile, company_news, market_news, earnings, metrics
+- tiingo_prices: eod (/daily/{sym}/prices), intraday, meta
+- marketaux_news: entity tagging + sentiment
+- twelvedata_prices: multi-asset (stocks/forex/crypto), RSI, MACD
+- fmp_fundamentals: /stable/ API (v3 legacy retired Sept 2025)
+
+Shared helper: _financial_http.py (get_json + env_required + TTL cache)
+
+Fixes along the way:
+- 107b: EDGAR UA format + /companyfacts single request (was 15+ calls)
+- 108b: Tiingo EOD needs /daily/{sym}/prices suffix (not /daily/{sym})
+- 109b: FMP /stable/ prefix + symbol as query param
+
+All 7 API keys pushed to HF Space secrets (verified working).
+
+Tools: 59 -> 66.
+Smoke test: scripts/smoke_test_part107.py (73 checks)
+pre_push_check.py: whitelist .env.example / .env.sample / .env.template
+
+Verified live on HF: all 8 endpoints return real data
+  - EDGAR: Apple Inc. revenue $109.4B
+  - FRED:  GDP $32,563.03B
+  - Finnhub: AAPL $342.96 + 245 news articles
+  - Tiingo: 7 OHLCV bars
+  - MarketAux: AAPL $5T cap headline
+  - TwelveData: AAPL/EUR-USD/BTC-USD
+  - FMP: quote + income statement
+
+Commits: c180d24 (initial), b881954 (107b EDGAR fix), 1f6c789 (109b FMP fix),
+ff2054f (108b Tiingo fix)

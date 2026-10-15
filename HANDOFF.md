@@ -927,3 +927,23 @@ for a future session).
 - Verified: image survives refresh + navigation
 - HEAD: c558e78
 - NEXT: monitor attachments/stats; NVIDIA NIM (waiting); TTS; video gen
+
+## 2026-10-15 — Parts 107 + 108 + 109
+- Added 7 financial data tools for FP&A + quant roles:
+  - edgar_fundamentals (SEC EDGAR XBRL, no key)
+  - fred_economic (FRED macro, free key)
+  - finnhub_quote (quotes + news, free key)
+  - tiingo_prices (9y daily + intraday)
+  - marketaux_news (news + sentiment)
+  - twelvedata_prices (multi-asset)
+  - fmp_fundamentals (structured statements, /stable/ API)
+- All 7 API keys on HF Space secrets (verified working)
+- Tools: 59 -> 66
+- Fixes during integration:
+  - EDGAR: UA format + /companyfacts single request
+  - Tiingo: /daily/{sym}/prices suffix
+  - FMP: /stable/ prefix + symbol query param
+- NEW: scripts/smoke_test_part107.py (73 checks)
+- Live verified: all 7 tools return real data on HF
+- HEAD: ff2054f
+- NEXT: FP&A/Quant role prompts; NVIDIA NIM; options data (Polygon)

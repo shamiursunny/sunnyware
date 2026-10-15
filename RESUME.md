@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 106)
+## Current state (last session: 2026-10-15, Part 109)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -416,6 +416,30 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
     tool call) by forcing ensureBubble + placeholder text
   • Verified: image survives browser refresh + session navigation
   • Smoke test: scripts/smoke_test_part106.py (38 checks)
+- Financial data tools for FP&A and quant roles (Parts 107-109):
+  • edgar_fundamentals: SEC EDGAR XBRL (no key, authoritative US filings)
+    — /companyfacts endpoint (ONE request returns all tags)
+    — UA format: '<Company Name> <email>' (no version, no parens)
+    — Verified: Apple Inc., FY2025 revenue $416.16B, net $112.01B
+  • fred_economic: FRED macro (free key, 120 req/min)
+    — 800k+ series: GDP, CPI, unemployment, treasury yields
+    — 'popular' preset + search + series observations
+  • finnhub_quote: Quotes + news + earnings (free key, 60/min)
+    — quote, profile, company_news, market_news, earnings, metrics
+  • tiingo_prices: 9-year daily + intraday (free key, 1000/day)
+    — eod (uses /daily/{sym}/prices), intraday, meta
+  • marketaux_news: News + sentiment (free key, 100 req/day)
+    — entity tagging, sentiment scores, 80+ markets
+  • twelvedata_prices: Multi-asset (free key, 800/day)
+    — stocks, forex, crypto; quote, time_series, rsi, macd
+  • fmp_fundamentals: /stable/ API (v3 legacy retired Sept 2025)
+    — quote, profile, income, balance, cashflow, ratios, metrics, dcf
+    — symbol is query param (?symbol=AAPL) not path segment
+  • Shared helper: _financial_http.py (retry + cache + env checks)
+  • Tools: 59 -> 66
+  • All 7 API keys on HF Space secrets (FRED, FINNHUB, TIINGO,
+    MARKETAUX, TWELVEDATA, FMP, SEC_USER_AGENT)
+  • Smoke test: scripts/smoke_test_part107.py (73 checks)
 
 
 ### RAG over documents
