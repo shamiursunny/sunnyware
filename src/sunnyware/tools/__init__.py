@@ -74,6 +74,7 @@ from .insurance_research import InsuranceResearchTool
 from .govcon_data import GovconDataTool
 from .script_registry import ScriptRegistryTool
 from .workflow_registry import WorkflowRegistryTool
+from .narrate_table import NarrateTableTool
 from .delegate_to_agent import DelegateToAgentTool
 
 
@@ -150,6 +151,7 @@ _TOOLS = {
     GovconDataTool.name: GovconDataTool(),
     ScriptRegistryTool.name: ScriptRegistryTool(),
     WorkflowRegistryTool.name: WorkflowRegistryTool(),
+    NarrateTableTool.name: NarrateTableTool(),
     DelegateToAgentTool.name: DelegateToAgentTool(),
 }
 
