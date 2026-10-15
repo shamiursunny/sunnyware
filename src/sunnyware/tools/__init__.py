@@ -73,6 +73,7 @@ from .insurance_data import InsuranceDataTool
 from .insurance_research import InsuranceResearchTool
 from .govcon_data import GovconDataTool
 from .script_registry import ScriptRegistryTool
+from .workflow_registry import WorkflowRegistryTool
 from .delegate_to_agent import DelegateToAgentTool
 
 
@@ -148,6 +149,7 @@ _TOOLS = {
     InsuranceResearchTool.name: InsuranceResearchTool(),
     GovconDataTool.name: GovconDataTool(),
     ScriptRegistryTool.name: ScriptRegistryTool(),
+    WorkflowRegistryTool.name: WorkflowRegistryTool(),
     DelegateToAgentTool.name: DelegateToAgentTool(),
 }
 
