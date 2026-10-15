@@ -52,6 +52,18 @@ ALLOWED_MODULES = frozenset({
     "plotly.express", "plotly.graph_objects",
     # excel / output
     "openpyxl", "xlsxwriter", "tabulate",
+    # Part 111: actuarial / insurance / risk-management
+    "chainladder",           # P&C loss reserving (IBNR)
+    "lifelib",               # Life/pension actuarial models
+    "solvency2_data",        # EIOPA risk-free rate term structures
+    # Transitive deps (imported inside the above libraries at runtime)
+    "sparse",                # chainladder -> sparse
+    "numba", "llvmlite",     # chainladder -> sparse -> numba
+    "modelx",                # lifelib -> modelx
+    "libcst", "asttokens",   # modelx -> libcst
+    "bs4", "beautifulsoup4", # solvency2-data -> bs4
+    "configparser",          # solvency2-data -> configparser
+    "diskcache",             # lifelib caching
 })
 
 
