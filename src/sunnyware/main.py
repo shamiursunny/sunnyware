@@ -391,6 +391,15 @@ class _MetricsMiddleware:
                 if not _eff_key:
                     _eff_key = "anonymous"
 
+                # Part 134b: propagate _eff_key into the tenant contextvar
+                # so route handlers (/api/rate_limit/status etc.) see the
+                # same tenant the middleware is billing.
+                try:
+                    from . import tenant as _tenant_134
+                    _tenant_134.set_key(_eff_key)
+                except Exception:
+                    pass
+
                 # Part 134: periodic eviction so buckets don't leak
                 try:
                     _auth.evict_stale()

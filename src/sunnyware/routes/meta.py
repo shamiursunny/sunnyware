@@ -873,12 +873,18 @@ async def prompts_reload():
 
 
 @router.get("/api/rate_limit/status")
-async def rate_limit_status():
-    """Part 134: rate-limit status for the calling tenant."""
+async def rate_limit_status(tenant: str = None):
+    """Part 134: rate-limit status for the calling tenant.
+
+    Optional ?tenant=<key> to inspect another tenant (admin read).
+    """
     try:
         from .. import auth as _auth
         from .. import tenant as _tenant
-        tk = _tenant.get_key() or "anonymous"
+        if tenant:
+            tk = tenant
+        else:
+            tk = _tenant.get_key() or "anonymous"
         return _auth.tenant_status(tk)
     except Exception as e:
         return JSONResponse(
