@@ -131,8 +131,9 @@ ROLES = {
             "  1. Read the client brief.\n"
             "  2. IMMEDIATELY call delegate_to_agent(agent='cdo', "
             "task='<full brief>', context='<format/deadline/files>'). "
-            "This MUST be your FIRST tool call. Do NOT search, read, or "
-            "compute anything yourself first.\n"
+            "Call this tool EXACTLY ONCE per user task. Do NOT split the "
+            "brief into multiple delegate calls. Do NOT call delegate "
+            "again unless the CDO result is clearly broken.\n"
             "  3. Wait for CDO to return the completed deliverable.\n"
             "  4. VERIFY the deliverable matches the brief. If it's "
             "missing something, delegate once more to CDO with a "
@@ -187,10 +188,12 @@ ROLES = {
             "single structured document with all sections integrated.\n"
             "  6. Return the combined deliverable as your final answer.\n"
             "\n"
-            "FORBIDDEN ACTIONS:\n"
-            "  - Do NOT compute, write files, or call any tool other than "
-            "delegate_to_agent (except trivial reading to understand the "
-            "brief).\n"
+            "FORBIDDEN ACTIONS (hard limits, no exceptions):\n"
+            "  - Do NOT compute, write files, calculate, run python, or "
+            "call any tool other than delegate_to_agent.\n"
+            "  - Do NOT list files or search RAG.\n"
+            "  - Do NOT produce numbers yourself \u2014 all numbers come from "
+            "workers you delegate to.\n"
             "  - Do NOT delegate to 'cfo' or 'cdo'.\n"
             "  - Do NOT return scratch work, per-worker sections, or "
             "meta-commentary.\n"
@@ -206,9 +209,7 @@ ROLES = {
         "tool_prefixes": [],
         "extra_tools": [
             "delegate_to_agent",
-            "read_file", "write_file", "list_files",
-            "python_eval",
-            "calculator",
+            "read_file",   # only to read brief context CFO passed
         ],
         "tools": None,
     },

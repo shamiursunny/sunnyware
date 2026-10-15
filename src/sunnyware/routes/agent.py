@@ -93,7 +93,7 @@ async def run_agent(req: Request):
     try:
         _role_norm = (role or "general").strip().lower()
         if _role_norm in ("cfo", "cdo"):
-            _agent_timeout = max(_agent_timeout, 300.0)
+            _agent_timeout = max(_agent_timeout, 600.0)
     except Exception:
         pass
     try:

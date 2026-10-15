@@ -64,9 +64,10 @@ cdo_tools = _roles.active_tool_names("cdo") or []
 check("cfo tools include delegate_to_agent", "delegate_to_agent" in cfo_tools)
 check("cdo tools include delegate_to_agent", "delegate_to_agent" in cdo_tools)
 check("cfo tools include email_send", "email_send" in cfo_tools)
-check("cdo tools include python_eval", "python_eval" in cdo_tools)
+check("cdo tools EXCLUDE python_eval (delegation only)", "python_eval" not in cdo_tools)
 check("cfo subset is small (< 20)", len(cfo_tools) < 20, f"n={len(cfo_tools)}")
 check("cdo subset is small (< 10)", len(cdo_tools) < 10, f"n={len(cdo_tools)}")
+check("cdo subset is tiny (<= 3 tools)", len(cdo_tools) <= 3, f"n={len(cdo_tools)}")
 check("worker (actuary) does NOT have delegate_to_agent",
       "delegate_to_agent" not in (_roles.active_tool_names("actuary") or []))
 
