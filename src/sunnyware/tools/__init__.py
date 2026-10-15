@@ -68,6 +68,7 @@ from .tiingo_prices import TiingoPricesTool
 from .marketaux_news import MarketauxNewsTool
 from .twelvedata_prices import TwelveDataTool
 from .fmp_fundamentals import FmpFundamentalsTool
+from .eulerpool_data import EulerpoolDataTool
 
 
 _TOOLS = {
@@ -137,6 +138,7 @@ _TOOLS = {
     MarketauxNewsTool.name: MarketauxNewsTool(),
     TwelveDataTool.name: TwelveDataTool(),
     FmpFundamentalsTool.name: FmpFundamentalsTool(),
+    EulerpoolDataTool.name: EulerpoolDataTool(),
 }
 
 
