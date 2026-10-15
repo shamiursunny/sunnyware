@@ -769,3 +769,12 @@ ff2054f (108b Tiingo fix)
 - eulerpool_data.py: metrics counters (hit/miss per action, api_calls_total)
 - routes/meta.py: GET /api/cache/stats, POST /api/cache/clear
 - Smoke test: scripts/smoke_test_part113c.py (24 checks)
+
+## Part 113D — Insurance data sources (2026-10-15)
+- New tool: tools/insurance_data.py — Socrata state-DOI portals (no key)
+- 8 portals: TX TDI, NY DFS, CT, WA, IL, CO, OR, VT
+- Actions: states / discover / inspect / fetch
+- Tool registry: 68 tools total (was 67)
+- Roles: actuary prefix now includes insurance_; active tools = 11
+- Cache: discovery 24h, inspect 24h, fetch 1h
+- Smoke test: scripts/smoke_test_part113d.py (20 checks)

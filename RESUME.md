@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-15, Part 113C)
+## Current state (last session: 2026-10-15, Part 113D)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -512,6 +512,18 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
     — POST /api/cache/clear — wipe cache, returns count
   • Effect: 2nd options_greeks call within 60s is instant (0 API quota)
   • Smoke test: scripts/smoke_test_part113c.py (24 checks)
+- Insurance data sources (Part 113D):
+  • New tool: tools/insurance_data.py (68th tool)
+    — Socrata open-data APIs — NO API key required
+    — 8 state DOI portals: TX TDI, NY DFS, CT, WA, IL, CO, OR, VT
+    — actions: states, discover, inspect, fetch
+    — returns datasets, column metadata, raw rows
+  • Registry: tools/__init__.py imports + registers InsuranceDataTool
+  • Roles: actuary tool_prefixes now include insurance_
+    — actuary active tools: 11 (was 10)
+    — actuary prompt addon mentions insurance_data usage
+  • Cache: discovery 24h, inspect 24h, fetch 1h (via existing cache_get/set)
+  • Smoke test: scripts/smoke_test_part113d.py (20 checks)
 - Eulerpool multi-source data (Part 110) — 8th financial data source:
   • New tool: eulerpool_data — curated 70-endpoint wrapper over
     Eulerpool's 447-endpoint API

@@ -69,6 +69,7 @@ from .marketaux_news import MarketauxNewsTool
 from .twelvedata_prices import TwelveDataTool
 from .fmp_fundamentals import FmpFundamentalsTool
 from .eulerpool_data import EulerpoolDataTool
+from .insurance_data import InsuranceDataTool
 
 
 _TOOLS = {
@@ -139,6 +140,7 @@ _TOOLS = {
     TwelveDataTool.name: TwelveDataTool(),
     FmpFundamentalsTool.name: FmpFundamentalsTool(),
     EulerpoolDataTool.name: EulerpoolDataTool(),
+    InsuranceDataTool.name: InsuranceDataTool(),
 }
 
 

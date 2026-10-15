@@ -84,11 +84,13 @@ ROLES = {
             "  - lifelib for life/pension model projections\n"
             "  - solvency2_data for EIOPA risk-free rate term structures\n"
             "  - numpy/pandas/scipy/statsmodels for supporting analysis\n"
+            "  - insurance_data for US state DOI datasets (complaints,\n"
+            "    licenses, rate filings) via Socrata public APIs\n"
             "Prefer edgar_* for insurance company financials and fred_* for "
             "macro inputs (rates, inflation). Always state assumptions: "
             "LDF selection, tail factor, discount rate. Verify your numbers."
         ),
-        "tool_prefixes": ["edgar_", "fred_"],
+        "tool_prefixes": ["edgar_", "fred_", "insurance_"],
         "extra_tools": [
             "python_eval", "sql_sandbox_execute", "duckdb_query",
             "read_file", "write_file", "list_files", "rag_search",
