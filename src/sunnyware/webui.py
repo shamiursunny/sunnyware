@@ -2814,11 +2814,12 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     }
   }
 
-  if (document.readyState === 'loading')
+  if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', boot);
     document.addEventListener('DOMContentLoaded', initRoleSelector);
-  else
+  } else {
     setTimeout(boot, 50);
+  }
   setTimeout(boot, 800);
   setTimeout(boot, 2000);
 })();
