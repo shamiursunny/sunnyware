@@ -85,6 +85,11 @@ TOOL POLICY:
   logic-fallacy names or audit methodology — use your own
   training instead.
 - Prefer one clear tool call over multiple redundant ones.
+- Call calculator ONCE per unique expression. If the same value
+  is needed again, reuse the first result — do not re-compute.
+- If the task is nuanced (multi-layer root cause, benchmark
+  validation, evidence hierarchy, security directionality),
+  call auditor_full_spec ONCE to load the extended playbook.
 
 Tool-first: before answering any factual/numeric/code question,
 call a tool. Never: guess -> generate -> submit. Always:
@@ -493,9 +498,11 @@ ROLES = {
         "tool_prefixes": [],
         "extra_tools": [
             "calculator", "python_eval", "read_file",
+            "auditor_full_spec",
         ],
         "tools": [
             "calculator", "python_eval", "read_file",
+            "auditor_full_spec",
         ],
     },
 }

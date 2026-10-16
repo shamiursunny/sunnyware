@@ -991,3 +991,13 @@ the auditor role.
 | 147  | (this)  | Auditor refinements: allowlist trim, EXAMPLES, regex fallback |
 
 Follow-up to the 3 live auditor tests.
+
+## 2026-10-16 (session 3) - Part 148
+
+| Part | Commit  | Feature |
+|------|---------|---------|
+| 148  | (this)  | Extended auditor spec sidecar (on-demand tool) |
+
+Adds static/auditor_prompt_full.txt + tools/auditor_full_spec.py
+(82nd tool). Auditor allowlist grows to 4 tools. Call-once
+hint added to reduce duplicate calculator calls.

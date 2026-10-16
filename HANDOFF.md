@@ -1284,3 +1284,26 @@ usage CSV).
 - extract_auditor_json() with 4 parse paths
 - auditor_verdict field added to /api/agent/run response
 - TOOL POLICY block (superseded by 147b)
+
+### Part 148 - Extended auditor spec sidecar
+- Adds an on-demand "sidecar" for the auditor role:
+    - static/auditor_prompt_full.txt (~6.6 KB / ~1.6K tokens):
+      extended spec covering specification extraction, requirement
+      provenance, defect discipline, canonical taxonomy, math
+      verification, logic verification, code verification, evidence
+      hierarchy, static-vs-runtime, confidence separation, multi-layer
+      root cause, claim-evidence-scope, severity, security, anti-overreach,
+      anti-underreach, full 42-step pipeline, top-15 final self-check.
+    - tools/auditor_full_spec.py (new, 82nd tool): returns the extended
+      spec on demand.
+    - roles.py: auditor allowlist grows to 4 tools
+      (calculator, python_eval, read_file, auditor_full_spec).
+    - Prompt hint added: "Call calculator ONCE per unique expression"
+      (reduces duplicate compute) + "call auditor_full_spec ONCE" for
+      nuanced tasks.
+- Design: routine audits cost ~2.4K tokens (base prompt);
+  complex audits load the sidecar only when needed, adding ~1.6K
+  tokens for that specific call. Zero overhead for simple cases.
+- The sidecar replaces the full V15.0 spec as a mechanical translation.
+  Swapping in the verbatim 30K V15.0 later is a one-file change.
+- Smoke: 148 (27/27); 142a and 147 updated for new allowlist.

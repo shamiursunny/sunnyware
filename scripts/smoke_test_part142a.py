@@ -53,12 +53,12 @@ check("auditor has prompt addon",
       and len(R.prompt_addon("auditor")) > 100)
 check("auditor prompt addon has 5 labels",
       R.prompt_addon("auditor").count("Miscalculated percentage") >= 1)
-check("auditor tool list has 3 tools",
-      len(R.active_tool_names("auditor") or []) == 3,
+check("auditor tool list has 4 tools",
+      len(R.active_tool_names("auditor") or []) == 4,
       "n=%d" % len(R.active_tool_names("auditor") or []))
 check("auditor tools match allowlist",
       set(R.active_tool_names("auditor") or [])
-      == {"calculator", "python_eval", "read_file"})
+      == {"calculator", "python_eval", "read_file", "auditor_full_spec"})
 check("email_send not in auditor tools",
       "email_send" not in (R.active_tool_names("auditor") or []))
 check("write_file not in auditor tools",

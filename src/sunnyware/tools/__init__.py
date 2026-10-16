@@ -82,6 +82,7 @@ from .clause_extractor import ClauseExtractorTool
 from .risk_metrics import RiskMetricsTool
 from .legal_citation_check import LegalCitationCheckTool
 from .delegate_to_agent import DelegateToAgentTool
+from .auditor_full_spec import AuditorFullSpecTool
 
 
 _TOOLS = {
@@ -165,6 +166,7 @@ _TOOLS = {
     RiskMetricsTool.name: RiskMetricsTool(),
     LegalCitationCheckTool.name: LegalCitationCheckTool(),
     DelegateToAgentTool.name: DelegateToAgentTool(),
+    AuditorFullSpecTool.name: AuditorFullSpecTool(),
 }
 
 

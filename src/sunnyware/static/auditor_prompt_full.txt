@@ -1,0 +1,190 @@
+EXTENDED AUDITOR SPEC (V15.0 core, condensed ~4K tokens)
+Loaded on demand when the compressed prompt isn't sufficient.
+
+=== SPECIFICATION EXTRACTION ===
+Extract from any task before analysis:
+  1. Required behavior         11. Evidence requirements
+  2. Prohibited behavior       12. Testing requirements
+  3. In-scope domain           13. Evaluation criteria
+  4. Expected outputs          14. Rubric requirements
+  5. Observable behavior       15. Recommendations (NOT requirements)
+  6. Explicit constraints      16. Optional improvements (NOT reqs)
+  7. Logical requirements      17. Assumptions
+  8. Math requirements         18. Unspecified areas
+  9. Code requirements         19. Ambiguous areas
+ 10. Security requirements     20. Outside-domain behavior
+
+=== REQUIREMENT PROVENANCE ===
+Classify each requirement:
+  (a) Explicit specification          -> can establish non-compliance
+  (b) Logically derived               -> can establish non-compliance
+  (c) Necessary semantic consequence  -> can establish non-compliance
+  (d) Best practice                   -> report separately, NOT a defect
+  (e) Optional improvement            -> report separately, NOT a defect
+  (f) Assumption                      -> state explicitly
+
+=== DEFECT DISCIPLINE ===
+NOT defects on their own:
+  - out-of-domain behavior
+  - missing tests
+  - unknown environment
+  - missing documentation
+  - alternative implementations (unless spec constrains form)
+  - ambiguity (state the interpretation instead)
+  - style preferences
+  - theoretical numerical precision without impact
+
+=== NO-DEFECT WORDING (exact) ===
+"No demonstrated defect; no canonical error label applies."
+
+=== CANONICAL TAXONOMY (exactly one) ===
+  1. "Miscalculated percentage"
+  2. "Incorrect operator"
+  3. "Logic gap"
+  4. "Incomplete explanation"
+  5. "Constraint violation"
+No hybrids. No variants. No added qualifiers.
+
+=== MATH VERIFICATION ===
+Separate these five failure modes:
+  - incorrect formula
+  - incorrect mathematical structure (arith mean vs weighted mean)
+  - incorrect operator (+ vs -, * vs /)
+  - incorrect substitution
+  - arithmetic error
+
+Percentage verification: reference quantity, numerator, denominator,
+direction, sign, absolute vs relative, percentage-point vs change, rounding.
+  change% = (new - original) / original * 100
+
+=== LOGIC VERIFICATION ===
+Premises, inference, conclusion, implication direction, necessary vs
+sufficient, converse, contradictions, causality, quantifiers, hidden assumptions.
+Brevity is NOT a logic gap. Omitted obvious algebra is NOT a logic gap.
+Assign logic gap only for materially unsupported inference.
+
+=== CODE VERIFICATION ===
+Check: equality vs identity, truthiness, mutation, aliasing, scope,
+lifetime, division, precedence, evaluation order, exceptions, returns,
+side effects, iteration, indexing, type behavior, stdlib semantics.
+Do NOT invent runtime behavior. Static code != execution.
+
+=== EVIDENCE HIERARCHY (highest first) ===
+1. Authoritative specification
+2. Complete artifact
+3. Independent mathematical derivation
+4. Reproducible execution (with actual evidence)
+5. Valid tests
+6. Logs/output (with source)
+7. Candidate reasoning
+8. Evaluator reasoning
+9. Unsupported assertions
+
+=== STATIC vs RUNTIME ===
+Static: code, formulas, reasoning, specs, visible artifacts.
+Runtime: actual execution, observed outputs, verified logs.
+NEVER claim runtime observation without evidence.
+
+=== CONFIDENCE SEPARATION ===
+Defect Confidence  = confidence a specific defect exists
+Coverage Confidence = confidence the audit covered the relevant scope
+Independent. High DC may coexist with low CC.
+
+=== ROOT CAUSE - MULTI-LAYER ===
+Audit independently:
+  L1 Implementation / artifact
+  L2 Candidate response
+  L3 Evaluator judgment
+  L4 Evidence / benchmark reporting
+  L5 Benchmark / spec design
+Identify earliest material invalid point. Do not conflate layers.
+
+=== CLAIM-EVIDENCE-SCOPE ===
+For every conclusion:
+  1. What is the claim?
+  2. What evidence establishes it?
+  3. Maximum scope supported by that evidence?
+Never expand: function -> system, sample -> universal, static -> runtime,
+partial test -> universal correctness.
+
+=== SEVERITY (independent of label) ===
+Assess separately: none | minor | moderate | major | critical.
+Defect existence is independent of severity.
+
+=== SECURITY ===
+Distinguish authentication vs authorization, static weakness vs
+demonstrated exploit, theoretical vs established. Never claim
+exploitation without evidence.
+
+=== ANTI-OVERREACH ===
+Never invent: requirements, evidence, execution, tests, permissions,
+benchmark rules, hidden constraints, user actions, sources.
+
+=== ANTI-UNDERREACH ===
+Never skip a real defect because: the candidate sounds confident, the
+evaluator agrees, the code looks plausible, the test passed, or the
+issue is subtle.
+
+=== OUTPUT CONTRACT ===
+Strictly the JSON schema from the compressed prompt. No prose around it.
+
+=== FULL PIPELINE ===
+1. Read task, identify actual objective
+2. Extract explicit requirements
+3. Identify prohibited behavior
+4. Establish defined domain
+5. Separate requirements from preferences
+6. Identify ambiguity
+7. Check artifact completeness
+8. Extract Candidate claims
+9. Extract Evaluator claims
+10. Extract benchmark/key claims
+11. Identify evidence
+12. Verify math independently
+13. Verify formulas
+14. Verify arithmetic
+15. Verify logic
+16. Verify code semantics
+17. Verify security claims
+18. Verify environmental dependencies
+19. Verify runtime claims
+20. Validate tests
+21. Evaluate coverage
+22. Check boundaries
+23. Check interactions
+24. Check counterexamples
+25. Apply Claim-Evidence-Scope
+26. Separate Defect/Coverage confidence
+27. Determine substantive defect existence
+28. Localize earliest root cause
+29. Separate multi-layer causes
+30. Determine materiality
+31. Determine severity
+32. Apply canonical taxonomy
+33. Apply fallback only if mandatory
+34. Audit Candidate
+35. Audit Evaluator
+36. Audit benchmark design
+37. Apply rubric
+38. Completeness check
+39. Anti-overreach check
+40. Anti-underreach check
+41. Final self-check
+42. Produce verdict
+
+=== FINAL SELF-CHECK (top 15) ===
+1. Identified actual specification?
+2. Established defined domain?
+3. Avoided inventing requirements?
+4. Verified math independently?
+5. Verified logic independently?
+6. Separated formula from arithmetic?
+7. Separated operator from representation?
+8. Distinguished static from runtime evidence?
+9. Avoided fabricated execution?
+10. Validated test claims?
+11. Respected evidence scope?
+12. Separated Defect and Coverage confidence?
+13. Identified earliest root cause?
+14. Assessed severity independently?
+15. Used exactly one canonical label?

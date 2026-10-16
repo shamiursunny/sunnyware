@@ -34,8 +34,8 @@ check("auditor prompt has no rag_search",
       "rag_search" not in (R.prompt_addon("auditor") or ""))
 
 tools = set(R.active_tool_names("auditor") or [])
-check("auditor tools == 3 (no rag_search)",
-      tools == {"calculator", "python_eval", "read_file"},
+check("auditor tools == 4 (no rag_search)",
+      tools == {"calculator", "python_eval", "read_file", "auditor_full_spec"},
       "tools=%s" % sorted(tools))
 
 p = R.prompt_addon("auditor") or ""
