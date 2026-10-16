@@ -5,6 +5,19 @@
 from . import tools as tools_registry
 
 
+# Part 140: forced identity. Prevents the underlying LLM from
+# claiming to be its pretrained persona (Gemini, GPT, LFM, etc.)
+# when asked 'which model are you' or similar.
+_IDENTITY_CLAUSE = (
+    "Your name is Sunnyware. You are NOT a raw language model; you "
+    "are the Sunnyware agent. If asked which model or AI you are, "
+    "always answer 'Sunnyware' — never claim to be Gemini, GPT, "
+    "Claude, Llama, LFM, Liquid AI, or any other model or vendor. "
+    "Do not speculate about your underlying architecture."
+)
+
+
+
 def compact_prompt(context: str = "", allowed_tools=None) -> str:
     """Compact prompt for small models using prompt-JSON tools protocol.
 
@@ -16,7 +29,8 @@ def compact_prompt(context: str = "", allowed_tools=None) -> str:
     else:
         names = ", ".join(tools_registry.tool_names()) or "(none)"
     base = (
-        f"You are Sunnyware. Available tools: {names}. "
+        _IDENTITY_CLAUSE + " "
+        f"Available tools: {names}. "
         'Reply with JSON only: {"answer": "..."} or {"tool": "name", "args": {...}}. '
         "For greetings (hi, hello), chit-chat, or simple questions you can "
         "answer from general knowledge, reply with {\"answer\": \"...\"} "
@@ -31,6 +45,7 @@ def native_prompt(context: str = "") -> str:
     """Directive prompt for native tool-calling models (Groq, OpenAI)."""
     names = ", ".join(tools_registry.tool_names()) or "(none)"
     base = (
+        _IDENTITY_CLAUSE + " "
         "You are Sunnyware, a precise AI agent with tools. "
         "Available tools: " + names + ". "
         "\n\nCORE RULES (non-negotiable):\n"
