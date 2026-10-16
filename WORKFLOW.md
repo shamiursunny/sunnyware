@@ -963,3 +963,13 @@ Full spec planned for static/auditor_prompt_full.txt in 142b.
 
 Router now cools down Pollinations on 402 and honors the
 provider-supplied Retry-after hint (+5s safety margin).
+
+## 2026-10-16 (session 3) - Parts 144-145
+
+| Part | Commit  | Feature |
+|------|---------|---------|
+| 144  | (this)  | Tool-aware provider eligibility + /api/providers/test |
+| 145  | (this)  | Verified free-tier limits + reset-aware cooldown |
+
+Fixes groq 413s on every multi-tool request, and eliminates
+false cooldowns on per-day quota exhaustion.

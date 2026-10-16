@@ -1214,3 +1214,26 @@ usage CSV).
 - HF secret POLLINATIONS_API_KEY is already set (1 req/sec with key,
   vs 1 req/30s free tier).
 - Smoke: scripts/smoke_test_part143.py (24/24)
+
+### Parts 144-145 - Tool-aware eligibility + reset-aware cooldown
+- 144: tool-schema tokens now counted in provider eligibility.
+      Before: groq 413'd every multi-tool request because the
+      ~8700-token tool schema alone exceeds its 7500-token cap and
+      the router didn't know. Now: _estimate_tools_tokens() adds the
+      tool payload to _required_tokens; providers whose max_prompt_tokens
+      can't fit prompt+tools are skipped cleanly.
+- 144: new POST /api/providers/test/{name} endpoint for direct
+      provider testing (bypasses router). Returns _key_present,
+      _key_prefix (masked), _provider_host, _cooling.
+- 145: provider + error-aware cooldown. Replaces fixed 60s with:
+      1. Provider-supplied retry hint (Part 143 _parse_retry_after) wins
+      2. Per-day quota exhausted -> wait until next daily reset
+         (Groq 00:00 UTC, Gemini midnight Pacific, OpenRouter 00:00 UTC)
+      3. Per-minute quota -> 65s rolling window
+      4. Fallback 60s
+- 145: new provider_limits_config.py with verified free-tier limits
+      (Groq 30 RPM / 1000 RPD, Gemini 15 RPM / 1500 RPD (Pacific reset),
+      OpenRouter 20 RPM / 50 RPD, Pollinations unlimited with sk_ key)
+- 143-fix: smoke test 143 updated to accept Part 145's replacement
+      marker ("Part 143 + 145: provider + error-type aware cooldown").
+- Smoke: 144 (14/14), 145 (37/37)

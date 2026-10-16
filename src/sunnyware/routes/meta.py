@@ -1370,3 +1370,78 @@ async def usage_export_csv(days: int = 30, limit: int = 10000):
             {"error": f"{type(e).__name__}: {e}"},
             status_code=500,
         )
+
+
+@router.post("/api/providers/test/{name}")
+async def providers_test_one(name: str, payload: dict = None):
+    """Part 144: direct test of one provider, bypassing the router.
+
+    Body (optional): {"prompt": "...", "timeout": 30}
+    Admin-only when auth is enabled.
+    """
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        from .. import providers as _prov
+        from .. import llm as _llm
+        payload = payload or {}
+        prompt = str(
+            payload.get("prompt")
+            or "Reply with the single word PONG."
+        )[:500]
+        try:
+            timeout = float(payload.get("timeout") or 30.0)
+            timeout = max(5.0, min(timeout, 120.0))
+        except Exception:
+            timeout = 30.0
+
+        target = None
+        for p in _prov.load_providers():
+            if p.name.lower() == name.lower():
+                target = p
+                break
+        if target is None:
+            return JSONResponse(
+                {
+                    "error": f"unknown provider: {name}",
+                    "available": [p.name for p in _prov.load_providers()],
+                },
+                status_code=404,
+            )
+
+        r = await _llm._chat_single(
+            prompt=prompt,
+            base_url=target.base_url,
+            api_key=target.api_key,
+            model=target.model,
+            system=None,
+            history=None,
+            tools=None,
+            timeout=timeout,
+        )
+
+        key = target.api_key or ""
+        r["_provider_name"] = target.name
+        r["_provider_model"] = target.model
+        try:
+            host = (
+                target.base_url.split("/")[2]
+                if "://" in target.base_url
+                else target.base_url
+            )
+        except Exception:
+            host = target.base_url
+        r["_provider_host"] = host
+        r["_key_present"] = bool(key and key not in ("local", "ollama", ""))
+        r["_key_prefix"] = (
+            (key[:4] + "..." + key[-4:]) if len(key) >= 12 else "<short>"
+        ) if r["_key_present"] else ""
+        r["_cooling"] = target.is_cooling()
+        r["_max_prompt_tokens"] = target.max_prompt_tokens
+        return r
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )

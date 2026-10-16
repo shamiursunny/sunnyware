@@ -23,6 +23,7 @@ import httpx
 
 from . import providers as _providers
 from . import local_llm as _local_llm
+from . import provider_limits_config as _plc
 
 
 DEFAULT_BASE_URL = "http://localhost:11434/v1"
@@ -237,6 +238,19 @@ async def _chat_single(
         }
 
 
+def _estimate_tools_tokens(tools) -> int:
+    """Part 144: estimate tokens for a tool-schema list.
+
+    Uses char/4 heuristic; safe upper bound for routing decisions.
+    """
+    if not tools:
+        return 0
+    try:
+        return len(json.dumps(tools)) // 4
+    except Exception:
+        return 0
+
+
 def _estimate_prompt_tokens(prompt, system, history) -> int:
     """Part 99: char/4 heuristic for total conversation size.
 
@@ -370,9 +384,14 @@ async def chat(
     # this request (e.g. Groq 413 on >8k input). Falls back to trying all
     # non-cooling providers if the size filter would exclude everything.
     _prompt_tokens = _estimate_prompt_tokens(prompt, system, history)
+    # Part 144: include tool-schema tokens so providers that can't fit
+    # the full tool set are skipped cleanly instead of 413ing at HTTP.
+    _tools_tokens = _estimate_tools_tokens(tools) if tools else 0
+    _required_tokens = _prompt_tokens + _tools_tokens
     _any_eligible = any(
         (not p.is_cooling())
-        and (not p.max_prompt_tokens or _prompt_tokens <= p.max_prompt_tokens)
+        and (not p.max_prompt_tokens
+             or _required_tokens <= p.max_prompt_tokens)
         for p in provs
     )
 
@@ -383,9 +402,9 @@ async def chat(
         if (
             _any_eligible
             and p.max_prompt_tokens
-            and _prompt_tokens > p.max_prompt_tokens
+            and _required_tokens > p.max_prompt_tokens
         ):
-            # Part 99: skip provider that can't fit the prompt
+            # Part 99 + 144: skip provider that can't fit prompt+tools
             continue
 
         # Local provider: bypass HTTP, call in-process
@@ -477,10 +496,14 @@ async def chat(
             continue
 
         if _is_rate_limit_error(err):
-            # Part 143: honor provider-supplied retry hint when present,
-            # otherwise default to 60s.
-            _hint = _parse_retry_after(err)
-            p.mark_cooldown(float(_hint) + 5.0 if _hint else 60.0)
+            # Part 143 + 145: provider + error-type aware cooldown.
+            # Retry hint wins; RPD exhaustion waits until reset;
+            # RPM exhaustion waits ~1 minute; default 60s.
+            try:
+                _cd = _plc.compute_cooldown(p.name, err)
+            except Exception:
+                _cd = 60.0
+            p.mark_cooldown(float(_cd))
         else:
             p.mark_cooldown(10.0)
 

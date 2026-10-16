@@ -21,8 +21,11 @@ check("has _parse_retry_after", "def _parse_retry_after" in lt)
 check("detects 402", '"402" in e' in lt)
 check("detects FREE_LIMIT", '"free_limit" in e' in lt)
 check("detects 'retry after'", '"retry after" in e' in lt)
+# Part 145 replaced the inline retry-hint call with compute_cooldown(),
+# which itself calls _parse_retry_after(). Accept either marker.
 check("cooldown honors retry hint",
-      "Part 143: honor provider-supplied retry hint" in lt)
+      ("Part 143: honor provider-supplied retry hint" in lt)
+      or ("Part 143 + 145: provider + error-type aware cooldown" in lt))
 
 sys.path.insert(0, str(SRC.parent))
 from sunnyware import llm as L
