@@ -148,10 +148,25 @@ function pre(obj){
 
 function renderHealth(d){
   var c = el("div");
-  var ok = d && (d.status === "ok" || d.status === "ready" ||
-                 d.ok === true || d.ready === true);
+  // Accept raw shape, wrapped shape {status_code, body: "json string"},
+  // or plain {status:"ok", checks:{...}}.
+  var inner = d;
+  if (d && typeof d.body === "string"){
+    try { inner = JSON.parse(d.body); } catch (_) { inner = d; }
+  }
+  var ok = false;
+  if (inner && typeof inner === "object"){
+    ok = inner.status === "ok" || inner.status === "ready"
+       || inner.ok === true || inner.ready === true;
+    if (!ok && inner.checks && typeof inner.checks === "object"){
+      ok = Object.keys(inner.checks).every(function(k){
+        var v = inner.checks[k];
+        return v === true || v === "ok" || v === null;
+      });
+    }
+  }
   c.appendChild(badge(ok ? "ok" : "err", ok ? "READY" : "DOWN"));
-  if (d) c.appendChild(kv(d));
+  if (inner) c.appendChild(kv(inner));
   return c;
 }
 function renderBudget(d){
@@ -348,22 +363,35 @@ function renderProviders(d){
   }
   var tbl = el("table");
   var head = el("tr");
-  ["provider", "status"].forEach(function(x){
+  ["provider", "status", "model"].forEach(function(x){
     head.appendChild(el("th", null, x));
   });
   tbl.appendChild(head);
   arr.forEach(function(p){
     var tr = el("tr");
     tr.appendChild(el("td", null, p.name || p.provider || "?"));
-    var s = String(p.status || p.state ||
-                   (p.healthy ? "healthy" : "unknown"));
-    var cls = /ok|healthy|ready|up/i.test(s) ? "ok"
+    var s = p.status || p.state;
+    if (!s){
+      if (p.cooling) s = "cooling";
+      else if (p.last_error) s = "error";
+      else s = "ready";
+    }
+    s = String(s);
+    var cls = /ready|ok|healthy|up/i.test(s) ? "ok"
+      : /cooling/i.test(s) ? "warn"
       : /down|error|fail/i.test(s) ? "err" : "dim";
     var td = el("td");
     td.appendChild(badge(cls, s.toUpperCase()));
     tr.appendChild(td);
+    tr.appendChild(el("td", "muted",
+      String(p.model || "").slice(0, 32)));
     tbl.appendChild(tr);
   });
+  var readyN = arr.filter(function(p){
+    return !p.cooling && !p.last_error;
+  }).length;
+  c.appendChild(el("div", "muted",
+    readyN + " / " + arr.length + " ready"));
   c.appendChild(tbl);
   return c;
 }
