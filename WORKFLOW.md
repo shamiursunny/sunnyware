@@ -1010,3 +1010,12 @@ hint added to reduce duplicate calculator calls.
 
 Closes two subtle misses from the Part 148 live test:
 no tool evidence + missed multi-layer analysis.
+
+## 2026-10-16 (session 3) - Part 150
+
+| Part | Commit  | Feature |
+|------|---------|---------|
+| 150  | (this)  | Forced JSON retry when auditor extraction fails |
+
+Small models (LFM 2.6B) sometimes return prose without valid
+JSON. One forced retry recovers the verdict.

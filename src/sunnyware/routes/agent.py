@@ -112,6 +112,63 @@ def _guard_check(text: str):
     return None
 
 
+async def _auditor_verdict_with_retry(role, content):
+    """Part 150: for the auditor role, if the initial extraction fails,
+    do ONE forced-JSON retry with a strict instruction.
+
+    Small models (e.g. Liquid LFM 2.6B) sometimes ignore the JSON
+    output contract and respond in prose. If the initial parse fails,
+    we send the model's own response back asking for the JSON verdict
+    only. The retry's response is used if the extraction succeeds.
+
+    Never raises. Returns the parsed dict or None.
+    """
+    try:
+        if (role or "").strip().lower() != "auditor":
+            return None
+        from .. import roles as _roles
+        parsed = _roles.extract_auditor_json(content or "")
+        if isinstance(parsed, dict):
+            return parsed
+
+        try:
+            from .. import orchestrator as _orc
+            _required_labels = (
+                '"Miscalculated percentage", "Incorrect operator", '
+                '"Logic gap", "Incomplete explanation", '
+                '"Constraint violation", or the exact no-defect phrase '
+                '"No demonstrated defect; no canonical error label applies."'
+            )
+            retry_prompt = (
+                "Your previous response was:\n\n"
+                + (content or "")[:1500]
+                + "\n\n---\n"
+                "Now return ONLY the JSON verdict object. "
+                "No prose before or after. No markdown fences. "
+                "No explanation. Start with { and end with }. "
+                "Required keys: verdict, canonical_label, severity, "
+                "defect_confidence, coverage_confidence. "
+                "The canonical_label MUST be exactly one of: "
+                + _required_labels
+            )
+            retry_result = await _orc.run_agent(
+                retry_prompt,
+                session_uuid=None,
+                model=None,
+                system=None,
+            )
+            retry_text = (retry_result or {}).get("answer", "") or ""
+            parsed2 = _roles.extract_auditor_json(retry_text)
+            if isinstance(parsed2, dict):
+                return parsed2
+        except Exception:
+            pass
+
+        return None
+    except Exception:
+        return None
+
+
 router = APIRouter()
 
 
@@ -208,7 +265,7 @@ async def run_agent(req: Request):
                     "steps_count": len(agent_result.get("steps", [])),
                     "iterations": agent_result.get("iterations", 0),
                     "model": (agent_result.get("resolved_model") or model or (state["config"].llm_model if state["config"] else "unknown")),
-                    "auditor_verdict": _auditor_verdict_or_none(role, agent_result.get("answer", "")),
+                    "auditor_verdict": await _auditor_verdict_with_retry(role, agent_result.get("answer", "")),
                     "attachments": agent_result.get("attachments") or [],
                 },
             )
@@ -234,7 +291,7 @@ async def run_agent(req: Request):
         "result": {
             "content": agent_result.get("answer", ""),
             "model": (agent_result.get("resolved_model") or (state["config"].llm_model if state["config"] else "unknown")),
-            "auditor_verdict": _auditor_verdict_or_none(role, agent_result.get("answer", "")),
+            "auditor_verdict": await _auditor_verdict_with_retry(role, agent_result.get("answer", "")),
             "steps": agent_result.get("steps", []),
             "iterations": agent_result.get("iterations", 1),
             "provider": agent_result.get("provider"),

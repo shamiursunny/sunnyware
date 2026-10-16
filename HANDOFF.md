@@ -1334,3 +1334,25 @@ usage CSV).
   146 (18/18), 145 (37/37), 144 (14/14), 142a (26/26),
   143 (24/24), 137 (57/57), 112 (28/28).
 - Smoke 146, 147, 148 caps bumped 3500 -> 4500 to match new prompt size.
+
+### Part 150 - Forced JSON retry on extraction failure
+- Follow-up to the Part 149 live test. On LFM 2.6B (via openrouter):
+    tools_used: ['auditor_full_spec', 'calculator', 'calculator']  <- both rules fired
+    but auditor_verdict: None  <- JSON extraction failed
+- LFM wrote prose that none of the 5 extraction paths (pure JSON,
+  fenced, bare-fenced, prose+obj, regex field) could recover.
+- Fix: _auditor_verdict_with_retry() in routes/agent.py.
+    1. Try the normal extract_auditor_json() first (fast path).
+    2. If it fails, send the model its own response back with a
+       strict "return ONLY the JSON verdict object, no prose, no
+       fences, start with { end with }" instruction.
+    3. Use the retry's response if extraction succeeds.
+- Both return blocks in /api/agent/run now call the async retry
+  helper (`await _auditor_verdict_with_retry(...)`).
+- The sync _auditor_verdict_or_none() helper is retained for
+  reference/back-compat, but is no longer called.
+- Retry is a single round-trip, only when the initial parse fails.
+  Well-behaved models (Groq gpt-oss-120b, pollinations) never hit it.
+- Smoke: 150 (9/9). Regressions: 149 (19/19), 148 (27/27),
+  147 (16/16), 146 (18/18), 145 (37/37), 144 (14/14),
+  142a (26/26), 143 (24/24), 137 (57/57), 112 (28/28).
