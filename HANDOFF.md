@@ -1075,3 +1075,106 @@ for a future session).
 - Both live-verified on HF
 - HEAD: 73d0a87
 - NEXT: Part 134 (per-tenant rate limiting); RBAC; injection guard
+
+## 2026-10-16 - Parts 134-141 (production safety + observability)
+
+One long session. 21 commits. Five production features shipped and
+live-verified. Eight real bugs found + fixed. Six of those bugs were
+found by the observability built during the same session.
+
+### Part 134 - Per-tenant rate limiting (5 commits)
+- 134    : sliding-window limiter (auth.py), middleware hook
+- 134b   : _eff_key propagation into tenant contextvar
+- 134c   : detached rate gate from auth gate (was nested inside
+           `if auth_enabled():` so it never ran when auth off)
+- 134d   : admin endpoints (/api/rate_limit/*) bypass the bucket
+- hotfix : missing `Request` import in routes/meta.py (Space crash)
+- Config : SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 on HF
+- Endpoints: /api/rate_limit/{status,tenants,reset,evict}
+- Live-verified: 60/min per IP; admin endpoints stay at used=0
+
+### Part 135 - RBAC layer
+- 3-role hierarchy: admin(3) > analyst(2) > readonly(1)
+- SUNNYWARE_API_ROLES="key1:admin,key2:analyst,..."
+- SUNNYWARE_DEFAULT_ROLE=admin (unmapped keys)
+- Permissive when auth is off (no behavior change until keys added)
+- Endpoints: GET /api/auth/whoami
+- Admin guards on: /api/rate_limit/{reset,evict,tenants}
+
+### Part 136 - Prompt injection guard (3 commits)
+- 136a : guardrails.py - 18 regex patterns across 6 categories
+         (instruction_override, system_prompt_leak,
+          role_play_jailbreak, delimiter_injection,
+          exfiltration, encoded_override)
+- 136b : wired into all 4 /api/agent/* routes as _guard_check()
+- 136c : routed guardrail_hit events through the structured logger
+- Modes: off / warn / block (SUNNYWARE_INJECTION_GUARD)
+- HF setting: SUNNYWARE_INJECTION_GUARD=block
+- Endpoints: /api/guardrails/{status,scan,self_test}
+- Live-verified: high-severity attack -> HTTP 400; clean -> 200
+
+### Part 137 - Continuous evals (5 commits)
+- 137a  : evals.py framework (cases, assertions, storage, trends)
+- 137b  : 4 endpoints (status/latest/trends/run)
+- 137a-f: dry_run_call_fn simulates safe refusals
+- 137c  : scheduler job (jobs/evals.py) - opt-in via env var
+- 137d  : guard runs inside default_call_fn (fixed a SECURITY gap
+           where the scheduler bypassed the HTTP injection guard)
+- Built-in corpus: 5 cases (echo, math, one_word, leak, injection)
+- HF setting: SUNNYWARE_EVAL_INTERVAL_HOURS=6
+- Live-verified: first scheduler run found 3 real bugs (see below)
+
+### Part 138 - Cost attribution (3 commits)
+- 138   : admin surface (/api/usage/{all,tenant,trends,reset,export.csv})
+          + Gemini pricing + tenant fallback to rate_limit_key
+- 138b  : added gemini-2.5-flash / 2.5-pro / 2.5-flash-lite pricing
+          (was falling back to a cheap default)
+- 138c  : /api/providers/limits/reset now reloads the provider cache
+
+### Part 139 - resolved_model propagation
+- Bug: /api/agent/run returned {provider: gemini, model:
+  openai/gpt-oss-20b} -- model came from legacy LLM_MODEL env var,
+  not from the router's response.
+- Fix: orchestrator tracks _last_model from r["resolved_model"] and
+  includes it in every return block; route prefers it over
+  state["config"].llm_model.
+- Live-verified: provider=openrouter, model=liquid/lfm-2.5-2.6b:free
+
+### Part 140 - Sunnyware identity in prompts
+- Bug: Gemini answered "I'm LFM by Liquid AI" to "which model are you".
+  Hallucinated pretrained persona.
+- Fix: _IDENTITY_CLAUSE in prompts.py, prepended to both
+  compact_prompt() and native_prompt(). Forbids claiming to be
+  Gemini/GPT/Claude/Llama/LFM/Liquid AI.
+- Live-verified: 3 identity questions -> "Sunnyware" each time.
+
+### Bugs found + fixed this session
+1.  Missing `Request` import -> HF Space down for ~4 min (hotfix)
+2.  Rate limiter nested inside auth gate -> never ran when auth off
+3.  Status endpoint showed wrong tenant (empty string bucket)
+4.  SECURITY: injection guard bypassed on scheduler calls
+5.  groq learned limit = 500 (stale 413) -> silently skipped every
+    request that exceeded 500 tokens
+6.  Provider cache not reloaded after limits reset
+7.  result.model leaked legacy LLM_MODEL env value
+8.  Gemini hallucinated identity as LFM
+
+Bugs 2, 4, 5, 7, 8 were surfaced by the observability built this
+same session (rate_limit/status, evals scheduler, /api/providers/*,
+usage CSV).
+
+### Config - all HF secrets now set
+- SUNNYWARE_RATE_LIMIT_PER_MINUTE=60
+- SUNNYWARE_INJECTION_GUARD=block
+- SUNNYWARE_EVAL_INTERVAL_HOURS=6
+- (plus all existing provider keys)
+
+### Pre-push gate grew from 6 to 6 (unchanged) but now covers
+12 smoke test files: 112, 114, 131, 132, 133, 134, 135, 136, 137,
+137b, 137c, 138, 139, 140.
+
+### NEXT
+- NVIDIA NIM (still blocked on account activation)
+- Optional: Part 141 recon-path hardening (.env probes seen in logs)
+- Optional: WebUI provider chip should read result.resolved_model
+  instead of the mirrored dropdown value (cosmetic)

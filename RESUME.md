@@ -36,7 +36,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-16, Part 133)
+## Current state (last session: 2026-10-16, Part 140)
 
 - Commit:  run `git log -1 --oneline` for current hash
 
@@ -57,6 +57,33 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - Neon DB:    PostgreSQL, sessions + events + metrics + usage
 
 - WebUI header badge: `via <provider>` shows last-serving provider
+  (Part 139: response now also carries result.resolved_model so the
+   model name always matches the provider that actually served)
+
+## Production safety layers (Parts 134-140)
+
+- Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP
+  or session fallback). Admin endpoints at /api/rate_limit/* are
+  exempt. Endpoints: /api/rate_limit/{status,tenants,reset,evict}.
+
+- RBAC: admin > analyst > readonly. Set SUNNYWARE_API_ROLES=
+  'key1:admin,key2:analyst'. Permissive when auth is off. Endpoint:
+  /api/auth/whoami.
+
+- Injection guard: SUNNYWARE_INJECTION_GUARD=block. 18 regex patterns
+  across 6 categories. Blocks high-severity attacks with HTTP 400.
+  Endpoints: /api/guardrails/{status,scan,self_test}.
+
+- Continuous evals: SUNNYWARE_EVAL_INTERVAL_HOURS=6. 5-case corpus
+  (echo, math, one_word, leak, injection) runs on the scheduler.
+  Endpoints: /api/evals/{status,latest,trends,run}.
+
+- Cost attribution: per-tenant LLM usage + cost tracked to Neon
+  (llm_usage table). Endpoints: /api/usage, /api/usage/all,
+  /api/usage/trends, /api/usage/export.csv.
+
+- Identity: prompts.py enforces 'You are Sunnyware' so the underlying
+  LLM never claims to be Gemini/GPT/Claude/Llama/LFM.
 
 
 

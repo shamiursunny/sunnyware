@@ -29,6 +29,10 @@ and session history. It is a personal production agent.
       memory.py               Append-only event log via Neon
       sessions.py             Session lifecycle
       tenant.py               Per-request tenant context (ContextVar)
+  auth.py                 API keys + rate limiting + RBAC roles
+  guardrails.py           Prompt-injection scanner (regex)
+  evals.py                Continuous evals framework
+  usage.py                Per-tenant LLM cost attribution
       state.py                asyncpg pool
       prompts.py              System prompts
       paths.py                Persistent storage resolver (/data on HF)
@@ -155,10 +159,13 @@ Both remotes must end at the same commit hash.
 
 ## Current priorities
 
-1. Real PDF end-to-end test (validate pypdf on actual documents)
-2. WebUI file-upload button (UX improvement)
-3. Repository cleanup (archive stale .bak.partN files)
-4. README refresh for public-facing docs
+1. NVIDIA NIM provider (blocked on account activation)
+2. Optional: recon-path hardening — .env / .streamlit probes seen in
+   HF logs 2026-10-15 (all 404, no leak; add explicit 403 + alarm)
+3. Optional: WebUI provider chip reads dropdown value, not response's
+   result.resolved_model (cosmetic; response field is now correct)
+4. Real PDF end-to-end test (validate pypdf on actual documents)
+5. Repository cleanup (archive stale .bak.partN files)
 
 See HANDOFF.md for the full queue.
 
@@ -191,4 +198,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-10 (Part 31F wrap)
+**Last update:** 2026-10-16 (Part 140 wrap)

@@ -900,3 +900,45 @@ Tools: 71 → 78. Zero regressions across all 10 parts.
   * Endpoints: /api/prompts, /api/prompts/status, POST /api/prompts/reload
   * Smoke: smoke_test_part133.py (43 checks)
 - VERIFIED live: 80 tools, 9 roles, 4/4 providers, external prompts loaded
+
+## 2026-10-16 (session 2) — Parts 134-141
+
+Session: production safety + observability. 21 commits, 8 bug fixes.
+
+| Part | Commit  | Feature |
+|------|---------|---------|
+| 134  | 8924e3f | Per-tenant rate limiting (60/min) |
+| 134h | 7b0f123 | Hotfix: import Request in routes/meta.py |
+| 134b | 13b3676 | Tenant key propagation to contextvar |
+| 134c | 494f3aa | Detach rate limiter from auth gate |
+| 134d | 1061012 | Exempt admin endpoints from bucket |
+| 135  | 849391b | RBAC: admin/analyst/readonly |
+| 136a | 25e60e2 | Injection guard scanner (18 patterns) |
+| 136b | 2ffb67f | Guard wired into 4 agent routes |
+| 136c | 22b269a | Guard hits routed through structured logger |
+| 137a | 430e9f1 | Evals framework core (cases + storage + trends) |
+| 137b | cfeec40 | Evals endpoints (status/latest/trends/run) |
+| 137f | 5b532fc | dry_run_call_fn simulates safe refusals |
+| 137c | afb4296 | Scheduled eval job (SUNNYWARE_EVAL_INTERVAL_HOURS) |
+| 137d | f55deb0 | Guard runs inside default_call_fn (security fix) |
+| 138  | f90683c | Cost attribution admin surface |
+| 138b | 0e79940 | Gemini 2.5 pricing |
+| 138c | 58850c1 | Provider cache reload after limits reset |
+| 139  | bfc414d | resolved_model propagation from router to route |
+| 140  | 956a233 | Sunnyware identity clause in system prompts |
+| 141  | (this)  | Docs sync (HANDOFF + RESUME + AGENTS + WORKFLOW) |
+
+Config changed on HF (secrets):
+- SUNNYWARE_RATE_LIMIT_PER_MINUTE = 60
+- SUNNYWARE_INJECTION_GUARD = block
+- SUNNYWARE_EVAL_INTERVAL_HOURS = 6
+
+Bugs found + fixed (5 surfaced by observability built same session):
+1. Missing Request import (Space crash)
+2. Rate limiter trapped inside auth gate
+3. Rate limit status wrong tenant
+4. SECURITY: injection guard bypassed on scheduler calls
+5. groq learned limit = 500 (skipping every prompt >500 tokens)
+6. Provider cache stale after limits reset
+7. result.model leaked legacy LLM_MODEL env
+8. Gemini hallucinated "I'm LFM"
