@@ -1066,3 +1066,12 @@ Completes the CFO->CDO->worker fix: cooldowns now persist
 CDO gets explicit worker list + report format. Specialists
 get mandatory [source: ...] tags. Enables mechanical CDO
 cross-check verification.
+
+## 2026-10-16 (session 3) - Part 156
+
+| Part | Commit  | Feature |
+|------|---------|---------|
+| 156  | (this)  | CFO hard-stop rule + MAX_ITERATIONS 10 + tool name sanitize |
+
+Closes the CFO -> CDO -> worker delegation loop observed in
+Part 155's live test.

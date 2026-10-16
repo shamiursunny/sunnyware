@@ -1520,3 +1520,35 @@ usage CSV).
   All still under Groq's 7500-token cap.
 - Smoke: 155 (35/35). Regressions: 154 (8/8), 153 (8/8),
   152 (9/9), 151 (31/31), 145 (37/37), 137 (57/57), 112 (28/28).
+
+### Part 156 - CFO stop rule + MAX_ITERATIONS + tool name sanitize
+- Follow-up to Part 155. Live CFO test on HF produced:
+    error: None
+    tools_used: ['delegate_to_agent',
+                 'delegate_to_agent<|channel|>commentary',
+                 'delegate_to_agent<|channel|>commentary']
+    content: "Maximum reasoning iterations reached without a final
+              answer."
+  So the pipeline ran end-to-end but the CFO looped on delegation
+  and hit the iteration cap.
+- Three fixes:
+    156a. orchestrator.MAX_ITERATIONS raised from 3 to 10. A
+          CFO -> CDO -> worker chain needs at least 3 iterations
+          (delegate, sub-delegate, worker answer); any retry blew
+          past 3. Wall-clock timeout remains the real guard.
+    156b. orchestrator._sanitize_tool_name() strips special-token
+          suffixes such as `<|channel|>commentary` and trailing
+          `|>`/backticks. Called as the first line of
+          _resolve_tool_name() so mangled names now resolve
+          correctly instead of being accepted as unknown tools.
+    156c. CFO prompt rewrite (role_truthfulness.py): new HARD STOP
+          RULE -- after the FIRST successful delegate_to_agent call,
+          the CFO MUST return a final answer on the next iteration.
+          "Never make a second delegate_to_agent call. If the CDO
+          reply looks incomplete, echo it verbatim as your answer."
+- Expected result: CDO gets ONE brief from CFO, decomposes into
+  workers, cross-checks, returns a structured reply. CFO forwards
+  it as the final deliverable. No looping.
+- Smoke: 156 (18/18). Regressions: 155 (35/35), 154 (8/8),
+  153 (8/8), 152 (9/9), 151 (31/31), 145 (37/37), 137 (57/57),
+  112 (28/28).

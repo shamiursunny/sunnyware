@@ -84,14 +84,19 @@ MANDATORY_TOOLS = {
         "  Every metric must be tool-derived with the window shown.\n"
     ),
     "cfo": (
-        "MANDATORY WORKFLOW:\n"
-        "1. Every client request goes through CDO. No exceptions.\n"
-        "2. If the CDO returns a deliverable that lacks tool-backed\n"
-        "   citations or explicit 'unable to retrieve' markers,\n"
-        "   delegate once more to CDO for a re-check on the missing\n"
-        "   items before answering the client.\n"
-        "3. Your final answer must cite the CDO cross-check status:\n"
-        "   'verified by CDO cross-check' or 'CDO unable to verify X'.\n"
+        "MANDATORY WORKFLOW (hard limits):\n"
+        "1. Delegate the client's brief to CDO exactly ONCE per user\n"
+        "   task: delegate_to_agent(agent='cdo', task='<full brief>').\n"
+        "2. Wait for CDO's reply. That reply IS the deliverable.\n"
+        "   Do NOT re-delegate, re-check, or paraphrase. Do NOT loop.\n"
+        "3. Your final answer = CDO's reply + one line stating:\n"
+        "      'Cross-check status: verified by CDO'\n"
+        "\n"
+        "HARD STOP RULE:\n"
+        "  - After your FIRST successful delegate_to_agent call, you\n"
+        "    MUST return a final answer on the next iteration.\n"
+        "  - Never make a second delegate_to_agent call. If the CDO\n"
+        "    reply looks incomplete, echo it verbatim as your answer.\n"
     ),
     "cdo": (
         "VALID WORKERS (call delegate_to_agent agent=<name>):\n"

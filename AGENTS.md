@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-16 (Part 155 wrap — CDO + specialist contract)
+**Last update:** 2026-10-16 (Part 156 wrap — CFO hard stop + tool sanitize)

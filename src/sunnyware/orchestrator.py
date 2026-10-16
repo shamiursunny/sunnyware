@@ -12,7 +12,11 @@ from . import prompts
 from . import tools as tools_registry
 
 
-MAX_ITERATIONS = 3  # Part 88: lowered 7 -> 3 (was burning 6 LLM calls per message)
+# Part 156a: raised from 3. A CFO -> CDO -> worker chain needs at
+# least 3 iterations (delegate, sub-delegate, worker answer) before
+# returning; any retry blows past 3. Wall-clock timeout remains the
+# real guard (SUNNYWARE_AGENT_TIMEOUT; 600s for cfo/cdo roles).
+MAX_ITERATIONS = 10  # Part 88: lowered 7 -> 3 (was burning 6 LLM calls per message)
 
 # Part 90: per-request token budget guard
 MAX_REQUEST_TOKENS = 15000
@@ -165,8 +169,30 @@ _TOOL_ALIASES = {
 }
 
 
+
+
+def _sanitize_tool_name(name: str) -> str:
+    """Part 156b: strip special-token suffixes that some models emit
+    (e.g. `delegate_to_agent<|channel|>commentary`, `tool<|end|>`).
+    Returns a clean name that can be looked up in the registry.
+    """
+    if not name or not isinstance(name, str):
+        return ""
+    cleaned = name.strip()
+    # Strip everything starting at a special-token marker
+    for marker in ("<|", "|>", "\x00"):
+        idx = cleaned.find(marker)
+        if idx >= 0:
+            cleaned = cleaned[:idx]
+    # Drop trailing punctuation / whitespace
+    cleaned = cleaned.strip().strip("`'\"")
+    return cleaned
+
+
 def _resolve_tool_name(name: str) -> str:
     """Map common short/abbreviated tool names to canonical ones."""
+    # Part 156b: strip special-token suffixes before any lookup
+    name = _sanitize_tool_name(name)
     if not name:
         return name
     # Exact match wins

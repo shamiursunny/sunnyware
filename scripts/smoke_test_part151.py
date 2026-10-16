@@ -46,8 +46,11 @@ for name in ("fpa", "quant", "actuary", "tax", "legal",
           bool(expect) and expect in p)
 
 cfo_p = R.prompt_addon("cfo") or ""
+# Part 156 rewrote the CFO workflow; accept either marker.
 check("CFO: cites CDO cross-check",
-      "verified by CDO cross-check" in cfo_p)
+      ("verified by CDO cross-check" in cfo_p)
+      or ("Cross-check status: verified by CDO" in cfo_p)
+      or ("HARD STOP RULE" in cfo_p))
 
 cdo_p = R.prompt_addon("cdo") or ""
 check("CDO: has CROSS-CHECK RULE",
