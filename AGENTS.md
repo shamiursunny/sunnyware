@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-16 (Part 150 wrap — forced JSON retry)
+**Last update:** 2026-10-16 (Part 151 wrap — universal truthfulness)

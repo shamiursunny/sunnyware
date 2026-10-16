@@ -1019,3 +1019,12 @@ no tool evidence + missed multi-layer analysis.
 
 Small models (LFM 2.6B) sometimes return prose without valid
 JSON. One forced retry recovers the verdict.
+
+## 2026-10-16 (session 3) - Part 151
+
+| Part | Commit  | Feature |
+|------|---------|---------|
+| 151  | (this)  | Universal truthfulness + per-role mandatory tools |
+
+Every role gets a truthfulness clause. Specialists get mandatory
+tool lists. CFO -> CDO cross-check requirement enforced in prompts.

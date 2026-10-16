@@ -15,6 +15,7 @@ Each role has:
 """
 
 from . import tools as tools_registry
+from . import role_truthfulness as _rt
 
 
 # Part 142a: compressed forensic-auditor prompt (~430 tokens).
@@ -614,10 +615,22 @@ def style(role_name):
     return _STYLE.get(key, _STYLE[DEFAULT_ROLE])
 
 
-def prompt_addon(role_name):
+def _prompt_addon_base(role_name):
     """Return the role's prompt addon (may be empty string)."""
     return get_role(role_name).get("prompt_addon", "")
 
+
+
+
+def prompt_addon(role_name):
+    """Part 151: prepends truthfulness + per-role mandatory-tools
+    clause to every role's base prompt addon."""
+    base = _prompt_addon_base(role_name) or ""
+    try:
+        extra = _rt.clause_for(role_name)
+    except Exception:
+        extra = ""
+    return (base + extra).strip() or base
 
 # ── Part 114: delegation matrix + helpers ─────────────────
 # Which role may delegate to which roles. Absent = no delegation.

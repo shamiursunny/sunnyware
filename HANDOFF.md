@@ -1356,3 +1356,47 @@ usage CSV).
 - Smoke: 150 (9/9). Regressions: 149 (19/19), 148 (27/27),
   147 (16/16), 146 (18/18), 145 (37/37), 144 (14/14),
   142a (26/26), 143 (24/24), 137 (57/57), 112 (28/28).
+
+### Part 151 - Universal truthfulness + orchestration hardening
+- New module: src/sunnyware/role_truthfulness.py
+    - TRUTHFULNESS_CLAUSE: 5-rule universal prefix. Applied to every
+      role's prompt automatically.
+        - Never state live facts without a tool call
+        - 'I could not retrieve X' when a tool fails
+        - Every numeric claim cites tool + timestamp
+        - Prefer 'no data' over 'approximately'/'probably'
+        - Name the specific tool/source needed when unverifiable
+    - MANDATORY_TOOLS dict: per-role tool-first guidance
+        - fpa -> edgar_*, fmp_*, fred_*, eulerpool_bonds_*
+        - quant -> tiingo_*, twelvedata_*, eulerpool_options_*,
+          eulerpool_alt_*, finnhub_*, fred_*
+        - actuary -> insurance_*, edgar_*, fred_*
+        - tax -> web_search (yearly rules), edgar_*
+        - legal -> legal_citation_check, web_search, clause_extractor
+        - risk_ins -> risk_metrics, insurance_*, fred_*
+        - cfo -> orchestration rules + CDO cross-check requirement
+        - cdo -> CROSS-CHECK RULE (2+ independent specialists for
+          financial/legal/tax/insurance/regulatory claims)
+    - clause_for(role): returns combined clause. Unknown roles get
+      only the base TRUTHFULNESS_CLAUSE.
+- roles.py: prompt_addon() now wraps _prompt_addon_base() and
+  prepends clause_for(role). Existing role prompts unchanged except
+  for the appended clauses.
+- Effective per-role prompt sizes after Part 151:
+    general   704c   (was 0)
+    fpa      1461c   (was  416)
+    quant    1505c   (was  424)
+    actuary  1809c   (was  709)
+    tax      1423c   (was  416)
+    cfo      2923c   (was 1808)
+    cdo      2871c   (was 1371)
+    legal    2005c   (was  938)
+    risk_ins 1956c   (was  958)
+    auditor  4358c   (was 3654 - only gained base truthfulness)
+- CFO workflow: must cite "verified by CDO cross-check" or
+  "CDO unable to verify X" in the final answer.
+- CDO workflow: must cross-check financial/legal/tax/insurance/
+  regulatory claims against at least TWO independent specialists.
+- Smoke: 151 (31/31). Regressions: 150 (9/9), 149 (19/19),
+  148 (27/27), 147 (16/16), 146 (18/18), 145 (37/37), 144 (14/14),
+  142a (26/26), 143 (24/24), 137 (57/57), 112 (28/28).
