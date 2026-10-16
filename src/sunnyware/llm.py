@@ -531,9 +531,20 @@ async def chat(
             flush=True,
         )
 
-        if _min_cool <= 20.0 and not _ready:
-            # Wait a short bit; cap at 8s so we never stall the request
-            _wait = min(_min_cool + 0.5, 8.0)
+        # Part 154: raised from 20s to 40s (env-configurable) so that
+        # pollinations' 35s IP-floor cooldown is within range. The wait
+        # cap is also raised to match, otherwise we'd sleep only 8s and
+        # still be cooling when we recurse.
+        try:
+            _retry_wait_max = float(
+                os.getenv("SUNNYWARE_RETRY_WAIT_MAX_S", "40")
+            )
+        except Exception:
+            _retry_wait_max = 40.0
+        if _min_cool <= _retry_wait_max and not _ready:
+            # Wait the full cooldown (+1s safety) so the recursion has a
+            # chance to succeed instead of hitting the same wall.
+            _wait = min(_min_cool + 1.0, _retry_wait_max + 5.0)
             try:
                 from . import metrics as _m
                 _m.incr_labeled("llm_request_retried", "once")

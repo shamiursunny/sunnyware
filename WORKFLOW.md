@@ -1047,3 +1047,12 @@ Provider; router strips tools for unsupported providers.
 
 Fixes the 'all providers failed' cascade in the CFO->CDO->worker
 pipeline. Reload discarding cooldowns was the culprit.
+
+## 2026-10-16 (session 3) - Part 154
+
+| Part | Commit  | Feature |
+|------|---------|---------|
+| 154  | (this)  | Retry-wait threshold 20->40s, cap 8->45s |
+
+Completes the CFO->CDO->worker fix: cooldowns now persist
+(153) AND the router waits long enough for them (154).

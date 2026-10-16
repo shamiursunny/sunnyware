@@ -1453,3 +1453,25 @@ usage CSV).
   to sleep for 35s, letting groq / gemini / openrouter serve instead.
 - Smoke: 153 (8/8). Regressions: 152 (9/9), 151 (31/31),
   145 (37/37), 137 (57/57), 112 (28/28).
+
+### Part 154 - Retry-wait threshold + cap raised
+- Follow-up to Part 153. HF logs showed:
+    [llm.chat] all providers failed (last: '402 FREE_LIMIT');
+               cooling=4 ready=0 min_cool=29.0s retry_depth=0
+  So cooldowns WERE persisted (Part 153 works), but the router still
+  gave up because of two limits in llm.py:
+    1. `if _min_cool <= 20.0` — pollinations' 35s IP floor exceeds this,
+       so the wait branch never fired.
+    2. `_wait = min(_min_cool + 0.5, 8.0)` — even when it did fire,
+       the sleep was hard-capped at 8s. With a 29s cooldown, the
+       recursion exited still cooling.
+- Fix:
+    - Threshold raised from 20s to 40s, configurable via
+      SUNNYWARE_RETRY_WAIT_MAX_S (default 40).
+    - Wait cap raised from 8s to _retry_wait_max + 5s (45s by default).
+    - `_wait = min(_min_cool + 1.0, _retry_wait_max + 5.0)`.
+- Effect: with pollinations at 35s and one other provider cooling, the
+  router now waits up to 45s and retries once. Only cascades that would
+  exceed SUNNYWARE_RETRY_WAIT_MAX_S fail out.
+- Smoke: 154 (8/8). Regressions: 153 (8/8), 152 (9/9), 151 (31/31),
+  145 (37/37), 137 (57/57), 112 (28/28).
