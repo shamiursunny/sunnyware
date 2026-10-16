@@ -67,6 +67,22 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   spec). Tools: calculator, python_eval, read_file, rag_search.
   Returns structured JSON verdict. User-only invocation.
 
+## Recent additions (Parts 157-159)
+
+- Golden dataset (Part 158): src/sunnyware/golden.py + static/
+  golden_dataset.json. 5 seeded cases, 5 match modes. Endpoints:
+  /api/golden/{status,latest,trends,run,promote,delete}. Frozen
+  baseline separate from evals; detects behavior drift.
+
+- Budget tracking (Part 159): usage.py extended with
+  budget_status / check_budget / fire_alerts / rollup / reset_alerts.
+  Endpoints: /api/usage/{budget,rollup,alerts/reset}.
+  Config: SUNNYWARE_BUDGET_USD_{DAILY,MONTHLY}, SUNNYWARE_BUDGET_ALERT_PCT
+  (all opt-in; default 0 = disabled).
+
+- Legacy smokes archived (Part 157b): 9 stale tests moved to
+  scripts/_archive/legacy/ with README. 93 active smokes all pass.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP

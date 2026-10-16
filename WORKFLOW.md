@@ -1110,3 +1110,45 @@ but does not abort on those.
 Idempotent: re-running on the same part number skips docs already
 present, skips commits with nothing to add. Never pushes broken code:
 smokes + gate run before any git action.
+
+## 2026-10-16 - Part 157
+
+| Part | Feature |
+|------|---------|
+| 157  | Reusable ship.py helper |
+
+One-shot ship tool. Usage:
+    python scripts/ship.py <N> "<desc>" --body "..." [--skip ...]
+
+Retired in 157b after proving too fiddly (Windows encoding,
+arg handling). Plain git commits preferred.
+
+## 2026-10-16 - Part 157b
+
+| Part | Feature |
+|------|---------|
+| 157b | Archive legacy smokes + UTF-8 hardening |
+
+9 stale smokes moved to scripts/_archive/legacy/ with README.
+smoke_test_part47.py live checks downgraded to WARN.
+93 active smokes pass strictly.
+
+## 2026-10-16 - Part 158
+
+| Part | Feature |
+|------|---------|
+| 158  | Golden dataset regression framework |
+| 158b | dry_run_call_fn simulates safe refusals |
+
+Separate from evals.py: golden detects behavior drift from a frozen
+baseline. 5 match modes. 5 seeded cases. Live-verified 5/5.
+
+## 2026-10-16 - Part 159
+
+| Part | Feature |
+|------|---------|
+| 159  | Cost rollups + budgets/alerts |
+
+usage.py: budget_status, check_budget, fire_alerts, rollup,
+reset_alerts. 3 new endpoints. Config via SUNNYWARE_BUDGET_* env vars
+(opt-in; default 0 = disabled).

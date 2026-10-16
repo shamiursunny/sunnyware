@@ -1597,3 +1597,49 @@ async def golden_delete(req: Request):
     except Exception as e:
         return JSONResponse({"error": f"{type(e).__name__}: {e}"},
                             status_code=500)
+
+
+@router.get("/api/usage/budget")
+async def usage_budget():
+    """Part 159: daily + monthly usage vs configured budget caps."""
+    try:
+        from .. import usage as _usage
+        return await _usage.budget_status()
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.get("/api/usage/rollup")
+async def usage_rollup(days: int = 30, bucket: str = "day"):
+    """Part 159: per-tenant bucketed time series (hour/day/week/month)."""
+    try:
+        from .. import usage as _usage
+        return await _usage.rollup(days=days, bucket=bucket)
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.post("/api/usage/alerts/reset")
+async def usage_alerts_reset(req: Request):
+    """Part 159: clear fired-alert state. Admin-guarded.
+
+    Body: {} = all, {"tenant": "..."} = one.
+    """
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        from .. import usage as _usage
+        try:
+            body = await req.json()
+        except Exception:
+            body = {}
+        tk = (body or {}).get("tenant") if isinstance(body, dict) else None
+        n = _usage.reset_alerts(tk)
+        return {"ok": True, "cleared": n,
+                "tenant": tk if tk else "*"}
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
