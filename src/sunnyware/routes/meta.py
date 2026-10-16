@@ -1840,11 +1840,11 @@ async def neon_health():
     import time as _t
     t0 = _t.time()
     try:
-        from .. import app_state
+        from .. import state as app_state
         pool = app_state.get_pool()
     except Exception as e:
         return {"status": "unknown",
-                "detail": f"app_state: {type(e).__name__}: {e}",
+                "detail": f"{type(e).__name__}: {e}"[:200],
                 "latency_ms": None}
     if pool is None:
         return {"status": "down",

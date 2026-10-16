@@ -546,25 +546,42 @@ var CARDS_BY_ID = {};
 function renderNeon(d){
   var c = el("div");
   if (!d || d.__error__){
-    c.appendChild(badge("err", "UNKNOWN"));
-    if (d && d.__error__) c.appendChild(el("div","err-msg", d.__error__));
+    c.appendChild(badge("dim", "UNKNOWN"));
+    var m = el("div", "muted");
+    m.textContent = "waiting for probe";
+    c.appendChild(m);
     return c;
   }
-  var up = d.status === "up";
-  c.appendChild(badge(up ? "ok" : (d.status === "unknown" ? "dim" : "err"),
-                      (d.status || "?").toUpperCase()));
+  var s = d.status || "unknown";
+  var cls = s === "up" ? "ok" : s === "down" ? "err" : "dim";
+  var txt = s === "up" ? "UP" : s === "down" ? "DOWN" : "UNKNOWN";
+  c.appendChild(badge(cls, txt));
+
   if (d.latency_ms != null){
-    var big = el("div","big");
+    var big = el("div", "big");
     big.textContent = d.latency_ms + " ms";
     big.style.color = d.latency_ms < 100 ? "var(--ok)"
                     : d.latency_ms < 400 ? "var(--warn)"
                     : "var(--err)";
     c.appendChild(big);
+    var cap = el("div", "muted");
+    cap.textContent = "SELECT 1 round trip";
+    c.appendChild(cap);
   }
+
   var info = {};
   if (d.region) info["Region"] = d.region;
-  if (d.detail) info["Detail"] = d.detail;
   if (Object.keys(info).length) c.appendChild(kv(info));
+
+  // Show detail as a compact single-line muted message, not a wall of text
+  if (d.detail){
+    var det = el("div", "muted");
+    det.style.marginTop = "8px";
+    det.style.fontSize = "12px";
+    det.style.wordBreak = "break-word";
+    det.textContent = String(d.detail).split("\n")[0].slice(0, 140);
+    c.appendChild(det);
+  }
   return c;
 }
 
