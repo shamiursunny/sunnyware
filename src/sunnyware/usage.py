@@ -11,6 +11,9 @@ from typing import Optional
 # Update as pricing changes. Values are estimates.
 COST_TABLE = {
     # Google Gemini (as of 2026)
+    "gemini-2.5-flash": (0.075, 0.30),
+    "gemini-2.5-pro": (1.25, 10.00),
+    "gemini-2.5-flash-lite": (0.075, 0.30),
     "gemini-2.0-flash": (0.10, 0.40),
     "gemini-2.0-flash-lite": (0.075, 0.30),
     "gemini-1.5-flash": (0.075, 0.30),
