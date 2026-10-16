@@ -98,7 +98,7 @@ var CARDS = [
   { id:"circuits",  title:"Tool circuits",  url:"/api/tools/circuits",          render:renderCircuits },
   { id:"recon",     title:"Recon guard",    url:"/api/recon/stats",             render:renderRecon },
   { id:"audit",     title:"Audit chain",    url:"/api/audit/verify",            render:renderAudit },
-  { id:"providers", title:"Providers",      url:"/api/providers",               render:renderProviders }
+  { id:"providers", title:"Providers",      url:"/api/providers/status",               render:renderProviders }
 ];
 
 function el(tag, cls, txt){
@@ -190,40 +190,72 @@ function renderBudgetRow(label, x){
 }
 function renderGolden(d){
   var c = el("div");
-  if (!d || !d.run){
+  // Accept three shapes: {run:{...}}, top-level run, or {runs:[...]}
+  var r = (d && d.run) || (d && d.runs && d.runs.length ? d.runs[0] : null)
+          || (d && (d.cases || d.run_id) ? d : null);
+  if (!r){
     c.appendChild(badge("dim", "NO RUNS"));
     return c;
   }
-  var r = d.run;
-  var ok = r.passed === r.total;
+  // Derive passed/total/score flexibly
+  var passed = r.passed;
+  var total = r.total;
+  var score = r.score;
+  if (r.summary){
+    if (passed == null) passed = r.summary.passed;
+    if (total == null) total = r.summary.total;
+    if (score == null) score = r.summary.score;
+  }
+  if (Array.isArray(r.cases)){
+    total = r.cases.length;
+    passed = r.cases.filter(function(x){
+      return x && (x.status === "pass" || x.passed === true);
+    }).length;
+    if (score == null) score = total ? passed / total : 0;
+  }
+  var ok = (passed != null && total != null && passed === total);
   var big = el("div", "big");
-  big.textContent = r.passed + " / " + r.total;
-  big.style.color = ok ? "var(--ok)" : "var(--warn)";
+  big.textContent = (passed != null ? passed : "?") + " / "
+                  + (total != null ? total : "?");
+  big.style.color = ok ? "var(--ok)"
+                    : (passed != null ? "var(--warn)" : "var(--dim)");
   c.appendChild(big);
   c.appendChild(el("div", "muted",
-    "score " + (r.score != null ? Number(r.score).toFixed(3) : "-")
-    + "  -  " + fmtRelative(r.ts)));
+    "score " + (score != null ? Number(score).toFixed(3) : "-")
+    + "  -  " + fmtRelative(r.started_at || r.ts)));
   return c;
 }
 function renderEvals(d){
   var c = el("div");
   var runs = (d && (d.runs || d.recent)) || [];
   if (!runs.length){ c.appendChild(badge("dim", "NO RUNS")); return c; }
-  c.appendChild(el("div", "muted", "last 5 runs"));
+  c.appendChild(el("div", "muted", "last " + Math.min(runs.length, 5)
+    + " runs"));
   var tbl = el("table");
   var head = el("tr");
   ["when", "score", "passed"].forEach(function(x){
     head.appendChild(el("th", null, x));
   });
   tbl.appendChild(head);
-  runs.slice(0, 5).forEach(function(r){
+  runs.slice(-5).reverse().forEach(function(r){
+    var s = r.summary || {};
+    var when = r.started_at || r.ts;
+    var score = (s.score != null) ? s.score
+                : (r.score != null) ? r.score : null;
+    var passed = (s.passed != null) ? s.passed
+                 : (r.passed != null) ? r.passed : null;
+    var total = (s.total != null) ? s.total
+                : (r.total != null) ? r.total : null;
     var tr = el("tr");
-    tr.appendChild(el("td", null, fmtRelative(r.ts)));
+    tr.appendChild(el("td", null, fmtRelative(when)));
+    var tds = el("td");
+    tds.textContent = (score != null) ? Number(score).toFixed(2) : "-";
+    if (score != null && score < 0.8) tds.style.color = "var(--warn)";
+    if (score != null && score < 0.5) tds.style.color = "var(--err)";
+    tr.appendChild(tds);
     tr.appendChild(el("td", null,
-      r.score != null ? Number(r.score).toFixed(2) : "-"));
-    tr.appendChild(el("td", null,
-      (r.passed != null ? r.passed : "?") + "/" +
-      (r.total != null ? r.total : "?")));
+      (passed != null ? passed : "?") + "/" +
+      (total != null ? total : "?")));
     tbl.appendChild(tr);
   });
   c.appendChild(tbl);
