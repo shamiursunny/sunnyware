@@ -539,3 +539,34 @@ except Exception as _e:
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.getenv("PORT", "7860")))
+
+# ─── Part 162: recon-path guard middleware ───
+try:
+    from . import recon_guard as _rg
+    try:
+        from fastapi.responses import JSONResponse as _JResp
+    except Exception:
+        _JResp = None
+
+    @app.middleware("http")
+    async def _recon_guard_middleware(request, call_next):
+        try:
+            d = _rg.check(request.url.path)
+            if d.get("block"):
+                ip = ""
+                try:
+                    ip = (request.client.host if request.client else "") or ""
+                except Exception:
+                    pass
+                _rg.record(request.url.path, ip, d.get("pattern", ""))
+                if _JResp is not None:
+                    return _JResp(
+                        {"error": "forbidden",
+                         "detail": "request blocked by recon guard"},
+                        status_code=403,
+                    )
+        except Exception:
+            pass
+        return await call_next(request)
+except Exception as _e:
+    print(f"[recon_guard] middleware not installed: {_e}")

@@ -1690,3 +1690,25 @@ smokes + gate run before any git action.
     SUNNYWARE_AUDIT_PATH=<override>
 - Smoke: 161 (44/44). Regressions: 160 (36/36), 159 (32/32),
   158 (41/41), 144 (14/14).
+
+### Part 162 - Recon-path hardening
+- New module src/sunnyware/recon_guard.py.
+- Blocks common scanner probes (/.env, /.git/config, /wp-admin, *.php,
+  *.sql, /.aws/, /.ssh/, /cgi-bin/, /phpmyadmin, /shell.php, etc.)
+  with HTTP 403. Curated pattern list; anchored to avoid false positives.
+- ALWAYS_ALLOWED prefixes: /api/, /health, /static/, /docs, /redoc,
+  /openapi.json, /favicon, /.well-known/, /tools. These bypass the
+  guard entirely even if their path would match a pattern.
+- main.py: @app.middleware("http") _recon_guard_middleware. Checks
+  request.path; on block, records + returns 403 JSON. Never throws.
+- routes/meta.py (2 new endpoints):
+    GET  /api/recon/stats    counters + by-pattern + by-ip + recent
+    POST /api/recon/reset    clear counters (admin when auth on)
+- Optional audit integration: hits are mirrored to audit.log as
+  action="recon.block" (toggle via SUNNYWARE_RECON_LOG_TO_AUDIT).
+- Config (all optional; default on):
+    SUNNYWARE_RECON_GUARD_ENABLED=1      master switch
+    SUNNYWARE_RECON_LOG_TO_AUDIT=1       mirror hits to audit trail
+    SUNNYWARE_RECON_RECENT_MAX=50        cap on in-memory recent list
+- Smoke: 162 (32/32). Regressions: 161 (44/44), 160 (36/36),
+  159 (32/32), 144 (14/14).

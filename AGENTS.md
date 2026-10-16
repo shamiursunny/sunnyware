@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-16 (Part 161 - audit trail export)
+**Last update:** 2026-10-17 (Part 162 - recon-path hardening)

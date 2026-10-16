@@ -1183,3 +1183,18 @@ tampering. Non-fatal: audit failures never break a request.
 Endpoints: /api/audit/{recent,stats,verify,export,clear}.
 
 Smoke: 161 (44/44).
+
+## 2026-10-17 - Part 162
+
+| Part | Feature |
+|------|---------|
+| 162  | Recon-path hardening |
+
+New src/sunnyware/recon_guard.py + @app.middleware("http") in main.py.
+Blocks common scanner probes (.env, .git, wp-admin, *.php, *.sql,
+.aws, .ssh, phpmyadmin, shell.php, etc.) with HTTP 403. Curated pattern
+list. Optional audit integration. Never throws into request path.
+
+Endpoints: GET /api/recon/stats, POST /api/recon/reset.
+
+Smoke: 162 (32/32).

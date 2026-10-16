@@ -1773,3 +1773,29 @@ async def audit_clear():
     except Exception as e:
         return JSONResponse({"error": f"{type(e).__name__}: {e}"},
                             status_code=500)
+
+
+@router.get("/api/recon/stats")
+async def recon_stats():
+    """Part 162: recon-guard hit counters + recent blocks."""
+    try:
+        from .. import recon_guard as _rg
+        return _rg.stats()
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.post("/api/recon/reset")
+async def recon_reset():
+    """Part 162: clear recon-guard counters (admin when auth on)."""
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        from .. import recon_guard as _rg
+        prev = _rg.reset()
+        return {"ok": True, "cleared": prev}
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)

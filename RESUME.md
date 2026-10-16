@@ -67,7 +67,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   spec). Tools: calculator, python_eval, read_file, rag_search.
   Returns structured JSON verdict. User-only invocation.
 
-## Recent additions (Parts 157-161)
+## Recent additions (Parts 157-162)
 
 - Golden dataset (Part 158): src/sunnyware/golden.py + static/
   golden_dataset.json. 5 seeded cases, 5 match modes. Endpoints:
@@ -93,6 +93,13 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   hash-chained JSONL. _check_admin wrapped to log every admin
   decision. Endpoints: /api/audit/{recent,stats,verify,export,clear}.
   Env: SUNNYWARE_AUDIT_{ENABLED,KEY,PATH} (default on).
+
+- Recon-path guard (Part 162): src/sunnyware/recon_guard.py +
+  middleware in main.py. Blocks common scanner probes with 403. Always
+  allows /api/, /health, /static/, /docs, /.well-known/. Endpoints:
+  /api/recon/{stats,reset}. Env: SUNNYWARE_RECON_GUARD_ENABLED,
+  SUNNYWARE_RECON_LOG_TO_AUDIT, SUNNYWARE_RECON_RECENT_MAX
+  (defaults: on, on, 50).
 
 ## Production safety layers (Parts 134-140)
 
