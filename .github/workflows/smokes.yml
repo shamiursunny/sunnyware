@@ -12,16 +12,18 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # ─── Required gate: system monitor ────────────────────────────────
-  # Runs system_monitor.py --quick. Deterministic, no DB / /data /
-  # network dependency. If this fails, the code is broken.
-  monitor:
-    name: system monitor (gate)
+  # ─── Required gate ────────────────────────────────────────────────
+  # Two deterministic, offline checks: secrets/junk scan + system
+  # health. No DB, no /data, no network. Fast (<1 min).
+  gate:
+    name: gate
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -35,23 +37,34 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-ci.txt
 
-      - name: Run system monitor (offline)
+      - name: Pre-push check
+        env:
+          PYTHONIOENCODING: utf-8
+          PYTHONUTF8: "1"
+        run: python scripts/pre_push_check.py
+
+      - name: System monitor (offline)
         env:
           PYTHONIOENCODING: utf-8
           PYTHONUTF8: "1"
         run: python scripts/system_monitor.py --offline
 
-  # ─── Informational: full smoke suite ──────────────────────────────
-  # Runs all 99 smokes. Many need DB / /data / live providers, so a
-  # failure here is a signal, not a blocker. Never fails the workflow.
-  smokes:
-    name: full smokes (informational)
+  # ─── Focused smoke: only what changed in this push/PR ────────────
+  # Detection priority:
+  #   1. Any smoke_test_part*.py changed in the diff
+  #   2. Any "Part NNN" mentioned in the commit message(s)
+  #   3. Fall back to the newest smoke on disk
+  # Runs 1–3 smokes typically, not 99.
+  smoke:
+    name: smoke (changed parts)
     runs-on: ubuntu-latest
-    timeout-minutes: 25
-    continue-on-error: true
+    timeout-minutes: 15
+    needs: gate
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -65,15 +78,46 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-ci.txt
 
-      - name: Prepare /data volume
+      - name: Detect which smokes to run
+        id: detect
         run: |
-          sudo mkdir -p /data/workspace /data/attachments
-          sudo chown -R "$(whoami)" /data
-          ls -ld /data /data/workspace
+          set -e
+          SMOKES=""
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            DIFF=$(git diff --name-only HEAD~1 HEAD || true)
+            SMOKES=$(echo "$DIFF" \
+                     | grep -oE 'scripts/smoke_test_part[0-9a-z]+\.py' \
+                     | sort -u | tr '\n' ' ' || true)
+          fi
 
-      - name: Run all smokes
+          if [ -z "$SMOKES" ] && git rev-parse HEAD~1 >/dev/null 2>&1; then
+            MSG=$(git log -1 --pretty=%B HEAD || true)
+            PARTS=$(echo "$MSG" \
+                    | grep -oE 'Part[[:space:]]+[0-9]+[a-z]?' \
+                    | grep -oE '[0-9]+[a-z]?' | sort -u | tr '\n' ' ' || true)
+            for p in $PARTS; do
+              if [ -f "scripts/smoke_test_part${p}.py" ]; then
+                SMOKES="$SMOKES scripts/smoke_test_part${p}.py"
+              fi
+            done
+            SMOKES=$(echo "$SMOKES" | tr ' ' '\n' | sort -u | tr '\n' ' ')
+          fi
+
+          if [ -z "$SMOKES" ]; then
+            SMOKES=$(ls -1 scripts/smoke_test_part*.py | sort -V | tail -1)
+          fi
+
+          echo "smokes=$SMOKES" >> "$GITHUB_OUTPUT"
+          echo "Will run: $SMOKES"
+
+      - name: Run detected smokes
         env:
           PYTHONIOENCODING: utf-8
           PYTHONUTF8: "1"
-          NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
-        run: python scripts/run_all_smokes.py --timeout 120 --verbose
+        run: |
+          set -e
+          for s in ${{ steps.detect.outputs.smokes }}; do
+            echo ""
+            echo "──────── $s ────────"
+            python "$s"
+          done
