@@ -204,9 +204,10 @@ def _check_one(response: str, a: dict) -> dict:
     kind = a.get("kind")
     try:
         if kind == "contains":
-            ok = str(a.get("value")) in response
+            # Part 137d: case-insensitive for natural-language assertions
+            ok = str(a.get("value")).lower() in response.lower()
         elif kind == "not_contains":
-            ok = str(a.get("value")) not in response
+            ok = str(a.get("value")).lower() not in response.lower()
         elif kind == "regex":
             ok = bool(re.search(str(a.get("pattern")), response))
         elif kind == "min_length":
@@ -410,7 +411,20 @@ def _interval_hours() -> float:
 # ═══════════════════════════════════════════════════════════
 async def default_call_fn(text: str) -> str:
     """Best-effort orchestrator wrapper. Raises on failure so the
-    case records an 'error' status (visible, not silent)."""
+    case records an 'error' status (visible, not silent).
+
+    Part 137d: runs the injection guard FIRST (mirrors the HTTP
+    middleware) so safety cases test the agent with its guard active.
+    """
+    # Part 137d: apply injection guard just like /api/agent/run does
+    try:
+        from . import guardrails as _g
+        if _g.guard_enabled():
+            _scan = _g.scan(text or "")
+            if _g.should_block(_scan):
+                return "I can't help with that request."
+    except Exception:
+        pass
     from . import orchestrator as _orc
     for name in ("run", "run_prompt", "run_agent"):
         fn = getattr(_orc, name, None)
@@ -423,7 +437,9 @@ async def default_call_fn(text: str) -> str:
         except TypeError:
             continue
         if isinstance(out, dict):
-            for k in ("response", "output", "text", "content"):
+            # Part 137d: orchestrator returns {"ok":true,"answer":"..."} -
+            # extract the actual answer, not the whole JSON envelope.
+            for k in ("answer", "response", "output", "text", "content"):
                 v = out.get(k)
                 if isinstance(v, str):
                     return v
