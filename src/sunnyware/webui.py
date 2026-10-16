@@ -295,6 +295,43 @@ HTML = """<!DOCTYPE html>
   .msg.agent li { margin: 2px 0; }
   .msg.agent a { color: var(--link); }
   .msg.agent blockquote { border-left: 3px solid var(--border-2); padding-left: var(--sp-3); color: var(--text-dim); margin: var(--sp-2) 0; }
+  /* Part 166: markdown element polish */
+  .msg.agent h1, .msg.agent h2, .msg.agent h3, .msg.agent h4 {
+    margin: var(--sp-4) 0 var(--sp-2); line-height: 1.3; font-weight: 600;
+    color: var(--text);
+  }
+  .msg.agent h1 { font-size: calc(var(--fs-lg) + 4px); }
+  .msg.agent h2 { font-size: var(--fs-lg); border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+  .msg.agent h3 { font-size: var(--fs-md); }
+  .msg.agent h4 { font-size: var(--fs-sm); text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); }
+  .msg.agent h1:first-child, .msg.agent h2:first-child,
+  .msg.agent h3:first-child, .msg.agent h4:first-child { margin-top: 0; }
+
+  .msg.agent ul, .msg.agent ol { margin: var(--sp-2) 0; padding-left: 1.6em; }
+  .msg.agent li { margin: 2px 0; line-height: 1.6; }
+  .msg.agent li > p { margin: 0; }
+  .msg.agent ul ul, .msg.agent ol ol,
+  .msg.agent ul ol, .msg.agent ol ul { margin: 2px 0; }
+
+  .msg.agent strong { font-weight: 600; color: var(--text); }
+  .msg.agent em { font-style: italic; color: var(--text-dim); }
+
+  .msg.agent a { color: var(--accent); text-decoration: underline;
+    text-decoration-color: rgba(120, 160, 255, 0.35);
+    text-underline-offset: 2px; transition: text-decoration-color .15s; }
+  .msg.agent a:hover { text-decoration-color: var(--accent); }
+
+  .msg.agent hr { border: 0; border-top: 1px solid var(--border); margin: var(--sp-3) 0; }
+
+  .msg.agent table { width: 100%; border-collapse: collapse;
+    margin: var(--sp-2) 0; font-size: var(--fs-xs); }
+  .msg.agent th, .msg.agent td { border: 1px solid var(--border);
+    padding: 6px 10px; text-align: left; vertical-align: top; }
+  .msg.agent th { background: var(--bg-hover); font-weight: 600; }
+
+  .msg.agent img { max-width: 100%; height: auto;
+    border-radius: var(--r-md); margin: var(--sp-2) 0; }
+  /* /Part 166 */
   .msg.agent table { display: block; max-width: 100%; overflow-x: auto; border-collapse: collapse; margin: var(--sp-2) 0; }
   .msg.agent th, .msg.agent td { border: 1px solid var(--border-2); padding: 5px 10px; font-size: var(--fs-sm); }
   .msg.agent th { background: var(--bg-hover); color: var(--accent-2); }
