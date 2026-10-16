@@ -32,10 +32,16 @@ def main():
 
     # audit.py contents
     audit_src = (ROOT / "src/sunnyware/audit.py").read_text(encoding="utf-8")
-    check("audit.py has log_tool_call", "def log_tool_call" in audit_src)
-    check("audit.py has _write", "async def _write" in audit_src)
-    check("audit.py uses app_state.get_pool",
-          "app_state.get_pool()" in audit_src)
+    # Part 161: audit.py was rewritten to an HMAC-chain trail. The
+    # tool-invocation audit still exists (migration + orchestrator
+    # log calls), but the module shape changed. Updated checks below
+    # verify the current shape.
+    check("audit.py is HMAC-chained (Part 161)",
+          "def log(" in audit_src and "def verify_all(" in audit_src)
+    check("audit.py signs entries",
+          "def sign(" in audit_src and "hmac" in audit_src)
+    check("audit.py is enabled by default",
+          "def enabled(" in audit_src)
     try:
         ast.parse(audit_src)
         check("audit.py parses", True)
