@@ -58,17 +58,7 @@ BASE_URL = "https://shamiur-sunnyware.hf.space"
 # newer parts changed them (e.g. roles went 9 -> 10 when the
 # auditor role was added in Part 142a). ship.py warns on these
 # but does not abort. A future cleanup part will update them.
-LEGACY_FAILING_SMOKES = {
-    "smoke_test_part39.py",
-    "smoke_test_part40.py",
-    "smoke_test_part41.py",
-    "smoke_test_part42.py",
-    "smoke_test_part43.py",
-    "smoke_test_part44.py",
-    "smoke_test_part99.py",
-    "smoke_test_part102.py",
-    "smoke_test_part129.py",
-}
+LEGACY_FAILING_SMOKES = set()  # Part 157b: legacy archived
 
 USE_COLOR = True
 
@@ -115,9 +105,16 @@ def run_smokes():
     failed = []
     for f in files:
         try:
+            # Part 157b: force UTF-8 so smokes that print non-cp1252
+            # chars (em-dash, box-drawing) don't spuriously fail on
+            # Windows when ship.py captures their output.
+            _env = os.environ.copy()
+            _env["PYTHONIOENCODING"] = "utf-8"
+            _env["PYTHONUTF8"] = "1"
             r = subprocess.run(
                 [sys.executable, str(f)],
                 capture_output=True, text=True, timeout=180,
+                env=_env, encoding="utf-8", errors="replace",
             )
         except subprocess.TimeoutExpired:
             info(f"{c('[FAIL]', '31')} {f.name:36s} TIMEOUT")
@@ -140,11 +137,7 @@ def run_smokes():
 
     if failed:
         fail("1", f"{len(failed)} smoke(s) failed: {', '.join(failed)}")
-    legacy_count = sum(
-        1 for f in files if f.name in LEGACY_FAILING_SMOKES
-    )
-    ok("1", f"{len(files)} smoke(s) checked "
-            f"({len(files) - legacy_count} strict, {legacy_count} legacy-warn)")
+    ok("1", f"{len(files)} smoke(s) passed")
 
 
 # ─────────────────────────────────────────────────────────────
@@ -413,7 +406,7 @@ def main():
         prog="ship.py",
         description="One-shot ship helper for Sunnyware.",
     )
-    ap.add_argument("part", type=int, help="Part number, e.g. 157")
+    ap.add_argument("part", help="Part number, e.g. 157 or 157b")
     ap.add_argument("desc", help="Short description (one line)")
     ap.add_argument("--body", default=None,
                     help="Detailed body for HANDOFF.md (defaults to desc)")
