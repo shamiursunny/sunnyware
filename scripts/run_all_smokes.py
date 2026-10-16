@@ -52,7 +52,16 @@ def _missing_dep(stderr: str, stdout: str) -> str:
     return ""
 
 
-def run_one(path, timeout):
+def _tail3(text: str, width: int = 220) -> str:
+    """Last 3 non-empty lines, joined by ' | ', truncated."""
+    if not text:
+        return ""
+    lines = [ln.rstrip() for ln in text.splitlines() if ln.strip()]
+    snippet = " | ".join(lines[-3:])
+    return snippet[:width]
+
+
+def run_one(path, timeout, verbose=False):
     t0 = time.time()
     try:
         r = subprocess.run(
@@ -61,20 +70,20 @@ def run_one(path, timeout):
             cwd=str(ROOT), env=ENV,
         )
         dur = time.time() - t0
-        tail = ""
-        if r.stdout:
-            lines = [ln for ln in r.stdout.strip().splitlines() if ln.strip()]
-            if lines:
-                tail = lines[-1][:80]
         if r.returncode == 0:
-            return "PASS", dur, 0, tail
+            return "PASS", dur, 0, _tail3(r.stdout, 80), r
         dep = _missing_dep(r.stderr or "", r.stdout or "")
         if dep:
-            return "SKIP", dur, 0, f"missing optional dep: {dep}"
-        return "FAIL", dur, r.returncode, tail
+            return "SKIP", dur, 0, f"missing optional dep: {dep}", r
+        detail = _tail3(r.stdout, 140)
+        if r.stderr and r.stderr.strip():
+            err = _tail3(r.stderr, 120)
+            detail = (detail + "  >> stderr: " + err) if detail else \
+                     ("stderr: " + err)
+        return "FAIL", dur, r.returncode, detail, r
     except subprocess.TimeoutExpired:
         dur = time.time() - t0
-        return "FAIL", dur, "TIMEOUT", f"timed out after {timeout}s"
+        return "FAIL", dur, "TIMEOUT", f"timed out after {timeout}s", None
 
 
 def main():
@@ -83,6 +92,8 @@ def main():
                     help="per-smoke timeout in seconds (default 90)")
     ap.add_argument("--fail-fast", action="store_true")
     ap.add_argument("--list", action="store_true")
+    ap.add_argument("--verbose", action="store_true",
+                    help="dump full stdout/stderr for failed smokes")
     ap.add_argument("--only", nargs="*", default=[],
                     help="run only these part numbers (e.g. 160 161)")
     args = ap.parse_args()
@@ -119,7 +130,8 @@ def main():
 
     for p in smokes:
         rel = p.relative_to(ROOT)
-        mark, dur, rc, tail = run_one(p, args.timeout)
+        mark, dur, rc, tail, res = run_one(p, args.timeout,
+                                            verbose=args.verbose)
         print(f"  [{mark}] {str(rel):50s}  {dur:6.2f}s  {tail}")
         if mark == "PASS":
             passed += 1
@@ -127,6 +139,15 @@ def main():
             skipped.append((rel, tail))
         else:
             failed.append((rel, rc, tail))
+            if args.verbose and res is not None:
+                print("      ── full stdout ──")
+                for ln in (res.stdout or "").splitlines():
+                    print(f"      | {ln}")
+                if res.stderr:
+                    print("      ── full stderr ──")
+                    for ln in res.stderr.splitlines():
+                        print(f"      ! {ln}")
+                print("      ── end ──")
             if args.fail_fast:
                 break
 

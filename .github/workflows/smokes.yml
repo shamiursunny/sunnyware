@@ -35,4 +35,4 @@ jobs:
         env:
           PYTHONIOENCODING: utf-8
           PYTHONUTF8: "1"
-        run: python scripts/run_all_smokes.py --timeout 120
+        run: python scripts/run_all_smokes.py --timeout 120 --verbose
