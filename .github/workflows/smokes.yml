@@ -31,8 +31,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-ci.txt
 
+      - name: Prepare /data volume
+        run: |
+          # HF Space has a writable /data volume. GitHub runners do not,
+          # so we recreate an equivalent here for workspace-scoped tools.
+          sudo mkdir -p /data/workspace /data/attachments
+          sudo chown -R "$(whoami)" /data
+          ls -ld /data /data/workspace
+
       - name: Run all smokes
         env:
           PYTHONIOENCODING: utf-8
           PYTHONUTF8: "1"
+          # Secrets (set in Repo Settings -> Secrets -> Actions).
+          # Smokes needing them run; those that need env we don't have
+          # are reported as SKIP by run_all_smokes.py.
+          NEON_DATABASE_URL: ${{ secrets.NEON_DATABASE_URL }}
         run: python scripts/run_all_smokes.py --timeout 120 --verbose
