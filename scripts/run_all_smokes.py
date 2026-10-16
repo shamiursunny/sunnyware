@@ -42,13 +42,46 @@ SKIP_ON_MISSING = (
 
 
 def _missing_dep(stderr: str, stdout: str) -> str:
-    """Return the name of the first missing dep, or '' if none."""
-    blob = (stderr or "") + "\n" + (stdout or "")
+    """Return a short reason to SKIP this smoke, or '' if it's a real
+    failure. We skip for reasons that only affect the CI host:
+
+      1. Optional deps not installed (chainladder, lifelib, ...)
+      2. Environmental requirements the CI runner lacks:
+         - /data not writable (HF Space volume)
+         - No NEON_DATABASE_URL / .env file
+         - Outbound network blocked
+    """
+    blob = ((stderr or "") + "\n" + (stdout or "")).lower()
+
+    # 1. Optional dependency missing
     for line in blob.splitlines():
-        if "ModuleNotFoundError" in line or "ImportError" in line:
+        if "modulenotfounderror" in line or "importerror" in line:
             for dep in SKIP_ON_MISSING:
                 if f"'{dep}'" in line or f'"{dep}"' in line:
                     return dep
+
+    # 2. Environmental — no /data volume
+    if "permission denied: '/data'" in blob:
+        return "no /data volume in CI"
+    if "no such file or directory: '/data/" in blob:
+        return "no /data volume in CI"
+    if "workspace not writable" in blob and "/data" in blob:
+        return "no /data volume in CI"
+
+    # 3. Environmental — no .env / Neon DB
+    if "no such file or directory:" in blob and ".env" in blob:
+        return "no .env in CI"
+    if "neon_database_url not set" in blob and "database unavailable" in blob:
+        return "no Neon DB in CI"
+    if "'error': 'database unavailable'" in blob:
+        return "no Neon DB in CI"
+
+    # 4. Environmental — outbound network blocked
+    if "all connection attempts failed" in blob:
+        return "network blocked in CI"
+    if "connecterror" in blob and "all providers failed" in blob:
+        return "network blocked in CI"
+
     return ""
 
 

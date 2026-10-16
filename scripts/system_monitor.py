@@ -1136,7 +1136,17 @@ def run_once(args):
 
     fails = [r for r in monitor.results if r.status == "FAIL"]
     warns = [r for r in monitor.results if r.status == "WARN"]
-    if fails:
+
+    # Part 164j: only MEDIUM+ severity fails block a build.
+    # LOW-severity checks (e.g. "virtual env active" on GitHub runners,
+    # where there is no venv) shouldn't fail the CI gate. The score
+    # already reflects the reduced points.
+    def _sev(r):
+        s = getattr(r, "severity", None) or "medium"
+        return str(s).lower()
+
+    blocking_fails = [r for r in fails if _sev(r) != "low"]
+    if blocking_fails:
         return 2
     if warns:
         return 1
