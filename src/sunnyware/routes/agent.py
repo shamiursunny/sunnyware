@@ -187,7 +187,7 @@ async def run_agent(req: Request):
                     "content": _strip_broken_b64_md(agent_result.get("answer", "")),
                     "steps_count": len(agent_result.get("steps", [])),
                     "iterations": agent_result.get("iterations", 0),
-                    "model": model or (state["config"].llm_model if state["config"] else "unknown"),
+                    "model": (agent_result.get("resolved_model") or model or (state["config"].llm_model if state["config"] else "unknown")),
                     "attachments": agent_result.get("attachments") or [],
                 },
             )
@@ -212,7 +212,7 @@ async def run_agent(req: Request):
     return {
         "result": {
             "content": agent_result.get("answer", ""),
-            "model": (state["config"].llm_model if state["config"] else "unknown"),
+            "model": (agent_result.get("resolved_model") or (state["config"].llm_model if state["config"] else "unknown")),
             "steps": agent_result.get("steps", []),
             "iterations": agent_result.get("iterations", 1),
             "provider": agent_result.get("provider"),

@@ -580,6 +580,7 @@ async def _run_agent_body(
 
     _placeholder_retry_used = False
     _last_provider = None
+    _last_model = None
     _seen_calls = {}          # Part 88c: tool_name -> list[(args, result)]
     _dup_streak = 0
     _tokens_used = 0          # Part 90: cumulative tokens
@@ -624,6 +625,7 @@ async def _run_agent_body(
         content = (result.get("content") or "").strip()
         native_calls = result.get("tool_calls")
         _last_provider = result.get("provider") or _last_provider
+        _last_model = result.get("resolved_model") or _last_model
 
         # Part 90: cumulative token budget guard.
         # NOTE: tools_schema is intentionally NOT counted here - it's a
@@ -661,6 +663,7 @@ async def _run_agent_body(
                 "steps": steps,
                 "iterations": iteration + 1,
                 "provider": _last_provider,
+                "resolved_model": _last_model,
                 "budget_exceeded": True,
                 "tokens_used": _tokens_used,
                 "attachments": _attachments,
@@ -746,6 +749,7 @@ async def _run_agent_body(
                     "steps": steps,
                     "iterations": iteration + 1,
                     "provider": _last_provider,
+                    "resolved_model": _last_model,
                 "attachments": _attachments,
                 }
             continue
@@ -801,6 +805,7 @@ async def _run_agent_body(
                     "steps": steps,
                     "iterations": iteration + 1,
                     "provider": _last_provider,
+                    "resolved_model": _last_model,
                 "attachments": _attachments,
                 }
             continue
@@ -814,6 +819,7 @@ async def _run_agent_body(
                 "answer": _ans,
                 "steps": steps,
                 "provider": _last_provider,
+                "resolved_model": _last_model,
                 "iterations": iteration + 1,
                 "attachments": _attachments,
             }
@@ -844,6 +850,7 @@ async def _run_agent_body(
                 "answer": _inject_chart_base64(_inject_plotly_div(content, steps), steps),
                 "steps": steps,
                 "provider": _last_provider,
+                "resolved_model": _last_model,
                 "iterations": iteration + 1,
                 "attachments": _attachments,
             }
@@ -916,6 +923,7 @@ async def _run_agent_body(
                         "iterations": MAX_ITERATIONS,
                         "forced_summary": True,
                         "provider": _last_provider,
+                        "resolved_model": _last_model,
                     "attachments": _attachments,
                     }
         except Exception:
@@ -928,5 +936,6 @@ async def _run_agent_body(
         "iterations": MAX_ITERATIONS,
         "truncated": True,
         "provider": _last_provider,
+        "resolved_model": _last_model,
     "attachments": _attachments,
     }
