@@ -1643,3 +1643,34 @@ async def usage_alerts_reset(req: Request):
     except Exception as e:
         return JSONResponse({"error": f"{type(e).__name__}: {e}"},
                             status_code=500)
+
+
+@router.get("/api/tools/circuits")
+async def tools_circuits():
+    """Part 160: snapshot of all tool circuit-breaker state."""
+    try:
+        from .. import circuit_breaker as _cb
+        return _cb.snapshot()
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.post("/api/tools/circuits/reset")
+async def tools_circuits_reset(req: Request):
+    """Part 160: reset breaker state. Body {} = all, {"tool": "..."} = one."""
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        from .. import circuit_breaker as _cb
+        try:
+            body = await req.json()
+        except Exception:
+            body = {}
+        tk = (body or {}).get("tool") if isinstance(body, dict) else None
+        n = _cb.reset(tk)
+        return {"ok": True, "cleared": n, "tool": tk if tk else "*"}
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)

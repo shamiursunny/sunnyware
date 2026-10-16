@@ -7,6 +7,7 @@ import re
 from typing import Optional
 
 from . import llm as llm_client
+from . import circuit_breaker as _cb
 from . import memory as memory_store
 from . import prompts
 from . import tools as tools_registry
@@ -331,7 +332,43 @@ def _inject_plotly_div(answer: str, steps: list) -> str:
         return answer
 
 
-async def _execute_tool(tool_name: str, tool_args: dict) -> dict:
+async def _execute_tool(name, args):
+    """Part 160: circuit-breaker wrapper around the real executor."""
+    try:
+        decision = _cb.check(name)
+    except Exception:
+        decision = {"allow": True}
+    if not decision.get("allow"):
+        return {
+            "error": "circuit_open",
+            "detail": f"tool '{name}' is temporarily disabled after "
+                      f"repeated failures",
+            "retry_after_s": decision.get("retry_after", 60),
+        }
+    try:
+        result = await _execute_tool_raw(name, args)
+    except Exception as e:
+        try:
+            _cb.record(name, False, f"{type(e).__name__}: {e}")
+        except Exception:
+            pass
+        raise
+    ok = True
+    err = ""
+    try:
+        if isinstance(result, dict) and result.get("error"):
+            ok = False
+            err = str(result.get("error"))[:200]
+    except Exception:
+        pass
+    try:
+        _cb.record(name, ok, err)
+    except Exception:
+        pass
+    return result
+
+
+async def _execute_tool_raw(tool_name: str, tool_args: dict) -> dict:
     """Part 132: span-wrapped wrapper for _execute_tool_impl."""
     _span = None
     try:

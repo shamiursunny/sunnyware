@@ -1642,3 +1642,23 @@ smokes + gate run before any git action.
     SUNNYWARE_BUDGET_USD_MONTHLY=0
     SUNNYWARE_BUDGET_ALERT_PCT=80     (comma list, e.g. "50,80,95")
 - Smoke: 159 (32/32). Regressions: 158 (41/41), 155 (35/35), 112 (28/28).
+
+### Part 160 - Tool-level circuit breakers
+- New module src/sunnyware/circuit_breaker.py.
+- If a tool fails N consecutive times, its breaker opens for M seconds;
+  calls during that window return a synthetic {'error': 'circuit_open',
+  'retry_after_s': N} without touching the underlying tool.
+- Success resets consecutive counter and closes the breaker.
+- Config (all optional; defaults keep prior behavior):
+    SUNNYWARE_TOOL_BREAKER_ENABLED=1     master switch (on by default)
+    SUNNYWARE_TOOL_BREAKER_FAILS=5       consecutive fails to trip
+    SUNNYWARE_TOOL_BREAKER_COOLDOWN_S=60 seconds to stay open
+- orchestrator.py: _execute_tool renamed to _execute_tool_raw; new
+  wrapper _execute_tool() calls _cb.check() before, _cb.record() after.
+  Exception path also records failure. Non-dict results treated as ok.
+- routes/meta.py (2 new endpoints):
+    GET  /api/tools/circuits          snapshot of all breaker state
+    POST /api/tools/circuits/reset    clear all or one (admin when auth on)
+- State is in-process (per HF container). Snapshot is authoritative.
+- Smoke: 160 (36/36). Regressions: 159 (32/32), 158 (41/41),
+  144 (14/14), 112 (28/28).

@@ -1152,3 +1152,20 @@ baseline. 5 match modes. 5 seeded cases. Live-verified 5/5.
 usage.py: budget_status, check_budget, fire_alerts, rollup,
 reset_alerts. 3 new endpoints. Config via SUNNYWARE_BUDGET_* env vars
 (opt-in; default 0 = disabled).
+
+## 2026-10-16 - Part 160
+
+| Part | Feature |
+|------|---------|
+| 160  | Tool-level circuit breakers |
+
+New src/sunnyware/circuit_breaker.py. Per-tool failure tracking. After
+N consecutive failures (default 5), breaker opens for M seconds
+(default 60) and calls return synthetic circuit_open error without
+touching the tool. Success auto-closes. Env-configurable; on by default.
+
+Orchestrator wraps _execute_tool with a breaker-aware shim.
+
+Endpoints: GET /api/tools/circuits, POST /api/tools/circuits/reset.
+
+Smoke: 160 (36/36).

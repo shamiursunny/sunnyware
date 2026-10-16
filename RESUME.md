@@ -67,7 +67,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   spec). Tools: calculator, python_eval, read_file, rag_search.
   Returns structured JSON verdict. User-only invocation.
 
-## Recent additions (Parts 157-159)
+## Recent additions (Parts 157-160)
 
 - Golden dataset (Part 158): src/sunnyware/golden.py + static/
   golden_dataset.json. 5 seeded cases, 5 match modes. Endpoints:
@@ -82,6 +82,12 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 - Legacy smokes archived (Part 157b): 9 stale tests moved to
   scripts/_archive/legacy/ with README. 93 active smokes all pass.
+
+- Tool circuit breakers (Part 160): src/sunnyware/circuit_breaker.py.
+  Per-tool failure tracking. N consecutive fails -> breaker opens for
+  M seconds; calls return synthetic circuit_open. Endpoints:
+  /api/tools/circuits{,/reset}. Env: SUNNYWARE_TOOL_BREAKER_{ENABLED,
+  FAILS,COOLDOWN_S} (defaults: on, 5, 60).
 
 ## Production safety layers (Parts 134-140)
 
