@@ -1213,3 +1213,25 @@ Pulls /health/ready, /api/usage/budget, /api/golden/latest,
 Route: GET /status (HTMLResponse from routes/meta.py).
 
 Smoke: 163 (28/28).
+
+## 2026-10-17 - Parts 164a-k
+
+| Part  | Feature                                              |
+|-------|------------------------------------------------------|
+| 164   | CI/CD via GitHub Actions                             |
+| 164b  | smoke 137c dry-run switch (30s -> 1s)                |
+| 164c  | smoke 48 stale audit.py shape checks                 |
+| 164d  | requirements-ci.txt + SKIP-on-missing-dep            |
+| 164e  | runner diagnostics (stderr + --verbose)              |
+| 164f  | environmental SKIP patterns                          |
+| 164g  | /data volume + NEON_DATABASE_URL secret              |
+| 164h  | split gate (monitor) from signal (smokes)            |
+| 164i  | monitor --quick -> --offline                         |
+| 164j  | LOW-severity fails don't block; skip logic committed |
+| 164k  | focused gate + change-scoped smokes (GREEN)          |
+
+Final workflow: .github/workflows/smokes.yml (name: ci).
+  - gate  : pre_push_check.py + system_monitor.py --offline
+  - smoke : auto-detects changed smokes from diff/message
+
+CI status: green on both jobs.

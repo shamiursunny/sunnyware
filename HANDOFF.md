@@ -1756,3 +1756,37 @@ smokes + gate run before any git action.
     evals card (runs[].summary vs flat)
     golden card (top-level run vs nested {run})
 - Smoke: 163 (33/33).
+
+### Part 164 - CI/CD via GitHub Actions
+- New .github/workflows/smokes.yml (name: ci). Two jobs:
+    1. gate  (required): pre_push_check.py + system_monitor.py
+       --offline. Deterministic, no DB / no /data / no network. <1 min.
+    2. smoke (required): auto-detects which smokes to run from the
+       diff and the commit message, then runs only those.
+- Detection priority in the smoke job:
+    a. scripts/smoke_test_part*.py touched in the diff (HEAD~1..HEAD)
+    b. "Part NNN" mentioned in the commit message
+    c. fallback: newest smoke on disk
+- New requirements-ci.txt: minimal dep set for CI (drops llama-cpp,
+  sentence-transformers, playwright, chainladder, lifelib, etc.).
+- New scripts/run_all_smokes.py: cross-platform runner used for local
+  sweeps + still referenced from HANDOFF for full local runs. Has
+  --verbose (dump full stdout/stderr per failed smoke), --only, --list,
+  --fail-fast, and a _missing_dep() classifier that turns environment-
+  coupled failures (no /data, no .env, no Neon DB, network blocked,
+  optional dep missing) into SKIPs.
+
+Iterations that got us here (each a real commit):
+  164   first workflow (failed: missing CI deps)
+  164b  dry-run switch for smoke 137c (30s -> 1s)
+  164c  smoke 48 stale audit.py shape checks
+  164d  expand requirements-ci.txt + SKIP-on-missing-dep
+  164e  runner diagnostics (capture stderr + --verbose)
+  164f  environmental SKIP patterns (uncommitted, reapplied in 164j)
+  164g  /data volume + NEON_DATABASE_URL secret
+  164h  split gate (monitor) from signal (smokes)
+  164i  monitor --quick -> --offline (no httpx in CI)
+  164j  LOW-severity fails no longer block; skip logic committed
+  164k  final: focused gate + change-scoped smokes
+
+CI result at 164k: gate=success, smoke=success.

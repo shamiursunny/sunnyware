@@ -106,6 +106,14 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   Aggregates health, budget, golden, evals, circuits, recon, audit,
   providers into one color-coded page.
 
+- CI/CD (Part 164a-k): .github/workflows/smokes.yml runs two
+  jobs on every push/PR: gate (pre_push_check.py + system_monitor.py
+  --offline, deterministic, <1 min) and smoke (auto-detected from
+  diff/commit-message, runs only the smokes the change touches).
+  requirements-ci.txt = minimal CI dep set. scripts/run_all_smokes.py
+  is the local full-sweep runner with --verbose + env-skip classifier.
+  Status: GREEN on both jobs.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP
