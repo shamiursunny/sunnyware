@@ -1732,3 +1732,27 @@ smokes + gate run before any git action.
   Reads static/status.html from disk on each request (no caching).
 - Smoke: 163 (28/28). Regressions: 162 (32/32), 161 (44/44),
   160 (36/36), 144 (14/14).
+
+
+### Part 163c - Status dashboard self-DDoS fix
+- Live-tested the /status dashboard and observed HTTP 429s after ~30s.
+  Root cause: 8 cards + 1 health probe = 9 requests / 5s = 108 req/min,
+  while SUNNYWARE_RATE_LIMIT_PER_MINUTE=60. The dashboard DoS'd itself.
+- Fix (2 parts):
+    1. New backend aggregator: GET /api/status/summary. One request
+       returns all 8 payloads under named keys (health, budget,
+       golden, evals, circuits, recon, audit, providers). Each
+       sub-call wrapped in try/except so a single failure doesn't
+       break the page; errors surface as {"__error__": "..."} on
+       that key only.
+    2. Dashboard rewrite: single fetch of /api/status/summary every
+       10s (was 9 fetches / 5s). CARDS now carry key:"..." instead
+       of url:"..." — the same renderers are called with data pulled
+       from the summary map. New renderCardFromSummary() handles
+       missing keys with amber dot + "no data for key".
+- Rate usage now: 6 req/min vs 60 cap. 10x headroom.
+- Part 163b additionally fixed 3 shape mismatches observed live:
+    providers card URL (/api/providers -> /api/providers/status)
+    evals card (runs[].summary vs flat)
+    golden card (top-level run vs nested {run})
+- Smoke: 163 (33/33).

@@ -1816,3 +1816,37 @@ async def status_dashboard():
             f"<pre>{type(e).__name__}: {e}</pre>",
             status_code=500,
         )
+
+
+@router.get("/api/status/summary")
+async def status_summary():
+    """Part 163c: aggregator for the status dashboard.
+
+    One request per poll instead of nine, keeps total rate-limit usage
+    well under SUNNYWARE_RATE_LIMIT_PER_MINUTE (default 60). Each sub-
+    call is wrapped; a single failure does not break the page.
+    """
+    out = {"ok": True, "ts": __import__("time").time()}
+
+    async def _safe(key, fn):
+        try:
+            v = fn()
+            if hasattr(v, "__await__"):
+                v = await v
+            out[key] = v
+        except Exception as e:
+            out[key] = {"__error__": f"{type(e).__name__}: {e}"}
+
+    await _safe("health", readiness)
+    await _safe("budget", usage_budget)
+    await _safe("golden", golden_latest)
+    try:
+        out["evals"] = await evals_trends(n=5)
+    except Exception as e:
+        out["evals"] = {"__error__": f"{type(e).__name__}: {e}"}
+    await _safe("circuits", tools_circuits)
+    await _safe("recon", recon_stats)
+    await _safe("audit", audit_verify)
+    await _safe("providers", providers_status)
+
+    return out

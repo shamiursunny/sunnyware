@@ -88,17 +88,18 @@
 
 <script>
 "use strict";
-var POLL_MS = 5000;
+var POLL_MS = 10000;
 
+var SUMMARY_URL = "/api/status/summary";
 var CARDS = [
-  { id:"health",    title:"Health",         url:"/health/ready",                render:renderHealth },
-  { id:"budget",    title:"Budget",         url:"/api/usage/budget",            render:renderBudget },
-  { id:"golden",    title:"Golden dataset", url:"/api/golden/latest",           render:renderGolden },
-  { id:"evals",     title:"Evals",          url:"/api/evals/trends?n=5",        render:renderEvals },
-  { id:"circuits",  title:"Tool circuits",  url:"/api/tools/circuits",          render:renderCircuits },
-  { id:"recon",     title:"Recon guard",    url:"/api/recon/stats",             render:renderRecon },
-  { id:"audit",     title:"Audit chain",    url:"/api/audit/verify",            render:renderAudit },
-  { id:"providers", title:"Providers",      url:"/api/providers/status",               render:renderProviders }
+  { id:"health",    title:"Health",         key:"health",    render:renderHealth },
+  { id:"budget",    title:"Budget",         key:"budget",    render:renderBudget },
+  { id:"golden",    title:"Golden dataset", key:"golden",    render:renderGolden },
+  { id:"evals",     title:"Evals",          key:"evals",     render:renderEvals },
+  { id:"circuits",  title:"Tool circuits",  key:"circuits",  render:renderCircuits },
+  { id:"recon",     title:"Recon guard",    key:"recon",     render:renderRecon },
+  { id:"audit",     title:"Audit chain",    key:"audit",     render:renderAudit },
+  { id:"providers", title:"Providers",      key:"providers", render:renderProviders }
 ];
 
 function el(tag, cls, txt){
@@ -388,50 +389,80 @@ var CARDS_BY_ID = {};
   }
 })();
 
-async function refreshCard(id){
+function renderCardFromSummary(id, summary){
   var rec = CARDS_BY_ID[id];
   if (!rec) return;
   var spec = rec.spec, body = rec.body, dot = rec.dot;
+  body.classList.remove("loading");
+  body.innerHTML = "";
+  var d = summary ? summary[spec.key] : null;
+  if (d && d.__error__){
+    dot.style.background = "var(--err)";
+    body.appendChild(el("div", "err-msg", d.__error__));
+    return;
+  }
+  if (d === undefined || d === null){
+    dot.style.background = "var(--warn)";
+    body.appendChild(el("div", "err-msg",
+      "no data for key: " + spec.key));
+    return;
+  }
+  dot.style.background = "var(--ok)";
   try {
-    var r = await fetch(spec.url, { cache: "no-store" });
-    var d = null;
-    try { d = await r.json(); } catch (_) { d = null; }
-    body.classList.remove("loading");
-    body.innerHTML = "";
-    if (!r.ok){
-      dot.style.background = "var(--err)";
-      body.appendChild(el("div", "err-msg",
-        "HTTP " + r.status + "  " + spec.url));
-      if (d) body.appendChild(pre(d));
-      return;
-    }
-    dot.style.background = "var(--ok)";
     body.appendChild(spec.render(d));
   } catch (e){
     dot.style.background = "var(--err)";
-    body.classList.remove("loading");
     body.innerHTML = "";
     body.appendChild(el("div", "err-msg",
-      (e && e.message) || "fetch failed"));
+      "render error: " + ((e && e.message) || String(e))));
   }
 }
 
 async function refreshAll(){
-  document.getElementById("refresh-info").textContent =
-    "updated " + new Date().toLocaleTimeString();
+  var badge = document.getElementById("badge-health");
   try {
-    var r = await fetch("/health/ready", { cache: "no-store" });
-    var b = document.getElementById("badge-health");
-    b.className = "badge " + (r.ok ? "ok" : "err");
-    b.textContent = r.ok ? "READY" : "HTTP " + r.status;
-  } catch (_){
-    var b2 = document.getElementById("badge-health");
-    b2.className = "badge err";
-    b2.textContent = "UNREACHABLE";
+    var r = await fetch(SUMMARY_URL, { cache: "no-store" });
+    var summary = null;
+    try { summary = await r.json(); } catch (_) { summary = null; }
+    if (!r.ok){
+      badge.className = "badge err";
+      badge.textContent = "HTTP " + r.status;
+      var msg = (summary && summary.detail) ? summary.detail
+                : ("summary failed: HTTP " + r.status);
+      for (var j = 0; j < CARDS.length; j++){
+        var rec = CARDS_BY_ID[CARDS[j].id];
+        if (!rec) continue;
+        rec.dot.style.background = "var(--err)";
+        rec.body.classList.remove("loading");
+        rec.body.innerHTML = "";
+        rec.body.appendChild(el("div", "err-msg", msg));
+      }
+      document.getElementById("refresh-info").textContent =
+        "error at " + new Date().toLocaleTimeString();
+      return;
+    }
+    badge.className = "badge ok";
+    badge.textContent = "READY";
+    document.getElementById("refresh-info").textContent =
+      "updated " + new Date().toLocaleTimeString();
+    for (var k = 0; k < CARDS.length; k++){
+      renderCardFromSummary(CARDS[k].id, summary);
+    }
+  } catch (e){
+    badge.className = "badge err";
+    badge.textContent = "UNREACHABLE";
+    document.getElementById("refresh-info").textContent =
+      "unreachable at " + new Date().toLocaleTimeString();
+    for (var m = 0; m < CARDS.length; m++){
+      var rec2 = CARDS_BY_ID[CARDS[m].id];
+      if (!rec2) continue;
+      rec2.dot.style.background = "var(--err)";
+      rec2.body.classList.remove("loading");
+      rec2.body.innerHTML = "";
+      rec2.body.appendChild(el("div", "err-msg",
+        (e && e.message) || "fetch failed"));
+    }
   }
-  var jobs = [];
-  for (var i = 0; i < CARDS.length; i++) jobs.push(refreshCard(CARDS[i].id));
-  await Promise.all(jobs);
 }
 
 (function countdown(){

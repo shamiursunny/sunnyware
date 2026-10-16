@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-17 (Part 163 - unified status dashboard)
+**Last update:** 2026-10-17 (Part 163c - dashboard self-DDoS fix)

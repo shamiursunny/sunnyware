@@ -29,17 +29,19 @@ check("no jQuery/CDN hostnames",
       "cdn." not in html and "googleapis" not in html
       and "unpkg" not in html and "jsdelivr" not in html)
 
-endpoints = [
-    "/health/ready",
-    "/api/usage/budget",
-    "/api/golden/latest",
-    "/api/evals/trends",
-    "/api/tools/circuits",
-    "/api/recon/stats",
-    "/api/audit/verify",
-]
-for ep in endpoints:
-    check(f"refs {ep}", ep in html)
+check("refs /api/status/summary", "/api/status/summary" in html)
+check("has SUMMARY_URL var", "SUMMARY_URL" in html)
+# key-based card spec
+for k in ["health", "budget", "golden", "evals",
+          "circuits", "recon", "audit", "providers"]:
+    check(f'card key "{k}"', f'key:"{k}"' in html)
+# old url-based spec must be gone
+check("no url-based card spec",
+      'url:"/api/usage/budget"' not in html
+      and 'url:"/api/tools/circuits"' not in html)
+# renderer for-from-summary
+check("has renderCardFromSummary",
+      "renderCardFromSummary" in html)
 
 for fn in ["renderHealth", "renderBudget", "renderGolden", "renderEvals",
            "renderCircuits", "renderRecon", "renderAudit",
