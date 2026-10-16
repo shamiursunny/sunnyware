@@ -1242,3 +1242,112 @@ async def evals_run(req: Request):
             {"error": f"{type(e).__name__}: {e}"},
             status_code=500,
         )
+
+
+
+@router.get("/api/usage/all")
+async def usage_all(days: int = 7, limit: int = 100):
+    """Part 138: cross-tenant rollup (admin when auth on)."""
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        from .. import usage as _usage
+        return await _usage.all_tenants_summary(days=days, limit=limit)
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.get("/api/usage/tenant/{tenant_key}")
+async def usage_for_tenant(tenant_key: str, days: int = 7):
+    """Part 138: one tenant's summary (admin when auth on)."""
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        from .. import usage as _usage
+        return await _usage.summary(tenant_key=tenant_key, days=days)
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.get("/api/usage/trends")
+async def usage_trends(days: int = 30, bucket: str = "day"):
+    """Part 138: time-bucketed cost/token series."""
+    try:
+        from .. import usage as _usage
+        return await _usage.trends(days=days, bucket=bucket)
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.post("/api/usage/reset")
+async def usage_reset(req: Request):
+    """Part 138: clear usage. Body {} = all; {tenant: '...'} = one."""
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        from .. import usage as _usage
+        try:
+            body = await req.json()
+        except Exception:
+            body = {}
+        tk = (body or {}).get("tenant")
+        return await _usage.reset(tenant_key=tk)
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+
+@router.get("/api/usage/export.csv")
+async def usage_export_csv(days: int = 30, limit: int = 10000):
+    """Part 138: CSV export (admin when auth on)."""
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        import csv
+        import io
+        from fastapi.responses import Response as _Resp
+        from .. import usage as _usage
+        rows = await _usage.export_rows(days=days, limit=limit)
+        buf = io.StringIO()
+        w = csv.writer(buf)
+        w.writerow(["created_at", "tenant_key", "model",
+                    "input_tokens", "output_tokens",
+                    "cost_usd", "latency_ms"])
+        for r in rows:
+            w.writerow([
+                r.get("created_at", ""),
+                r.get("tenant_key", ""),
+                r.get("model", ""),
+                r.get("input_tokens", 0),
+                r.get("output_tokens", 0),
+                f"{r.get('cost_usd', 0):.8f}",
+                r.get("latency_ms", 0),
+            ])
+        return _Resp(
+            content=buf.getvalue(),
+            media_type="text/csv",
+            headers={
+                "content-disposition":
+                    f"attachment; filename=sunnyware_usage_{days}d.csv",
+            },
+        )
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
