@@ -148,25 +148,127 @@ function pre(obj){
 
 function renderHealth(d){
   var c = el("div");
-  // Accept raw shape, wrapped shape {status_code, body: "json string"},
-  // or plain {status:"ok", checks:{...}}.
+
+  // Unwrap {status_code, body: "<json str>"} if needed
   var inner = d;
   if (d && typeof d.body === "string"){
     try { inner = JSON.parse(d.body); } catch (_) { inner = d; }
   }
-  var ok = false;
-  if (inner && typeof inner === "object"){
-    ok = inner.status === "ok" || inner.status === "ready"
-       || inner.ok === true || inner.ready === true;
-    if (!ok && inner.checks && typeof inner.checks === "object"){
-      ok = Object.keys(inner.checks).every(function(k){
-        var v = inner.checks[k];
-        return v === true || v === "ok" || v === null;
-      });
-    }
+  if (!inner || typeof inner !== "object"){
+    c.appendChild(badge("err", "DOWN"));
+    c.appendChild(el("div", "muted", "no payload"));
+    return c;
   }
-  c.appendChild(badge(ok ? "ok" : "err", ok ? "READY" : "DOWN"));
-  if (inner) c.appendChild(kv(inner));
+
+  // Overall readiness
+  var ok = inner.status === "ok" || inner.status === "ready"
+        || inner.ok === true || inner.ready === true;
+  if (!ok && inner.checks && typeof inner.checks === "object"){
+    ok = Object.keys(inner.checks).every(function(k){
+      var v = inner.checks[k];
+      return v === true || v === "ok" || v === null;
+    });
+  }
+
+  // Big status line
+  var top = el("div");
+  top.style.display = "flex";
+  top.style.alignItems = "center";
+  top.style.gap = "10px";
+  top.appendChild(badge(ok ? "ok" : "err", ok ? "READY" : "DOWN"));
+  if (inner.status){
+    var st = el("span", "muted");
+    st.textContent = "status: " + inner.status;
+    top.appendChild(st);
+  }
+  c.appendChild(top);
+
+  // Stat chips (2-column grid)
+  var stats = [];
+  if (inner.tools != null)
+    stats.push(["Tools", String(inner.tools)]);
+  if (inner.providers)
+    stats.push(["Providers", String(inner.providers)]);
+  if (inner.persistent_storage != null)
+    stats.push(["Storage",
+      inner.persistent_storage ? "persistent" : "ephemeral"]);
+  if (inner.workspace_path)
+    stats.push(["Workspace", String(inner.workspace_path)]);
+  if (inner.author)
+    stats.push(["Author", String(inner.author)]);
+
+  if (stats.length){
+    var grid = el("div");
+    grid.style.display = "grid";
+    grid.style.gridTemplateColumns =
+      "repeat(auto-fill, minmax(140px, 1fr))";
+    grid.style.gap = "8px";
+    grid.style.marginTop = "10px";
+    stats.forEach(function(kv){
+      var chip = el("div");
+      chip.style.background = "var(--card2)";
+      chip.style.padding = "8px 10px";
+      chip.style.borderRadius = "6px";
+      chip.style.border = "1px solid var(--border)";
+      var lab = el("div", "muted");
+      lab.style.fontSize = "11px";
+      lab.style.textTransform = "uppercase";
+      lab.style.letterSpacing = "0.05em";
+      lab.textContent = kv[0];
+      var val = el("div");
+      val.style.fontSize = "15px";
+      val.style.fontWeight = "600";
+      val.style.marginTop = "2px";
+      val.textContent = kv[1];
+      chip.appendChild(lab);
+      chip.appendChild(val);
+      grid.appendChild(chip);
+    });
+    c.appendChild(grid);
+  }
+
+  // Checkmark grid for inner.checks
+  if (inner.checks && typeof inner.checks === "object"){
+    var checks = el("div");
+    checks.style.marginTop = "12px";
+    var hdr = el("div", "muted");
+    hdr.style.fontSize = "11px";
+    hdr.style.textTransform = "uppercase";
+    hdr.style.letterSpacing = "0.05em";
+    hdr.style.marginBottom = "6px";
+    hdr.textContent = "subsystems";
+    checks.appendChild(hdr);
+
+    var cgrid = el("div");
+    cgrid.style.display = "grid";
+    cgrid.style.gridTemplateColumns =
+      "repeat(auto-fill, minmax(110px, 1fr))";
+    cgrid.style.gap = "6px 12px";
+    Object.keys(inner.checks).forEach(function(k){
+      var v = inner.checks[k];
+      var okv = v === true || v === "ok" || v === null;
+      var row = el("div");
+      row.style.display = "flex";
+      row.style.alignItems = "center";
+      row.style.gap = "6px";
+      row.style.fontSize = "12px";
+      var dot = el("span");
+      dot.style.width = "7px";
+      dot.style.height = "7px";
+      dot.style.borderRadius = "50%";
+      dot.style.flex = "0 0 auto";
+      dot.style.background = okv ? "var(--ok)" : "var(--err)";
+      row.appendChild(dot);
+      var name = el("span");
+      name.style.color = okv ? "var(--text)" : "var(--err)";
+      name.textContent = k;
+      row.appendChild(name);
+      cgrid.appendChild(row);
+    });
+    checks.appendChild(cgrid);
+    c.appendChild(checks);
+  }
+
   return c;
 }
 function renderBudget(d){
