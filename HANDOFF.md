@@ -1400,3 +1400,29 @@ usage CSV).
 - Smoke: 151 (31/31). Regressions: 150 (9/9), 149 (19/19),
   148 (27/27), 147 (16/16), 146 (18/18), 145 (37/37), 144 (14/14),
   142a (26/26), 143 (24/24), 137 (57/57), 112 (28/28).
+
+### Part 152 - Provider tool-support flag
+- Root cause found during Part 151 live verify: the CFO->CDO->worker
+  pipeline returned "all providers failed" with pollinations 402
+  FREE_LIMIT. The debug endpoint /api/providers/test/pollinations
+  returned ok=True with the sk_ key. Same key, same URL, same
+  _chat_single -- only difference: tools were attached.
+- Discovery: Pollinations free tier REJECTS requests containing
+  OpenAI-style tool schemas with HTTP 402 FREE_LIMIT (the same
+  message it uses for anonymous rate limiting). It is not a rate
+  limit -- it is a capability limit disguised as a rate limit.
+- Fix:
+    - providers.py: Provider dataclass gains `supports_tools: bool = True`.
+    - providers.load_providers(): sets supports_tools=False for
+      pollinations. All other providers stay True.
+    - providers.Provider.status(): exposes `supports_tools` for
+      the /api/providers/status endpoint.
+    - llm.py: _chat_single() is now called with
+      `tools=(tools if getattr(p, "supports_tools", True) else None)`
+      from both the single-provider fast path and the multi-provider
+      router loop. Non-tool providers automatically get tools=None.
+- Impact: pollinations now serves tool-less requests successfully
+  (chat, RAG lookups, simple queries). Tool-bearing requests route
+  to groq/gemini/openrouter as before. Zero regression.
+- Smoke: 152 (9/9). Regressions: 151 (31/31), 150 (9/9),
+  144 (14/14), 137 (57/57), 112 (28/28).

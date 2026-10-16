@@ -369,7 +369,8 @@ async def chat(
         r = await _chat_single(
             prompt=prompt, base_url=p.base_url, api_key=p.api_key,
             model=_resolved.get(p.name) or model or p.model, system=system, history=history,
-            tools=tools, timeout=timeout, _retry_depth=_retry_depth,
+            tools=(tools if getattr(p, "supports_tools", True) else None),
+            timeout=timeout, _retry_depth=_retry_depth,
         )
         r["provider"] = p.name
         r["resolved_model"] = _resolved.get(p.name)
@@ -447,7 +448,8 @@ async def chat(
         r = await _chat_single(
             prompt=prompt, base_url=p.base_url, api_key=p.api_key,
             model=_resolved.get(p.name) or model or p.model, system=system, history=history,
-            tools=tools, timeout=timeout, _retry_depth=0,
+            tools=(tools if getattr(p, "supports_tools", True) else None),
+            timeout=timeout, _retry_depth=0,
         )
         r["provider"] = p.name
         r["resolved_model"] = _resolved.get(p.name)

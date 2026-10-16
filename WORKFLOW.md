@@ -1028,3 +1028,13 @@ JSON. One forced retry recovers the verdict.
 
 Every role gets a truthfulness clause. Specialists get mandatory
 tool lists. CFO -> CDO cross-check requirement enforced in prompts.
+
+## 2026-10-16 (session 3) - Part 152
+
+| Part | Commit  | Feature |
+|------|---------|---------|
+| 152  | (this)  | Provider tool-support flag (pollinations rejects tools) |
+
+Pollinations free tier returns 402 FREE_LIMIT for requests
+containing OpenAI tool schemas. New supports_tools flag on
+Provider; router strips tools for unsupported providers.

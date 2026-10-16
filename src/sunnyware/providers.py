@@ -39,6 +39,7 @@ class Provider:
     model: str
     max_prompt_tokens: int = 0   # Part 99: 0 = no limit
     provider_type: str = "http"  # "http" or "local"
+    supports_tools: bool = True   # Part 152: OpenAI-style tools
     cooldown_until: float = 0.0
     last_error: str = ""
     success_count: int = 0
@@ -67,6 +68,7 @@ class Provider:
         return {
             "name": self.name,
             "type": self.provider_type,
+            "supports_tools": self.supports_tools,
             "model": self.model,
             "max_prompt_tokens": self.max_prompt_tokens,
             "base_url": self.base_url.split("/")[2] if "://" in self.base_url else self.base_url,
@@ -140,6 +142,9 @@ def load_providers(reload: bool = False) -> List[Provider]:
                     max_pt = learned
             except Exception:
                 pass
+        # Part 152: Pollinations free tier rejects requests with
+        # OpenAI-style tool schemas. Treat as tools-unsupported.
+        supports_tools = (name.lower() != "pollinations")
         out.append(Provider(
             name=name,
             base_url=base_url.rstrip("/"),
@@ -147,6 +152,7 @@ def load_providers(reload: bool = False) -> List[Provider]:
             model=model,
             max_prompt_tokens=max_pt,
             provider_type=ptype,
+            supports_tools=supports_tools,
         ))
 
     _PROVIDERS = out
