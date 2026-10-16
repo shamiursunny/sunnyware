@@ -31,6 +31,27 @@ def find_smokes():
     return sorted(SCRIPTS.glob("smoke_test_part*.py"))
 
 
+# Dependencies deliberately omitted from requirements-ci.txt.
+# Smokes that import these are reported as SKIP (not FAIL).
+SKIP_ON_MISSING = (
+    "chainladder", "lifelib", "solvency2_data", "solvency2-data",
+    "sentence_transformers", "sentence-transformers",
+    "faiss", "faiss_cpu", "llama_cpp", "llama-cpp-python",
+    "playwright",
+)
+
+
+def _missing_dep(stderr: str, stdout: str) -> str:
+    """Return the name of the first missing dep, or '' if none."""
+    blob = (stderr or "") + "\n" + (stdout or "")
+    for line in blob.splitlines():
+        if "ModuleNotFoundError" in line or "ImportError" in line:
+            for dep in SKIP_ON_MISSING:
+                if f"'{dep}'" in line or f'"{dep}"' in line:
+                    return dep
+    return ""
+
+
 def run_one(path, timeout):
     t0 = time.time()
     try:
@@ -40,16 +61,20 @@ def run_one(path, timeout):
             cwd=str(ROOT), env=ENV,
         )
         dur = time.time() - t0
-        # final line of stdout usually has "N/N checks passed"
         tail = ""
         if r.stdout:
             lines = [ln for ln in r.stdout.strip().splitlines() if ln.strip()]
             if lines:
                 tail = lines[-1][:80]
-        return r.returncode == 0, dur, r.returncode, tail
+        if r.returncode == 0:
+            return "PASS", dur, 0, tail
+        dep = _missing_dep(r.stderr or "", r.stdout or "")
+        if dep:
+            return "SKIP", dur, 0, f"missing optional dep: {dep}"
+        return "FAIL", dur, r.returncode, tail
     except subprocess.TimeoutExpired:
         dur = time.time() - t0
-        return False, dur, "TIMEOUT", f"timed out after {timeout}s"
+        return "FAIL", dur, "TIMEOUT", f"timed out after {timeout}s"
 
 
 def main():
@@ -89,15 +114,17 @@ def main():
 
     passed = 0
     failed = []
+    skipped = []
     t_start = time.time()
 
     for p in smokes:
         rel = p.relative_to(ROOT)
-        ok, dur, rc, tail = run_one(p, args.timeout)
-        mark = "PASS" if ok else "FAIL"
+        mark, dur, rc, tail = run_one(p, args.timeout)
         print(f"  [{mark}] {str(rel):50s}  {dur:6.2f}s  {tail}")
-        if ok:
+        if mark == "PASS":
             passed += 1
+        elif mark == "SKIP":
+            skipped.append((rel, tail))
         else:
             failed.append((rel, rc, tail))
             if args.fail_fast:
@@ -105,8 +132,14 @@ def main():
 
     dur_total = time.time() - t_start
     print("=" * 66)
-    print(f"[run_all_smokes] {passed}/{len(smokes)} passed "
-          f"in {dur_total:.1f}s")
+    print(f"[run_all_smokes] {passed} passed, {len(skipped)} skipped, "
+          f"{len(failed)} failed  (of {len(smokes)})  in {dur_total:.1f}s")
+
+    if skipped:
+        print("")
+        print("SKIPPED (optional deps not installed in CI):")
+        for rel, why in skipped:
+            print(f"  - {rel}  ({why})")
 
     if failed:
         print("")
