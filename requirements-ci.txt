@@ -1,0 +1,13 @@
+# Part 164: minimal dependency set for CI smoke runs.
+# Full requirements.txt has llama-cpp / sentence-transformers / playwright,
+# which take 10+ minutes to install and are not needed by the smoke suite.
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.9.0
+python-dotenv>=1.0.0
+pyyaml>=6.0
+structlog>=24.1.0
+httpx>=0.27.0
+gradio>=6.0.0
+numpy>=1.26.0
+pytest>=8.0.0
