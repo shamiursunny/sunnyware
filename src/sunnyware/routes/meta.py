@@ -561,13 +561,27 @@ async def providers_limits():
 
 @router.post("/api/providers/limits/reset")
 async def providers_limits_reset(payload: dict = None):
-    """Reset learned limits. Body: {"name": "groq"} or {"all": true}."""
+    """Reset learned limits. Body: {"name": "groq"} or {"all": true}.
+
+    Part 138c: also reload the provider cache so the change is visible
+    immediately without an HF restart. Before this fix, the file was
+    cleared but the in-memory Provider objects kept their stale limits.
+    """
     try:
         from .. import provider_limits as _pl
+        from .. import providers as _prov
         payload = payload or {}
+        reloaded = 0
         if payload.get("all"):
             ok = _pl.reset(None)
-            return {"ok": ok, "reset": "all"}
+            # Part 138c: force reload so live Provider objects pick up
+            # the new defaults.
+            try:
+                fresh = _prov.load_providers(reload=True)
+                reloaded = len(fresh)
+            except Exception:
+                pass
+            return {"ok": ok, "reset": "all", "providers_reloaded": reloaded}
         name = (payload.get("name") or "").strip()
         if not name:
             return JSONResponse(
@@ -575,7 +589,12 @@ async def providers_limits_reset(payload: dict = None):
                 status_code=400,
             )
         ok = _pl.reset(name)
-        return {"ok": ok, "reset": name}
+        try:
+            _prov.load_providers(reload=True)
+            reloaded = 1
+        except Exception:
+            pass
+        return {"ok": ok, "reset": name, "providers_reloaded": reloaded}
     except Exception as e:
         return JSONResponse(
             {"error": f"{type(e).__name__}: {e}"},
