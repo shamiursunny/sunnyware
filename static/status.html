@@ -148,8 +148,6 @@ function pre(obj){
 
 function renderHealth(d){
   var c = el("div");
-
-  // Unwrap {status_code, body: "<json str>"} if needed
   var inner = d;
   if (d && typeof d.body === "string"){
     try { inner = JSON.parse(d.body); } catch (_) { inner = d; }
@@ -159,18 +157,27 @@ function renderHealth(d){
     c.appendChild(el("div", "muted", "no payload"));
     return c;
   }
-
-  // Overall readiness
+  function isOk(v){
+    if (v === true || v === null) return true;
+    if (typeof v === "number") return v > 0;
+    if (typeof v === "string"){
+      var s = v.toLowerCase().trim();
+      if (!s) return false;
+      if (s === "ok" || s === "ready" || s === "live"
+          || s === "up" || s === "healthy" || s === "true")
+        return true;
+      if (/^(fail|error|down|off|no|false|0)/.test(s)) return false;
+      return true;
+    }
+    return false;
+  }
   var ok = inner.status === "ok" || inner.status === "ready"
         || inner.ok === true || inner.ready === true;
   if (!ok && inner.checks && typeof inner.checks === "object"){
     ok = Object.keys(inner.checks).every(function(k){
-      var v = inner.checks[k];
-      return v === true || v === "ok" || v === null;
+      return isOk(inner.checks[k]);
     });
   }
-
-  // Big status line
   var top = el("div");
   top.style.display = "flex";
   top.style.alignItems = "center";
@@ -183,19 +190,29 @@ function renderHealth(d){
   }
   c.appendChild(top);
 
-  // Stat chips (2-column grid)
+  var checks = (inner.checks && typeof inner.checks === "object")
+    ? inner.checks : {};
+  function pick(){
+    for (var i = 0; i < arguments.length; i++){
+      var k = arguments[i];
+      if (inner[k] !== undefined) return inner[k];
+      if (checks[k] !== undefined) return checks[k];
+    }
+    return undefined;
+  }
   var stats = [];
-  if (inner.tools != null)
-    stats.push(["Tools", String(inner.tools)]);
-  if (inner.providers)
-    stats.push(["Providers", String(inner.providers)]);
-  if (inner.persistent_storage != null)
-    stats.push(["Storage",
-      inner.persistent_storage ? "persistent" : "ephemeral"]);
-  if (inner.workspace_path)
-    stats.push(["Workspace", String(inner.workspace_path)]);
-  if (inner.author)
-    stats.push(["Author", String(inner.author)]);
+  var tv = pick("tools");
+  if (tv !== undefined) stats.push(["Tools", String(tv)]);
+  var pv = pick("providers");
+  if (pv !== undefined) stats.push(["Providers", String(pv)]);
+  var sv = pick("persistent_storage", "storage");
+  if (sv !== undefined)
+    stats.push(["Storage", (sv === true || sv === "true")
+      ? "persistent" : String(sv)]);
+  var wv = pick("workspace_path");
+  if (wv !== undefined) stats.push(["Workspace", String(wv)]);
+  var av = pick("author");
+  if (av !== undefined) stats.push(["Author", String(av)]);
 
   if (stats.length){
     var grid = el("div");
@@ -219,6 +236,7 @@ function renderHealth(d){
       val.style.fontSize = "15px";
       val.style.fontWeight = "600";
       val.style.marginTop = "2px";
+      val.style.wordBreak = "break-all";
       val.textContent = kv[1];
       chip.appendChild(lab);
       chip.appendChild(val);
@@ -227,26 +245,30 @@ function renderHealth(d){
     c.appendChild(grid);
   }
 
-  // Checkmark grid for inner.checks
-  if (inner.checks && typeof inner.checks === "object"){
-    var checks = el("div");
-    checks.style.marginTop = "12px";
+  var SKIP = { tools:1, providers:1, persistent_storage:1,
+               workspace_path:1, author:1, status:1 };
+  var subKeys = Object.keys(checks).filter(function(k){
+    return !SKIP[k];
+  });
+  if (subKeys.length){
+    var section = el("div");
+    section.style.marginTop = "12px";
     var hdr = el("div", "muted");
     hdr.style.fontSize = "11px";
     hdr.style.textTransform = "uppercase";
     hdr.style.letterSpacing = "0.05em";
     hdr.style.marginBottom = "6px";
     hdr.textContent = "subsystems";
-    checks.appendChild(hdr);
+    section.appendChild(hdr);
 
     var cgrid = el("div");
     cgrid.style.display = "grid";
     cgrid.style.gridTemplateColumns =
-      "repeat(auto-fill, minmax(110px, 1fr))";
+      "repeat(auto-fill, minmax(120px, 1fr))";
     cgrid.style.gap = "6px 12px";
-    Object.keys(inner.checks).forEach(function(k){
-      var v = inner.checks[k];
-      var okv = v === true || v === "ok" || v === null;
+    subKeys.forEach(function(k){
+      var v = checks[k];
+      var okv = isOk(v);
       var row = el("div");
       row.style.display = "flex";
       row.style.alignItems = "center";
@@ -265,8 +287,8 @@ function renderHealth(d){
       row.appendChild(name);
       cgrid.appendChild(row);
     });
-    checks.appendChild(cgrid);
-    c.appendChild(checks);
+    section.appendChild(cgrid);
+    c.appendChild(section);
   }
 
   return c;
