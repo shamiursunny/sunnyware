@@ -47,6 +47,8 @@ os.environ["SUNNYWARE_EVAL_STORAGE"] = os.path.join(
 os.environ["SUNNYWARE_EVAL_KEEP_RUNS"] = "5"
 # Point scheduler off for the test (we don't need it running)
 os.environ["SUNNYWARE_SCHEDULE_ENABLED"] = "false"
+# Part 164b: dry-run so this smoke finishes in <1s (was ~30s)
+os.environ["SUNNYWARE_EVAL_DRY_RUN"] = "1"
 
 sys.path.insert(0, str(SRC.parent))
 from sunnyware.jobs import evals as eval_job

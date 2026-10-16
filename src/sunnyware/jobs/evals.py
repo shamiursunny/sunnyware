@@ -8,12 +8,19 @@ Each execution calls evals.run_suite(default_call_fn) and logs the summary.
 
 
 async def run():
+    import os as _os
     from ..runtime import log
     from .. import evals as E
+    # Part 164b: dry-run switch so CI (and any smoke) can exercise
+    # this job in <1s instead of ~30s of real LLM calls.
+    _dry = (_os.getenv("SUNNYWARE_EVAL_DRY_RUN", "") or "").lower() \
+           in ("1", "true", "yes", "on")
+    _call = E.dry_run_call_fn if _dry else E.default_call_fn
     try:
         run = await E.run_suite(
-            E.default_call_fn,
+            _call,
             triggered_by="scheduler",
+            dry_run=_dry,
         )
         s = run.get("summary") or {}
         try:
