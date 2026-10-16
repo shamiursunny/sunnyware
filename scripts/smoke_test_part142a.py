@@ -23,7 +23,8 @@ check("auditor label", 'AI Evaluation Auditor' in rt)
 check("auditor tool allowlist: calculator", '"calculator"' in rt)
 check("auditor tool allowlist: python_eval", '"python_eval"' in rt)
 check("auditor tool allowlist: read_file", '"read_file"' in rt)
-check("auditor tool allowlist: rag_search", '"rag_search"' in rt)
+# Part 147a: rag_search removed from auditor allowlist.
+check("auditor allowlist has read_file", '"read_file"' in rt)
 check("prompt mentions forensic auditor", "forensic auditor" in rt)
 check("prompt has PIPELINE", "PIPELINE" in rt)
 check("prompt has 5 canonical labels",
@@ -52,12 +53,12 @@ check("auditor has prompt addon",
       and len(R.prompt_addon("auditor")) > 100)
 check("auditor prompt addon has 5 labels",
       R.prompt_addon("auditor").count("Miscalculated percentage") >= 1)
-check("auditor tool list has 4 tools",
-      len(R.active_tool_names("auditor") or []) == 4,
+check("auditor tool list has 3 tools",
+      len(R.active_tool_names("auditor") or []) == 3,
       "n=%d" % len(R.active_tool_names("auditor") or []))
 check("auditor tools match allowlist",
       set(R.active_tool_names("auditor") or [])
-      == {"calculator", "python_eval", "read_file", "rag_search"})
+      == {"calculator", "python_eval", "read_file"})
 check("email_send not in auditor tools",
       "email_send" not in (R.active_tool_names("auditor") or []))
 check("write_file not in auditor tools",
@@ -66,8 +67,8 @@ check("image_generate not in auditor tools",
       "image_generate" not in (R.active_tool_names("auditor") or []))
 
 prompt = R.prompt_addon("auditor") or ""
-check("prompt is 200-2500 chars (token-minimized)",
-      200 <= len(prompt) <= 2500, "len=%d" % len(prompt))
+check("prompt is 200-3500 chars (token-minimized)",
+      200 <= len(prompt) <= 3500, "len=%d" % len(prompt))
 
 targets_all = set()
 for rn in R.role_names():

@@ -26,8 +26,10 @@ check("roles.py has bare-object regex",
       "_AUDITOR_BARE_OBJ" in rt)
 check("auditor prompt has TOOL POLICY",
       "TOOL POLICY:" in rt)
-check("auditor prompt forbids rag_search for fallacies",
-      "Do NOT use rag_search" in rt)
+# Part 147: prompt no longer mentions rag_search by name; it
+# just says "Use read_file ONLY to read the user's submitted materials".
+check("auditor prompt has tool guidance",
+      "TOOL POLICY:" in rt and "Use read_file ONLY" in rt)
 
 check("agent.py has _auditor_verdict_or_none",
       "def _auditor_verdict_or_none" in at)
@@ -39,7 +41,7 @@ from sunnyware import roles as R
 
 p = R.prompt_addon("auditor") or ""
 check("auditor prompt has TOOL POLICY", "TOOL POLICY:" in p)
-check("auditor prompt is <= 2500 chars", len(p) <= 2500,
+check("auditor prompt is <= 3500 chars", len(p) <= 3500,
       "len=%d" % len(p))
 
 pure = '{"verdict": "ok", "canonical_label": "Logic gap"}'

@@ -1260,3 +1260,27 @@ usage CSV).
       helper; response now carries an "auditor_verdict" field for
       the auditor role (parsed dict or null).
 - Smoke: 146 (18/18)
+
+### Part 147 - Auditor refinements (a/b/c)
+- Follow-up to the 3 live auditor tests that partially failed:
+- 147a: removed rag_search from auditor tool allowlist.
+    Reason: LFM 2.6B used rag_search to look up logic-fallacy names
+    ("post hoc ergo propter hoc") in the user's documents, burning
+    3 calls + returning irrelevant CV content. Auditor verifies claims;
+    it does not research terminology. If a user names a source
+    document, read_file still works.
+    Allowlist now: calculator, python_eval, read_file (3 tools).
+- 147b: added EXAMPLES block to auditor prompt with 3 canonical
+    input/output pairs (miscalculated %, no defect, logic gap).
+    Positive examples work better than negative rules on small models.
+    TOOL POLICY rewritten without naming rag_search (it's gone).
+- 147c: extract_auditor_json() gains a regex field-extraction
+    fallback. When JSON is malformed (missing braces, trailing comma)
+    but "key": "value" pairs are present, the fields are recovered
+    via _AUDITOR_FIELD_RE. Handles LFM's prose-heavy responses.
+- Smoke: 147 (16/16); 142a and 146 updated for new allowlist/prompt.
+
+### Part 146 (already shipped) recap
+- extract_auditor_json() with 4 parse paths
+- auditor_verdict field added to /api/agent/run response
+- TOOL POLICY block (superseded by 147b)

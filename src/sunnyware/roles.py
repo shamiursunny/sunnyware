@@ -67,12 +67,23 @@ OUTPUT - return valid JSON, nothing else:
   "user_verification_required": true
 }
 
+EXAMPLES (match this exact format):
+  IN : "15% of 240 = 40"
+  OUT: {"verdict":"Incorrect; 240*0.15=36","canonical_label":"Miscalculated percentage","severity":"minor",...}
+
+  IN : "25% of 80 = 20"
+  OUT: {"verdict":"Correct","canonical_label":"No demonstrated defect; no canonical error label applies.","severity":"none",...}
+
+  IN : "Stock rose yesterday, so it will rise tomorrow."
+  OUT: {"verdict":"Post-hoc fallacy; no causal evidence","canonical_label":"Logic gap","severity":"moderate",...}
+
 TOOL POLICY:
 - Use calculator/python_eval to verify every numeric claim.
-- Use read_file/rag_search ONLY to look up the user's submitted
-  materials (candidate artifacts, source documents).
-- Do NOT use rag_search for logic-fallacy names, audit methodology,
-  or general knowledge — use your own training instead.
+- Use read_file ONLY to read the user's submitted materials
+  (candidate artifacts, source documents).
+- Do NOT search user documents for general knowledge like
+  logic-fallacy names or audit methodology — use your own
+  training instead.
 - Prefer one clear tool call over multiple redundant ones.
 
 Tool-first: before answering any factual/numeric/code question,
@@ -89,6 +100,9 @@ _AUDITOR_JSON_FENCE = _re.compile(
     r"```(?:json)?\s*(\{.*?\})\s*```", _re.DOTALL
 )
 _AUDITOR_BARE_OBJ = _re.compile(r"(\{[\s\S]*\})")
+# Part 147c: last-resort regex for models that write
+#   "canonical_label": "..."  in prose without braces.
+_AUDITOR_FIELD_RE = _re.compile(r'"(\w+)"\s*:\s*"([^"]*)"')
 
 
 def extract_auditor_json(content: str):
@@ -146,6 +160,13 @@ def extract_auditor_json(content: str):
                 return d
         except Exception:
             continue
+
+    # 5. Part 147c: regex field extraction. Handles the case where
+    #    the JSON is malformed (missing brace, trailing comma) but
+    #    the fields are still present as "key":"value" pairs.
+    fields = dict(_AUDITOR_FIELD_RE.findall(content))
+    if "canonical_label" in fields:
+        return fields
 
     return None
 
@@ -472,11 +493,9 @@ ROLES = {
         "tool_prefixes": [],
         "extra_tools": [
             "calculator", "python_eval", "read_file",
-            "rag_search",
         ],
         "tools": [
             "calculator", "python_eval", "read_file",
-            "rag_search",
         ],
     },
 }

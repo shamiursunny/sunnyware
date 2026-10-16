@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-16 (Part 146 wrap — auditor JSON extraction)
+**Last update:** 2026-10-16 (Part 147 wrap — auditor refinements)

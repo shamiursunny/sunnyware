@@ -983,3 +983,11 @@ false cooldowns on per-day quota exhaustion.
 Handles small-model JSON wrapping; adds structured
 auditor_verdict field to /api/agent/run response for
 the auditor role.
+
+## 2026-10-16 (session 3) - Part 147a+b+c
+
+| Part | Commit  | Feature |
+|------|---------|---------|
+| 147  | (this)  | Auditor refinements: allowlist trim, EXAMPLES, regex fallback |
+
+Follow-up to the 3 live auditor tests.
