@@ -1479,3 +1479,121 @@ async def providers_cooldowns():
             {"error": f"{type(e).__name__}: {e}"},
             status_code=500,
         )
+
+
+@router.get("/api/golden/status")
+async def golden_status():
+    """Part 158: golden dataset config + case counts + last-run summary."""
+    try:
+        from .. import golden as _g
+        return _g.status()
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.get("/api/golden/latest")
+async def golden_latest():
+    """Part 158: full payload of the most recent golden run."""
+    try:
+        from .. import golden as _g
+        run = _g.latest_run()
+        if not run:
+            return JSONResponse({"error": "no_runs"},
+                                status_code=404)
+        return run
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.get("/api/golden/trends")
+async def golden_trends(n: int = 10):
+    """Part 158: time-series of golden run summaries."""
+    try:
+        from .. import golden as _g
+        try:
+            n = max(1, min(int(n), 100))
+        except Exception:
+            n = 10
+        return {"n": n, "runs": _g.trends(n=n)}
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.post("/api/golden/run")
+async def golden_run(req: Request):
+    """Part 158: run the golden suite now. Admin-guarded when auth on.
+
+    Body (all optional):
+      {"dry_run": true}       - use canned responses
+      {"tags": ["safety"]}    - restrict to matching tags
+      {"triggered_by": "..."} - provenance tag
+    """
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        from .. import golden as _g
+        try:
+            body = await req.json()
+        except Exception:
+            body = {}
+        body = body or {}
+        tags = body.get("tags")
+        if tags is not None and not isinstance(tags, list):
+            tags = None
+        dry_run = bool(body.get("dry_run", False))
+        triggered_by = str(body.get("triggered_by") or "api")[:32]
+        call_fn = _g.dry_run_call_fn if dry_run else _g.default_call_fn
+        run = await _g.run_suite(call_fn, tags=tags,
+                                  triggered_by=triggered_by)
+        return run
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.post("/api/golden/promote")
+async def golden_promote(req: Request):
+    """Part 158: add or update a golden case. Admin-guarded."""
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        from .. import golden as _g
+        try:
+            body = await req.json()
+        except Exception:
+            body = {}
+        if not isinstance(body, dict):
+            return JSONResponse({"error": "body must be a JSON object"},
+                                status_code=400)
+        r = _g.promote(body)
+        return r
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.post("/api/golden/delete")
+async def golden_delete(req: Request):
+    """Part 158: delete a golden case by id. Admin-guarded."""
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        from .. import golden as _g
+        try:
+            body = await req.json()
+        except Exception:
+            body = {}
+        cid = (body or {}).get("id")
+        if not cid:
+            return JSONResponse({"error": "id required"}, status_code=400)
+        r = _g.delete_case(str(cid))
+        return r
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
