@@ -52,8 +52,10 @@ check("auditor has read_file", "read_file" in atools)
 p = R.prompt_addon("auditor") or ""
 check("prompt has call-once hint",
       "Call calculator ONCE per unique expression" in p)
+# Part 149: prompt now uses "SIDECAR TRIGGERS:" block. Accept either
+# the old "call auditor_full_spec ONCE" phrasing or the new block.
 check("prompt has sidecar hint",
-      "call auditor_full_spec ONCE" in p)
+      "auditor_full_spec ONCE" in p or "SIDECAR TRIGGERS:" in p)
 
 async def _test():
     t = T.get_tool("auditor_full_spec")

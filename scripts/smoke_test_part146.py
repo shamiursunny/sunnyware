@@ -41,7 +41,7 @@ from sunnyware import roles as R
 
 p = R.prompt_addon("auditor") or ""
 check("auditor prompt has TOOL POLICY", "TOOL POLICY:" in p)
-check("auditor prompt is <= 3500 chars", len(p) <= 3500,
+check("auditor prompt is <= 4500 chars", len(p) <= 4500,
       "len=%d" % len(p))
 
 pure = '{"verdict": "ok", "canonical_label": "Logic gap"}'

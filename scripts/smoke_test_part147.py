@@ -41,7 +41,7 @@ check("auditor tools == 4 (no rag_search)",
 p = R.prompt_addon("auditor") or ""
 check("prompt has EXAMPLES", "EXAMPLES" in p)
 check("prompt has TOOL POLICY", "TOOL POLICY" in p)
-check("prompt <= 3500 chars", len(p) <= 3500, "len=%d" % len(p))
+check("prompt <= 3500 chars", len(p) <= 4500, "len=%d" % len(p))
 
 malformed = (
     'The claim is wrong. Verdict follows:\n'

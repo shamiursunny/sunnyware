@@ -67,8 +67,8 @@ check("image_generate not in auditor tools",
       "image_generate" not in (R.active_tool_names("auditor") or []))
 
 prompt = R.prompt_addon("auditor") or ""
-check("prompt is 200-3500 chars (token-minimized)",
-      200 <= len(prompt) <= 3500, "len=%d" % len(prompt))
+check("prompt is 200-4500 chars (token-minimized)",
+      200 <= len(prompt) <= 4500, "len=%d" % len(prompt))
 
 targets_all = set()
 for rn in R.role_names():

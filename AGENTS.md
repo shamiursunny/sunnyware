@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-16 (Part 148 wrap — auditor sidecar)
+**Last update:** 2026-10-16 (Part 149 wrap — mandatory tool use)

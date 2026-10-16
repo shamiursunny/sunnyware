@@ -1001,3 +1001,12 @@ Follow-up to the 3 live auditor tests.
 Adds static/auditor_prompt_full.txt + tools/auditor_full_spec.py
 (82nd tool). Auditor allowlist grows to 4 tools. Call-once
 hint added to reduce duplicate calculator calls.
+
+## 2026-10-16 (session 3) - Part 149
+
+| Part | Commit  | Feature |
+|------|---------|---------|
+| 149  | (this)  | Mandatory calculator + sidecar trigger rules |
+
+Closes two subtle misses from the Part 148 live test:
+no tool evidence + missed multi-layer analysis.

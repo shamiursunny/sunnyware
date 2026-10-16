@@ -1307,3 +1307,30 @@ usage CSV).
 - The sidecar replaces the full V15.0 spec as a mechanical translation.
   Swapping in the verbatim 30K V15.0 later is a one-file change.
 - Smoke: 148 (27/27); 142a and 147 updated for new allowlist.
+
+### Part 149 - Mandatory tool-use rules in auditor prompt
+- Follow-up to the Part 148 live test on a complex multi-layer audit:
+  the auditor answered correctly (17.0% weighted average) but made
+  two subtle misses:
+    1. Called ZERO tools - the model computed 0.5*10 + 0.3*20 + 0.2*30
+       mentally, violating the "recompute every number independently"
+       rule. The output was right, but no auditable evidence.
+    2. Ignored the "identify all layers of error" instruction - it
+       only blamed the Candidate, missing that the Evaluator and the
+       Benchmark key both agreed with the wrong answer. The sidecar
+       (multi-layer root cause) was not loaded.
+- Fixes in _AUDITOR_PROMPT:
+    1. Calculator rule is now MANDATORY: "ALWAYS call calculator for
+       ANY numeric claim - even trivial arithmetic. Mental math is
+       NOT auditable evidence." Includes a concrete example.
+    2. Added SIDECAR TRIGGERS block. If the task mentions any of:
+       'layers', 'end-to-end', 'all sources of error', 'multi-layer',
+       'benchmark', 'evaluator', 'rubric', 'evidence hierarchy' -
+       the auditor MUST call auditor_full_spec FIRST.
+       "Skipping this when trigger words are present is a defect."
+- Prompt grew from ~3.6KB to ~3.9KB (+~80 tokens). Still well under
+  the 4.5KB cap and safely within Groq's 7500-token limit.
+- Smoke: 149 (19/19). Regressions: 148 (27/27), 147 (16/16),
+  146 (18/18), 145 (37/37), 144 (14/14), 142a (26/26),
+  143 (24/24), 137 (57/57), 112 (28/28).
+- Smoke 146, 147, 148 caps bumped 3500 -> 4500 to match new prompt size.
