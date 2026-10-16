@@ -99,7 +99,9 @@ var CARDS = [
   { id:"circuits",  title:"Tool circuits",  key:"circuits",  render:renderCircuits },
   { id:"recon",     title:"Recon guard",    key:"recon",     render:renderRecon },
   { id:"audit",     title:"Audit chain",    key:"audit",     render:renderAudit },
-  { id:"providers", title:"Providers",      key:"providers", render:renderProviders }
+  { id:"providers", title:"Providers",      key:"providers", render:renderProviders },
+  { id:"neon",      title:"Neon DB",        key:"neon",      render:renderNeon },
+  { id:"ci",        title:"CI/CD",          key:"ci",        render:renderCI }
 ];
 
 function el(tag, cls, txt){
@@ -540,6 +542,81 @@ var CARDS_BY_ID = {};
     CARDS_BY_ID[spec.id] = { spec: spec, s: s, body: body, dot: dot };
   }
 })();
+
+function renderNeon(d){
+  var c = el("div");
+  if (!d || d.__error__){
+    c.appendChild(badge("err", "UNKNOWN"));
+    if (d && d.__error__) c.appendChild(el("div","err-msg", d.__error__));
+    return c;
+  }
+  var up = d.status === "up";
+  c.appendChild(badge(up ? "ok" : (d.status === "unknown" ? "dim" : "err"),
+                      (d.status || "?").toUpperCase()));
+  if (d.latency_ms != null){
+    var big = el("div","big");
+    big.textContent = d.latency_ms + " ms";
+    big.style.color = d.latency_ms < 100 ? "var(--ok)"
+                    : d.latency_ms < 400 ? "var(--warn)"
+                    : "var(--err)";
+    c.appendChild(big);
+  }
+  var info = {};
+  if (d.region) info["Region"] = d.region;
+  if (d.detail) info["Detail"] = d.detail;
+  if (Object.keys(info).length) c.appendChild(kv(info));
+  return c;
+}
+
+function renderCI(d){
+  var c = el("div");
+  if (!d || d.ok === false){
+    c.appendChild(badge("err", "UNREACHABLE"));
+    if (d && d.detail) c.appendChild(el("div","err-msg", d.detail));
+    return c;
+  }
+  var runs = d.runs || [];
+  if (!runs.length){
+    c.appendChild(badge("dim", "NO RUNS"));
+    return c;
+  }
+  var head = runs[0];
+  var head_cls = head.conclusion === "success" ? "ok"
+               : head.conclusion === "failure" ? "err"
+               : "warn";
+  var head_txt = (head.conclusion || head.status || "?").toUpperCase();
+  c.appendChild(badge(head_cls, head_txt));
+  c.appendChild(el("div", "muted",
+    (head.name || "?") + "  -  " + (head.sha || "?")
+    + "  -  " + (head.branch || "?")));
+
+  var tbl = el("table");
+  var hd = el("tr");
+  ["run", "when", "time", "result"].forEach(function(x){
+    hd.appendChild(el("th", null, x));
+  });
+  tbl.appendChild(hd);
+  runs.forEach(function(r){
+    var tr = el("tr");
+    tr.appendChild(el("td", null, r.name || "?"));
+    tr.appendChild(el("td", null, fmtRelative(r.updated_at)));
+    tr.appendChild(el("td", null,
+      r.duration_s != null ? r.duration_s + "s" : "-"));
+    var td = el("td");
+    var cl = r.conclusion === "success" ? "ok"
+           : r.conclusion === "failure" ? "err"
+           : "warn";
+    var b = badge(cl, (r.conclusion || r.status || "?").toUpperCase());
+    var a = el("a");
+    a.href = r.url || "#"; a.target = "_blank"; a.rel = "noreferrer";
+    a.appendChild(b);
+    td.appendChild(a);
+    tr.appendChild(td);
+    tbl.appendChild(tr);
+  });
+  c.appendChild(tbl);
+  return c;
+}
 
 function renderCardFromSummary(id, summary){
   var rec = CARDS_BY_ID[id];

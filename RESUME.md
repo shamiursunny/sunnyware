@@ -114,6 +114,11 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   is the local full-sweep runner with --verbose + env-skip classifier.
   Status: GREEN on both jobs.
 
+- Status page - Neon + CI cards (Part 165): /status now shows
+  Neon DB health (SELECT 1 probe with latency + region) and the last
+  3 GitHub Actions runs (status, duration, clickable link). Cached
+  90s on the CI probe to respect the unauthenticated rate limit.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP

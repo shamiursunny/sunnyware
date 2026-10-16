@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-17 (Part 164k - CI green)
+**Last update:** 2026-10-17 (Part 165 - Neon + CI cards)

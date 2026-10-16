@@ -1818,6 +1818,92 @@ async def status_dashboard():
         )
 
 
+# ─── Part 165: Neon DB + GitHub CI/CD health probes ───
+_CI_CACHE = {"ts": 0.0, "data": None}
+
+
+def _dur_s(start_iso, end_iso):
+    """Duration in seconds between two ISO timestamps (or None)."""
+    from datetime import datetime
+    if not start_iso or not end_iso:
+        return None
+    try:
+        s = datetime.fromisoformat(start_iso.replace("Z", "+00:00"))
+        e = datetime.fromisoformat(end_iso.replace("Z", "+00:00"))
+        return int((e - s).total_seconds())
+    except Exception:
+        return None
+
+
+async def neon_health():
+    """Ping NeonDB with a cheap SELECT 1; return status + latency."""
+    import time as _t
+    t0 = _t.time()
+    try:
+        from .. import app_state
+        pool = app_state.get_pool()
+    except Exception as e:
+        return {"status": "unknown",
+                "detail": f"app_state: {type(e).__name__}: {e}",
+                "latency_ms": None}
+    if pool is None:
+        return {"status": "down",
+                "detail": "no pool (NEON_DATABASE_URL unset?)",
+                "latency_ms": None}
+    try:
+        import asyncio
+        async with pool.acquire() as conn:
+            await asyncio.wait_for(conn.fetchval("SELECT 1"), timeout=3.0)
+        return {
+            "status": "up",
+            "latency_ms": round((_t.time() - t0) * 1000, 1),
+            "region": "us-east-2",
+        }
+    except Exception as e:
+        return {
+            "status": "down",
+            "detail": f"{type(e).__name__}: {e}",
+            "latency_ms": round((_t.time() - t0) * 1000, 1),
+        }
+
+
+async def github_ci_status():
+    """Latest 3 GitHub Actions runs. Cached ~90s for rate limits."""
+    import time as _t
+    now = _t.time()
+    if _CI_CACHE["data"] and (now - _CI_CACHE["ts"]) < 90:
+        return _CI_CACHE["data"]
+    try:
+        import httpx
+        url = ("https://api.github.com/repos/shamiursunny/sunnyware"
+               "/actions/runs?per_page=3")
+        headers = {"Accept": "application/vnd.github+json",
+                   "User-Agent": "sunnyware-status/1.0"}
+        async with httpx.AsyncClient(timeout=10.0) as cli:
+            r = await cli.get(url, headers=headers)
+            r.raise_for_status()
+            j = r.json()
+        runs = []
+        for run in (j.get("workflow_runs") or [])[:3]:
+            runs.append({
+                "name": run.get("name"),
+                "status": run.get("status"),
+                "conclusion": run.get("conclusion"),
+                "branch": run.get("head_branch"),
+                "sha": (run.get("head_sha") or "")[:7],
+                "updated_at": run.get("updated_at"),
+                "url": run.get("html_url"),
+                "duration_s": _dur_s(run.get("run_started_at"),
+                                     run.get("updated_at")),
+            })
+        out = {"ok": True, "runs": runs}
+        _CI_CACHE["ts"] = now
+        _CI_CACHE["data"] = out
+        return out
+    except Exception as e:
+        return {"ok": False, "detail": f"{type(e).__name__}: {e}"}
+
+
 @router.get("/api/status/summary")
 async def status_summary():
     """Part 163c: aggregator for the status dashboard.
@@ -1848,5 +1934,9 @@ async def status_summary():
     await _safe("recon", recon_stats)
     await _safe("audit", audit_verify)
     await _safe("providers", providers_status)
+
+    # Part 165: Neon DB + GitHub CI/CD probes
+    await _safe("neon", neon_health)
+    await _safe("ci", github_ci_status)
 
     return out

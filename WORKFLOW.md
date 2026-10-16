@@ -1235,3 +1235,15 @@ Final workflow: .github/workflows/smokes.yml (name: ci).
   - smoke : auto-detects changed smokes from diff/message
 
 CI status: green on both jobs.
+
+## 2026-10-17 - Part 165
+
+| Part | Feature |
+|------|---------|
+| 165  | Neon DB + CI/CD cards on /status |
+
+Two new cards on the unified status dashboard:
+  - Neon DB : SELECT 1 probe, latency + region
+  - CI/CD   : last 3 GitHub Actions runs, cached 90s
+
+Smoke: 165 (16/16).

@@ -1790,3 +1790,21 @@ Iterations that got us here (each a real commit):
   164k  final: focused gate + change-scoped smokes
 
 CI result at 164k: gate=success, smoke=success.
+
+### Part 165 - Neon DB + CI/CD status cards
+- Backend: routes/meta.py gains two probes wired into
+  /api/status/summary:
+    * neon_health()       - SELECT 1 through app_state.get_pool()
+                            with 3s timeout, returns status +
+                            latency_ms + region.
+    * github_ci_status()  - latest 3 workflow runs from the public
+                            GitHub Actions API. Cached ~90s to stay
+                            under the unauthenticated 60/hr rate limit.
+- Frontend: two new cards on /status.
+    * Neon DB   - UP/DOWN badge + latency_ms in ms (green <100ms,
+                  amber <400ms, red otherwise) + region.
+    * CI/CD     - headline badge of the newest run + table of the
+                  last 3 runs (name, when, duration_s, result) with
+                  clickable result badges linking to the GitHub run.
+- Card count went from 8 to 10.
+- Smoke: 165 (16/16). Regressions: pre-push 6/6.
