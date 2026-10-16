@@ -35,11 +35,11 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements-ci.txt
 
-      - name: Run system monitor (quick)
+      - name: Run system monitor (offline)
         env:
           PYTHONIOENCODING: utf-8
           PYTHONUTF8: "1"
-        run: python scripts/system_monitor.py --quick
+        run: python scripts/system_monitor.py --offline
 
   # ─── Informational: full smoke suite ──────────────────────────────
   # Runs all 99 smokes. Many need DB / /data / live providers, so a
