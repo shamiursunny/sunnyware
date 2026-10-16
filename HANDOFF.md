@@ -1475,3 +1475,48 @@ usage CSV).
   exceed SUNNYWARE_RETRY_WAIT_MAX_S fail out.
 - Smoke: 154 (8/8). Regressions: 153 (8/8), 152 (9/9), 151 (31/31),
   145 (37/37), 137 (57/57), 112 (28/28).
+
+### Part 155 - CDO rewrite + specialist output contract
+- Two coordinated prompt upgrades so the CFO -> CDO -> specialist
+  pipeline produces structured, verifiable output at every layer.
+- CDO prompt rewrite (role_truthfulness.py):
+    - VALID WORKERS block: explicit list of the 7 delegatable roles
+      (fpa, quant, actuary, tax, legal, risk_ins, general).
+    - Warns that auditor is USER-ONLY (do not delegate to auditor).
+    - Restates CROSS-CHECK RULE (2+ independent specialists for
+      financial / legal / tax / insurance / regulatory claims).
+    - Verifies specialist replies carry [source: ...] tags and
+      flag fabrication.
+    - Defines FINAL REPORT FORMAT returned to the CFO:
+        ## Result      (combined answer with citations)
+        ## Cross-check (matched|flagged|single-source per claim)
+        ## Gaps        (what could not be retrieved)
+- Specialist output contract (role_truthfulness.py):
+    - New SPECIALIST_ROLES set: {fpa, quant, actuary, tax, legal, risk_ins}.
+    - New SPECIALIST_OUTPUT_CONTRACT clause appended to every specialist
+      prompt via clause_for().
+    - Every factual / numeric claim must carry one of:
+        [source: <tool_name> as of <date>]
+        [source: UNABLE TO RETRIEVE - <tool> returned no data]
+        [source: NOT VERIFIED - no tool used]
+    - Required reply structure:
+        1. Summary (2-3 sentences)
+        2. Findings (each tagged)
+        3. Gaps
+- Effect: CDO can now mechanically verify specialist output (the tags
+  are parseable), and CFO gets a structured report with an explicit
+  cross-check section instead of free prose.
+- Prompt sizes after Part 155:
+    general    704c
+    fpa       2060c
+    quant     2104c
+    actuary   2408c
+    tax       2022c
+    cfo       2923c
+    cdo       3419c
+    legal     2604c
+    risk_ins  2555c
+    auditor   4358c
+  All still under Groq's 7500-token cap.
+- Smoke: 155 (35/35). Regressions: 154 (8/8), 153 (8/8),
+  152 (9/9), 151 (31/31), 145 (37/37), 137 (57/57), 112 (28/28).

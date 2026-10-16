@@ -1056,3 +1056,13 @@ pipeline. Reload discarding cooldowns was the culprit.
 
 Completes the CFO->CDO->worker fix: cooldowns now persist
 (153) AND the router waits long enough for them (154).
+
+## 2026-10-16 (session 3) - Part 155
+
+| Part | Commit  | Feature |
+|------|---------|---------|
+| 155  | (this)  | CDO rewrite + specialist output contract |
+
+CDO gets explicit worker list + report format. Specialists
+get mandatory [source: ...] tags. Enables mechanical CDO
+cross-check verification.
