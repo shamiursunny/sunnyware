@@ -1,0 +1,423 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sunnyware - Status</title>
+<style>
+  :root{
+    --bg:#0b0d12; --card:#151922; --card2:#1b202b;
+    --text:#e7ecf3; --dim:#8892a6;
+    --accent:#5b8def; --ok:#2ecc71; --warn:#f5a623; --err:#e74c3c;
+    --border:#232a38;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+  header{display:flex;align-items:center;gap:16px;padding:16px 24px;
+    border-bottom:1px solid var(--border);position:sticky;top:0;
+    background:rgba(11,13,18,.92);backdrop-filter:blur(8px);z-index:10;
+    flex-wrap:wrap}
+  header h1{font-size:18px;margin:0;letter-spacing:.3px}
+  header .spacer{flex:1}
+  .badge{padding:4px 10px;border-radius:20px;font-size:12px;
+    font-weight:600;letter-spacing:.4px;text-transform:uppercase}
+  .badge.ok{background:rgba(46,204,113,.15);color:var(--ok);
+    border:1px solid rgba(46,204,113,.4)}
+  .badge.warn{background:rgba(245,166,35,.15);color:var(--warn);
+    border:1px solid rgba(245,166,35,.4)}
+  .badge.err{background:rgba(231,76,60,.15);color:var(--err);
+    border:1px solid rgba(231,76,60,.4)}
+  .badge.dim{background:rgba(136,146,166,.15);color:var(--dim);
+    border:1px solid rgba(136,146,166,.3)}
+  .muted{color:var(--dim);font-size:12px}
+  button{cursor:pointer;font:inherit}
+  main{display:grid;gap:16px;padding:20px 24px 40px;
+    grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
+    max-width:1500px;margin:0 auto}
+  section.card{background:var(--card);border:1px solid var(--border);
+    border-radius:10px;padding:16px 18px;min-height:140px;
+    display:flex;flex-direction:column;gap:10px}
+  section.card h2{font-size:13px;margin:0;text-transform:uppercase;
+    letter-spacing:.8px;color:var(--dim);font-weight:600;
+    display:flex;align-items:center;gap:8px}
+  section.card h2 .dot{width:8px;height:8px;border-radius:50%;
+    background:var(--dim);flex:0 0 auto;transition:background .3s}
+  .card-body{flex:1;min-height:40px}
+  .big{font-size:28px;font-weight:700;line-height:1}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;
+    font-size:13px;margin-top:6px}
+  .kv .k{color:var(--dim)}
+  .kv .v{font-family:var(--mono);font-size:12px;word-break:break-all}
+  pre.json{margin:6px 0 0;font-family:var(--mono);font-size:11.5px;
+    color:var(--text);white-space:pre-wrap;word-break:break-word;
+    max-height:220px;overflow-y:auto;padding:8px;
+    background:var(--card2);border-radius:6px}
+  table{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px}
+  th,td{text-align:left;padding:6px 8px;
+    border-bottom:1px solid var(--border)}
+  th{color:var(--dim);font-weight:500}
+  tr:last-child td{border-bottom:none}
+  .bar{width:100%;height:8px;background:var(--card2);border-radius:4px;
+    overflow:hidden;margin-top:6px}
+  .bar>i{display:block;height:100%;
+    background:linear-gradient(90deg,var(--accent),#7fb0ff);
+    transition:width .3s ease}
+  .bar.warn>i{background:linear-gradient(90deg,#f5a623,#ffce6b)}
+  .bar.err>i{background:linear-gradient(90deg,#e74c3c,#ff8c80)}
+  .err-msg{color:var(--err);font-size:12px;font-family:var(--mono);
+    margin-top:6px}
+  .loading::after{content:"loading...";color:var(--dim);font-size:12px}
+  a{color:var(--accent);text-decoration:none}
+  a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sunnyware - Status</h1>
+  <span id="badge-health" class="badge dim">...</span>
+  <span class="spacer"></span>
+  <span class="muted" id="refresh-info">-</span>
+  <button id="refresh-now" class="badge ok">Refresh</button>
+  <span class="muted" id="countdown">5s</span>
+</header>
+
+<main id="grid"></main>
+
+<script>
+"use strict";
+var POLL_MS = 5000;
+
+var CARDS = [
+  { id:"health",    title:"Health",         url:"/health/ready",                render:renderHealth },
+  { id:"budget",    title:"Budget",         url:"/api/usage/budget",            render:renderBudget },
+  { id:"golden",    title:"Golden dataset", url:"/api/golden/latest",           render:renderGolden },
+  { id:"evals",     title:"Evals",          url:"/api/evals/trends?n=5",        render:renderEvals },
+  { id:"circuits",  title:"Tool circuits",  url:"/api/tools/circuits",          render:renderCircuits },
+  { id:"recon",     title:"Recon guard",    url:"/api/recon/stats",             render:renderRecon },
+  { id:"audit",     title:"Audit chain",    url:"/api/audit/verify",            render:renderAudit },
+  { id:"providers", title:"Providers",      url:"/api/providers",               render:renderProviders }
+];
+
+function el(tag, cls, txt){
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (txt != null) e.textContent = txt;
+  return e;
+}
+function fmtRelative(ts){
+  if (!ts) return "-";
+  var d = typeof ts === "number" ? ts * 1000 : new Date(ts).getTime();
+  var s = Math.floor((Date.now() - d) / 1000);
+  if (s < 0) return "just now";
+  if (s < 60) return s + "s ago";
+  if (s < 3600) return Math.floor(s/60) + "m ago";
+  if (s < 86400) return Math.floor(s/3600) + "h ago";
+  return Math.floor(s/86400) + "d ago";
+}
+function fmtUsd(v){
+  if (v == null) return "-";
+  return "$" + Number(v).toFixed(4);
+}
+function badge(cls, txt){
+  var b = el("span", "badge " + cls);
+  b.textContent = txt;
+  return b;
+}
+function kv(obj){
+  var w = el("div", "kv");
+  var ks = Object.keys(obj || {});
+  for (var i = 0; i < ks.length; i++){
+    var k = ks[i], v = obj[k];
+    w.appendChild(el("span", "k", k));
+    var vv = el("span", "v");
+    vv.textContent = (typeof v === "object" && v !== null)
+      ? JSON.stringify(v) : String(v);
+    w.appendChild(vv);
+  }
+  return w;
+}
+function pre(obj){
+  var p = el("pre", "json");
+  p.textContent = JSON.stringify(obj, null, 2);
+  return p;
+}
+
+function renderHealth(d){
+  var c = el("div");
+  var ok = d && (d.status === "ok" || d.status === "ready" ||
+                 d.ok === true || d.ready === true);
+  c.appendChild(badge(ok ? "ok" : "err", ok ? "READY" : "DOWN"));
+  if (d) c.appendChild(kv(d));
+  return c;
+}
+function renderBudget(d){
+  var c = el("div");
+  var daily = (d && d.daily) || {};
+  var monthly = (d && d.monthly) || {};
+  if (!daily.enabled && !monthly.enabled){
+    c.appendChild(badge("dim", "DISABLED"));
+    c.appendChild(el("div", "muted", "SUNNYWARE_BUDGET_USD_* not set"));
+    return c;
+  }
+  c.appendChild(renderBudgetRow("Today", daily));
+  c.appendChild(el("div", "muted", " "));
+  c.appendChild(renderBudgetRow("Month", monthly));
+  if (d.alert_thresholds_pct){
+    c.appendChild(el("div", "muted",
+      "thresholds: " + d.alert_thresholds_pct.join(", ") + "%"));
+  }
+  return c;
+}
+function renderBudgetRow(label, x){
+  var w = el("div");
+  var top = el("div");
+  top.appendChild(el("span", null, label + " - "));
+  top.appendChild(el("strong", null, fmtUsd(x.used_usd)));
+  top.appendChild(el("span", "muted",
+    " / " + fmtUsd(x.cap_usd) + "  (" + (x.pct || 0).toFixed(2) + "%)"));
+  w.appendChild(top);
+  var bar = el("div", "bar");
+  if ((x.pct || 0) >= 95) bar.classList.add("err");
+  else if ((x.pct || 0) >= 80) bar.classList.add("warn");
+  var fill = el("i");
+  fill.style.width = Math.min(100, Math.max(0, x.pct || 0)) + "%";
+  bar.appendChild(fill);
+  w.appendChild(bar);
+  return w;
+}
+function renderGolden(d){
+  var c = el("div");
+  if (!d || !d.run){
+    c.appendChild(badge("dim", "NO RUNS"));
+    return c;
+  }
+  var r = d.run;
+  var ok = r.passed === r.total;
+  var big = el("div", "big");
+  big.textContent = r.passed + " / " + r.total;
+  big.style.color = ok ? "var(--ok)" : "var(--warn)";
+  c.appendChild(big);
+  c.appendChild(el("div", "muted",
+    "score " + (r.score != null ? Number(r.score).toFixed(3) : "-")
+    + "  -  " + fmtRelative(r.ts)));
+  return c;
+}
+function renderEvals(d){
+  var c = el("div");
+  var runs = (d && (d.runs || d.recent)) || [];
+  if (!runs.length){ c.appendChild(badge("dim", "NO RUNS")); return c; }
+  c.appendChild(el("div", "muted", "last 5 runs"));
+  var tbl = el("table");
+  var head = el("tr");
+  ["when", "score", "passed"].forEach(function(x){
+    head.appendChild(el("th", null, x));
+  });
+  tbl.appendChild(head);
+  runs.slice(0, 5).forEach(function(r){
+    var tr = el("tr");
+    tr.appendChild(el("td", null, fmtRelative(r.ts)));
+    tr.appendChild(el("td", null,
+      r.score != null ? Number(r.score).toFixed(2) : "-"));
+    tr.appendChild(el("td", null,
+      (r.passed != null ? r.passed : "?") + "/" +
+      (r.total != null ? r.total : "?")));
+    tbl.appendChild(tr);
+  });
+  c.appendChild(tbl);
+  return c;
+}
+function renderCircuits(d){
+  var c = el("div");
+  if (!d){ c.appendChild(el("div", "err-msg", "no data")); return c; }
+  var tools = d.tools || [];
+  var open = tools.filter(function(t){ return t.open; });
+  if (!open.length){
+    c.appendChild(badge("ok", "ALL CLOSED"));
+    c.appendChild(el("div", "muted",
+      "threshold " + d.fails_threshold + " fails - cooldown "
+      + d.cooldown_seconds + "s - tracked: " + tools.length));
+    return c;
+  }
+  c.appendChild(badge("err", open.length + " OPEN"));
+  var tbl = el("table");
+  var head = el("tr");
+  ["tool", "retry in", "fails"].forEach(function(x){
+    head.appendChild(el("th", null, x));
+  });
+  tbl.appendChild(head);
+  open.forEach(function(t){
+    var tr = el("tr");
+    tr.appendChild(el("td", null, t.name));
+    tr.appendChild(el("td", null, t.remaining_open_s + "s"));
+    tr.appendChild(el("td", null, String(t.total_fails)));
+    tbl.appendChild(tr);
+  });
+  c.appendChild(tbl);
+  return c;
+}
+function renderRecon(d){
+  var c = el("div");
+  if (!d){ c.appendChild(el("div", "err-msg", "no data")); return c; }
+  var total = d.blocked_total || 0;
+  var big = el("div", "big");
+  big.textContent = String(total);
+  big.style.color = total > 0 ? "var(--warn)" : "var(--dim)";
+  c.appendChild(big);
+  c.appendChild(el("div", "muted",
+    "blocked - " + d.patterns_count + " patterns"));
+  var recent = (d.recent || []).slice(-5).reverse();
+  if (recent.length){
+    var tbl = el("table");
+    var head = el("tr");
+    ["path", "ip"].forEach(function(x){
+      head.appendChild(el("th", null, x));
+    });
+    tbl.appendChild(head);
+    recent.forEach(function(e){
+      var tr = el("tr");
+      tr.appendChild(el("td", null, e.path));
+      tr.appendChild(el("td", null, e.ip || "-"));
+      tbl.appendChild(tr);
+    });
+    c.appendChild(tbl);
+  }
+  return c;
+}
+function renderAudit(d){
+  var c = el("div");
+  if (!d){ c.appendChild(el("div", "err-msg", "no data")); return c; }
+  var ok = d.ok === true;
+  c.appendChild(badge(ok ? "ok" : "err", ok ? "CHAIN OK" : "TAMPERED"));
+  c.appendChild(el("div", "muted", (d.count || 0) + " entries"));
+  if (!ok){
+    c.appendChild(el("div", "err-msg",
+      "first bad index " + d.first_bad_index + ": " + d.reason));
+  }
+  return c;
+}
+function renderProviders(d){
+  var c = el("div");
+  var src = d && (d.providers || d.list || d.items);
+  var arr = [];
+  if (Array.isArray(src)) arr = src;
+  else if (src && typeof src === "object"){
+    arr = Object.keys(src).map(function(k){
+      var v = src[k];
+      return Object.assign({ name: k }, (v && typeof v === "object") ? v : {});
+    });
+  }
+  if (!arr.length){
+    c.appendChild(badge("dim", "NO DATA"));
+    return c;
+  }
+  var tbl = el("table");
+  var head = el("tr");
+  ["provider", "status"].forEach(function(x){
+    head.appendChild(el("th", null, x));
+  });
+  tbl.appendChild(head);
+  arr.forEach(function(p){
+    var tr = el("tr");
+    tr.appendChild(el("td", null, p.name || p.provider || "?"));
+    var s = String(p.status || p.state ||
+                   (p.healthy ? "healthy" : "unknown"));
+    var cls = /ok|healthy|ready|up/i.test(s) ? "ok"
+      : /down|error|fail/i.test(s) ? "err" : "dim";
+    var td = el("td");
+    td.appendChild(badge(cls, s.toUpperCase()));
+    tr.appendChild(td);
+    tbl.appendChild(tr);
+  });
+  c.appendChild(tbl);
+  return c;
+}
+
+var GRID = document.getElementById("grid");
+var CARDS_BY_ID = {};
+
+(function buildGrid(){
+  for (var i = 0; i < CARDS.length; i++){
+    var spec = CARDS[i];
+    var s = el("section", "card");
+    s.id = "card-" + spec.id;
+    var h = el("h2");
+    var dot = el("span", "dot");
+    h.appendChild(dot);
+    h.appendChild(el("span", null, spec.title));
+    s.appendChild(h);
+    var body = el("div", "card-body loading");
+    body.id = "body-" + spec.id;
+    s.appendChild(body);
+    GRID.appendChild(s);
+    CARDS_BY_ID[spec.id] = { spec: spec, s: s, body: body, dot: dot };
+  }
+})();
+
+async function refreshCard(id){
+  var rec = CARDS_BY_ID[id];
+  if (!rec) return;
+  var spec = rec.spec, body = rec.body, dot = rec.dot;
+  try {
+    var r = await fetch(spec.url, { cache: "no-store" });
+    var d = null;
+    try { d = await r.json(); } catch (_) { d = null; }
+    body.classList.remove("loading");
+    body.innerHTML = "";
+    if (!r.ok){
+      dot.style.background = "var(--err)";
+      body.appendChild(el("div", "err-msg",
+        "HTTP " + r.status + "  " + spec.url));
+      if (d) body.appendChild(pre(d));
+      return;
+    }
+    dot.style.background = "var(--ok)";
+    body.appendChild(spec.render(d));
+  } catch (e){
+    dot.style.background = "var(--err)";
+    body.classList.remove("loading");
+    body.innerHTML = "";
+    body.appendChild(el("div", "err-msg",
+      (e && e.message) || "fetch failed"));
+  }
+}
+
+async function refreshAll(){
+  document.getElementById("refresh-info").textContent =
+    "updated " + new Date().toLocaleTimeString();
+  try {
+    var r = await fetch("/health/ready", { cache: "no-store" });
+    var b = document.getElementById("badge-health");
+    b.className = "badge " + (r.ok ? "ok" : "err");
+    b.textContent = r.ok ? "READY" : "HTTP " + r.status;
+  } catch (_){
+    var b2 = document.getElementById("badge-health");
+    b2.className = "badge err";
+    b2.textContent = "UNREACHABLE";
+  }
+  var jobs = [];
+  for (var i = 0; i < CARDS.length; i++) jobs.push(refreshCard(CARDS[i].id));
+  await Promise.all(jobs);
+}
+
+(function countdown(){
+  var n = Math.round(POLL_MS / 1000);
+  var e = document.getElementById("countdown");
+  e.textContent = n + "s";
+  setInterval(function(){
+    n -= 1;
+    if (n <= 0) n = Math.round(POLL_MS / 1000);
+    e.textContent = n + "s";
+  }, 1000);
+})();
+
+document.getElementById("refresh-now").addEventListener("click", refreshAll);
+
+refreshAll();
+setInterval(refreshAll, POLL_MS);
+</script>
+
+</body>
+</html>

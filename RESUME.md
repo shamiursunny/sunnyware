@@ -67,7 +67,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   spec). Tools: calculator, python_eval, read_file, rag_search.
   Returns structured JSON verdict. User-only invocation.
 
-## Recent additions (Parts 157-162)
+## Recent additions (Parts 157-163)
 
 - Golden dataset (Part 158): src/sunnyware/golden.py + static/
   golden_dataset.json. 5 seeded cases, 5 match modes. Endpoints:
@@ -100,6 +100,11 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   /api/recon/{stats,reset}. Env: SUNNYWARE_RECON_GUARD_ENABLED,
   SUNNYWARE_RECON_LOG_TO_AUDIT, SUNNYWARE_RECON_RECENT_MAX
   (defaults: on, on, 50).
+
+- Status dashboard (Part 163): static/status.html, served at GET
+  /status. Self-contained (no CDN, no build). Auto-refreshes 5s.
+  Aggregates health, budget, golden, evals, circuits, recon, audit,
+  providers into one color-coded page.
 
 ## Production safety layers (Parts 134-140)
 

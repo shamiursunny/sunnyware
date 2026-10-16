@@ -1712,3 +1712,23 @@ smokes + gate run before any git action.
     SUNNYWARE_RECON_RECENT_MAX=50        cap on in-memory recent list
 - Smoke: 162 (32/32). Regressions: 161 (44/44), 160 (36/36),
   159 (32/32), 144 (14/14).
+
+### Part 163 - Unified status dashboard
+- New static/status.html (14.5KB, self-contained, zero deps).
+- Single page at GET /status. Auto-refreshes every 5s + manual Refresh.
+- Reads 8 live endpoints in parallel:
+    /health/ready         overall readiness + top-bar badge
+    /api/usage/budget     daily/monthly progress bars + thresholds
+    /api/golden/latest    last golden run pass count + score
+    /api/evals/trends     last 5 eval runs table
+    /api/tools/circuits   open breaker table (or "all closed")
+    /api/recon/stats      blocked total + 5 most-recent probes
+    /api/audit/verify     hash-chain integrity (ok / tampered)
+    /api/providers        per-provider health table
+- Color coded: green = ok, amber = warning, red = error, grey = disabled.
+- Pure vanilla JS + CSS. No jQuery, no CDN, no build step. Backticks
+  avoided in JS so the file is heredoc-safe for future updates.
+- routes/meta.py: @router.get("/status", response_class=HTMLResponse).
+  Reads static/status.html from disk on each request (no caching).
+- Smoke: 163 (28/28). Regressions: 162 (32/32), 161 (44/44),
+  160 (36/36), 144 (14/14).

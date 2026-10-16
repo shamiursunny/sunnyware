@@ -1198,3 +1198,18 @@ list. Optional audit integration. Never throws into request path.
 Endpoints: GET /api/recon/stats, POST /api/recon/reset.
 
 Smoke: 162 (32/32).
+
+## 2026-10-17 - Part 163
+
+| Part | Feature |
+|------|---------|
+| 163  | Unified status dashboard |
+
+static/status.html: single self-contained page. Auto-refreshes 5s.
+Pulls /health/ready, /api/usage/budget, /api/golden/latest,
+/api/evals/trends, /api/tools/circuits, /api/recon/stats,
+/api/audit/verify, /api/providers. Color-coded cards.
+
+Route: GET /status (HTMLResponse from routes/meta.py).
+
+Smoke: 163 (28/28).

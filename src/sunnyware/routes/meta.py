@@ -1799,3 +1799,20 @@ async def recon_reset():
     except Exception as e:
         return JSONResponse({"error": f"{type(e).__name__}: {e}"},
                             status_code=500)
+
+
+@router.get("/status", response_class=HTMLResponse)
+async def status_dashboard():
+    """Part 163: single-page live status dashboard."""
+    from pathlib import Path as _P
+    here = _P(__file__).resolve()
+    root = here.parent.parent.parent.parent
+    p = root / "static" / "status.html"
+    try:
+        return HTMLResponse(p.read_text(encoding="utf-8"))
+    except Exception as e:
+        return HTMLResponse(
+            f"<h1>Status dashboard unavailable</h1>"
+            f"<pre>{type(e).__name__}: {e}</pre>",
+            status_code=500,
+        )
