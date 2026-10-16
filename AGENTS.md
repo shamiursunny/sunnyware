@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-16 (Part 142a wrap — auditor sub-agent)
+**Last update:** 2026-10-16 (Part 143 wrap — rate-limit detection)

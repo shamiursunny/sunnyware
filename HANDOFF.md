@@ -1195,3 +1195,22 @@ usage CSV).
 - NOT delegatable (no other role can call it; user-only invocation)
 - Tool allowlist enforced by existing Part 114d guard
 - Smoke: scripts/smoke_test_part142a.py (26/26)
+
+### Part 143 - Rate-limit detection (Pollinations 402)
+- Bug: Pollinations returns HTTP 402 FREE_LIMIT ("1 reply every 30s
+  per IP") when free-tier quota exhausted. The router's
+  _is_rate_limit_error only checked 429/rate limit/tpd/tpm and never
+  matched 402/FREE_LIMIT/Retry-after, so the provider never cooled
+  down and the request ended with "all providers failed".
+- Fix:
+  1. Extend _is_rate_limit_error to match 402, free_limit,
+     "retry after", and "retry_after".
+  2. New _parse_retry_after() extracts "Retry after Ns" /
+     "retry_after: N" / "Retry-After N" hints (1..600 s).
+  3. Cooldown duration now uses that hint (+5s safety) instead of
+     always 60s when the provider tells us exactly how long to wait.
+- Regex initially missed the hyphen in "Retry-After"; fixed to
+  retry[\s_\-]*after.
+- HF secret POLLINATIONS_API_KEY is already set (1 req/sec with key,
+  vs 1 req/30s free tier).
+- Smoke: scripts/smoke_test_part143.py (24/24)

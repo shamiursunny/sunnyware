@@ -954,3 +954,12 @@ Auditor sub-agent: forensic verification of AI outputs.
 Compressed from 30K tokens (full V15.0) to ~430 tokens so the
 role fits Groq (7.5K), OpenRouter, and Pollinations budgets.
 Full spec planned for static/auditor_prompt_full.txt in 142b.
+
+## 2026-10-16 (session 3 continued) - Part 143
+
+| Part | Commit  | Feature |
+|------|---------|---------|
+| 143  | (this)  | Pollinations 402 FREE_LIMIT + retry-after hint |
+
+Router now cools down Pollinations on 402 and honors the
+provider-supplied Retry-after hint (+5s safety margin).

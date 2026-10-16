@@ -284,7 +284,37 @@ def _is_too_large_error(err: str) -> bool:
 
 def _is_rate_limit_error(err: str) -> bool:
     e = (err or "").lower()
-    return "429" in e or "rate limit" in e or "tpd" in e or "tpm" in e
+    return (
+        "429" in e
+        or "rate limit" in e
+        or "rate_limit" in e
+        or "tpd" in e
+        or "tpm" in e
+        # Part 143: Pollinations FREE_LIMIT (returns HTTP 402, not 429)
+        or "402" in e
+        or "free_limit" in e
+        # Part 143: explicit "Retry after Ns" hints (any provider)
+        or "retry after" in e
+        or "retry_after" in e
+    )
+
+
+def _parse_retry_after(err: str) -> int:
+    """Part 143: extract 'Retry after Ns' / 'retry_after: N' hint.
+
+    Returns seconds (1..600) or 0 if no hint found.
+    """
+    m = re.search(
+        r"retry[\s_\-]*after[:\s]+?(\d+)",
+        err or "",
+        re.IGNORECASE,
+    )
+    if m:
+        try:
+            return max(1, min(int(m.group(1)), 600))
+        except Exception:
+            pass
+    return 0
 
 
 async def chat(
@@ -447,7 +477,10 @@ async def chat(
             continue
 
         if _is_rate_limit_error(err):
-            p.mark_cooldown(60.0)
+            # Part 143: honor provider-supplied retry hint when present,
+            # otherwise default to 60s.
+            _hint = _parse_retry_after(err)
+            p.mark_cooldown(float(_hint) + 5.0 if _hint else 60.0)
         else:
             p.mark_cooldown(10.0)
 
