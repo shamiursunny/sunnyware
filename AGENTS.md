@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-16 (Part 156 wrap — CFO hard stop + tool sanitize)
+**Last update:** 2026-10-16 (Part 157 - Reusable ship.py helper)

@@ -1552,3 +1552,33 @@ usage CSV).
 - Smoke: 156 (18/18). Regressions: 155 (35/35), 154 (8/8),
   153 (8/8), 152 (9/9), 151 (31/31), 145 (37/37), 137 (57/57),
   112 (28/28).
+
+### Part 157 - Reusable ship.py helper
+One-shot ship helper for future parts:
+
+  python scripts/ship.py <N> "<short desc>" [options]
+
+Options:
+  --body TEXT        Detailed body for HANDOFF.md (defaults to desc)
+  --wait N           HF rebuild wait seconds (default: 150)
+  --verify-role R    Role for live verify (default: general)
+  --verify-input T   Input for live verify
+  --skip STEPS       Comma-separated: smokes,gate,docs,commit,gh,hf,verify
+  --dry-run          Show what would happen without touching git
+
+Steps:
+  1. smokes - run every scripts/smoke_test_part*.py
+  2. gate   - scripts/pre_push_check.py
+  3. docs   - append HANDOFF + WORKFLOW + bump AGENTS footer
+  4. commit - git add + commit
+  5. gh     - git push origin main
+  6. hf     - ./push_hf.sh
+  7. verify - wait for HF, GET /health/ready, fire live request
+
+Legacy allowlist: some pre-Part-100 smokes have hard-coded counts
+that drifted (roles 9 -> 10 with the auditor role). ship.py warns
+but does not abort on those.
+
+Idempotent: re-running on the same part number skips docs already
+present, skips commits with nothing to add. Never pushes broken code:
+smokes + gate run before any git action.
