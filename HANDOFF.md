@@ -1178,3 +1178,20 @@ usage CSV).
 - Optional: Part 141 recon-path hardening (.env probes seen in logs)
 - Optional: WebUI provider chip should read result.resolved_model
   instead of the mirrored dropdown value (cosmetic)
+
+### Part 142a - Auditor role (token-minimized)
+- New role: "auditor" / "AI Evaluation Auditor" / U+1F50D icon
+- Forensic audit of AI outputs (math, logic, code, proofs, agent
+  trajectories, benchmarks, rubrics)
+- Compressed prompt (~1986 chars / ~430 tokens) replaces the full
+  30K-token V15.0 spec; still enforces:
+    - 11-step pipeline (Spec -> Domain -> Artifact -> ... -> Verdict)
+    - 7 hard rules (no agreement-as-proof, no requirement invention,
+      no fabrication, independent arithmetic, static vs runtime,
+      defect vs coverage confidence, severity independence)
+    - Exact 5-label canonical taxonomy + no-defect phrase
+    - Structured JSON output (10 keys)
+- Tool allowlist: calculator, python_eval, read_file, rag_search
+- NOT delegatable (no other role can call it; user-only invocation)
+- Tool allowlist enforced by existing Part 114d guard
+- Smoke: scripts/smoke_test_part142a.py (26/26)

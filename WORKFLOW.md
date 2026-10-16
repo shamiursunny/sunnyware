@@ -942,3 +942,15 @@ Bugs found + fixed (5 surfaced by observability built same session):
 6. Provider cache stale after limits reset
 7. result.model leaked legacy LLM_MODEL env
 8. Gemini hallucinated "I'm LFM"
+
+## 2026-10-16 (session 3) — Part 142a
+
+Auditor sub-agent: forensic verification of AI outputs.
+
+| Part | Commit  | Feature |
+|------|---------|---------|
+| 142a | (this)  | Auditor role, compressed prompt, tool allowlist |
+
+Compressed from 30K tokens (full V15.0) to ~430 tokens so the
+role fits Groq (7.5K), OpenRouter, and Pollinations budgets.
+Full spec planned for static/auditor_prompt_full.txt in 142b.

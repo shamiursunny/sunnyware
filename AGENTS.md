@@ -33,6 +33,8 @@ and session history. It is a personal production agent.
   guardrails.py           Prompt-injection scanner (regex)
   evals.py                Continuous evals framework
   usage.py                Per-tenant LLM cost attribution
+  roles.py                Role registry + per-role tool allowlist
+                          (includes "auditor" sub-agent, Part 142a)
       state.py                asyncpg pool
       prompts.py              System prompts
       paths.py                Persistent storage resolver (/data on HF)
@@ -198,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-16 (Part 140 wrap)
+**Last update:** 2026-10-16 (Part 142a wrap — auditor sub-agent)

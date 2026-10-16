@@ -60,6 +60,13 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   (Part 139: response now also carries result.resolved_model so the
    model name always matches the provider that actually served)
 
+## Sub-agents
+
+- auditor ("AI Evaluation Auditor", U+1F50D): forensic audit of
+  AI outputs. ~430-token prompt (compressed from the 30K V15.0
+  spec). Tools: calculator, python_eval, read_file, rag_search.
+  Returns structured JSON verdict. User-only invocation.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP
