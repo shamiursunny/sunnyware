@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-16 (Part 152 wrap — provider tool-support)
+**Last update:** 2026-10-16 (Part 153 wrap — cooldown preservation)

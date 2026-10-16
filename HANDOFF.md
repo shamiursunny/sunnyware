@@ -1426,3 +1426,30 @@ usage CSV).
   to groq/gemini/openrouter as before. Zero regression.
 - Smoke: 152 (9/9). Regressions: 151 (31/31), 150 (9/9),
   144 (14/14), 137 (57/57), 112 (28/28).
+
+### Part 153 - Cooldown preservation + pollinations IP floor
+- Root cause of the CFO->CDO->worker "all providers failed" after
+  Parts 151/152: in llm.py the retry-depth handler called
+  providers.load_providers(reload=True) which returned FRESH Provider
+  objects, discarding every cooldown / success_count / fail_count
+  set during the current request. HF logs showed "cooling=0 ready=4"
+  right after 4 pollinations 402 failures -- cooldowns were never
+  kept.
+- Fix A (llm.py): removed the reload=True call. The router now uses
+  the in-memory Provider list, so cooldowns set by earlier iterations
+  persist for the whole retry pass and subsequent requests.
+- Fix B (provider_limits_config.py): pollinations 402 FREE_LIMIT now
+  forces a minimum 35s cooldown even when the response carries no
+  explicit retry hint. Explicit "Retry after Ns" hints continue to
+  win (hint + 5s).
+- Fix C (routes/meta.py): new GET /api/providers/cooldowns returns
+  the full cooldown / success / fail / supports_tools / free-tier
+  snapshot for every provider. Lets ops see the internal state that
+  used to be invisible (and let this bug hide for two parts).
+- Live symptom addressed: the CFO screenshot showed CDO fan-out and
+  then an immediate "all providers failed" -- the router was
+  hammering pollinations on every retry because cooling state was
+  being wiped. With cooldowns now preserved, one 402 puts pollinations
+  to sleep for 35s, letting groq / gemini / openrouter serve instead.
+- Smoke: 153 (8/8). Regressions: 152 (9/9), 151 (31/31),
+  145 (37/37), 137 (57/57), 112 (28/28).

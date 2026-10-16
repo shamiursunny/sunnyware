@@ -153,6 +153,14 @@ def compute_cooldown(provider_name: str, error: str) -> float:
     if kind == "per_minute":
         return 65.0
 
+    # 3b. Part 153: pollinations IP cap. Even with an sk_ key,
+    #     Pollinations enforces a ~30s per-IP window that fires 402
+    #     FREE_LIMIT. Enforce a 35s minimum whenever pollinations
+    #     reports a 402.
+    if (provider_name or "").lower() == "pollinations":
+        if "402" in (error or "") or "free_limit" in (error or "").lower():
+            return 35.0
+
     # 4. Default
     return 60.0
 

@@ -1445,3 +1445,37 @@ async def providers_test_one(name: str, payload: dict = None):
             {"error": f"{type(e).__name__}: {e}"},
             status_code=500,
         )
+
+
+@router.get("/api/providers/cooldowns")
+async def providers_cooldowns():
+    """Part 153: full cooldown / success / fail snapshot per provider."""
+    try:
+        import time as _t
+        from .. import providers as _prov
+        from .. import provider_limits_config as _plc
+        now = _t.time()
+        out = {"providers": [], "checked_at": now}
+        for p in _prov.load_providers():
+            try:
+                cooling = bool(p.is_cooling())
+                remaining = round(float(p.cooldown_remaining()), 2)
+            except Exception:
+                cooling = False
+                remaining = 0.0
+            out["providers"].append({
+                "name": p.name,
+                "cooling": cooling,
+                "cooldown_remaining_s": remaining,
+                "success_count": int(getattr(p, "success_count", 0)),
+                "fail_count": int(getattr(p, "fail_count", 0)),
+                "last_error": (getattr(p, "last_error", "") or "")[:200],
+                "supports_tools": bool(getattr(p, "supports_tools", True)),
+                "free_tier": _plc.FREE_TIER_LIMITS.get(p.name, {}),
+            })
+        return out
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )

@@ -513,12 +513,10 @@ async def chat(
     # retry. Cooldowns are transient (10-60s); if a provider will be
     # available within 20s, wait briefly and recurse once.
     if _retry_depth == 0:
-        # Reload so we see updated cooldown state
-        try:
-            from . import providers as _prov_mod
-            _fresh = _prov_mod.load_providers(reload=True)
-        except Exception:
-            _fresh = provs
+        # Part 153: DO NOT reload — reload creates new Provider
+        # objects and discards cooldowns/success/fail counters set
+        # during this request. Use the in-memory list directly.
+        _fresh = provs
 
         _cooling = [p for p in _fresh if p.is_cooling()]
         _ready = [p for p in _fresh if not p.is_cooling()]

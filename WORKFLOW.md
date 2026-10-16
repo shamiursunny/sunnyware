@@ -1038,3 +1038,12 @@ tool lists. CFO -> CDO cross-check requirement enforced in prompts.
 Pollinations free tier returns 402 FREE_LIMIT for requests
 containing OpenAI tool schemas. New supports_tools flag on
 Provider; router strips tools for unsupported providers.
+
+## 2026-10-16 (session 3) - Part 153
+
+| Part | Commit  | Feature |
+|------|---------|---------|
+| 153  | (this)  | Cooldown preservation + pollinations 35s floor |
+
+Fixes the 'all providers failed' cascade in the CFO->CDO->worker
+pipeline. Reload discarding cooldowns was the culprit.
