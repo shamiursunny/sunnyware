@@ -67,7 +67,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   spec). Tools: calculator, python_eval, read_file, rag_search.
   Returns structured JSON verdict. User-only invocation.
 
-## Recent additions (Parts 157-160)
+## Recent additions (Parts 157-161)
 
 - Golden dataset (Part 158): src/sunnyware/golden.py + static/
   golden_dataset.json. 5 seeded cases, 5 match modes. Endpoints:
@@ -88,6 +88,11 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   M seconds; calls return synthetic circuit_open. Endpoints:
   /api/tools/circuits{,/reset}. Env: SUNNYWARE_TOOL_BREAKER_{ENABLED,
   FAILS,COOLDOWN_S} (defaults: on, 5, 60).
+
+- Audit trail (Part 161): src/sunnyware/audit.py. HMAC-signed,
+  hash-chained JSONL. _check_admin wrapped to log every admin
+  decision. Endpoints: /api/audit/{recent,stats,verify,export,clear}.
+  Env: SUNNYWARE_AUDIT_{ENABLED,KEY,PATH} (default on).
 
 ## Production safety layers (Parts 134-140)
 

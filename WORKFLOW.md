@@ -1169,3 +1169,17 @@ Orchestrator wraps _execute_tool with a breaker-aware shim.
 Endpoints: GET /api/tools/circuits, POST /api/tools/circuits/reset.
 
 Smoke: 160 (36/36).
+
+## 2026-10-16 - Part 161
+
+| Part | Feature |
+|------|---------|
+| 161  | Audit trail export |
+
+New src/sunnyware/audit.py: HMAC-signed, hash-chained JSONL. Every
+admin decision + privileged action logged. verify_all() detects any
+tampering. Non-fatal: audit failures never break a request.
+
+Endpoints: /api/audit/{recent,stats,verify,export,clear}.
+
+Smoke: 161 (44/44).

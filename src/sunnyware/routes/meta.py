@@ -1674,3 +1674,102 @@ async def tools_circuits_reset(req: Request):
     except Exception as e:
         return JSONResponse({"error": f"{type(e).__name__}: {e}"},
                             status_code=500)
+
+
+# ─── Part 161: audited _check_admin ───
+_ORIG_CHECK_ADMIN = _check_admin
+
+
+def _check_admin():  # type: ignore[no-redef]
+    """Wrapper that emits an audit entry for every admin decision."""
+    deny = _ORIG_CHECK_ADMIN()
+    try:
+        from .. import audit as _audit
+        _audit.log(
+            "admin.check",
+            actor="admin" if deny is None else "unknown",
+            ok=(deny is None),
+            detail="granted" if deny is None else "denied",
+        )
+    except Exception:
+        pass
+    return deny
+
+
+@router.get("/api/audit/recent")
+async def audit_recent(req: Request):
+    """Part 161: recent signed audit entries (admin when auth on)."""
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        from .. import audit as _audit
+        n = 50
+        try:
+            q = req.query_params.get("n")
+            if q:
+                n = int(q)
+        except Exception:
+            pass
+        return {"entries": _audit.recent(n), "path": str(_audit.path())}
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.get("/api/audit/stats")
+async def audit_stats():
+    """Part 161: totals + by-action counts."""
+    try:
+        from .. import audit as _audit
+        return _audit.stats()
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.get("/api/audit/verify")
+async def audit_verify():
+    """Part 161: re-verify HMAC signatures + hash chain over the log."""
+    try:
+        from .. import audit as _audit
+        return _audit.verify_all()
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.get("/api/audit/export")
+async def audit_export(req: Request):
+    """Part 161: full JSONL as JSON array (admin when auth on)."""
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        from .. import audit as _audit
+        return {
+            "entries": _audit.recent(10000),
+            "path": str(_audit.path()),
+        }
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.post("/api/audit/clear")
+async def audit_clear():
+    """Part 161: delete the audit log (admin only). Returns row count
+    BEFORE clearing."""
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        from .. import audit as _audit
+        n = len(_audit.recent(10000))
+        rc = _audit.clear()
+        _audit.log("audit.clear", actor="admin", ok=(rc == 0),
+                   detail=f"rows={n}")
+        return {"ok": rc == 0, "cleared": n}
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)

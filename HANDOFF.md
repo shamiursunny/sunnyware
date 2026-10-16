@@ -1662,3 +1662,31 @@ smokes + gate run before any git action.
 - State is in-process (per HF container). Snapshot is authoritative.
 - Smoke: 160 (36/36). Regressions: 159 (32/32), 158 (41/41),
   144 (14/14), 112 (28/28).
+
+### Part 161 - Audit trail export
+- New module src/sunnyware/audit.py.
+- Append-only JSONL log at /data/audit_log.jsonl (HF persistent
+  volume) or /tmp/sunnyware_audit_log.jsonl. Override via
+  SUNNYWARE_AUDIT_PATH.
+- Each entry is HMAC-SHA256 signed over canonical JSON and chained
+  to the previous entry's signature (prev field). Tamper to any line
+  breaks verify_all() at that index.
+- Design: never throws into request path. Every public function
+  swallows exceptions and returns safe defaults.
+- Key precedence: SUNNYWARE_AUDIT_KEY -> SUNNYWARE_ADMIN_TOKEN ->
+  fixed dev fallback (warns once at module import).
+- meta.py: _check_admin wrapped with an audited version that logs
+  every admin decision (granted/denied). Wrapper rebinds the name
+  via _ORIG_CHECK_ADMIN so all existing call sites pick it up.
+- routes/meta.py (5 new endpoints):
+    GET  /api/audit/recent?n=50    signed entries (admin when auth on)
+    GET  /api/audit/stats          totals + by-action counts
+    GET  /api/audit/verify         re-verify signatures + chain
+    GET  /api/audit/export         full log as JSON (admin when auth on)
+    POST /api/audit/clear          delete log (admin; self-audits)
+- Config (all optional; default on):
+    SUNNYWARE_AUDIT_ENABLED=1
+    SUNNYWARE_AUDIT_KEY=<random hex>     (recommended in prod)
+    SUNNYWARE_AUDIT_PATH=<override>
+- Smoke: 161 (44/44). Regressions: 160 (36/36), 159 (32/32),
+  158 (41/41), 144 (14/14).

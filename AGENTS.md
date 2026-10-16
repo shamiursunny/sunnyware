@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-16 (Part 160 - tool-level circuit breakers)
+**Last update:** 2026-10-16 (Part 161 - audit trail export)
