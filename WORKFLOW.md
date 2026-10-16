@@ -973,3 +973,13 @@ provider-supplied Retry-after hint (+5s safety margin).
 
 Fixes groq 413s on every multi-tool request, and eliminates
 false cooldowns on per-day quota exhaustion.
+
+## 2026-10-16 (session 3) - Part 146
+
+| Part | Commit  | Feature |
+|------|---------|---------|
+| 146  | (this)  | Auditor JSON extraction + TOOL POLICY prompt block |
+
+Handles small-model JSON wrapping; adds structured
+auditor_verdict field to /api/agent/run response for
+the auditor role.

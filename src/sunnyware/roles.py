@@ -67,10 +67,87 @@ OUTPUT - return valid JSON, nothing else:
   "user_verification_required": true
 }
 
+TOOL POLICY:
+- Use calculator/python_eval to verify every numeric claim.
+- Use read_file/rag_search ONLY to look up the user's submitted
+  materials (candidate artifacts, source documents).
+- Do NOT use rag_search for logic-fallacy names, audit methodology,
+  or general knowledge — use your own training instead.
+- Prefer one clear tool call over multiple redundant ones.
+
 Tool-first: before answering any factual/numeric/code question,
 call a tool. Never: guess -> generate -> submit. Always:
 understand -> verify -> test -> analyze -> explain.
 '''
+
+
+import json as _json
+import re as _re
+
+
+_AUDITOR_JSON_FENCE = _re.compile(
+    r"```(?:json)?\s*(\{.*?\})\s*```", _re.DOTALL
+)
+_AUDITOR_BARE_OBJ = _re.compile(r"(\{[\s\S]*\})")
+
+
+def extract_auditor_json(content: str):
+    """Part 146b: extract the auditor's JSON verdict from arbitrary text.
+
+    Handles:
+      1. Pure JSON (returns parsed dict as-is)
+      2. ```json ... ``` fenced JSON
+      3. Prose + bare {...} somewhere in the middle
+      4. Fallback: returns None (caller keeps raw text)
+
+    Returns a dict on success, None on failure. Never raises.
+    """
+    if not content or not isinstance(content, str):
+        return None
+
+    stripped = content.strip()
+
+    # 1. Pure JSON
+    try:
+        d = _json.loads(stripped)
+        if isinstance(d, dict):
+            return d
+    except Exception:
+        pass
+
+    # 2. Fenced ```json ... ```
+    m = _AUDITOR_JSON_FENCE.search(content)
+    if m:
+        try:
+            d = _json.loads(m.group(1))
+            if isinstance(d, dict):
+                return d
+        except Exception:
+            pass
+
+    # 3. Bare {...} — find the largest balanced object
+    # Greedy: first { to last } — works when JSON is at the end
+    first = stripped.find("{")
+    last = stripped.rfind("}")
+    if first >= 0 and last > first:
+        candidate = stripped[first:last + 1]
+        try:
+            d = _json.loads(candidate)
+            if isinstance(d, dict):
+                return d
+        except Exception:
+            pass
+
+    # 4. Scan for multiple {...} blocks and try each
+    for m in _AUDITOR_BARE_OBJ.finditer(content):
+        try:
+            d = _json.loads(m.group(1))
+            if isinstance(d, dict) and "canonical_label" in d:
+                return d
+        except Exception:
+            continue
+
+    return None
 
 
 ROLES = {

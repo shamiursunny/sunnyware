@@ -17,6 +17,26 @@ from .. import orchestrator
 from .. import planner
 from .. import guardrails as _guard
 
+def _auditor_verdict_or_none(role, content):
+    """Part 146b: for the auditor role, extract and return the parsed
+    JSON verdict as a structured object; otherwise return None.
+
+    The auditor prompt specifies a strict JSON output contract but
+    small models (e.g. Liquid LFM) often wrap the JSON in markdown
+    fences or add narrative. This helper normalizes that so API
+    consumers get a stable `auditor_verdict` field.
+
+    Never raises.
+    """
+    try:
+        if (role or "").strip().lower() != "auditor":
+            return None
+        from .. import roles as _roles
+        return _roles.extract_auditor_json(content or "")
+    except Exception:
+        return None
+
+
 # Part 106c: strip broken base64 markdown before writing to history.
 # The LLM tries to embed images as ![...](data:image/...,base64,<data>)
 # but base64 is truncated to "[image: N bytes base64]" before reaching
@@ -188,6 +208,7 @@ async def run_agent(req: Request):
                     "steps_count": len(agent_result.get("steps", [])),
                     "iterations": agent_result.get("iterations", 0),
                     "model": (agent_result.get("resolved_model") or model or (state["config"].llm_model if state["config"] else "unknown")),
+                    "auditor_verdict": _auditor_verdict_or_none(role, agent_result.get("answer", "")),
                     "attachments": agent_result.get("attachments") or [],
                 },
             )
@@ -213,6 +234,7 @@ async def run_agent(req: Request):
         "result": {
             "content": agent_result.get("answer", ""),
             "model": (agent_result.get("resolved_model") or (state["config"].llm_model if state["config"] else "unknown")),
+            "auditor_verdict": _auditor_verdict_or_none(role, agent_result.get("answer", "")),
             "steps": agent_result.get("steps", []),
             "iterations": agent_result.get("iterations", 1),
             "provider": agent_result.get("provider"),

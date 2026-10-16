@@ -1237,3 +1237,26 @@ usage CSV).
 - 143-fix: smoke test 143 updated to accept Part 145's replacement
       marker ("Part 143 + 145: provider + error-type aware cooldown").
 - Smoke: 144 (14/14), 145 (37/37)
+
+### Part 146 - Auditor JSON extraction + tool policy
+- Live test of the auditor role (Part 142a) revealed two real issues:
+    1. Large models (groq gpt-oss-120b) return clean JSON.
+       Small models (Liquid LFM 2.6B via openrouter) wrap the JSON in
+       a markdown code fence and prepend prose — so the API consumer
+       couldn't reliably parse the verdict.
+    2. The auditor was misusing rag_search for logic-fallacy names
+       ("post hoc ergo propter hoc") which are general knowledge,
+       not user-documents.
+- Fixes:
+    - roles.extract_auditor_json() handles 4 shapes: pure JSON,
+      ```json-fenced, bare-fenced, prose + {bare object}. Falls back
+      to None on failure. Never raises.
+    - roles._AUDITOR_PROMPT gains a TOOL POLICY block:
+        * calculator/python_eval for numeric verification
+        * read_file/rag_search for user's submitted materials only
+        * DO NOT use rag_search for logic names / audit methodology
+        * prefer one clear call over multiple redundant ones
+    - routes/agent.py adds _auditor_verdict_or_none(role, content)
+      helper; response now carries an "auditor_verdict" field for
+      the auditor role (parsed dict or null).
+- Smoke: 146 (18/18)

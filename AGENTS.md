@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-16 (Part 145 wrap — reset-aware cooldown)
+**Last update:** 2026-10-16 (Part 146 wrap — auditor JSON extraction)
