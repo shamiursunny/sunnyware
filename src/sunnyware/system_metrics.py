@@ -153,24 +153,51 @@ def limits() -> dict:
     """Resolve hardware limits via cgroup -> psutil -> env -> default."""
     import psutil
 
-    mem_total, mem_src = _read_cgroup_mem()
-    if mem_total is None:
-        # In containers, psutil.virtual_memory().total reports HOST RAM,
-        # not the container's. Prefer env override, then known HF default.
+    # --- Memory limit resolution ---
+    # Priority: env override > cgroup (if sane) > HF default
+    MEM_HOST_THRESHOLD = 64 * (1 << 30)  # 64 GB: anything above is host
+    mem_total = None
+    mem_src = None
+
+    env_mem_gb = os.getenv("SUNNYWARE_CONTAINER_MEM_GB")
+    if env_mem_gb:
         try:
-            mem_gb = int(os.getenv("SUNNYWARE_CONTAINER_MEM_GB", "16"))
-            mem_total = mem_gb * (1 << 30)
-            mem_src = "env" if "SUNNYWARE_CONTAINER_MEM_GB" in os.environ else "default"
+            mem_total = int(env_mem_gb) * (1 << 30)
+            mem_src = "env"
         except Exception:
+            pass
+
+    if mem_total is None:
+        cg_mem, _ = _read_cgroup_mem()
+        if cg_mem is not None and cg_mem <= MEM_HOST_THRESHOLD:
+            mem_total = cg_mem
+            mem_src = "cgroup"
+        else:
+            # cgroup missing OR looks like host RAM -> use HF default 16 GB
             mem_total = 16 * (1 << 30)
             mem_src = "default"
 
-    cpu_count, cpu_src = _read_cgroup_cpu_count()
-    if cpu_count is None:
+    # --- CPU limit resolution ---
+    # Priority: env override > cgroup (if sane) > HF default
+    CPU_HOST_THRESHOLD = 8.0  # vCPU: above this is probably host
+    cpu_count = None
+    cpu_src = None
+
+    env_vcpu = os.getenv("SUNNYWARE_CONTAINER_VCPU")
+    if env_vcpu:
         try:
-            cpu_count = float(os.getenv("SUNNYWARE_CONTAINER_VCPU", "2"))
-            cpu_src = "env" if "SUNNYWARE_CONTAINER_VCPU" in os.environ else "default"
+            cpu_count = float(env_vcpu)
+            cpu_src = "env"
         except Exception:
+            pass
+
+    if cpu_count is None:
+        cg_cpu, _ = _read_cgroup_cpu_count()
+        if cg_cpu is not None and cg_cpu <= CPU_HOST_THRESHOLD:
+            cpu_count = cg_cpu
+            cpu_src = "cgroup"
+        else:
+            # cgroup missing OR looks like host CPU -> use HF default 2
             cpu_count = 2.0
             cpu_src = "default"
 
