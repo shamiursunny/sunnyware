@@ -54,9 +54,16 @@ def _tool_health(name, tool, breaker_state, fails_threshold):
     last_err = str(b.get("last_error", ""))[:300]
     remaining = int(b.get("remaining_open_s", 0))
 
+    rate_cool = int(b.get("rate_cooldown_s", 0))
+    rpm_limit = int(b.get("rpm_limit", 0))
+    rpm_current = int(b.get("rpm_current", 0))
+
     if is_open:
         status = "broken"
         reason = last_err or "circuit open after repeated failures"
+    elif rate_cool > 0:
+        status = "degraded"
+        reason = f"rate limited ({rpm_current}/{rpm_limit} rpm) - cooldown {rate_cool}s"
     elif consecutive >= 3:
         status = "degraded"
         reason = last_err or f"{consecutive} consecutive failures"
@@ -79,6 +86,9 @@ def _tool_health(name, tool, breaker_state, fails_threshold):
         "total_success": total_success,
         "last_error": last_err,
         "remaining_open_s": remaining,
+        "rpm_limit": rpm_limit,
+        "rpm_current": rpm_current,
+        "rate_cooldown_s": rate_cool,
         "reason": reason,
     }
 

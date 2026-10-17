@@ -1937,3 +1937,22 @@ CI result at 164k: gate=success, smoke=success.
 - status.html Tools Health card now shows 81 as headline
   (never_used is not a failure) and links to /tools.
 - Smoke: 172b (18/18).
+
+### Part 173 - Per-tool rate limits (speed breaker)
+- New env var: SUNNYWARE_TOOL_RATE_LIMIT_PER_MINUTE (default 0
+  = disabled).
+- circuit_breaker.py tracks a rolling 60s window of recent_calls
+  per tool. When calls >= limit, sets rate_cooldown_until = now+60
+  and returns reason="rate_limited" from check().
+- orchestrator.py now propagates the actual reason (circuit_open
+  or rate_limited) into the error response, so the LLM sees a
+  distinct signal.
+- tools_health.py surfaces rpm_limit, rpm_current, rate_cooldown_s
+  per tool. Rate-cooldown tools show as "degraded" with reason
+  "rate limited (X/Y rpm) - cooldown Zs".
+- static/tools.html:
+    * New "Rate Limited" filter button
+    * Row meta shows "cool Zs" during cooldown, or "X/Y rpm"
+      when the limit is enabled
+    * Expanded detail shows "rate limit" + "rate cooldown" rows
+- Smoke: 173 (25/25).

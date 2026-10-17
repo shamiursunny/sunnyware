@@ -339,10 +339,13 @@ async def _execute_tool(name, args):
     except Exception:
         decision = {"allow": True}
     if not decision.get("allow"):
+        reason = decision.get("reason", "circuit_open")
+        detail = (f"tool '{name}' is temporarily disabled after "
+                  f"repeated failures") if reason == "circuit_open" else \
+                 (f"tool '{name}' is rate limited")
         return {
-            "error": "circuit_open",
-            "detail": f"tool '{name}' is temporarily disabled after "
-                      f"repeated failures",
+            "error": reason,
+            "detail": detail,
             "retry_after_s": decision.get("retry_after", 60),
         }
 

@@ -43,6 +43,11 @@ def fails_threshold() -> int:
     return max(1, _env_int("SUNNYWARE_TOOL_BREAKER_FAILS", 5))
 
 
+def rpm_limit() -> int:
+    """Part 173: per-tool RPM speed breaker. 0 = disabled."""
+    return max(0, _env_int("SUNNYWARE_TOOL_RATE_LIMIT_PER_MINUTE", 0))
+
+
 def cooldown_seconds() -> int:
     return max(1, _env_int("SUNNYWARE_TOOL_BREAKER_COOLDOWN_S", 60))
 
@@ -57,6 +62,8 @@ def _get(tool_name: str) -> dict:
             "opened_at": 0.0,
             "last_error": "",
             "last_call_at": 0.0,
+            "recent_calls": [],
+            "rate_cooldown_until": 0.0,
         }
         _STATE[tool_name] = s
     return s
@@ -84,12 +91,37 @@ def check(tool_name: str) -> dict:
     """Return {allow: bool, reason?, retry_after?}."""
     if not enabled() or not tool_name:
         return {"allow": True}
+    
+    # 1. Check failure breaker first (highest priority)
     if is_open(tool_name):
         return {
             "allow": False,
             "reason": "circuit_open",
             "retry_after": int(remaining_open_seconds(tool_name)) + 1,
         }
+        
+    # 2. Check rate limit (speedbreaker)
+    limit = rpm_limit()
+    if limit > 0:
+        s = _get(tool_name)
+        now = time.time()
+        # If already in rate cooldown
+        if s.get("rate_cooldown_until", 0.0) > now:
+            return {
+                "allow": False,
+                "reason": "rate_limited",
+                "retry_after": int(s["rate_cooldown_until"] - now) + 1,
+            }
+        # Filter calls older than 60s
+        s["recent_calls"] = [t for t in s.get("recent_calls", []) if now - t < 60]
+        if len(s["recent_calls"]) >= limit:
+            s["rate_cooldown_until"] = now + 60
+            return {
+                "allow": False,
+                "reason": "rate_limited",
+                "retry_after": 60,
+            }
+            
     return {"allow": True}
 
 
@@ -99,6 +131,11 @@ def record(tool_name: str, ok: bool, error: str = "") -> None:
         return
     s = _get(tool_name)
     s["last_call_at"] = time.time()
+    
+    # Part 173: track recent calls for RPM
+    if rpm_limit() > 0:
+        s.setdefault("recent_calls", []).append(s["last_call_at"])
+        
     if ok:
         s["total_success"] += 1
         # Reset consecutive counter and close the breaker on success
@@ -138,6 +175,9 @@ def snapshot() -> dict:
     for name, s in sorted(_STATE.items()):
         opened = float(s.get("opened_at") or 0.0)
         remaining = (opened + cooldown_seconds() - now) if opened else 0.0
+        # Filter recent_calls to only last 60s for accurate count
+        recent = [t for t in s.get("recent_calls", []) if now - t < 60]
+        rate_cool = max(0.0, s.get("rate_cooldown_until", 0.0) - now)
         out["tools"].append({
             "name": name,
             "open": bool(opened and remaining > 0),
@@ -147,6 +187,9 @@ def snapshot() -> dict:
             "total_success": int(s.get("total_success", 0)),
             "last_error": s.get("last_error", ""),
             "last_call_at": s.get("last_call_at", 0.0),
+            "rpm_limit": int(rpm_limit()),
+            "rpm_current": len(recent),
+            "rate_cooldown_s": int(rate_cool),
         })
     return out
 

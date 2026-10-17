@@ -159,6 +159,12 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   groups, expandable rows (reason + last error). Endpoints:
   GET /tools + GET /api/tools/health.
 
+- Per-tool rate limits (Part 173): circuit_breaker tracks 60s
+  rolling window per tool. When calls >= limit, rejects with
+  reason="rate_limited" for 60s. Tools page shows Rate Limited
+  filter + rpm meta + cooldown. Env: SUNNYWARE_TOOL_RATE_LIMIT_
+  PER_MINUTE (default 0 = disabled).
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP

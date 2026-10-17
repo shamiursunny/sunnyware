@@ -1334,3 +1334,18 @@ summary, 10s auto-refresh. Endpoints: GET /tools +
 GET /api/tools/health. Status card headline fixed.
 
 Smoke: 172b (18/18).
+
+## 2026-10-17 - Part 173
+
+| Part | Feature |
+|------|---------|
+| 173  | Per-tool rate limits (speed breaker) |
+
+circuit_breaker.py tracks 60s rolling window per tool.
+rate_limited reason propagated through orchestrator.
+tools_health exposes rpm/cooldown. tools.html has Rate
+Limited filter + rpm meta + detail rows.
+
+Config: SUNNYWARE_TOOL_RATE_LIMIT_PER_MINUTE=0 (disabled)
+
+Smoke: 173 (25/25).

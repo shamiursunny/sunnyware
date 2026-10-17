@@ -145,6 +145,7 @@
       <button data-filter="degraded">Degraded</button>
       <button data-filter="working">Working</button>
       <button data-filter="never_used">Never used</button>
+      <button data-filter="rate_limited">Rate Limited</button>
       <div class="searchbox">
         <input id="search" placeholder="Search tools..." />
       </div>
@@ -231,6 +232,10 @@ function renderGroup(cat, tools){
       meta.textContent = "no calls";
     } else if (t.is_open){
       meta.textContent = "open " + t.remaining_open_s + "s";
+    } else if (t.rate_cooldown_s > 0){
+      meta.textContent = "cool " + t.rate_cooldown_s + "s";
+    } else if (t.rpm_limit > 0){
+      meta.textContent = t.rpm_current + "/" + t.rpm_limit + " rpm";
     } else if (t.total_success + t.total_fails > 0){
       var tot = t.total_success + t.total_fails;
       meta.textContent = Math.round((t.total_success / tot) * 100) + "% ok";
@@ -263,6 +268,14 @@ function renderGroup(cat, tools){
       dl.appendChild(el("dt", null, "breaker"));
       dl.appendChild(el("dd", null,
         "OPEN for " + t.remaining_open_s + "s"));
+    }
+    if (t.rpm_limit > 0 || t.rate_cooldown_s > 0){
+      dl.appendChild(el("dt", null, "rate limit"));
+      dl.appendChild(el("dd", null, t.rpm_current + " / " + (t.rpm_limit || "?") + " rpm"));
+      if (t.rate_cooldown_s > 0){
+        dl.appendChild(el("dt", null, "rate cooldown"));
+        dl.appendChild(el("dd", null, "cooling for " + t.rate_cooldown_s + "s"));
+      }
     }
     if (t.last_error){
       dl.appendChild(el("dt", null, "last error"));
@@ -297,7 +310,8 @@ function renderGroup(cat, tools){
 
 function applyFilters(tools){
   return tools.filter(function(t){
-    if (currentFilter !== "all" && t.status !== currentFilter) return false;
+    if (currentFilter === "rate_limited" && !(t.rate_cooldown_s > 0)) return false;
+    if (currentFilter !== "all" && currentFilter !== "rate_limited" && t.status !== currentFilter) return false;
     if (currentSearch && t.name.toLowerCase().indexOf(currentSearch) === -1)
       return false;
     return true;
