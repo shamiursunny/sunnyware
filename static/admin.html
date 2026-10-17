@@ -387,5 +387,18 @@ function init() {
 // Start
 init();
 </script>
+
+<script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
+<script>
+  // Initialize Paddle (REPLACE 'test_4f5658fd15e4bb429f9e3faec71' WITH YOUR CLIENT-SIDE TOKEN)
+  Paddle.Setup({ token: 'test_4f5658fd15e4bb429f9e3faec71' }); 
+  
+  const urlParams = new URLSearchParams(window.location.search);
+  const txnId = urlParams.get('_ptxn');
+  if (txnId) {
+    Paddle.Checkout.open({ transactionId: txnId });
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+</script>
 </body>
 </html>
