@@ -162,8 +162,10 @@ def limits() -> dict:
     env_mem_gb = os.getenv("SUNNYWARE_CONTAINER_MEM_GB")
     if env_mem_gb:
         try:
-            mem_total = int(env_mem_gb) * (1 << 30)
-            mem_src = "env"
+            gb = int(env_mem_gb)
+            if gb > 0:
+                mem_total = gb * (1 << 30)
+                mem_src = "env"
         except Exception:
             pass
 
@@ -186,8 +188,10 @@ def limits() -> dict:
     env_vcpu = os.getenv("SUNNYWARE_CONTAINER_VCPU")
     if env_vcpu:
         try:
-            cpu_count = float(env_vcpu)
-            cpu_src = "env"
+            v = float(env_vcpu)
+            if v > 0:
+                cpu_count = v
+                cpu_src = "env"
         except Exception:
             pass
 
@@ -201,11 +205,14 @@ def limits() -> dict:
             cpu_count = 2.0
             cpu_src = "default"
 
+    hide_warn = (os.getenv("SUNNYWARE_LIMITS_HIDE_WARNING", "0")
+                 in ("1", "true", "yes", "on"))
     return {
         "cpu_count": round(cpu_count, 2),
         "cpu_source": cpu_src,
         "mem_total_bytes": int(mem_total),
         "mem_source": mem_src,
+        "hide_warning": hide_warn,
     }
 
 
