@@ -43,10 +43,12 @@ def _require_admin(req: Request):
         # Auth off — same policy as rest of app (open)
         return None
     key = _extract_key(req)
-    if not key:
+    # Part 178: explicitly verify the key is valid. Otherwise auth.py
+    # falls back to default_role() (admin) for unknown keys!
+    if not key or not _auth.is_valid_key(key):
         return JSONResponse(
             {"error": "auth_required",
-             "detail": "X-API-Key or Authorization: Bearer required"},
+             "detail": "Valid X-API-Key or Authorization: Bearer required"},
             status_code=401,
         )
     role = _auth.role_for_key(key)
