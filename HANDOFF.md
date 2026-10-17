@@ -2038,3 +2038,12 @@ Config:
   Pauses up to 120s for admin approval.
 - New routes/approvals.py for /api/approvals (GET, POST approve/reject).
 - WebUI now injects X-API-Key globally via fetch() interceptor.
+
+### Part 182 - SaaS Control Plane (Admin Panel)
+- New saas_store.py: JSON stores for orgs, plans, subs, invoices, CRM notes.
+- New billing.py: Stripe checkout integration (simulated if no key).
+- New routes/saas.py: /api/saas/* endpoints (dashboard, orgs, plans, invoices, CRM).
+- static/admin.html: completely rewritten as a SPA with a sidebar.
+  Includes: Dashboard (MRR/ARR), Organizations, Plans, Invoices,
+  CRM Notes, SSO Users, and HITL Approvals.
+- Stripe: runs in Simulated Mode until STRIPE_SECRET_KEY is added to HF.

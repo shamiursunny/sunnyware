@@ -183,6 +183,10 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   login via WorkOS, user management via /admin, and human
   approval gating for sensitive tools (SUNNYWARE_HITL_TOOLS).
 
+- SaaS Control Plane (Part 182): Full admin panel with MRR/ARR
+  dashboard, Organizations (tenants), Plans, Invoices, CRM Notes,
+  and Stripe checkout (simulated until STRIPE_SECRET_KEY is set).
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP
