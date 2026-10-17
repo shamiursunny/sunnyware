@@ -124,6 +124,22 @@ def log(action: str, actor: str = "anon", ok: bool = True,
         p.parent.mkdir(parents=True, exist_ok=True)
         with p.open("a", encoding="utf-8") as f:
             f.write(json.dumps(entry, sort_keys=True) + "\n")
+        # Part 171: mirror every audit entry to outbound webhooks.
+        # dispatch() is fire-and-forget and never raises.
+        try:
+            from . import webhooks_out as _wo
+            _wo.dispatch(
+                str(action),
+                {
+                    "action": entry.get("action"),
+                    "actor": entry.get("actor"),
+                    "ok": entry.get("ok"),
+                    "detail": entry.get("detail"),
+                    "ts": entry.get("ts"),
+                },
+            )
+        except Exception:
+            pass
         return entry
     except Exception:
         return None

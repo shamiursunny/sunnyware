@@ -1875,3 +1875,25 @@ CI result at 164k: gate=success, smoke=success.
   save. hydrateFromNeon now prefers metadata.title over the
   auto-derived first-user-message title.
 - Smoke: 170 (16/16).
+
+### Part 171 - Outbound webhooks
+- New src/sunnyware/webhooks_out.py (distinct from Part 83
+  inbound webhook.py).
+- Every audit.log() call mirrors to matching subscribers as
+  a fire-and-forget POST with HMAC signature.
+- Circuit breaker opens emit circuit.open event (flows to
+  audit.log -> outbound webhooks automatically).
+- HMAC: X-Sunnyware-Signature: sha256=<hex> over body.
+- Retries: 3 attempts with 1s / 4s / 16s backoff.
+- Subscriber list cached 5s; delivery log capped at 200.
+- Storage: /data/outbound_webhooks.json on HF, data/outbound_*.json
+  locally. SUNNYWARE_WEBHOOKS_OUT_STORAGE override.
+- 5 endpoints:
+    POST /api/webhooks-out/subscribe    (admin)
+    GET  /api/webhooks-out/list         (secrets redacted)
+    POST /api/webhooks-out/unsubscribe  (admin)
+    GET  /api/webhooks-out/recent?n=50
+    POST /api/webhooks-out/test/{id}    (admin)
+- Wildcard events supported: "*" or prefix+"*" (e.g. audit.*).
+- Config: SUNNYWARE_WEBHOOKS_OUT_{ENABLED,STORAGE,TIMEOUT}.
+- Smoke: 171 (54/54).

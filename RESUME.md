@@ -141,6 +141,13 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   GET/PUT /api/sessions/{key}/title. Frontend: renameSession
   fires PUT; hydrateFromNeon prefers metadata.title.
 
+- Outbound webhooks (Part 171): src/sunnyware/webhooks_out.py.
+  Every audit.log() mirrors to matching subscribers via
+  HMAC-signed fire-and-forget POST. Circuit opens emit
+  circuit.open. 5 endpoints under /api/webhooks-out/*.
+  Wildcard events (audit.*, *). 3-retry backoff.
+  Env: SUNNYWARE_WEBHOOKS_OUT_{ENABLED,STORAGE,TIMEOUT}.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP

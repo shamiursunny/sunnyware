@@ -1294,3 +1294,16 @@ Backend: sessions.py set_title/get_title + 2 routes. Frontend:
 renameSession fires PUT; hydrateFromNeon prefers metadata.title.
 
 Smoke: 170 (16/16).
+
+## 2026-10-17 - Part 171
+
+| Part | Feature |
+|------|---------|
+| 171  | Outbound webhooks |
+
+Every audit.log() now mirrors to matching subscribers as a
+fire-and-forget HMAC-signed POST. Circuit opens emit
+circuit.open. 5 endpoints under /api/webhooks-out/*.
+3-attempt retry with backoff. Delivery log capped at 200.
+
+Smoke: 171 (54/54).

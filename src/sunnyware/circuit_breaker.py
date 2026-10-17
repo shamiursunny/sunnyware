@@ -112,6 +112,19 @@ def record(tool_name: str, ok: bool, error: str = "") -> None:
     if s["consecutive_fails"] >= fails_threshold():
         # Trip the breaker
         s["opened_at"] = time.time()
+        # Part 171: emit circuit.open event (flows to outbound webhooks
+        # via audit.log)
+        try:
+            from . import audit as _audit
+            _audit.log(
+                "circuit.open", actor="breaker", ok=False,
+                detail="tool '" + str(tool_name) + "' tripped after "
+                       + str(fails_threshold()) + " fails",
+                tool=tool_name,
+                last_error=str(s.get("last_error", ""))[:200],
+            )
+        except Exception:
+            pass
 
 
 def snapshot() -> dict:

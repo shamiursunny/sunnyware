@@ -2004,3 +2004,85 @@ async def ab_delete(req: Request):
     except Exception as e:
         return JSONResponse({"error": f"{type(e).__name__}: {e}"},
                             status_code=500)
+
+
+# ── Part 171: outbound webhooks ─────────────────────────────
+
+
+@router.post("/api/webhooks-out/subscribe")
+async def webhooks_out_subscribe(req: Request):
+    """Register an outbound webhook. Secret returned ONCE."""
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        body = await req.json()
+    except Exception:
+        body = {}
+    try:
+        from .. import webhooks_out as _wo
+        return _wo.subscribe(
+            url=body.get("url", ""),
+            events=body.get("events", []),
+            description=body.get("description", ""),
+        )
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.get("/api/webhooks-out/list")
+async def webhooks_out_list():
+    """List all outbound webhooks (secrets redacted)."""
+    try:
+        from .. import webhooks_out as _wo
+        return _wo.list_all()
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.post("/api/webhooks-out/unsubscribe")
+async def webhooks_out_unsubscribe(req: Request):
+    """Remove an outbound webhook by id (admin when auth on)."""
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        body = await req.json()
+    except Exception:
+        body = {}
+    try:
+        from .. import webhooks_out as _wo
+        return _wo.unsubscribe(body.get("id", ""))
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.get("/api/webhooks-out/recent")
+async def webhooks_out_recent(n: int = 50):
+    """Recent delivery log (most recent last)."""
+    try:
+        from .. import webhooks_out as _wo
+        return _wo.recent(n)
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.post("/api/webhooks-out/test/{webhook_id}")
+async def webhooks_out_test(webhook_id: str):
+    """Send a synthetic test event to one webhook (admin when auth on)."""
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        from .. import webhooks_out as _wo
+        r = _wo.test_fire(webhook_id)
+        # _task is non-JSON; drop it
+        r.pop("_task", None)
+        return r
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)

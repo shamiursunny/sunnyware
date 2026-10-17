@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-17 (Part 170 - session title persistence)
+**Last update:** 2026-10-17 (Part 171 - outbound webhooks)
