@@ -119,6 +119,11 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   3 GitHub Actions runs (status, duration, clickable link). Cached
   90s on the CI probe to respect the unauthenticated rate limit.
 
+- README refresh (Part 168): stale "14 tools / 22 iterations"
+  fixed to 81 tools / 166 iterations. Added status dashboard
+  link, CI badge, and six-layer architecture table. HF Space
+  frontmatter preserved.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP

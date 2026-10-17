@@ -1247,3 +1247,12 @@ Two new cards on the unified status dashboard:
   - CI/CD   : last 3 GitHub Actions runs, cached 90s
 
 Smoke: 165 (16/16).
+
+## 2026-10-17 - Part 168
+
+| Part | Feature |
+|------|---------|
+| 168  | README refresh |
+
+Surgical doc fix: 14 tools -> 81 tools, 22 iterations -> 166,
++ status link + CI badge + six-layer architecture table.

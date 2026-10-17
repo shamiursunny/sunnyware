@@ -1808,3 +1808,17 @@ CI result at 164k: gate=success, smoke=success.
                   clickable result badges linking to the GitHub run.
 - Card count went from 8 to 10.
 - Smoke: 165 (16/16). Regressions: pre-push 6/6.
+
+### Part 168 - README refresh
+- Two surgical patches to README.md (did NOT rewrite the whole file
+  to avoid the heredoc/encoding fragility we hit twice):
+    1. Stale claims updated:
+         14 tools       -> 81 tools
+         22 iterations  -> 166 iterations
+    2. Fresh content added:
+         - Status dashboard link (/status)
+         - CI badge above the Live links
+         - Six-layer architecture table before ## Features
+- HF Space frontmatter (title/emoji/sdk) preserved untouched.
+- No code touched. No smoke needed.
+- CI on this change: gate + smoke both green.
