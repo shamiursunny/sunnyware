@@ -124,6 +124,12 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   link, CI badge, and six-layer architecture table. HF Space
   frontmatter preserved.
 
+- Structured outputs (Part 167): src/sunnyware/schema.py
+  validates every tool call against its declared parameters
+  spec. Coercion first, strict mode rejects unresolvable
+  mismatches. Violations logged to audit, don't trip breaker.
+  Env: SUNNYWARE_SCHEMA_{ENABLED,STRICT,ALLOW_EXTRA}.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP

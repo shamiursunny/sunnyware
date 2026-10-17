@@ -1822,3 +1822,24 @@ CI result at 164k: gate=success, smoke=success.
 - HF Space frontmatter (title/emoji/sdk) preserved untouched.
 - No code touched. No smoke needed.
 - CI on this change: gate + smoke both green.
+
+### Part 167 - Per-tool JSON schema validation
+- New module src/sunnyware/schema.py. Pure Python (no
+  pydantic dep), ~150 LOC.
+- Validates every tool call against the tool's declared
+  parameters spec BEFORE _execute_tool_raw runs.
+- Coercion attempted first: int->str, str->int, str->bool,
+  str->float, bool->bool. Coercion failures become violations
+  only in strict mode.
+- Wiring in orchestrator.py: after the circuit-breaker check,
+  before _execute_tool_raw. On violation:
+    * audit.log("schema.violation", actor="llm", tool=name, ...)
+    * return {error: schema_violation, detail, schema}
+  The LLM sees the schema and retries with valid args.
+- Violations do NOT trip the circuit breaker (LLM error, not
+  tool defect).
+- Config (all optional, on by default):
+    SUNNYWARE_SCHEMA_ENABLED=1
+    SUNNYWARE_SCHEMA_STRICT=1
+    SUNNYWARE_SCHEMA_ALLOW_EXTRA=1
+- Smoke: 167 (27/27).

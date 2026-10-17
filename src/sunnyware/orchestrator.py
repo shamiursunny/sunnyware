@@ -345,6 +345,33 @@ async def _execute_tool(name, args):
                       f"repeated failures",
             "retry_after_s": decision.get("retry_after", 60),
         }
+
+    # Part 167: JSON schema validation before execution
+    try:
+        from . import schema as _schema
+        _tool = tools_registry.get_tool(name) if tools_registry else None
+        _spec = getattr(_tool, "parameters", None) if _tool else None
+        if _spec:
+            _v = _schema.validate(name, _spec, args)
+            if not _v.get("ok"):
+                try:
+                    from . import audit as _audit
+                    _audit.log(
+                        "schema.violation", actor="llm", ok=False,
+                        detail=str(_v.get("detail", ""))[:300],
+                        tool=name,
+                    )
+                except Exception:
+                    pass
+                return {
+                    "error": "schema_violation",
+                    "detail": _v.get("detail", ""),
+                    "schema": _v.get("schema"),
+                }
+            args = _v.get("args", args)
+    except Exception:
+        pass
+
     try:
         result = await _execute_tool_raw(name, args)
     except Exception as e:

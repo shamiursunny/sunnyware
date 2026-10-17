@@ -1256,3 +1256,17 @@ Smoke: 165 (16/16).
 
 Surgical doc fix: 14 tools -> 81 tools, 22 iterations -> 166,
 + status link + CI badge + six-layer architecture table.
+
+## 2026-10-17 - Part 167
+
+| Part | Feature |
+|------|---------|
+| 167  | Per-tool JSON schema validation |
+
+New src/sunnyware/schema.py. Wired into orchestrator.py
+between circuit breaker and _execute_tool_raw. Coercion
+first; strict mode rejects unresolvable type mismatches;
+violations logged to audit trail but don't trip the
+breaker. LLM sees schema and retries.
+
+Smoke: 167 (27/27).
