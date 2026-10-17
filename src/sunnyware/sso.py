@@ -32,8 +32,7 @@ async def get_redirect_url(org_id: str) -> dict:
         "client_id": _client_id(),
         "redirect_uri": "https://shamiur-sunnyware.hf.space/sso/callback",
         "response_type": "code",
-        "organization_id": org_id,
-        "scope": "openid profile email",
+        "organization": org_id,  # WorkOS requires "organization", not "organization_id"
     }
     url = f"{_base_url()}/sso/authorize?{urlencode(params)}"
     return {"ok": True, "redirect_url": url}
@@ -63,21 +62,14 @@ async def redeem(code: str) -> dict:
                 return {"ok": False, "error": f"token error: {token_resp.text}"}
 
             token_data = token_resp.json()
-            access_token = token_data.get("access_token")
-            if not access_token:
-                return {"ok": False, "error": "no access_token in response"}
-
-            profile_resp = await cli.get(
-                f"{_base_url()}/sso/profile",
-                headers={"Authorization": f"Bearer {access_token}"},
-            )
-            if profile_resp.status_code != 200:
-                return {"ok": False, "error": f"profile error: {profile_resp.text}"}
-
-            profile = profile_resp.json()
+            # WorkOS returns the profile object directly inside the token response
+            profile = token_data.get("profile") or {}
             email = (profile.get("email") or "").lower()
+            
             if not email:
-                return {"ok": False, "error": "no email in profile"}
+                return {"ok": False, "error": "no email in token response"}
+                
+            org_id = profile.get("organization_id") or ""
 
             return {"ok": True, "email": email, "org_id": org_id}
 
