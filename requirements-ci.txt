@@ -4,6 +4,7 @@
 # Smokes that need those are reported as SKIP (see run_all_smokes.py).
 fastapi>=0.115.0
 uvicorn[standard]>=0.32.0
+psutil>=5.9.0
 pydantic>=2.9.0
 python-dotenv>=1.0.0
 pyyaml>=6.0

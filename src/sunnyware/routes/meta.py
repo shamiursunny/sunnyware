@@ -1852,13 +1852,42 @@ async def neon_health():
                 "latency_ms": None}
     try:
         import asyncio
+        import os as _os
+        size_bytes = None
         async with pool.acquire() as conn:
             await asyncio.wait_for(conn.fetchval("SELECT 1"), timeout=3.0)
-        return {
+            try:
+                size_bytes = await asyncio.wait_for(
+                    conn.fetchval(
+                        "SELECT pg_database_size(current_database())"
+                    ),
+                    timeout=3.0,
+                )
+            except Exception:
+                size_bytes = None
+        result = {
             "status": "up",
             "latency_ms": round((_t.time() - t0) * 1000, 1),
             "region": "us-east-2",
         }
+        if size_bytes is not None:
+            try:
+                limit_mb = int(_os.getenv(
+                    "SUNNYWARE_NEON_STORAGE_LIMIT_MB", "512"
+                ))
+            except Exception:
+                limit_mb = 512
+            used_mb = round(size_bytes / (1024 * 1024), 2)
+            pct = (round((size_bytes / (limit_mb * 1024 * 1024)) * 100, 2)
+                   if limit_mb > 0 else 0)
+            result["storage"] = {
+                "used_bytes": int(size_bytes),
+                "used_mb": used_mb,
+                "free_mb": round(max(0, limit_mb - used_mb), 2),
+                "limit_mb": limit_mb,
+                "percent": pct,
+            }
+        return result
     except Exception as e:
         return {
             "status": "down",
@@ -1942,6 +1971,15 @@ async def tools_health_snapshot():
         return {"__error__": f"{type(e).__name__}: {e}"}
 
 
+async def resources_snapshot():
+    """Part 174: hardware resources (CPU/RAM/Disk) with container-aware limits."""
+    try:
+        from .. import system_metrics as _sm
+        return _sm.snapshot()
+    except Exception as e:
+        return {"__error__": f"{type(e).__name__}: {e}"}
+
+
 @router.get("/api/status/summary")
 async def status_summary():
     """Part 163c: aggregator for the status dashboard.
@@ -1979,6 +2017,9 @@ async def status_summary():
 
     # Part 172: per-tool health snapshot
     await _safe("tools_health", tools_health_snapshot)
+
+    # Part 174: hardware resources
+    await _safe("resources", resources_snapshot)
 
     return out
 

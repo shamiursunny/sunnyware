@@ -165,6 +165,13 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   filter + rpm meta + cooldown. Env: SUNNYWARE_TOOL_RATE_LIMIT_
   PER_MINUTE (default 0 = disabled).
 
+- Hardware resources (Part 174): system_metrics.py reads cgroup
+  v2/v1 limits (fixing the psutil-in-Docker host/container trap),
+  enumerates real disk mounts, and computes 1h min/max/avg from a
+  720-sample rolling window. New RESOURCES card on /status.
+  Neon DB card also shows pg_database_size storage bar.
+  Deps: psutil>=5.9.0.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP

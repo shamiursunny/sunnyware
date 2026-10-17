@@ -1956,3 +1956,44 @@ CI result at 164k: gate=success, smoke=success.
       when the limit is enabled
     * Expanded detail shows "rate limit" + "rate cooldown" rows
 - Smoke: 173 (25/25).
+
+### Part 174 - Hardware resources + Neon DB storage
+- New src/sunnyware/system_metrics.py. Container-aware
+  hardware metrics (the classic psutil-in-Docker host-vs-
+  container trap is handled correctly):
+    * _read_cgroup_mem() reads /sys/fs/cgroup/memory.max
+      (v2) or memory.limit_in_bytes (v1)
+    * _read_cgroup_cpu_count() reads /sys/fs/cgroup/cpu.max
+      (v2) or cfs_quota_us/cfs_period_us (v1)
+    * Falls back to psutil, then env, then hardcoded 16GB/2vCPU
+    * Slices mem_used to the cgroup limit (not host total)
+- _enumerate_disks() lists real mounts, filters pseudo-FS,
+  dedupes by device, classifies as root/data/other.
+- Self-sampling: snapshot() samples every >=4s. deque(720)
+  gives a 1h rolling window. Computes min/max/avg on read.
+- Background sampler in main.py lifespan (every 5s) as a
+  belt-and-suspenders fallback.
+- NEW DEPENDENCY: psutil>=5.9.0 added to both
+  requirements.txt and requirements-ci.txt.
+
+meta.py:
+  - neon_health() now queries pg_database_size(current_
+    database()) on every probe (3s timeout). Adds a
+    "storage" sub-object: {used_bytes, used_mb, free_mb,
+    limit_mb, percent}.
+  - resources_snapshot() helper wired into /api/status/summary.
+
+status.html:
+  - New RESOURCES card: CPU / RAM / DISK bars + per-mount
+    thin rows (path, persist badge) + 1h CPU stats footer
+    (avg / peak / sample count).
+  - NEON DB card now shows a storage bar under latency
+    (used / limit / free + color-coded progress).
+
+Config:
+  SUNNYWARE_NEON_STORAGE_LIMIT_MB=512  (free tier default)
+  SUNNYWARE_DATA_PERSISTENT=1          (mark /data persistent)
+  SUNNYWARE_METRICS_INTERVAL_S=5       (background sampler)
+  SUNNYWARE_CONTAINER_MEM_GB / VCPU    (env fallback for limits)
+
+- Smoke: 174 (45/45).

@@ -102,6 +102,7 @@ var CARDS = [
   { id:"audit",     title:"Audit chain",    key:"audit",     render:renderAudit },
   { id:"providers", title:"Providers",      key:"providers", render:renderProviders },
   { id:"neon",      title:"Neon DB",        key:"neon",      render:renderNeon },
+  { id:"resources", title:"Resources",      key:"resources", render:renderResources },
   { id:"ci",        title:"CI/CD",          key:"ci",        render:renderCI }
 ];
 
@@ -570,6 +571,36 @@ function renderNeon(d){
     c.appendChild(cap);
   }
 
+  // Part 174: Neon DB storage bar
+  if (d.storage){
+    var st = d.storage;
+    var stLine = el("div", "muted");
+    stLine.style.marginTop = "10px";
+    stLine.style.fontSize = "11px";
+    stLine.textContent = "storage: " + Number(st.used_mb).toFixed(1) +
+      " / " + st.limit_mb + " MB  (" +
+      Number(st.percent).toFixed(1) + "%)";
+    c.appendChild(stLine);
+
+    var sbar = el("div", "bar");
+    sbar.style.marginTop = "4px";
+    var sfill = el("i");
+    var pct = Math.min(100, Math.max(0, Number(st.percent) || 0));
+    sfill.style.width = pct + "%";
+    if (pct >= 90) sfill.style.background =
+      "linear-gradient(90deg, var(--err), #ff8c80)";
+    else if (pct >= 70) sfill.style.background =
+      "linear-gradient(90deg, var(--warn), #ffce6b)";
+    sbar.appendChild(sfill);
+    c.appendChild(sbar);
+
+    var stFree = el("div", "muted");
+    stFree.style.marginTop = "4px";
+    stFree.style.fontSize = "11px";
+    stFree.textContent = Number(st.free_mb).toFixed(1) + " MB free";
+    c.appendChild(stFree);
+  }
+
   var info = {};
   if (d.region) info["Region"] = d.region;
   if (Object.keys(info).length) c.appendChild(kv(info));
@@ -818,6 +849,93 @@ function renderVersions(d){
     okHint.style.fontSize = "11px";
     okHint.textContent = "Current build is green - nothing to rollback";
     c.appendChild(okHint);
+  }
+
+  return c;
+}
+
+function fmtBytes(bytes){
+  if (bytes == null) return "?";
+  var gb = bytes / (1024 * 1024 * 1024);
+  if (gb >= 1) return gb.toFixed(1) + " GB";
+  var mb = bytes / (1024 * 1024);
+  return mb.toFixed(0) + " MB";
+}
+
+function renderResources(d){
+  var c = el("div");
+  if (!d || d.__error__){
+    c.appendChild(badge("err", "ERROR"));
+    if (d && d.__error__) c.appendChild(el("div","err-msg", d.__error__));
+    return c;
+  }
+  var cur = d.current || {};
+  var lim = d.limits || {};
+  var agg = cur.disk_aggregate || {};
+  var disks = cur.disks || [];
+
+  function bar(label, usedPct, usedLabel, totalLabel){
+    var row = el("div");
+    row.style.marginBottom = "8px";
+    var line = el("div", "muted");
+    line.style.fontSize = "11px";
+    line.style.marginBottom = "3px";
+    line.textContent = label + "  " + usedLabel + " / " + totalLabel +
+                       "  (" + usedPct.toFixed(1) + "%)";
+    row.appendChild(line);
+    var b = el("div", "bar");
+    var fill = el("i");
+    fill.style.width = Math.min(100, Math.max(0, usedPct)) + "%";
+    if (usedPct >= 90) fill.style.background =
+      "linear-gradient(90deg, var(--err), #ff8c80)";
+    else if (usedPct >= 70) fill.style.background =
+      "linear-gradient(90deg, var(--warn), #ffce6b)";
+    b.appendChild(fill);
+    row.appendChild(b);
+    return row;
+  }
+
+  var cpuPct = cur.cpu_pct || 0;
+  c.appendChild(bar("CPU", cpuPct,
+    cpuPct.toFixed(1) + "%",
+    (lim.cpu_count || 0).toFixed(0) + " vCPU"));
+
+  var ramPct = cur.mem_pct || 0;
+  c.appendChild(bar("RAM", ramPct,
+    fmtBytes(cur.mem_used_bytes),
+    fmtBytes(cur.mem_total_bytes)));
+
+  if (agg.total_bytes > 0){
+    c.appendChild(bar("DISK", agg.percent || 0,
+      fmtBytes(agg.used_bytes), fmtBytes(agg.total_bytes)));
+  }
+
+  if (disks.length > 1){
+    disks.forEach(function(dk){
+      var row = el("div");
+      row.style.fontSize = "10.5px";
+      row.style.color = "var(--dim)";
+      row.style.fontFamily = "var(--mono)";
+      row.style.marginLeft = "12px";
+      row.style.marginBottom = "2px";
+      var pers = dk.persistent ? "  [persist]" : "";
+      row.textContent = dk.path + pers + "  " +
+        fmtBytes(dk.used_bytes) + " / " + fmtBytes(dk.total_bytes) +
+        "  (" + dk.percent.toFixed(1) + "%)";
+      c.appendChild(row);
+    });
+  }
+
+  var r1h = (d.ranges && d.ranges["1h"]) || {};
+  var cpuStats = r1h.cpu || {};
+  if (cpuStats.samples > 0){
+    var statsLine = el("div", "muted");
+    statsLine.style.marginTop = "6px";
+    statsLine.style.fontSize = "10.5px";
+    statsLine.textContent = "1h CPU: avg " + cpuStats.avg + "%" +
+      " \u00b7 peak " + cpuStats.max + "%" +
+      " (" + cpuStats.samples + " samples)";
+    c.appendChild(statsLine);
   }
 
   return c;

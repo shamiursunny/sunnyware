@@ -1349,3 +1349,16 @@ Limited filter + rpm meta + detail rows.
 Config: SUNNYWARE_TOOL_RATE_LIMIT_PER_MINUTE=0 (disabled)
 
 Smoke: 173 (25/25).
+
+## 2026-10-17 - Part 174
+
+| Part | Feature |
+|------|---------|
+| 174  | Hardware resources + Neon DB storage |
+
+system_metrics.py: cgroup-aware CPU/RAM/Disk metrics with
+1h rolling window. New RESOURCES card on /status. Neon DB
+card now shows pg_database_size storage bar.
+New dep: psutil>=5.9.0.
+
+Smoke: 174 (45/45).

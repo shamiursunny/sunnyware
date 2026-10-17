@@ -570,3 +570,33 @@ try:
         return await call_next(request)
 except Exception as _e:
     print(f"[recon_guard] middleware not installed: {_e}")
+
+# ─── Part 174: hardware metrics sampler ───
+try:
+    import asyncio as _asyncio
+    _metrics_sampler_started = False
+
+    async def _system_metrics_sampler():
+        from . import system_metrics as _sm
+        import os as _os
+        interval = int(_os.getenv("SUNNYWARE_METRICS_INTERVAL_S", "5"))
+        _sm.sample_once()
+        while True:
+            await _asyncio.sleep(interval)
+            try:
+                _sm.sample_once()
+            except Exception:
+                pass
+
+    def _start_metrics_sampler():
+        global _metrics_sampler_started
+        if _metrics_sampler_started:
+            return
+        _metrics_sampler_started = True
+        try:
+            loop = _asyncio.get_event_loop()
+            loop.create_task(_system_metrics_sampler())
+        except Exception:
+            pass
+except Exception:
+    pass
