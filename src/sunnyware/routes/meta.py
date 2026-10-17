@@ -53,7 +53,13 @@ router = APIRouter()
 
 
 @router.get("/")
-async def root():
+async def root(request: Request):
+    # Part 186b: Paddle appends ?_ptxn=... to the root domain.
+    # Redirect to /admin so the Paddle.js checkout overlay can open.
+    if "_ptxn" in request.query_params:
+        from fastapi.responses import RedirectResponse
+        return RedirectResponse(url="/admin?" + request.url.query)
+
     return {
         "name": "sunnyware",
         "version": meta.PROJECT_VERSION,
