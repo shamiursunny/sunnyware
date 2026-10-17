@@ -1412,3 +1412,12 @@ Added a public /api/stripe/webhook endpoint (exempt from auth)
 that upgrades an org plan when Stripe sends checkout.session.completed.
 Added /api/saas/portal for Customer Portal links. Added usage.py
 for future per-org daily quota enforcement.
+
+## 2026-10-17 - Part 184
+
+| Part | Feature |
+|------|---------|
+| 184  | Usage Quotas & Stripe Customer ID |
+
+Enforced plan quotas on /api/agent/stream based on the org plan.
+Updated Stripe webhook to save customer_id for the customer portal.

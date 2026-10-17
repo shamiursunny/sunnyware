@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-17 (Part 183 - Stripe Webhooks & Portal)
+**Last update:** 2026-10-17 (Part 184 - Usage Quotas & Stripe)

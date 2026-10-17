@@ -2059,3 +2059,10 @@ Config:
 - admin.html: added "Billing" button on each organization row.
 - Endpoint tests: webhook returns 200 without key, all other
   /api/saas/* endpoints still return 401 without key.
+
+### Part 184 - Usage Quotas & Stripe Customer ID
+- saas_store.py: added get_org_for_api_key() to link API keys to SaaS Orgs.
+- routes/agent.py: added _check_quota() to enforce daily limits based on the org plan.
+  Injects HTTP 429 if the limit is reached.
+- routes/billing.py: webhook now saves stripe_customer_id on checkout completion,
+  allowing the Customer Portal button to work for real customers.
