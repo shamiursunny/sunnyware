@@ -1401,3 +1401,14 @@ Smoke: 175 (55/55).
 Built a full SaaS admin panel. Features a SPA sidebar with real-time
 billing metrics, organization management, CRM notes, and Stripe
 checkout simulation (ready for live keys).
+
+## 2026-10-17 - Part 183
+
+| Part | Feature |
+|------|---------|
+| 183  | Stripe Webhooks, Customer Portal, Usage Quotas |
+
+Added a public /api/stripe/webhook endpoint (exempt from auth)
+that upgrades an org plan when Stripe sends checkout.session.completed.
+Added /api/saas/portal for Customer Portal links. Added usage.py
+for future per-org daily quota enforcement.

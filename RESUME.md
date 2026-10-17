@@ -187,6 +187,10 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   dashboard, Organizations (tenants), Plans, Invoices, CRM Notes,
   and Stripe checkout (simulated until STRIPE_SECRET_KEY is set).
 
+- Stripe Webhooks (Part 183): public /api/stripe/webhook upgrades
+  an org plan on checkout.session.completed. Customer Portal at
+  /api/saas/portal. usage.py tracks per-org daily call counts.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP

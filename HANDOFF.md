@@ -2047,3 +2047,15 @@ Config:
   Includes: Dashboard (MRR/ARR), Organizations, Plans, Invoices,
   CRM Notes, SSO Users, and HITL Approvals.
 - Stripe: runs in Simulated Mode until STRIPE_SECRET_KEY is added to HF.
+
+### Part 183 - Stripe Webhooks & Customer Portal
+- New usage.py: daily per-org API call tracking and quota checks.
+- New routes/billing.py: POST /api/stripe/webhook (public) and
+  POST /api/saas/portal for Stripe Customer Portal links.
+- billing.py now passes client_reference_id + metadata[plan_id]
+  to Stripe so the webhook knows which org to upgrade.
+- main.py: exempt /api/stripe/webhook from auth (Stripe calls
+  it without credentials).
+- admin.html: added "Billing" button on each organization row.
+- Endpoint tests: webhook returns 200 without key, all other
+  /api/saas/* endpoints still return 401 without key.
