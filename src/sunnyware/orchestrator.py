@@ -659,6 +659,20 @@ async def _run_agent_body(
     if _role_addon:
         system_prompt = _role_addon + "\n\n" + system_prompt
 
+    # Part 169: A/B prompt experiment injection.
+    # Deterministic per (session_uuid, experiment). No live experiment
+    # -> pick_variant returns (None, None) and this is a no-op.
+    _ab_arm = None
+    try:
+        from . import ab_testing as _ab
+        _ab_arm, _ab_extra = _ab.pick_variant(
+            str(session_uuid or ""), str(role or "")
+        )
+        if _ab_arm == "b" and _ab_extra:
+            system_prompt = _ab_extra + "\n\n" + system_prompt
+    except Exception:
+        pass
+
     if system:
         system_prompt = system + "\n\n" + system_prompt
 

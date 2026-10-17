@@ -1843,3 +1843,23 @@ CI result at 164k: gate=success, smoke=success.
     SUNNYWARE_SCHEMA_STRICT=1
     SUNNYWARE_SCHEMA_ALLOW_EXTRA=1
 - Smoke: 167 (27/27).
+
+### Part 169 - Prompt A/B testing
+- New src/sunnyware/ab_testing.py. Deterministic per-(session,
+  experiment) assignment via sha256 bucket so the same user
+  always gets the same arm.
+- Orchestrator hooks after the role addon, before the final
+  system override:
+    _ab_arm, _ab_extra = _ab.pick_variant(session_uuid, role)
+    if _ab_arm == "b" and _ab_extra:
+        system_prompt = _ab_extra + chr(10)*2 + system_prompt
+- No live experiment = no-op (pick_variant returns (None,None)).
+- Storage: /data/ab_experiments.json on HF, data/ab_*.json local.
+  SUNNYWARE_AB_STORAGE override for tests.
+- 4 endpoints:
+    POST /api/ab/create      (admin)
+    GET  /api/ab/list
+    GET  /api/ab/results/{id}
+    POST /api/ab/delete      (admin)
+- Config: SUNNYWARE_AB_ENABLED=1, SUNNYWARE_AB_STORAGE=<path>.
+- Smoke: 169 (42/42).

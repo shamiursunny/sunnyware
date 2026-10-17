@@ -1940,3 +1940,67 @@ async def status_summary():
     await _safe("ci", github_ci_status)
 
     return out
+
+
+@router.post("/api/ab/create")
+async def ab_create(req: Request):
+    """Part 169: create a prompt A/B experiment (admin when auth on)."""
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        body = await req.json()
+    except Exception:
+        body = {}
+    try:
+        from .. import ab_testing as _ab
+        return _ab.create(
+            name=body.get("name", ""),
+            role=body.get("role", "*"),
+            split_pct=body.get("split_pct", 50),
+            prompt_b_extra=body.get("prompt_b_extra", ""),
+            active=body.get("active", True),
+        )
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.get("/api/ab/list")
+async def ab_list():
+    """Part 169: list all A/B experiments."""
+    try:
+        from .. import ab_testing as _ab
+        return _ab.list_all()
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.get("/api/ab/results/{exp_id}")
+async def ab_results(exp_id: str):
+    """Part 169: assignment counts + recent samples for one experiment."""
+    try:
+        from .. import ab_testing as _ab
+        return _ab.results(exp_id)
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.post("/api/ab/delete")
+async def ab_delete(req: Request):
+    """Part 169: delete an experiment (admin when auth on)."""
+    _deny = _check_admin()
+    if _deny is not None:
+        return _deny
+    try:
+        body = await req.json()
+    except Exception:
+        body = {}
+    try:
+        from .. import ab_testing as _ab
+        return _ab.delete(body.get("id", ""))
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)

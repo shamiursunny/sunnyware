@@ -1270,3 +1270,15 @@ violations logged to audit trail but don't trip the
 breaker. LLM sees schema and retries.
 
 Smoke: 167 (27/27).
+
+## 2026-10-17 - Part 169
+
+| Part | Feature |
+|------|---------|
+| 169  | Prompt A/B testing |
+
+New src/sunnyware/ab_testing.py. Deterministic assignment
+via sha256 bucket. Orchestrator hook between role addon
+and final system override. 4 endpoints under /api/ab/*.
+
+Smoke: 169 (42/42).

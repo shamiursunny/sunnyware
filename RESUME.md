@@ -130,6 +130,12 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   mismatches. Violations logged to audit, don't trip breaker.
   Env: SUNNYWARE_SCHEMA_{ENABLED,STRICT,ALLOW_EXTRA}.
 
+- Prompt A/B testing (Part 169): src/sunnyware/ab_testing.py.
+  Deterministic per-(session, experiment) assignment via
+  sha256 bucket. Orchestrator hook between role addon and
+  final system override. 4 endpoints under /api/ab/*.
+  Env: SUNNYWARE_AB_ENABLED, SUNNYWARE_AB_STORAGE.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP
