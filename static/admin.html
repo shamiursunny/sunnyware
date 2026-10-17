@@ -111,6 +111,21 @@
       </tbody>
     </table>
 
+    <h2>Pending Approvals</h2>
+    <table id="approvals-table">
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>Args</th>
+          <th>Requested</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="approvals-tbody">
+        <tr><td colspan="4" style="text-align:center; color:var(--muted)">No pending approvals.</td></tr>
+      </tbody>
+    </table>
+
     <h2>Create / Update User</h2>
     <div class="form-row">
       <input type="email" id="new-email" placeholder="user@company.com">
@@ -226,11 +241,53 @@ async function deleteUser(email) {
   }
 }
 
+async function loadApprovals() {
+  try {
+    const data = await apiCall('/api/approvals');
+    const tbody = document.getElementById('approvals-tbody');
+    if (data.count === 0) {
+      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--muted)">No pending approvals.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.approvals.map(a => `
+      <tr>
+        <td><strong>${a.tool}</strong></td>
+        <td><code style="font-size:11px">${JSON.stringify(a.args)}</code></td>
+        <td>${new Date(a.created_at * 1000).toLocaleTimeString()}</td>
+        <td>
+          <button style="padding:4px 8px; font-size:12px; background:var(--success);" onclick="approveReq('${a.id}')">Approve</button>
+          <button class="danger" style="padding:4px 8px; font-size:12px" onclick="rejectReq('${a.id}')">Reject</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    // ignore errors during background poll
+  }
+}
+
+async function approveReq(id) {
+  try {
+    await apiCall('/api/approvals/' + id + '/approve', 'POST');
+    showToast('Approved', 'success');
+    loadApprovals();
+  } catch(e) { showToast('Error approving', 'error'); }
+}
+
+async function rejectReq(id) {
+  try {
+    await apiCall('/api/approvals/' + id + '/reject', 'POST');
+    showToast('Rejected', 'success');
+    loadApprovals();
+  } catch(e) { showToast('Error rejecting', 'error'); }
+}
+
 function init() {
   if (API_KEY) {
     document.getElementById('auth-box').style.display = 'none';
     document.getElementById('main-panel').style.display = 'block';
     loadUsers();
+    loadApprovals();
+    setInterval(loadApprovals, 5000);
   } else {
     document.getElementById('auth-box').style.display = 'block';
     document.getElementById('main-panel').style.display = 'none';

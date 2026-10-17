@@ -400,6 +400,27 @@ async def _execute_tool(name, args):
 
 async def _execute_tool_raw(tool_name: str, tool_args: dict) -> dict:
     """Part 132: span-wrapped wrapper for _execute_tool_impl."""
+    # Part 180: HITL Interceptor
+    try:
+        from . import approval_store as _as
+        if _as.requires_approval(tool_name):
+            req = _as.create_request(tool_name, tool_args)
+            req_id = req["id"]
+            import asyncio
+            # Wait up to 120 seconds (60 * 2s)
+            for _ in range(60):
+                await asyncio.sleep(2)
+                current = _as.get_request(req_id)
+                if current and current.get("status") == "approved":
+                    break
+                if current and current.get("status") == "rejected":
+                    return {"error": "approval_rejected", "detail": "Action rejected by human."}
+            else:
+                _as.set_status(req_id, "timeout")
+                return {"error": "approval_timeout", "detail": "Action timed out waiting for approval."}
+    except Exception:
+        pass # Fallback to standard execution if HITL fails
+
     _span = None
     try:
         from . import tracing as _tr132
