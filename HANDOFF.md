@@ -1897,3 +1897,23 @@ CI result at 164k: gate=success, smoke=success.
 - Wildcard events supported: "*" or prefix+"*" (e.g. audit.*).
 - Config: SUNNYWARE_WEBHOOKS_OUT_{ENABLED,STORAGE,TIMEOUT}.
 - Smoke: 171 (54/54).
+
+### Part 172 - Tools Health + Versions cards
+- New src/sunnyware/tools_health.py: aggregator over all 81
+  registered tools. Reads from circuit_breaker + tools registry.
+- Composite status: working / degraded / broken / never_used.
+  Broken when breaker open. Degraded when >=3 consecutive fails.
+  Never_used when zero calls recorded.
+- meta.py: new tools_health_snapshot() helper + summary wiring.
+- meta.py: github_ci_status() now fetches per_page=10 and
+  returns runs + successful[3] + current_version (PROJECT_VERSION).
+- status.html: Tool Circuits card replaced by Tools Health card:
+    - 74 / 81 working with progress bar (colored by severity)
+    - top 3 broken/degraded with reason
+    - link to /tools (full page - Phase 5, coming next)
+- status.html: new Versions card:
+    - current version (from meta.py)
+    - running commit SHA + message + CI status
+    - last 3 successful builds with commit/when/message
+    - rollback hint (git revert <sha>) when latest run failed
+- Smoke: 172 (29/29).

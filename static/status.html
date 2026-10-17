@@ -96,7 +96,8 @@ var CARDS = [
   { id:"budget",    title:"Budget",         key:"budget",    render:renderBudget },
   { id:"golden",    title:"Golden dataset", key:"golden",    render:renderGolden },
   { id:"evals",     title:"Evals",          key:"evals",     render:renderEvals },
-  { id:"circuits",  title:"Tool circuits",  key:"circuits",  render:renderCircuits },
+  { id:"tools",     title:"Tools Health",   key:"tools_health", render:renderToolsHealth },
+  { id:"versions",  title:"Versions",       key:"ci",           render:renderVersions },
   { id:"recon",     title:"Recon guard",    key:"recon",     render:renderRecon },
   { id:"audit",     title:"Audit chain",    key:"audit",     render:renderAudit },
   { id:"providers", title:"Providers",      key:"providers", render:renderProviders },
@@ -632,6 +633,186 @@ function renderCI(d){
     tbl.appendChild(tr);
   });
   c.appendChild(tbl);
+  return c;
+}
+
+function renderToolsHealth(d){
+  var c = el("div");
+  if (!d || d.__error__){
+    c.appendChild(badge("err", "ERROR"));
+    if (d && d.__error__) c.appendChild(el("div","err-msg", d.__error__));
+    return c;
+  }
+  var s = d.summary || {};
+  var total = s.total || 0;
+  var working = s.working || 0;
+  var degraded = s.degraded || 0;
+  var broken = s.broken || 0;
+  var neverUsed = s.never_used || 0;
+
+  var big = el("div", "big");
+  big.textContent = working + " / " + total;
+  big.style.color = broken > 0 ? "var(--err)"
+                  : degraded > 0 ? "var(--warn)"
+                  : "var(--ok)";
+  c.appendChild(big);
+  c.appendChild(el("div", "muted", "working"));
+
+  var bar = el("div", "bar");
+  if (total > 0) {
+    var fill = el("i");
+    fill.style.width = Math.round((working / total) * 100) + "%";
+    if (broken > 0) fill.style.background =
+      "linear-gradient(90deg, var(--err), #ff8c80)";
+    else if (degraded > 0) fill.style.background =
+      "linear-gradient(90deg, var(--warn), #ffce6b)";
+    bar.appendChild(fill);
+  }
+  bar.style.marginTop = "10px";
+  c.appendChild(bar);
+
+  var line = el("div", "muted");
+  line.style.marginTop = "8px";
+  line.style.fontSize = "12px";
+  line.textContent = "degraded " + degraded +
+    "  /  broken " + broken +
+    "  /  never used " + neverUsed;
+  c.appendChild(line);
+
+  var issues = (d.tools || []).filter(function(t){
+    return t.status === "broken" || t.status === "degraded";
+  }).slice(0, 3);
+
+  if (issues.length){
+    var tbl = el("table");
+    var head = el("tr");
+    ["tool", "status", "reason"].forEach(function(x){
+      head.appendChild(el("th", null, x));
+    });
+    tbl.appendChild(head);
+    issues.forEach(function(t){
+      var tr = el("tr");
+      tr.appendChild(el("td", null, t.name));
+      var td = el("td");
+      td.appendChild(badge(
+        t.status === "broken" ? "err" : "warn",
+        t.status.toUpperCase()
+      ));
+      tr.appendChild(td);
+      var rTd = el("td");
+      rTd.style.fontSize = "11px";
+      rTd.style.color = "var(--dim)";
+      rTd.style.maxWidth = "160px";
+      rTd.style.overflow = "hidden";
+      rTd.style.textOverflow = "ellipsis";
+      rTd.style.whiteSpace = "nowrap";
+      rTd.textContent = (t.reason || "---").slice(0, 60);
+      tr.appendChild(rTd);
+      tbl.appendChild(tr);
+    });
+    tbl.style.marginTop = "10px";
+    c.appendChild(tbl);
+  } else if (total > 0){
+    var ok = el("div", "muted");
+    ok.style.marginTop = "10px";
+    ok.style.color = "var(--ok)";
+    ok.textContent = "All " + total + " tools healthy";
+    c.appendChild(ok);
+  }
+
+  var link = el("a");
+  link.href = "/tools";
+  link.style.marginTop = "10px";
+  link.style.display = "inline-block";
+  link.style.fontSize = "12px";
+  link.textContent = "View all " + total + " tools";
+  c.appendChild(link);
+
+  return c;
+}
+
+function renderVersions(d){
+  var c = el("div");
+  if (!d || d.ok === false){
+    c.appendChild(badge("err", "UNREACHABLE"));
+    if (d && d.detail) c.appendChild(el("div","err-msg", d.detail));
+    return c;
+  }
+  var recent = d.runs || [];
+  var successful = d.successful || [];
+  var currentVersion = d.current_version || "?";
+  var running = recent[0];
+
+  var big = el("div", "big");
+  big.textContent = "v" + currentVersion;
+  big.style.fontSize = "20px";
+  c.appendChild(big);
+
+  if (running){
+    var head = el("div", "muted");
+    head.style.fontSize = "11px";
+    head.style.marginTop = "2px";
+    head.textContent = (running.sha || "?") + "  -  " +
+      ((running.message || "").slice(0, 40));
+    c.appendChild(head);
+    var st = el("div");
+    st.style.marginTop = "6px";
+    var cls = running.conclusion === "success" ? "ok"
+            : running.conclusion === "failure" ? "err" : "warn";
+    st.appendChild(badge(cls,
+      (running.conclusion || running.status || "?").toUpperCase()));
+    c.appendChild(st);
+  }
+
+  if (successful.length){
+    var lbl = el("div", "muted");
+    lbl.style.marginTop = "12px";
+    lbl.style.fontSize = "11px";
+    lbl.textContent = "Recent working builds";
+    c.appendChild(lbl);
+
+    var tbl = el("table");
+    var th = el("tr");
+    ["commit", "when", "message"].forEach(function(x){
+      th.appendChild(el("th", null, x));
+    });
+    tbl.appendChild(th);
+    successful.slice(0, 3).forEach(function(r){
+      var tr = el("tr");
+      var shaTd = el("td");
+      var a = el("a");
+      a.href = r.commit_url || r.url || "#";
+      a.textContent = r.sha || "?";
+      a.target = "_blank";
+      a.style.fontFamily = "var(--mono)";
+      a.style.fontSize = "11px";
+      shaTd.appendChild(a);
+      tr.appendChild(shaTd);
+      tr.appendChild(el("td", null, fmtRelative(r.updated_at)));
+      var m = el("td", null, (r.message || "").slice(0, 32));
+      m.style.fontSize = "11px";
+      tr.appendChild(m);
+      tbl.appendChild(tr);
+    });
+    c.appendChild(tbl);
+  }
+
+  if (running && running.conclusion !== "success" && recent.length >= 2){
+    var roll = el("div");
+    roll.style.marginTop = "8px";
+    roll.style.fontSize = "10px";
+    roll.style.fontFamily = "var(--mono)";
+    roll.style.color = "var(--warn)";
+    roll.textContent = "rollback: git revert " + (running.sha || "HEAD");
+    c.appendChild(roll);
+  } else if (running && running.conclusion === "success"){
+    var okHint = el("div", "muted");
+    okHint.style.marginTop = "8px";
+    okHint.style.fontSize = "11px";
+    okHint.textContent = "Current build is green - nothing to rollback";
+    c.appendChild(okHint);
+  }
+
   return c;
 }
 

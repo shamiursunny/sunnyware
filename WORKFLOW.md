@@ -1307,3 +1307,17 @@ circuit.open. 5 endpoints under /api/webhooks-out/*.
 3-attempt retry with backoff. Delivery log capped at 200.
 
 Smoke: 171 (54/54).
+
+## 2026-10-17 - Part 172
+
+| Part | Feature |
+|------|---------|
+| 172  | Tools Health + Versions cards |
+
+New tools_health.py aggregates all 81 tools with composite
+status (working/degraded/broken/never_used). status.html:
+Tool Circuits replaced with Tools Health card. New Versions
+card shows current version + last 3 working builds + rollback
+hint. github_ci_status now returns successful + current_version.
+
+Smoke: 172 (29/29).

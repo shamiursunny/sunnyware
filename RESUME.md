@@ -148,6 +148,12 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   Wildcard events (audit.*, *). 3-retry backoff.
   Env: SUNNYWARE_WEBHOOKS_OUT_{ENABLED,STORAGE,TIMEOUT}.
 
+- Tools health + versions (Part 172): tools_health.py aggregates
+  all 81 tools with composite status (working/degraded/broken/
+  never_used). New Tools Health card + Versions card on /status.
+  Versions shows current version + last 3 working builds +
+  rollback hint.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP

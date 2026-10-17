@@ -1868,7 +1868,13 @@ async def neon_health():
 
 
 async def github_ci_status():
-    """Latest 3 GitHub Actions runs. Cached ~90s for rate limits."""
+    """Latest 10 GitHub Actions runs, cached 90s.
+
+    Returns:
+      runs          first 3 runs (any conclusion) for CI/CD card
+      successful    first 3 successful runs for versions card
+      current_version  PROJECT_VERSION from meta.py
+    """
     import time as _t
     now = _t.time()
     if _CI_CACHE["data"] and (now - _CI_CACHE["ts"]) < 90:
@@ -1876,32 +1882,64 @@ async def github_ci_status():
     try:
         import httpx
         url = ("https://api.github.com/repos/shamiursunny/sunnyware"
-               "/actions/runs?per_page=3")
+               "/actions/runs?per_page=10")
         headers = {"Accept": "application/vnd.github+json",
                    "User-Agent": "sunnyware-status/1.0"}
         async with httpx.AsyncClient(timeout=10.0) as cli:
             r = await cli.get(url, headers=headers)
             r.raise_for_status()
             j = r.json()
-        runs = []
-        for run in (j.get("workflow_runs") or [])[:3]:
-            runs.append({
+        raw = j.get("workflow_runs") or []
+
+        def _shape(run):
+            sha_full = run.get("head_sha") or ""
+            return {
                 "name": run.get("name"),
                 "status": run.get("status"),
                 "conclusion": run.get("conclusion"),
                 "branch": run.get("head_branch"),
-                "sha": (run.get("head_sha") or "")[:7],
+                "sha": sha_full[:7],
+                "sha_full": sha_full,
+                "message": (run.get("display_title") or "")[:120],
+                "created_at": run.get("created_at"),
                 "updated_at": run.get("updated_at"),
                 "url": run.get("html_url"),
+                "commit_url": ("https://github.com/shamiursunny/sunnyware"
+                               "/commit/" + sha_full) if sha_full else "",
                 "duration_s": _dur_s(run.get("run_started_at"),
                                      run.get("updated_at")),
-            })
-        out = {"ok": True, "runs": runs}
+            }
+
+        shaped = [_shape(r) for r in raw]
+        recent = shaped[:3]
+        successful = [r for r in shaped if r.get("conclusion") == "success"][:3]
+
+        try:
+            from .. import meta as _meta
+            current_version = _meta.PROJECT_VERSION
+        except Exception:
+            current_version = "unknown"
+
+        out = {
+            "ok": True,
+            "runs": recent,
+            "successful": successful,
+            "current_version": current_version,
+        }
         _CI_CACHE["ts"] = now
         _CI_CACHE["data"] = out
         return out
     except Exception as e:
         return {"ok": False, "detail": f"{type(e).__name__}: {e}"}
+
+
+async def tools_health_snapshot():
+    """Part 172: aggregate per-tool health for the status card."""
+    try:
+        from .. import tools_health as _th
+        return _th.snapshot()
+    except Exception as e:
+        return {"__error__": f"{type(e).__name__}: {e}"}
 
 
 @router.get("/api/status/summary")
@@ -1938,6 +1976,9 @@ async def status_summary():
     # Part 165: Neon DB + GitHub CI/CD probes
     await _safe("neon", neon_health)
     await _safe("ci", github_ci_status)
+
+    # Part 172: per-tool health snapshot
+    await _safe("tools_health", tools_health_snapshot)
 
     return out
 
