@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-17 (Part 175 - SSOReady Phase 1)
+**Last update:** 2026-10-17 (Part 181 - Enterprise IAM & HITL)

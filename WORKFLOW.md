@@ -1376,3 +1376,18 @@ wired with env-first, sso-fallback lookup. Zero behavior change
 when SSOREADY_API_KEY is unset (501 responses).
 
 Smoke: 175 (55/55). Regressions: 174 (51/51).
+
+## 2026-10-17 - Part 179-181
+
+| Part | Feature |
+|------|---------|
+| 179  | Admin Panel UI (Users) |
+| 180  | HITL Approvals (Store, Orchestrator Gate, API, UI) |
+| 181  | Chat UI API Key Interceptor |
+
+Integrated WorkOS SSO for enterprise login. Built an admin panel
+to manage users and approve sensitive tool calls. The orchestrator
+now intercepts tools listed in SUNNYWARE_HITL_TOOLS and waits for
+admin approval via /api/approvals before executing.
+
+Smoke: 175 (55/55).

@@ -2027,3 +2027,14 @@ Config:
     SSOREADY_TIMEOUT_S     default 10.0
     SUNNYWARE_USERS_STORE  override store path
 - Smoke: 175 (55/55). Regressions: 174 (51/51).
+
+### Part 180 - HITL Approvals & Admin Panel (Phase 2 & 3)
+- WorkOS SSO integration (Part 177) replaces Scalekit.
+- New admin panel at /admin (Part 179) with user management and
+  real-time pending approvals.
+- New approval_store.py (Part 180) to track PENDING / APPROVED /
+  REJECTED tool calls.
+- orchestrator.py gates tool execution via SUNNYWARE_HITL_TOOLS.
+  Pauses up to 120s for admin approval.
+- New routes/approvals.py for /api/approvals (GET, POST approve/reject).
+- WebUI now injects X-API-Key globally via fetch() interceptor.

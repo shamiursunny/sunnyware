@@ -179,6 +179,10 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   when unset. Env: SSOREADY_API_KEY, SSOREADY_BASE_URL,
   SSOREADY_TIMEOUT_S, SUNNYWARE_USERS_STORE.
 
+- WorkOS SSO + Admin Panel + HITL (Parts 177-181): Enterprise
+  login via WorkOS, user management via /admin, and human
+  approval gating for sensitive tools (SUNNYWARE_HITL_TOOLS).
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP
