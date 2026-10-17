@@ -45,9 +45,15 @@ async def get_redirect_url(org_id: str) -> dict:
         "redirect_uri": _callback(),
         "response_type": "code",
         "scope": "openid email profile",
-        "organization_id": org_id,
         "state": org_id,
     }
+
+    # Prefer connection_id if configured (highest precedence in Scalekit)
+    conn_id = os.getenv("SCALEKIT_CONNECTION_ID")
+    if conn_id:
+        params["connection_id"] = conn_id
+    else:
+        params["organization_id"] = org_id
     # Correct endpoint: /oauth/authorize (not /api/v1/sso/authorize)
     url = _env_url() + "/oauth/authorize?" + urlencode(params)
     return {"ok": True, "redirect_url": url}
