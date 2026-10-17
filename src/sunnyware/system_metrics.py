@@ -63,6 +63,23 @@ def _read_cgroup_cpu_count() -> tuple:
     return None, None
 
 
+def _process_tree_mem() -> Optional[int]:
+    """RSS of this process + all children. Best proxy for container
+    memory usage when cgroup reading fails (HF Spaces case)."""
+    try:
+        import psutil
+        proc = psutil.Process()
+        total = proc.memory_info().rss
+        for child in proc.children(recursive=True):
+            try:
+                total += child.memory_info().rss
+            except Exception:
+                pass
+        return int(total)
+    except Exception:
+        return None
+
+
 def _enumerate_disks() -> list:
     """Enumerate real disk mounts. Filters pseudo-FS, dedupes by device."""
     import psutil
@@ -78,8 +95,23 @@ def _enumerate_disks() -> list:
         parts = psutil.disk_partitions(all=False)
     except Exception:
         return mounts
+    # Bind mounts / host paths that psutil reports but aren't real disks
+    FORBIDDEN_PREFIXES = (
+        "/etc/", "/dev/", "/sys/", "/proc/", "/run/",
+        "/snap/", "/var/lib/docker/", "/var/lib/containerd/",
+    )
+    FORBIDDEN_EXACT = (
+        "/etc/hosts", "/etc/hostname", "/etc/resolv.conf",
+        "/etc/passwd", "/etc/group", "/etc/shadow",
+        "/etc/hostname", "/.dockerenv", "/dev/shm", "/dev/mqueue",
+    )
     for p in parts:
         if p.fstype in PSEUDO:
+            continue
+        path = p.mountpoint
+        if path in FORBIDDEN_EXACT:
+            continue
+        if any(path.startswith(pre) for pre in FORBIDDEN_PREFIXES):
             continue
         if p.device in seen:
             continue
@@ -87,10 +119,17 @@ def _enumerate_disks() -> list:
             u = psutil.disk_usage(p.mountpoint)
         except Exception:
             continue
+        # Skip absurdly large "disks" that are actually host rootfs shares
+        # (unless explicitly /)
+        if path != "/" and u.total > (500 * (1 << 30)):
+            continue
         seen.add(p.device)
         path = p.mountpoint
         role = ("root" if path == "/"
-                else "data" if path == "/data" or path.startswith("/data/")
+                else "data" if (path == "/data"
+                                or path.startswith("/data/")
+                                or path == "/data-nvme"
+                                or path.startswith("/data-nvme/"))
                 else "other")
         persistent = (
             os.getenv("SUNNYWARE_DATA_PERSISTENT") == "1"
@@ -116,21 +155,24 @@ def limits() -> dict:
 
     mem_total, mem_src = _read_cgroup_mem()
     if mem_total is None:
+        # In containers, psutil.virtual_memory().total reports HOST RAM,
+        # not the container's. Prefer env override, then known HF default.
         try:
-            mem_total = int(psutil.virtual_memory().total)
-            mem_src = "psutil"
+            mem_gb = int(os.getenv("SUNNYWARE_CONTAINER_MEM_GB", "16"))
+            mem_total = mem_gb * (1 << 30)
+            mem_src = "env" if "SUNNYWARE_CONTAINER_MEM_GB" in os.environ else "default"
         except Exception:
-            mem_total = int(os.getenv("SUNNYWARE_CONTAINER_MEM_GB", "16")) * (1 << 30)
-            mem_src = "env"
+            mem_total = 16 * (1 << 30)
+            mem_src = "default"
 
     cpu_count, cpu_src = _read_cgroup_cpu_count()
     if cpu_count is None:
         try:
-            cpu_count = float(psutil.cpu_count() or 2)
-            cpu_src = "psutil"
-        except Exception:
             cpu_count = float(os.getenv("SUNNYWARE_CONTAINER_VCPU", "2"))
-            cpu_src = "env"
+            cpu_src = "env" if "SUNNYWARE_CONTAINER_VCPU" in os.environ else "default"
+        except Exception:
+            cpu_count = 2.0
+            cpu_src = "default"
 
     return {
         "cpu_count": round(cpu_count, 2),
@@ -148,14 +190,22 @@ def sample_once() -> None:
         pct = psutil.cpu_percent(interval=None)
     except Exception:
         pct = 0.0
+    # Try cgroup memory.current first (v2), then process tree RSS.
+    # Never trust psutil.virtual_memory().used in a container - it
+    # reports HOST usage, not container usage.
+    mem_used = None
     try:
-        vm = psutil.virtual_memory()
-        mem_used = int(vm.used)
-        cg_mem, _ = _read_cgroup_mem()
-        if cg_mem and cg_mem < vm.total:
-            mem_used = min(mem_used, cg_mem)
+        with open("/sys/fs/cgroup/memory.current") as f:
+            mem_used = int(f.read().strip())
     except Exception:
-        mem_used = 0
+        pass
+    if mem_used is None:
+        mem_used = _process_tree_mem()
+    if mem_used is None:
+        try:
+            mem_used = int(psutil.virtual_memory().used)
+        except Exception:
+            mem_used = 0
 
     global _LAST_SAMPLE_TS
     _BUFFER.append({
@@ -191,9 +241,16 @@ def snapshot() -> dict:
             pass
 
     lim = limits()
-    vm = psutil.virtual_memory()
     mem_total = lim["mem_total_bytes"]
-    mem_used = min(vm.used, mem_total) if mem_total else vm.used
+    # Use the most recent buffer sample (cgroup or process tree based)
+    mem_used = 0
+    if _BUFFER:
+        mem_used = int(_BUFFER[-1].get("mem_used_bytes") or 0)
+    if mem_used <= 0:
+        mem_used = _process_tree_mem() or 0
+    # Clamp in case host-reported cgroup.current > container total
+    if mem_total > 0 and mem_used > mem_total:
+        mem_used = mem_total
     mem_pct = round((mem_used / mem_total * 100) if mem_total > 0 else 0, 1)
 
     disks = _enumerate_disks()

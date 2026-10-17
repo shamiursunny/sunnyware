@@ -938,6 +938,23 @@ function renderResources(d){
     c.appendChild(statsLine);
   }
 
+  // Part 174b: warn when limits are inferred, not measured
+  var warn = [];
+  if (lim.cpu_source === "default"){
+    warn.push("CPU limit inferred (2 vCPU) \u2014 set SUNNYWARE_CONTAINER_VCPU");
+  }
+  if (lim.mem_source === "default"){
+    warn.push("RAM limit inferred (16 GB) \u2014 set SUNNYWARE_CONTAINER_MEM_GB");
+  }
+  if (warn.length){
+    var note = el("div", "muted");
+    note.style.marginTop = "8px";
+    note.style.fontSize = "10px";
+    note.style.color = "var(--warn)";
+    note.textContent = "\u26a0 " + warn.join(" \u00b7 ");
+    c.appendChild(note);
+  }
+
   return c;
 }
 

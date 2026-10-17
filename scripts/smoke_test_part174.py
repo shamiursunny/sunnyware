@@ -30,7 +30,19 @@ check("enumerates disks", "psutil.disk_partitions" in st)
 check("filters pseudo FS", "tmpfs" in st and "overlay" in st)
 check("dedupes by device", "seen.add(p.device)" in st)
 check("self-sampling", "_LAST_SAMPLE_TS" in st)
-check("slices mem to cgroup limit", "min(vm.used, mem_total)" in st)
+check("clamps mem to cgroup limit",
+      "if mem_total > 0 and mem_used > mem_total:" in st)
+check("uses process tree RSS", "def _process_tree_mem(" in st)
+check("mem.current cgroup read",
+      "/sys/fs/cgroup/memory.current" in st)
+check("filters bind mounts",
+      "FORBIDDEN_PREFIXES" in st and "/etc/" in st)
+check("filters absurd disk sizes",
+      "500 * (1 << 30)" in st)
+check("data-nvme classified as data",
+      "/data-nvme" in st)
+check("limits fall back to env not psutil",
+      'mem_src = "default"' in st)
 
 # meta.py wiring
 mt = (SRC / "routes" / "meta.py").read_text(encoding="utf-8")
