@@ -34,7 +34,9 @@ for fn in ("def enabled(", "async def get_redirect_url(",
     check(f"sso: {fn}", fn in ss)
 check("sso: uses httpx", "import httpx" in ss)
 check("sso: env keys configured",
-      "SSOREADY_API_KEY" in ss and "SSOREADY_BASE_URL" in ss)
+      "SCALEKIT_ENVIRONMENT_URL" in ss
+      and "SCALEKIT_CLIENT_ID" in ss
+      and "SCALEKIT_CLIENT_SECRET" in ss)
 
 # ─── routes/sso.py ───
 rt = (SRC / "routes" / "sso.py").read_text(encoding="utf-8")
@@ -111,11 +113,13 @@ check("delete nonexistent returns False",
       US.delete("nobody@x.com") is False)
 
 # ─── Functional: sso helper ───
-os.environ.pop("SSOREADY_API_KEY", None)
+os.environ.pop("SCALEKIT_ENVIRONMENT_URL", None)
+os.environ.pop("SCALEKIT_CLIENT_ID", None)
+os.environ.pop("SCALEKIT_CLIENT_SECRET", None)
 from sunnyware import sso as SSO
 check("sso disabled without key", SSO.enabled() is False)
-check("sso status has_key=False",
-      SSO.status().get("has_key") is False)
+check("sso status has_client_id=False",
+      SSO.status().get("has_client_id") is False)
 
 # ─── auth integration ───
 from sunnyware import auth as AUTH

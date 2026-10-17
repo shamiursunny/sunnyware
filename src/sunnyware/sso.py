@@ -1,120 +1,107 @@
 # SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Part 175: SSOReady client (httpx direct, no SDK dependency).
+"""Part 176: Scalekit SSO client.
 
-SSOReady REST API (verify paths against https://docs.ssoready.com if
-they ever change — this is the only file that needs updating):
-
-  POST {base}/saml/redirect
-       body:   {"organization_external_id": "acme-corp"}
-       return: {"redirect_url": "https://idp..."}
-
-  POST {base}/saml/redeem
-       body:   {"saml_access_code": "..."}
-       return: {"email": "...", "organization_external_id": "...", ...}
-
-Env:
-  SSOREADY_API_KEY         (required to enable)
-  SSOREADY_BASE_URL        (default https://api.ssoready.com/v1)
-  SSOREADY_TIMEOUT_S       (default 10.0)
+Replaces SSOReady (Part 175) with Scalekit's OIDC-based SSO.
+The routes and user_store from Part 175 are unchanged.
 """
 
 import os
 from typing import Optional
+from urllib.parse import urlencode
 
 
-def _api_key() -> Optional[str]:
-    k = (os.getenv("SSOREADY_API_KEY") or "").strip()
-    return k or None
+def _env_url() -> str:
+    return (os.getenv("SCALEKIT_ENVIRONMENT_URL") or "").rstrip("/")
 
 
-def _base() -> str:
-    return (os.getenv("SSOREADY_BASE_URL")
-            or "https://api.ssoready.com/v1").rstrip("/")
+def _client_id() -> str:
+    return os.getenv("SCALEKIT_CLIENT_ID") or ""
 
 
-def _timeout() -> float:
-    try:
-        return float(os.getenv("SSOREADY_TIMEOUT_S", "10.0"))
-    except Exception:
-        return 10.0
+def _client_secret() -> str:
+    return os.getenv("SCALEKIT_CLIENT_SECRET") or ""
+
+
+def _callback() -> str:
+    return (os.getenv("SCALEKIT_CALLBACK_URL")
+            or "https://shamiur-sunnyware.hf.space/sso/callback")
 
 
 def enabled() -> bool:
-    return _api_key() is not None
+    return bool(_env_url() and _client_id() and _client_secret())
 
 
-async def get_redirect_url(org_external_id: str) -> dict:
+async def get_redirect_url(org_id: str) -> dict:
     """Return {ok, redirect_url?, error?}."""
     if not enabled():
-        return {"ok": False, "error": "SSOREADY_API_KEY not set"}
-    if not org_external_id:
-        return {"ok": False, "error": "organization_external_id required"}
-    try:
-        import httpx
-        async with httpx.AsyncClient(timeout=_timeout()) as cli:
-            r = await cli.post(
-                _base() + "/saml/redirect",
-                json={"organization_external_id": org_external_id},
-                headers={
-                    "Authorization": "Bearer " + _api_key(),
-                    "Content-Type": "application/json",
-                },
-            )
-            if r.status_code >= 400:
-                return {
-                    "ok": False,
-                    "error": f"SSOReady HTTP {r.status_code}: "
-                             f"{r.text[:200]}",
-                }
-            data = r.json()
-            url = data.get("redirect_url") or data.get("redirectUrl")
-            if not url:
-                return {"ok": False,
-                        "error": "SSOReady response missing redirect_url"}
-            return {"ok": True, "redirect_url": url}
-    except Exception as e:
-        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+        return {"ok": False, "error": "SCALEKIT env vars not set"}
+    if not org_id:
+        return {"ok": False, "error": "organization_id required"}
+    params = {
+        "client_id": _client_id(),
+        "redirect_uri": _callback(),
+        "response_type": "code",
+        "scope": "openid profile email",
+        "organization_id": org_id,
+        "state": org_id,
+    }
+    url = _env_url() + "/api/v1/sso/authorize?" + urlencode(params)
+    return {"ok": True, "redirect_url": url}
 
 
-async def redeem(saml_access_code: str) -> dict:
+async def redeem(code: str) -> dict:
     """Return {ok, email?, org_id?, error?}."""
     if not enabled():
-        return {"ok": False, "error": "SSOREADY_API_KEY not set"}
-    if not saml_access_code:
-        return {"ok": False, "error": "saml_access_code required"}
+        return {"ok": False, "error": "SCALEKIT env vars not set"}
+    if not code:
+        return {"ok": False, "error": "code required"}
     try:
         import httpx
-        async with httpx.AsyncClient(timeout=_timeout()) as cli:
-            r = await cli.post(
-                _base() + "/saml/redeem",
-                json={"saml_access_code": saml_access_code},
-                headers={
-                    "Authorization": "Bearer " + _api_key(),
-                    "Content-Type": "application/json",
+        async with httpx.AsyncClient(timeout=10.0) as cli:
+            # 1. Exchange authorization code for access token
+            token_resp = await cli.post(
+                _env_url() + "/api/v1/sso/token",
+                data={
+                    "grant_type": "authorization_code",
+                    "code": code,
+                    "client_id": _client_id(),
+                    "client_secret": _client_secret(),
+                    "redirect_uri": _callback(),
                 },
             )
-            if r.status_code >= 400:
-                return {
-                    "ok": False,
-                    "error": f"SSOReady HTTP {r.status_code}: "
-                             f"{r.text[:200]}",
-                }
-            data = r.json()
-            email = data.get("email") or ""
-            org = (data.get("organization_external_id")
-                   or data.get("organizationExternalId") or "")
-            if not email:
+            if token_resp.status_code != 200:
                 return {"ok": False,
-                        "error": "SSOReady response missing email"}
-            return {"ok": True, "email": email.lower(), "org_id": org}
+                        "error": "token error: " + token_resp.text[:200]}
+            token = token_resp.json().get("access_token")
+            if not token:
+                return {"ok": False, "error": "no access_token in response"}
+
+            # 2. Fetch user info
+            ui_resp = await cli.get(
+                _env_url() + "/api/v1/sso/userinfo",
+                headers={"Authorization": "Bearer " + token},
+            )
+            if ui_resp.status_code != 200:
+                return {"ok": False,
+                        "error": "userinfo error: " + ui_resp.text[:200]}
+            ui = ui_resp.json()
+            email = (ui.get("email") or "").lower()
+            if not email:
+                return {"ok": False, "error": "no email in userinfo"}
+            return {
+                "ok": True,
+                "email": email,
+                "org_id": ui.get("organization_id", ""),
+            }
     except Exception as e:
-        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+        return {"ok": False, "error": type(e).__name__ + ": " + str(e)}
 
 
 def status() -> dict:
     return {
         "enabled": enabled(),
-        "base_url": _base(),
-        "has_key": _api_key() is not None,
+        "base_url": _env_url(),
+        "has_client_id": bool(_client_id()),
+        "has_secret": bool(_client_secret()),
     }
