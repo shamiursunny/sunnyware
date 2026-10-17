@@ -168,6 +168,60 @@ async def get_role(session_key: str) -> Optional[str]:
         return None
 
 
+async def set_title(session_key: str, title: str) -> bool:
+    """Part 170: set a custom title on a session (best-effort).
+
+    Stored inside the metadata JSONB column so no schema migration
+    is required. Trims + caps at 200 chars. Merges into existing
+    metadata without touching the role or any other key.
+    """
+    pool = app_state.get_pool()
+    if pool is None or not session_key:
+        return False
+    title = (str(title or "").strip())[:200]
+    if not title:
+        return False
+    owner = _owner()
+    try:
+        async with pool.acquire() as conn:
+            result = await conn.execute(
+                """
+                UPDATE sessions
+                SET metadata = COALESCE(metadata, '{}'::jsonb)
+                               || jsonb_build_object('title', $1::text),
+                    updated_at = NOW()
+                WHERE session_key = $2 AND owner_key = $3
+                """,
+                title, session_key, owner,
+            )
+            return result.startswith("UPDATE 1")
+    except Exception:
+        return False
+
+
+async def get_title(session_key: str) -> Optional[str]:
+    """Part 170: read the custom title from metadata.title."""
+    pool = app_state.get_pool()
+    if pool is None or not session_key:
+        return None
+    owner = _owner()
+    try:
+        async with pool.acquire() as conn:
+            row = await conn.fetchrow(
+                """
+                SELECT metadata->>'title' AS title
+                FROM sessions
+                WHERE session_key = $1 AND owner_key = $2
+                """,
+                session_key, owner,
+            )
+            if not row:
+                return None
+            return row["title"]
+    except Exception:
+        return None
+
+
 async def health_check() -> dict:
     """Verify sessions table accessible."""
     pool = app_state.get_pool()

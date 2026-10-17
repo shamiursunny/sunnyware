@@ -139,3 +139,36 @@ async def session_role_put(session_key: str, req: Request):
 
     ok = await sessions_store.set_role(session_key, role)
     return {"session_key": session_key, "role": role, "persisted": ok}
+
+
+# ── Part 170: per-session title persistence ─────────────────
+
+
+@router.get("/api/sessions/{session_key}/title")
+async def session_title_get(session_key: str):
+    """Read the custom title (metadata.title). Falls back to None."""
+    await ensure_pool()
+    sess = await sessions_store.get(session_key)
+    if not sess:
+        return JSONResponse({"error": "session not found"}, status_code=404)
+    title = await sessions_store.get_title(session_key)
+    return {"session_key": session_key, "title": title}
+
+
+@router.put("/api/sessions/{session_key}/title")
+async def session_title_put(session_key: str, req: Request):
+    """Set a custom title. Body: {"title": "..."}."""
+    await ensure_pool()
+    sess = await sessions_store.get(session_key)
+    if not sess:
+        return JSONResponse({"error": "session not found"}, status_code=404)
+    try:
+        body = await req.json()
+    except Exception:
+        body = {}
+    title = (body.get("title") or "").strip()
+    if not title:
+        return JSONResponse({"error": "title required"}, status_code=400)
+    ok = await sessions_store.set_title(session_key, title)
+    return {"session_key": session_key, "title": title[:200],
+            "persisted": ok}

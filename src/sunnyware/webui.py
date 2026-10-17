@@ -1626,11 +1626,21 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
       if (local[key]) continue;
       const msgs = await fetchHistoryFromNeon(key);
       if (!msgs || msgs.length === 0) continue;
-      let title = 'New chat';
-      for (let j = 0; j < msgs.length; j++) {
-        if (msgs[j].role === 'user' && msgs[j].text) {
-          title = msgs[j].text.length > 40 ? msgs[j].text.slice(0, 40) : msgs[j].text;
-          break;
+      // Part 170: prefer custom title from metadata.title
+      var _stored_title = '';
+      try {
+        var _m = (typeof s.metadata === 'string')
+                 ? JSON.parse(s.metadata) : (s.metadata || {});
+        if (_m && _m.title) _stored_title = String(_m.title).slice(0, 60);
+      } catch (e) { /* silent */ }
+      let title = _stored_title || 'New chat';
+      if (!_stored_title) {
+        for (let j = 0; j < msgs.length; j++) {
+          if (msgs[j].role === 'user' && msgs[j].text) {
+            title = msgs[j].text.length > 40
+              ? msgs[j].text.slice(0, 40) : msgs[j].text;
+            break;
+          }
         }
       }
       local[key] = {
@@ -1786,6 +1796,14 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     sess.title = trimmed.length > 60 ? trimmed.slice(0, 60) + '...' : trimmed;
     saveSessions(sessions);
     renderSidebar();
+    // Part 170: persist to backend (best-effort, fire-and-forget)
+    try {
+      fetch('/api/sessions/' + encodeURIComponent(id) + '/title', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: sess.title })
+      }).catch(function(){});
+    } catch (e) { /* silent */ }
   }
 
   function deleteSession(id) {

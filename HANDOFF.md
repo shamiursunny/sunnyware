@@ -1863,3 +1863,15 @@ CI result at 164k: gate=success, smoke=success.
     POST /api/ab/delete      (admin)
 - Config: SUNNYWARE_AB_ENABLED=1, SUNNYWARE_AB_STORAGE=<path>.
 - Smoke: 169 (42/42).
+
+### Part 170 - Session title persistence
+- Title was localStorage-only: lost on new device / cache clear.
+- Backend: sessions.py gains set_title / get_title that merge
+  into metadata JSONB (mirrors the set_role pattern from 113A).
+- Routes: GET/PUT /api/sessions/{key}/title
+    GET  returns {"session_key", "title"} (title may be None)
+    PUT  requires {"title": "..."}, caps at 200 chars
+- Frontend: renameSession fires fire-and-forget PUT after local
+  save. hydrateFromNeon now prefers metadata.title over the
+  auto-derived first-user-message title.
+- Smoke: 170 (16/16).

@@ -136,6 +136,11 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   final system override. 4 endpoints under /api/ab/*.
   Env: SUNNYWARE_AB_ENABLED, SUNNYWARE_AB_STORAGE.
 
+- Session title persistence (Part 170): custom titles stored in
+  sessions.metadata JSONB, not localStorage. Routes:
+  GET/PUT /api/sessions/{key}/title. Frontend: renameSession
+  fires PUT; hydrateFromNeon prefers metadata.title.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP

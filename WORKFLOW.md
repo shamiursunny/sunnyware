@@ -1282,3 +1282,15 @@ via sha256 bucket. Orchestrator hook between role addon
 and final system override. 4 endpoints under /api/ab/*.
 
 Smoke: 169 (42/42).
+
+## 2026-10-17 - Part 170
+
+| Part | Feature |
+|------|---------|
+| 170  | Session title persistence |
+
+Titles now persist via metadata JSONB instead of localStorage.
+Backend: sessions.py set_title/get_title + 2 routes. Frontend:
+renameSession fires PUT; hydrateFromNeon prefers metadata.title.
+
+Smoke: 170 (16/16).
