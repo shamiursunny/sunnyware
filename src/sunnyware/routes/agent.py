@@ -171,6 +171,37 @@ async def _auditor_verdict_with_retry(role, content):
 
 router = APIRouter()
 
+def _check_quota(req: Request):
+    """Check and increment usage quota. Returns a 429 response if exceeded."""
+    try:
+        from .. import saas_store as _saas
+        from .. import usage as _usage
+        key = req.headers.get("x-api-key") or ""
+        if not key:
+            authz = req.headers.get("authorization") or ""
+            if authz.lower().startswith("bearer "):
+                key = authz[7:].strip()
+        org = _saas.get_org_for_api_key(key)
+        if not org:
+            return None
+        org_id = org["id"]
+        plan_id = org.get("plan", "free")
+        plans = {pp["id"]: pp for pp in _saas.list_plans()}
+        plan = plans.get(plan_id, {})
+        limit = plan.get("calls_per_day", 100)
+        check = _usage.check_quota(org_id, limit)
+        if not check["allowed"]:
+            return JSONResponse(
+                {"error": "quota_exceeded",
+                 "detail": f"Daily limit of {limit} calls reached. Please upgrade your plan."},
+                status_code=429,
+            )
+        _usage.increment(org_id)
+    except Exception:
+        pass
+    return None
+
+
 
 @router.post("/api/agent/run")
 async def run_agent(req: Request):
@@ -443,6 +474,8 @@ async def run_agent_plan(req: Request):
 
 @router.post("/api/agent/stream")
 async def agent_stream(req: Request):
+    deny = _check_quota(req)
+    if deny: return deny
     """Tool-aware SSE — reports tool_calls in real time as they happen.
 
     SSE event types:

@@ -35,11 +35,15 @@ async def stripe_webhook(request: Request):
             session = event.get("data", {}).get("object", {})
             org_id = session.get("client_reference_id", "")
             plan_id = session.get("metadata", {}).get("plan_id", "pro")
+            customer_id = session.get("customer", "")
             
             if org_id:
                 from .. import saas_store as s
-                s.update_org(org_id, {"plan": plan_id, "status": "active"})
-                print(f"[stripe] Upgraded org {org_id} to {plan_id}")
+                patch = {"plan": plan_id, "status": "active"}
+                if customer_id:
+                    patch["stripe_customer_id"] = customer_id
+                s.update_org(org_id, patch)
+                print(f"[stripe] Upgraded org {org_id} to {plan_id} (customer {customer_id})")
         
         return {"received": True}
     except Exception as e:

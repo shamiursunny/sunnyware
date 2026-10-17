@@ -172,3 +172,26 @@ def dashboard_stats() -> dict:
         "total_revenue": total_revenue, "total_invoices": len(invoices),
         "total_notes": len(list_notes()),
     }
+
+def get_org_for_api_key(api_key: str) -> Optional[dict]:
+    """Find the SaaS Org associated with an SSO API key."""
+    if not api_key:
+        return None
+    try:
+        from . import user_store as _us
+        email = _us.email_for_api_key(api_key)
+        if not email:
+            return None
+        user = _us.get(email)
+        if not user:
+            return None
+        workos_org_id = user.get("org_id")
+        if not workos_org_id:
+            return None
+        orgs = _load("orgs.json", {})
+        for o in orgs.values():
+            if o.get("workos_org_id") == workos_org_id:
+                return o
+    except Exception:
+        pass
+    return None
