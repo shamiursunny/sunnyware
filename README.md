@@ -11,9 +11,12 @@ license: agpl-3.0
 
 # sunnyware
 
-**Production-grade AI agent orchestrator** -- 14 tools, cross-session memory, multi-step planning, MCP interop, all on Hugging Face free tier.
+**Production-grade AI agent orchestrator** -- 81 tools, cross-session memory, multi-step planning, MCP interop, all on Hugging Face free tier.
+
+[![CI](https://github.com/shamiursunny/sunnyware/actions/workflows/smokes.yml/badge.svg)](https://github.com/shamiursunny/sunnyware/actions)
 
 **Live:** https://shamiur-sunnyware.hf.space
+**Status dashboard:** https://shamiur-sunnyware.hf.space/status
 **Chat UI:** https://shamiur-sunnyware.hf.space/ui
 **API docs:** https://shamiur-sunnyware.hf.space/docs
 **MCP:** https://shamiur-sunnyware.hf.space/mcp
@@ -27,7 +30,20 @@ license: agpl-3.0
 
 An autonomous AI agent that plans, calls tools, remembers across sessions, and exposes itself over the **Model Context Protocol** for use from Claude Desktop, Cursor, or any MCP client.
 
-Built from scratch across 22 iterations -- runs 24/7 on HF free tier, no laptop dependency.
+Built from scratch across 166 iterations -- runs 24/7 on HF free tier, no laptop dependency.
+
+---
+
+## Six-layer architecture
+
+| Layer | What it does |
+|---|---|
+| Safety | rate limit, RBAC, injection guard, recon guard |
+| Intelligence | auditor sub-agent, multi-role truth, CFO pipeline |
+| Observability | evals, golden dataset, cost, budgets, circuits |
+| Reliability | provider routing, cooldowns, circuit breakers |
+| Compliance | HMAC audit trail, admin logging |
+| Visibility | 10-card status dashboard, markdown chat |
 
 ---
 
