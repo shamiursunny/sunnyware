@@ -21,6 +21,7 @@ from . import meta
 from .runtime import state, init_state, log
 from . import state as app_state
 from .routes import meta as meta_routes
+from .routes import sso as sso_routes
 from .routes import agent as agent_routes
 from .routes import eval as eval_routes
 from .routes import mcp as mcp_routes
@@ -114,6 +115,7 @@ app = Server(
 
 # Register all routers
 app.include_router(meta_routes.router)
+app.include_router(sso_routes.router)
 app.include_router(agent_routes.router)
 app.include_router(tools_routes.router)
 app.include_router(sessions_routes.router)

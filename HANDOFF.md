@@ -1997,3 +1997,33 @@ Config:
   SUNNYWARE_CONTAINER_MEM_GB / VCPU    (env fallback for limits)
 
 - Smoke: 174 (45/45).
+
+### Part 175 - SSOReady integration (Phase 1)
+- New src/sunnyware/user_store.py: JSON user store mapping
+  email to {api_key, role, org_id, created_at, last_login}.
+  Storage: /data/users.json (HF) or data/users.json (local).
+  SUNNYWARE_USERS_STORE override for tests.
+- New src/sunnyware/sso.py: thin httpx client for SSOReady.
+  No SDK dependency. Two endpoints called:
+    POST /v1/saml/redirect  -> {redirect_url}
+    POST /v1/saml/redeem    -> {email, organization_external_id}
+- New src/sunnyware/routes/sso.py:
+    GET  /sso/status                public enabled/disabled
+    GET  /sso/login/{org_id}        browser -> 302 to IdP
+    GET  /sso/callback?code=...     browser -> redeem + show key
+    GET  /sso/users                 admin list (key redacted)
+    POST /sso/users                 admin manual create
+    POST /sso/users/delete          admin delete
+  All routes return 501 Not Implemented when SSOREADY_API_KEY
+  is unset, so existing deployments see zero behavior change.
+- auth.py wired (non-breaking):
+    is_valid_key(): env keys first, then user_store fallback
+    role_for_key(): env roles first, then user_store fallback
+  Existing SUNNYWARE_API_KEYS / SUNNYWARE_API_ROLES untouched.
+- main.py: import sso_routes + include_router.
+- Config env:
+    SSOREADY_API_KEY       required to enable
+    SSOREADY_BASE_URL      default https://api.ssoready.com/v1
+    SSOREADY_TIMEOUT_S     default 10.0
+    SUNNYWARE_USERS_STORE  override store path
+- Smoke: 175 (55/55). Regressions: 174 (51/51).

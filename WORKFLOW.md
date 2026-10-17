@@ -1362,3 +1362,17 @@ card now shows pg_database_size storage bar.
 New dep: psutil>=5.9.0.
 
 Smoke: 174 (45/45).
+
+## 2026-10-17 - Part 175
+
+| Part | Feature |
+|------|---------|
+| 175  | SSOReady integration (Phase 1) |
+
+New user_store.py (JSON users, email->api_key->role) and sso.py
+(httpx SSOReady client). routes/sso.py adds /sso/login,
+/sso/callback, /sso/status, /sso/users/* (admin). auth.py is
+wired with env-first, sso-fallback lookup. Zero behavior change
+when SSOREADY_API_KEY is unset (501 responses).
+
+Smoke: 175 (55/55). Regressions: 174 (51/51).

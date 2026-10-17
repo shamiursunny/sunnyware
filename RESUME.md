@@ -172,6 +172,13 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   Neon DB card also shows pg_database_size storage bar.
   Deps: psutil>=5.9.0.
 
+- SSOReady integration (Part 175, Phase 1): user_store.py (JSON
+  users, email->api_key->role) + sso.py (httpx client). Routes:
+  /sso/login, /sso/callback, /sso/status, /sso/users/*. auth.py
+  looks up env keys first, then user_store. Zero behavior change
+  when unset. Env: SSOREADY_API_KEY, SSOREADY_BASE_URL,
+  SSOREADY_TIMEOUT_S, SUNNYWARE_USERS_STORE.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP

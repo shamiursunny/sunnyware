@@ -80,7 +80,17 @@ def role_for_key(key: str) -> str:
     if not key:
         return default_role()
     roles = load_roles() or {}
-    return roles.get(key, default_role())
+    if key in roles:
+        return roles[key]
+    # Part 175: SSO-issued keys (from user_store)
+    try:
+        from . import user_store as _us
+        r = _us.role_for_api_key(key)
+        if r:
+            return r
+    except Exception:
+        pass
+    return default_role()
 
 
 def role_level(role: str) -> int:
@@ -98,8 +108,15 @@ def auth_enabled() -> bool:
 def is_valid_key(key: str) -> bool:
     if not key:
         return False
-    return key in load_keys()
-
+    # 1. Env-configured keys (existing behavior)
+    if key in load_keys():
+        return True
+    # 2. SSO-issued keys (Part 175)
+    try:
+        from . import user_store as _us
+        return _us.role_for_api_key(key) is not None
+    except Exception:
+        return False
 
 def mask_key(key: str) -> str:
     if not key or len(key) < 6:
