@@ -3,81 +3,59 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sunnyware - Admin Panel</title>
+<title>Sunnyware - SaaS Control Plane</title>
 <style>
   :root {
-    --bg: #0b0d12;
-    --panel: #12161f;
-    --border: #232a38;
-    --text: #e7ecf3;
-    --muted: #8892a6;
-    --accent: #5b8def;
-    --danger: #ef5b5b;
-    --success: #2ecc71;
-    --warn: #f1c40f;
+    --bg: #0b0d12; --sidebar: #12161f; --panel: #12161f; --border: #232a38;
+    --text: #e7ecf3; --muted: #8892a6; --accent: #5b8def; --danger: #ef5b5b;
+    --success: #2ecc71; --warn: #f1c40f;
   }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font: 14px/1.5 system-ui, -apple-system, sans-serif;
-    margin: 0;
-    padding: 40px;
-  }
-  .wrap { max-width: 900px; margin: 0 auto; }
-  h1 { font-size: 24px; margin-bottom: 24px; }
-  h2 { font-size: 18px; margin-top: 32px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
   
-  /* Auth Section */
-  .auth-box {
-    background: var(--panel);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 32px;
-  }
-  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
-  input, select {
-    background: #0b0d12;
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 10px;
-    border-radius: 6px;
-    font: inherit;
-    width: 100%;
-    box-sizing: border-box;
-    margin-bottom: 16px;
+  /* Sidebar */
+  .sidebar { width: 240px; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+  .logo { padding: 24px; font-size: 18px; font-weight: bold; border-bottom: 1px solid var(--border); }
+  .nav-item { padding: 12px 24px; color: var(--muted); cursor: pointer; border-left: 3px solid transparent; transition: 0.2s; }
+  .nav-item:hover { background: rgba(255,255,255,0.02); color: var(--text); }
+  .nav-item.active { color: var(--text); border-left-color: var(--accent); background: rgba(91, 141, 239, 0.1); }
+  
+  /* Main Content */
+  .main { flex: 1; overflow-y: auto; padding: 32px; }
+  .hidden { display: none !important; }
+  h1 { margin-top: 0; font-size: 24px; }
+  h2 { font-size: 18px; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 16px; }
+  
+  /* Cards */
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+  .card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+  .card .title { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+  .card .value { font-size: 28px; font-weight: bold; }
+  
+  /* Tables & Forms */
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; background: var(--panel); border-radius: 8px; overflow: hidden; }
+  th, td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+  th { background: rgba(0,0,0,0.2); color: var(--muted); font-weight: normal; font-size: 12px; text-transform: uppercase; }
+  input, select, textarea {
+    background: #0b0d12; border: 1px solid var(--border); color: var(--text);
+    padding: 10px; border-radius: 6px; font: inherit; width: 100%; margin-bottom: 12px;
   }
   input:focus, select:focus { outline: none; border-color: var(--accent); }
   button {
-    background: var(--accent);
-    color: #fff;
-    border: 0;
-    padding: 10px 16px;
-    border-radius: 6px;
-    font: inherit;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.2s;
+    background: var(--accent); color: #fff; border: 0; padding: 10px 16px;
+    border-radius: 6px; font: inherit; font-weight: 600; cursor: pointer;
   }
   button:hover { opacity: 0.8; }
   button.danger { background: var(--danger); }
-  button:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
-  
-  /* Table */
-  table { width: 100%; border-collapse: collapse; margin-top: 16px; }
-  th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
-  th { color: var(--muted); font-weight: normal; font-size: 12px; text-transform: uppercase; }
-  tr:hover td { background: rgba(255,255,255,0.02); }
-  
-  /* Forms */
-  .form-row { display: grid; grid-template-columns: 2fr 1fr auto; gap: 12px; align-items: start; }
+  button.success { background: var(--success); }
+  .form-row { display: flex; gap: 12px; margin-bottom: 24px; align-items: flex-start; }
   .form-row input, .form-row select { margin-bottom: 0; }
   
   /* Toast */
   #toast {
     position: fixed; bottom: 24px; right: 24px; padding: 12px 24px;
     border-radius: 6px; color: #fff; font-weight: 500; opacity: 0;
-    transform: translateY(10px); transition: all 0.3s;
+    transform: translateY(10px); transition: all 0.3s; z-index: 1000;
   }
   #toast.show { opacity: 1; transform: translateY(0); }
   #toast.error { background: var(--danger); }
@@ -85,60 +63,111 @@
 </style>
 </head>
 <body>
-<div class="wrap">
-  <h1>Admin Panel</h1>
-  
-  <div class="auth-box" id="auth-box">
-    <label>Admin API Key</label>
-    <input type="password" id="api-key" placeholder="sk_... (Must have 'admin' role)">
-    <button onclick="saveKey()">Authenticate</button>
-  </div>
 
-  <div id="main-panel" style="display:none">
-    <h2>Users</h2>
-    <table id="users-table">
-      <thead>
-        <tr>
-          <th>Email</th>
-          <th>Role</th>
-          <th>Key Preview</th>
-          <th>Created</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="users-tbody">
-        <tr><td colspan="5" style="text-align:center; color:var(--muted)">Loading...</td></tr>
-      </tbody>
-    </table>
-
-    <h2>Pending Approvals</h2>
-    <table id="approvals-table">
-      <thead>
-        <tr>
-          <th>Tool</th>
-          <th>Args</th>
-          <th>Requested</th>
-          <th>Action</th>
-        </tr>
-      </thead>
-      <tbody id="approvals-tbody">
-        <tr><td colspan="4" style="text-align:center; color:var(--muted)">No pending approvals.</td></tr>
-      </tbody>
-    </table>
-
-    <h2>Create / Update User</h2>
-    <div class="form-row">
-      <input type="email" id="new-email" placeholder="user@company.com">
-      <select id="new-role">
-        <option value="analyst">Analyst</option>
-        <option value="admin">Admin</option>
-        <option value="readonly">Read-only</option>
-      </select>
-      <button onclick="createUser()">Save User</button>
-    </div>
-  </div>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar" style="display:none;">
+  <div class="logo">Sunnyware SaaS</div>
+  <div class="nav-item active" onclick="nav('dashboard')">Ì≥ä Dashboard</div>
+  <div class="nav-item" onclick="nav('orgs')">Ìø¢ Organizations</div>
+  <div class="nav-item" onclick="nav('plans')">Ì≤≥ Plans</div>
+  <div class="nav-item" onclick="nav('invoices')">Ì∑æ Invoices</div>
+  <div class="nav-item" onclick="nav('crm')">Ì¥ù CRM Notes</div>
+  <div class="nav-item" onclick="nav('users')">Ì±• Users (SSO)</div>
+  <div class="nav-item" onclick="nav('approvals')">Ìª°Ô∏è HITL Approvals</div>
 </div>
 
+<!-- Main Content -->
+<div class="main" id="main-content">
+
+  <!-- Auth Section -->
+  <div id="auth-section">
+    <h1>Admin Login</h1>
+    <div class="card" style="max-width: 400px;">
+      <div class="title">Admin API Key</div>
+      <input type="password" id="api-key" placeholder="master-admin-key">
+      <button onclick="saveKey()">Authenticate</button>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div id="section-dashboard" class="hidden">
+    <h1>Dashboard</h1>
+    <div class="grid" id="dash-grid">
+      <!-- Filled by JS -->
+    </div>
+    <h2>Stripe Integration</h2>
+    <div class="card">
+      <p id="stripe-status">Checking...</p>
+    </div>
+  </div>
+
+  <!-- Organizations -->
+  <div id="section-orgs" class="hidden">
+    <h1>Organizations</h1>
+    <div class="form-row">
+      <input type="text" id="new-org-name" placeholder="Company Name">
+      <input type="email" id="new-org-email" placeholder="Owner Email">
+      <select id="new-org-plan">
+        <option value="free">Free Plan</option>
+        <option value="pro">Pro Plan</option>
+        <option value="enterprise">Enterprise Plan</option>
+      </select>
+      <button onclick="createOrg()">Create Org</button>
+    </div>
+    <table>
+      <thead><tr><th>Org ID</th><th>Name</th><th>Plan</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="orgs-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Plans -->
+  <div id="section-plans" class="hidden">
+    <h1>Plans & Pricing</h1>
+    <table>
+      <thead><tr><th>Plan</th><th>Price / Month</th><th>Daily Calls</th><th>Features</th></tr></thead>
+      <tbody id="plans-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Invoices -->
+  <div id="section-invoices" class="hidden">
+    <h1>Invoices</h1>
+    <table>
+      <thead><tr><th>Invoice ID</th><th>Org ID</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead>
+      <tbody id="invoices-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- CRM -->
+  <div id="section-crm" class="hidden">
+    <h1>CRM Notes</h1>
+    <div class="form-row">
+      <select id="crm-org-select"><option value="">Select Organization...</option></select>
+      <input type="text" id="crm-note-text" placeholder="Add a note...">
+      <button onclick="createNote()">Save Note</button>
+    </div>
+    <div id="crm-notes-list"></div>
+  </div>
+
+  <!-- Users (SSO) -->
+  <div id="section-users" class="hidden">
+    <h1>SSO Users</h1>
+    <table>
+      <thead><tr><th>Email</th><th>Role</th><th>Key Preview</th><th>Actions</th></tr></thead>
+      <tbody id="users-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- Approvals -->
+  <div id="section-approvals" class="hidden">
+    <h1>Pending Approvals (HITL)</h1>
+    <table>
+      <thead><tr><th>Tool</th><th>Args</th><th>Time</th><th>Actions</th></tr></thead>
+      <tbody id="approvals-tbody"></tbody>
+    </table>
+  </div>
+
+</div>
 <div id="toast"></div>
 
 <script>
@@ -146,155 +175,191 @@ let API_KEY = localStorage.getItem('sunnyware_admin_key') || '';
 
 function showToast(msg, type) {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = type + ' show';
+  t.textContent = msg; t.className = type + ' show';
   setTimeout(() => t.className = '', 3000);
 }
 
-function saveKey() {
-  const k = document.getElementById('api-key').value.trim();
-  if (!k) return showToast('Key required', 'error');
-  API_KEY = k;
-  localStorage.setItem('sunnyware_admin_key', k);
-  init();
-}
-
 async function apiCall(path, method='GET', body=null) {
-  const opts = {
-    method,
-    headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/json' }
-  };
+  const opts = { method, headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/json' } };
   if (body) opts.body = JSON.stringify(body);
-  
   const res = await fetch(path, opts);
-  if (res.status === 401) {
-    showToast('Invalid API Key', 'error');
-    document.getElementById('main-panel').style.display = 'none';
-    document.getElementById('auth-box').style.display = 'block';
-    throw new Error('Unauthorized');
-  }
-  if (res.status === 403) {
-    showToast('Forbidden: Admin role required', 'error');
-    throw new Error('Forbidden');
-  }
-  if (!res.ok) {
-    const txt = await res.text();
-    throw new Error(txt || res.statusText);
-  }
+  if (res.status === 401) { showToast('Invalid Key', 'error'); logout(); throw new Error('401'); }
+  if (res.status === 403) { showToast('Admin Role Required', 'error'); throw new Error('403'); }
+  if (!res.ok) throw new Error(await res.text());
   return res.json();
 }
 
-async function loadUsers() {
-  try {
-    const data = await apiCall('/sso/users');
-    const tbody = document.getElementById('users-tbody');
-    if (data.count === 0) {
-      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--muted)">No users found.</td></tr>';
-      return;
-    }
-    tbody.innerHTML = data.users.map(u => `
-      <tr>
-        <td>${u.email}</td>
-        <td><span style="color:${u.role === 'admin' ? 'var(--success)' : 'var(--muted)'}">${u.role}</span></td>
-        <td><code>${u.api_key_preview || '‚Äî'}</code></td>
-        <td>${new Date(u.created_at * 1000).toLocaleDateString()}</td>
-        <td>
-          <button class="danger" style="padding:4px 8px; font-size:12px" onclick="deleteUser('${u.email}')">Delete</button>
-        </td>
-      </tr>
-    `).join('');
-  } catch (e) {
-    console.error(e);
-    if (e.message !== 'Unauthorized' && e.message !== 'Forbidden') {
-      showToast('Error loading users', 'error');
-    }
-  }
+function saveKey() {
+  API_KEY = document.getElementById('api-key').value.trim();
+  if (!API_KEY) return showToast('Key required', 'error');
+  localStorage.setItem('sunnyware_admin_key', API_KEY);
+  init();
 }
 
-async function createUser() {
-  const email = document.getElementById('new-email').value.trim();
-  const role = document.getElementById('new-role').value;
-  if (!email) return showToast('Email required', 'error');
+function logout() {
+  API_KEY = ''; localStorage.removeItem('sunnyware_admin_key');
+  document.getElementById('sidebar').style.display = 'none';
+  document.getElementById('auth-section').style.display = 'block';
+  document.querySelectorAll('.main > div[id^="section-"]').forEach(el => el.classList.add('hidden'));
+}
+
+function nav(section) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.main > div[id^="section-"]').forEach(el => el.classList.add('hidden'));
   
+  const targetNav = Array.from(document.querySelectorAll('.nav-item')).find(el => el.textContent.toLowerCase().includes(section));
+  if (targetNav) targetNav.classList.add('active');
+  
+  document.getElementById('section-' + section).classList.remove('hidden');
+  
+  if (section === 'dashboard') loadDashboard();
+  if (section === 'orgs') loadOrgs();
+  if (section === 'plans') loadPlans();
+  if (section === 'invoices') loadInvoices();
+  if (section === 'crm') loadCRM();
+  if (section === 'users') loadUsers();
+  if (section === 'approvals') loadApprovals();
+}
+
+async function loadDashboard() {
   try {
-    await apiCall('/sso/users', 'POST', { email, role });
-    showToast('User saved successfully', 'success');
-    document.getElementById('new-email').value = '';
-    loadUsers();
-  } catch (e) {
-    if (e.message !== 'Unauthorized' && e.message !== 'Forbidden') {
-      showToast('Error saving user: ' + e.message, 'error');
-    }
-  }
+    const d = await apiCall('/api/saas/dashboard');
+    document.getElementById('dash-grid').innerHTML = `
+      <div class="card"><div class="title">MRR</div><div class="value">$${d.mrr.toLocaleString()}</div></div>
+      <div class="card"><div class="title">ARR</div><div class="value">$${d.arr.toLocaleString()}</div></div>
+      <div class="card"><div class="title">Total Revenue</div><div class="value">$${d.total_revenue.toLocaleString()}</div></div>
+      <div class="card"><div class="title">Active Orgs</div><div class="value">${d.active_orgs} / ${d.total_orgs}</div></div>
+      <div class="card"><div class="title">Invoices</div><div class="value">${d.total_invoices}</div></div>
+    `;
+    const b = await apiCall('/api/saas/billing/status');
+    document.getElementById('stripe-status').innerHTML = b.enabled ? 'Ìø¢ <strong>Live Mode</strong> (Stripe Connected)' : 'Ìø° <strong>Simulated Mode</strong> (Add STRIPE_SECRET_KEY to go live)';
+  } catch(e) {}
+}
+
+async function loadOrgs() {
+  const d = await apiCall('/api/saas/orgs');
+  document.getElementById('orgs-tbody').innerHTML = d.orgs.map(o => `
+    <tr>
+      <td><code>${o.id}</code></td>
+      <td>${o.name}</td>
+      <td><span style="color:var(--accent)">${o.plan}</span></td>
+      <td>${o.status === 'active' ? 'Ìø¢ Active' : 'Ì¥¥ ' + o.status}</td>
+      <td>
+        <button onclick="checkout('${o.id}', '${o.plan}')" style="padding:4px 8px;font-size:12px;">Pay</button>
+        <button class="danger" onclick="deleteOrg('${o.id}')" style="padding:4px 8px;font-size:12px;">Delete</button>
+      </td>
+    </tr>
+  `).join('');
+  const sel = document.getElementById('crm-org-select');
+  sel.innerHTML = '<option value="">Select Organization...</option>' + d.orgs.map(o => `<option value="${o.id}">${o.name} (${o.id})</option>`).join('');
+}
+
+async function createOrg() {
+  const name = document.getElementById('new-org-name').value;
+  const email = document.getElementById('new-org-email').value;
+  const plan = document.getElementById('new-org-plan').value;
+  if(!name) return showToast('Name required', 'error');
+  await apiCall('/api/saas/orgs', 'POST', {name, owner_email: email, plan});
+  showToast('Org created', 'success'); loadOrgs();
+}
+
+async function deleteOrg(id) {
+  if(!confirm('Delete this org?')) return;
+  await apiCall('/api/saas/orgs/' + id, 'DELETE');
+  showToast('Org deleted', 'success'); loadOrgs();
+}
+
+async function checkout(orgId, planId) {
+  const res = await apiCall('/api/saas/checkout', 'POST', {org_id: orgId, plan_id: planId});
+  if (res.ok && res.url) window.location.href = res.url;
+  else showToast('Checkout error', 'error');
+}
+
+async function loadPlans() {
+  const d = await apiCall('/api/saas/plans');
+  document.getElementById('plans-tbody').innerHTML = d.plans.map(p => `
+    <tr><td><strong>${p.name}</strong></td><td>$${p.price_monthly}</td><td>${p.calls_per_day}</td><td>${p.features.join(', ')}</td></tr>
+  `).join('');
+}
+
+async function loadInvoices() {
+  const d = await apiCall('/api/saas/invoices');
+  document.getElementById('invoices-tbody').innerHTML = d.invoices.map(i => `
+    <tr><td><code>${i.id}</code></td><td>${i.org_id}</td><td>$${(i.amount_cents/100).toFixed(2)}</td><td>${i.status}</td><td>${new Date(i.created_at*1000).toLocaleDateString()}</td></tr>
+  `).join('') || '<tr><td colspan="5">No invoices yet.</td></tr>';
+}
+
+async function loadCRM() {
+  const orgId = document.getElementById('crm-org-select').value;
+  const d = await apiCall('/api/saas/notes' + (orgId ? '?org_id=' + orgId : ''));
+  document.getElementById('crm-notes-list').innerHTML = d.notes.map(n => `
+    <div class="card" style="margin-bottom:8px; padding:12px;">
+      <strong>${n.org_id}</strong> ¬∑ <small>${new Date(n.created_at*1000).toLocaleString()}</small>
+      <p style="margin:8px 0 0 0">${n.text}</p>
+    </div>
+  `).join('') || '<p>No notes found.</p>';
+}
+
+async function createNote() {
+  const orgId = document.getElementById('crm-org-select').value;
+  const text = document.getElementById('crm-note-text').value;
+  if(!orgId || !text) return showToast('Select org and enter text', 'error');
+  await apiCall('/api/saas/notes', 'POST', {org_id: orgId, text});
+  document.getElementById('crm-note-text').value = '';
+  showToast('Note saved', 'success'); loadCRM();
+}
+
+async function loadUsers() {
+  const d = await apiCall('/sso/users');
+  document.getElementById('users-tbody').innerHTML = d.users.map(u => `
+    <tr><td>${u.email}</td><td><span style="color:${u.role==='admin'?'var(--success)':'var(--accent)'}">${u.role}</span></td><td><code>${u.api_key_preview}</code></td>
+    <td><button class="danger" onclick="deleteUser('${u.email}')" style="padding:4px 8px;font-size:12px">Delete</button></td></tr>
+  `).join('');
 }
 
 async function deleteUser(email) {
-  if (!confirm(`Are you sure you want to delete ${email}?`)) return;
-  try {
-    await apiCall('/sso/users/delete', 'POST', { email });
-    showToast('User deleted', 'success');
-    loadUsers();
-  } catch (e) {
-    if (e.message !== 'Unauthorized' && e.message !== 'Forbidden') {
-      showToast('Error deleting user', 'error');
-    }
-  }
+  if(!confirm('Delete user?')) return;
+  await apiCall('/sso/users/delete', 'POST', {email});
+  showToast('User deleted', 'success'); loadUsers();
 }
 
 async function loadApprovals() {
-  try {
-    const data = await apiCall('/api/approvals');
-    const tbody = document.getElementById('approvals-tbody');
-    if (data.count === 0) {
-      tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; color:var(--muted)">No pending approvals.</td></tr>';
-      return;
-    }
-    tbody.innerHTML = data.approvals.map(a => `
-      <tr>
-        <td><strong>${a.tool}</strong></td>
-        <td><code style="font-size:11px">${JSON.stringify(a.args)}</code></td>
-        <td>${new Date(a.created_at * 1000).toLocaleTimeString()}</td>
-        <td>
-          <button style="padding:4px 8px; font-size:12px; background:var(--success);" onclick="approveReq('${a.id}')">Approve</button>
-          <button class="danger" style="padding:4px 8px; font-size:12px" onclick="rejectReq('${a.id}')">Reject</button>
-        </td>
-      </tr>
-    `).join('');
-  } catch (e) {
-    // ignore errors during background poll
-  }
+  const d = await apiCall('/api/approvals');
+  document.getElementById('approvals-tbody').innerHTML = d.approvals.map(a => `
+    <tr><td><strong>${a.tool}</strong></td><td><code>${JSON.stringify(a.args)}</code></td><td>${new Date(a.created_at*1000).toLocaleTimeString()}</td>
+    <td>
+      <button class="success" onclick="approveReq('${a.id}')" style="padding:4px 8px;font-size:12px">Approve</button>
+      <button class="danger" onclick="rejectReq('${a.id}')" style="padding:4px 8px;font-size:12px">Reject</button>
+    </td></tr>
+  `).join('') || '<tr><td colspan="4">No pending approvals.</td></tr>';
 }
 
 async function approveReq(id) {
-  try {
-    await apiCall('/api/approvals/' + id + '/approve', 'POST');
-    showToast('Approved', 'success');
-    loadApprovals();
-  } catch(e) { showToast('Error approving', 'error'); }
+  await apiCall('/api/approvals/' + id + '/approve', 'POST');
+  showToast('Approved', 'success'); loadApprovals();
 }
 
 async function rejectReq(id) {
-  try {
-    await apiCall('/api/approvals/' + id + '/reject', 'POST');
-    showToast('Rejected', 'success');
-    loadApprovals();
-  } catch(e) { showToast('Error rejecting', 'error'); }
+  await apiCall('/api/approvals/' + id + '/reject', 'POST');
+  showToast('Rejected', 'success'); loadApprovals();
 }
 
 function init() {
   if (API_KEY) {
-    document.getElementById('auth-box').style.display = 'none';
-    document.getElementById('main-panel').style.display = 'block';
-    loadUsers();
-    loadApprovals();
-    setInterval(loadApprovals, 5000);
+    document.getElementById('auth-section').style.display = 'none';
+    document.getElementById('sidebar').style.display = 'flex';
+    nav('dashboard');
+    // Poll approvals every 10s if on that tab
+    setInterval(() => {
+      if (!document.getElementById('section-approvals').classList.contains('hidden')) loadApprovals();
+    }, 10000);
   } else {
-    document.getElementById('auth-box').style.display = 'block';
-    document.getElementById('main-panel').style.display = 'none';
+    document.getElementById('auth-section').style.display = 'block';
+    document.getElementById('sidebar').style.display = 'none';
   }
 }
 
-// Initialize on load
+// Start
 init();
 </script>
 </body>
