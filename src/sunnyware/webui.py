@@ -1382,6 +1382,28 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
   </div>
 </div>
 <script>
+// Part 181: Global API Key Interceptor
+let _apiKey = localStorage.getItem('sunnyware_chat_key') || '';
+if (!_apiKey) {
+  _apiKey = prompt('Enter API Key (master-admin-key):') || '';
+  if (_apiKey) localStorage.setItem('sunnyware_chat_key', _apiKey);
+}
+
+const _originalFetch = window.fetch;
+window.fetch = function(url, options) {
+  if (!options) options = {};
+  if (!options.headers) options.headers = {};
+  
+  if (typeof url === 'string' && url.startsWith('/api')) {
+    if (options.headers instanceof Headers) {
+      options.headers.set('X-API-Key', _apiKey);
+    } else {
+      options.headers['X-API-Key'] = _apiKey;
+    }
+  }
+  return _originalFetch(url, options);
+};
+
 (function () {
   const chat = document.getElementById('chat');
   const form = document.getElementById('form');
