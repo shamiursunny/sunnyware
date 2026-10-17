@@ -21,6 +21,7 @@ from . import meta
 from .runtime import state, init_state, log
 from . import state as app_state
 from .routes import meta as meta_routes
+from .routes import paddle_webhook as paddle_webhook_routes
 from .routes import billing as billing_routes
 from .routes import saas as saas_routes
 from .routes import approvals as approvals_routes
@@ -118,6 +119,7 @@ app = Server(
 
 # Register all routers
 app.include_router(meta_routes.router)
+app.include_router(paddle_webhook_routes.router)
 app.include_router(billing_routes.router)
 app.include_router(saas_routes.router)
 app.include_router(approvals_routes.router)
@@ -348,7 +350,7 @@ class _MetricsMiddleware:
             except Exception:
                 pass
             # Part 183: exempt public endpoints from auth
-            _public_api = ("/api/auth/status", "/api/stripe/webhook")
+            _public_api = ("/api/auth/status", "/api/stripe/webhook", "/api/paddle/webhook")
             is_protected = path.startswith("/api/") and path not in _public_api
             
             # Part 134c: auth gate (only when SUNNYWARE_API_KEYS is set).

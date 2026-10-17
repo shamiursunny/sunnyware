@@ -95,7 +95,7 @@
     <div class="grid" id="dash-grid">
       <!-- Filled by JS -->
     </div>
-    <h2>Stripe Integration</h2>
+    <h2>Paddle Billing Integration</h2>
     <div class="card">
       <p id="stripe-status">Checking...</p>
     </div>
@@ -232,7 +232,7 @@ async function loadDashboard() {
       <div class="card"><div class="title">Invoices</div><div class="value">${d.total_invoices}</div></div>
     `;
     const b = await apiCall('/api/saas/billing/status');
-    document.getElementById('stripe-status').innerHTML = b.enabled ? '<strong>Live Mode</strong> (Stripe Connected)' : '<strong>Simulated Mode</strong> (Add STRIPE_SECRET_KEY to go live)';
+    document.getElementById('stripe-status').innerHTML = b.enabled ? '<strong>Live Mode</strong> (Paddle Connected)' : '<strong>Simulated Mode</strong> (Add PADDLE_API_KEY to go live)';
   } catch(e) {}
 }
 

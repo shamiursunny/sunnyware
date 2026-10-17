@@ -1,40 +1,23 @@
 # SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Part 182: Stripe billing client (simulated when no key)."""
+"""Part 186: Billing client (Paddle instead of Stripe)."""
 
 import os
 
-def _key() -> str:
-    return (os.getenv("STRIPE_SECRET_KEY") or "").strip()
 
 def enabled() -> bool:
-    return bool(_key())
+    return bool((os.getenv("PADDLE_API_KEY") or "").strip())
 
-async def create_checkout_url(org_id: str, plan_id: str, success_url: str, cancel_url: str) -> dict:
-    if not enabled():
-        return {"ok": True, "simulated": True, "url": f"{success_url}?simulated=1&org_id={org_id}&plan_id={plan_id}"}
-    try:
-        import httpx
-        async with httpx.AsyncClient(timeout=15.0) as cli:
-            r = await cli.post(
-                "https://api.stripe.com/v1/checkout/sessions",
-                auth=(_key(), ""),
-                data={
-                    "mode": "subscription", "success_url": success_url, "cancel_url": cancel_url,
-                    "client_reference_id": org_id,
-                    "metadata[plan_id]": plan_id,
-                    "line_items[0][price_data][currency]": "usd",
-                    "line_items[0][price_data][product_data][name]": f"Sunnyware {plan_id.title()}",
-                    "line_items[0][price_data][unit_amount]": 4900,
-                    "line_items[0][price_data][recurring][interval]": "month",
-                    "line_items[0][quantity]": 1,
-                },
-            )
-            if r.status_code != 200:
-                return {"ok": False, "error": r.text[:300]}
-            return {"ok": True, "simulated": False, "url": r.json().get("url", "")}
-    except Exception as e:
-        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+
+async def create_checkout_url(org_id: str, plan_id: str,
+                              success_url: str, cancel_url: str) -> dict:
+    from . import paddle_client as _paddle
+    return await _paddle.create_checkout_url(org_id, plan_id, success_url, cancel_url)
+
 
 def status() -> dict:
-    return {"enabled": enabled(), "mode": "live" if enabled() else "simulated"}
+    return {
+        "enabled": enabled(),
+        "provider": "paddle",
+        "mode": "live" if enabled() else "simulated",
+    }
