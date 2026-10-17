@@ -1,13 +1,14 @@
 # SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Part 176: Scalekit SSO client.
+"""Part 176: Scalekit SSO client (OIDC).
 
-Replaces SSOReady (Part 175) with Scalekit's OIDC-based SSO.
-The routes and user_store from Part 175 are unchanged.
+Uses Scalekit's OAuth 2.0 / OIDC endpoints:
+  - Authorization: /oauth/authorize
+  - Token exchange: /oauth/token
+  - User info: /userinfo
 """
 
 import os
-from typing import Optional
 from urllib.parse import urlencode
 
 
@@ -38,15 +39,17 @@ async def get_redirect_url(org_id: str) -> dict:
         return {"ok": False, "error": "SCALEKIT env vars not set"}
     if not org_id:
         return {"ok": False, "error": "organization_id required"}
+
     params = {
         "client_id": _client_id(),
         "redirect_uri": _callback(),
         "response_type": "code",
-        "scope": "openid profile email",
+        "scope": "openid email profile",
         "organization_id": org_id,
         "state": org_id,
     }
-    url = _env_url() + "/api/v1/sso/authorize?" + urlencode(params)
+    # Correct endpoint: /oauth/authorize (not /api/v1/sso/authorize)
+    url = _env_url() + "/oauth/authorize?" + urlencode(params)
     return {"ok": True, "redirect_url": url}
 
 
@@ -56,12 +59,13 @@ async def redeem(code: str) -> dict:
         return {"ok": False, "error": "SCALEKIT env vars not set"}
     if not code:
         return {"ok": False, "error": "code required"}
+
     try:
         import httpx
-        async with httpx.AsyncClient(timeout=10.0) as cli:
-            # 1. Exchange authorization code for access token
+        async with httpx.AsyncClient(timeout=15.0) as cli:
+            # 1. Exchange code for tokens at /oauth/token
             token_resp = await cli.post(
-                _env_url() + "/api/v1/sso/token",
+                _env_url() + "/oauth/token",
                 data={
                     "grant_type": "authorization_code",
                     "code": code,
@@ -69,31 +73,35 @@ async def redeem(code: str) -> dict:
                     "client_secret": _client_secret(),
                     "redirect_uri": _callback(),
                 },
+                headers={"Content-Type": "application/x-www-form-urlencoded"},
             )
             if token_resp.status_code != 200:
                 return {"ok": False,
-                        "error": "token error: " + token_resp.text[:200]}
-            token = token_resp.json().get("access_token")
-            if not token:
+                        "error": "token error: " + token_resp.text[:300]}
+
+            token_data = token_resp.json()
+            access_token = token_data.get("access_token")
+            if not access_token:
                 return {"ok": False, "error": "no access_token in response"}
 
-            # 2. Fetch user info
+            # 2. Fetch user info at /userinfo
             ui_resp = await cli.get(
-                _env_url() + "/api/v1/sso/userinfo",
-                headers={"Authorization": "Bearer " + token},
+                _env_url() + "/userinfo",
+                headers={"Authorization": "Bearer " + access_token},
             )
             if ui_resp.status_code != 200:
                 return {"ok": False,
-                        "error": "userinfo error: " + ui_resp.text[:200]}
+                        "error": "userinfo error: " + ui_resp.text[:300]}
+
             ui = ui_resp.json()
             email = (ui.get("email") or "").lower()
             if not email:
                 return {"ok": False, "error": "no email in userinfo"}
-            return {
-                "ok": True,
-                "email": email,
-                "org_id": ui.get("organization_id", ""),
-            }
+
+            # Scalekit may return org_id in the userinfo or id_token
+            org_id = ui.get("organization_id") or ui.get("org_id") or ""
+            return {"ok": True, "email": email, "org_id": org_id}
+
     except Exception as e:
         return {"ok": False, "error": type(e).__name__ + ": " + str(e)}
 
