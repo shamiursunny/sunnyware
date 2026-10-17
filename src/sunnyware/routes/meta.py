@@ -1801,13 +1801,20 @@ async def recon_reset():
                             status_code=500)
 
 
-@router.get("/admin", response_class=FileResponse)
+@router.get("/admin")
 async def admin_panel():
-    root = Path(__file__).parent.parent.parent.parent
+    """Part 179: admin panel UI."""
+    from pathlib import Path as _P
+    from fastapi.responses import HTMLResponse as _HR
+    here = _P(__file__).resolve()
+    root = here.parent.parent.parent.parent
     p = root / "static" / "admin.html"
     if not p.exists():
-        return HTMLResponse("Admin panel not found", status_code=404)
-    return FileResponse(p)
+        return _HR("Admin panel not found", status_code=404)
+    try:
+        return _HR(p.read_text(encoding="utf-8"))
+    except Exception as e:
+        return _HR(f"Error loading admin.html: {e}", status_code=500)
 
 @router.get("/status", response_class=HTMLResponse)
 async def status_dashboard():
