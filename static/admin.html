@@ -390,9 +390,13 @@ init();
 
 <script src="https://cdn.paddle.com/paddle/v2/paddle.js"></script>
 <script>
-  // Initialize Paddle (REPLACE 'test_4f5658fd15e4bb429f9e3faec71' WITH YOUR CLIENT-SIDE TOKEN)
+  // 1. Explicitly set Sandbox environment
+  Paddle.Environment.set('sandbox');
+  
+  // 2. Initialize Paddle
   Paddle.Setup({ token: 'test_4f5658fd15e4bb429f9e3faec71' }); 
   
+  // 3. Open checkout if txnId is in URL
   const urlParams = new URLSearchParams(window.location.search);
   const txnId = urlParams.get('_ptxn');
   if (txnId) {
