@@ -102,7 +102,14 @@ def has_role(current: str, required: str) -> bool:
 
 
 def auth_enabled() -> bool:
-    return len(load_keys()) > 0
+    if len(load_keys()) > 0:
+        return True
+    # Part 178b: Enable auth if SSO users exist, even without env keys
+    try:
+        from . import user_store as _us
+        return _us.has_any_users()
+    except Exception:
+        return False
 
 
 def is_valid_key(key: str) -> bool:
