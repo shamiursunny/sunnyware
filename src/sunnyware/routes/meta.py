@@ -1801,6 +1801,14 @@ async def recon_reset():
                             status_code=500)
 
 
+@router.get("/admin", response_class=FileResponse)
+async def admin_panel():
+    root = Path(__file__).parent.parent.parent.parent
+    p = root / "static" / "admin.html"
+    if not p.exists():
+        return HTMLResponse("Admin panel not found", status_code=404)
+    return FileResponse(p)
+
 @router.get("/status", response_class=HTMLResponse)
 async def status_dashboard():
     """Part 163: single-page live status dashboard."""

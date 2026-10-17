@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sunnyware - Admin Panel</title>
+<style>
+  :root {
+    --bg: #0b0d12;
+    --panel: #12161f;
+    --border: #232a38;
+    --text: #e7ecf3;
+    --muted: #8892a6;
+    --accent: #5b8def;
+    --danger: #ef5b5b;
+    --success: #2ecc71;
+    --warn: #f1c40f;
+  }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font: 14px/1.5 system-ui, -apple-system, sans-serif;
+    margin: 0;
+    padding: 40px;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 24px; margin-bottom: 24px; }
+  h2 { font-size: 18px; margin-top: 32px; margin-bottom: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  
+  /* Auth Section */
+  .auth-box {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 32px;
+  }
+  label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+  input, select {
+    background: #0b0d12;
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px;
+    border-radius: 6px;
+    font: inherit;
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 16px;
+  }
+  input:focus, select:focus { outline: none; border-color: var(--accent); }
+  button {
+    background: var(--accent);
+    color: #fff;
+    border: 0;
+    padding: 10px 16px;
+    border-radius: 6px;
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  button:hover { opacity: 0.8; }
+  button.danger { background: var(--danger); }
+  button:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+  
+  /* Table */
+  table { width: 100%; border-collapse: collapse; margin-top: 16px; }
+  th, td { text-align: left; padding: 12px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: normal; font-size: 12px; text-transform: uppercase; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  
+  /* Forms */
+  .form-row { display: grid; grid-template-columns: 2fr 1fr auto; gap: 12px; align-items: start; }
+  .form-row input, .form-row select { margin-bottom: 0; }
+  
+  /* Toast */
+  #toast {
+    position: fixed; bottom: 24px; right: 24px; padding: 12px 24px;
+    border-radius: 6px; color: #fff; font-weight: 500; opacity: 0;
+    transform: translateY(10px); transition: all 0.3s;
+  }
+  #toast.show { opacity: 1; transform: translateY(0); }
+  #toast.error { background: var(--danger); }
+  #toast.success { background: var(--success); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Admin Panel</h1>
+  
+  <div class="auth-box" id="auth-box">
+    <label>Admin API Key</label>
+    <input type="password" id="api-key" placeholder="sk_... (Must have 'admin' role)">
+    <button onclick="saveKey()">Authenticate</button>
+  </div>
+
+  <div id="main-panel" style="display:none">
+    <h2>Users</h2>
+    <table id="users-table">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Key Preview</th>
+          <th>Created</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="users-tbody">
+        <tr><td colspan="5" style="text-align:center; color:var(--muted)">Loading...</td></tr>
+      </tbody>
+    </table>
+
+    <h2>Create / Update User</h2>
+    <div class="form-row">
+      <input type="email" id="new-email" placeholder="user@company.com">
+      <select id="new-role">
+        <option value="analyst">Analyst</option>
+        <option value="admin">Admin</option>
+        <option value="readonly">Read-only</option>
+      </select>
+      <button onclick="createUser()">Save User</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let API_KEY = localStorage.getItem('sunnyware_admin_key') || '';
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = type + ' show';
+  setTimeout(() => t.className = '', 3000);
+}
+
+function saveKey() {
+  const k = document.getElementById('api-key').value.trim();
+  if (!k) return showToast('Key required', 'error');
+  API_KEY = k;
+  localStorage.setItem('sunnyware_admin_key', k);
+  init();
+}
+
+async function apiCall(path, method='GET', body=null) {
+  const opts = {
+    method,
+    headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/json' }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  
+  const res = await fetch(path, opts);
+  if (res.status === 401) {
+    showToast('Invalid API Key', 'error');
+    document.getElementById('main-panel').style.display = 'none';
+    document.getElementById('auth-box').style.display = 'block';
+    throw new Error('Unauthorized');
+  }
+  if (res.status === 403) {
+    showToast('Forbidden: Admin role required', 'error');
+    throw new Error('Forbidden');
+  }
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(txt || res.statusText);
+  }
+  return res.json();
+}
+
+async function loadUsers() {
+  try {
+    const data = await apiCall('/sso/users');
+    const tbody = document.getElementById('users-tbody');
+    if (data.count === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:var(--muted)">No users found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = data.users.map(u => `
+      <tr>
+        <td>${u.email}</td>
+        <td><span style="color:${u.role === 'admin' ? 'var(--success)' : 'var(--muted)'}">${u.role}</span></td>
+        <td><code>${u.api_key_preview || '—'}</code></td>
+        <td>${new Date(u.created_at * 1000).toLocaleDateString()}</td>
+        <td>
+          <button class="danger" style="padding:4px 8px; font-size:12px" onclick="deleteUser('${u.email}')">Delete</button>
+        </td>
+      </tr>
+    `).join('');
+  } catch (e) {
+    console.error(e);
+    if (e.message !== 'Unauthorized' && e.message !== 'Forbidden') {
+      showToast('Error loading users', 'error');
+    }
+  }
+}
+
+async function createUser() {
+  const email = document.getElementById('new-email').value.trim();
+  const role = document.getElementById('new-role').value;
+  if (!email) return showToast('Email required', 'error');
+  
+  try {
+    await apiCall('/sso/users', 'POST', { email, role });
+    showToast('User saved successfully', 'success');
+    document.getElementById('new-email').value = '';
+    loadUsers();
+  } catch (e) {
+    if (e.message !== 'Unauthorized' && e.message !== 'Forbidden') {
+      showToast('Error saving user: ' + e.message, 'error');
+    }
+  }
+}
+
+async function deleteUser(email) {
+  if (!confirm(`Are you sure you want to delete ${email}?`)) return;
+  try {
+    await apiCall('/sso/users/delete', 'POST', { email });
+    showToast('User deleted', 'success');
+    loadUsers();
+  } catch (e) {
+    if (e.message !== 'Unauthorized' && e.message !== 'Forbidden') {
+      showToast('Error deleting user', 'error');
+    }
+  }
+}
+
+function init() {
+  if (API_KEY) {
+    document.getElementById('auth-box').style.display = 'none';
+    document.getElementById('main-panel').style.display = 'block';
+    loadUsers();
+  } else {
+    document.getElementById('auth-box').style.display = 'block';
+    document.getElementById('main-panel').style.display = 'none';
+  }
+}
+
+// Initialize on load
+init();
+</script>
+</body>
+</html>
