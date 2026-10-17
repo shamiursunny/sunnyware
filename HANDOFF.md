@@ -1917,3 +1917,23 @@ CI result at 164k: gate=success, smoke=success.
     - last 3 successful builds with commit/when/message
     - rollback hint (git revert <sha>) when latest run failed
 - Smoke: 172 (29/29).
+
+### Part 172b - Full /tools page
+- New static/tools.html (~15KB) + GET /tools route.
+- API endpoint GET /api/tools/health returns the full
+  tools_health.snapshot() JSON.
+- 81 tools grouped by category (core/memory/files/web/data/
+  sql/workflow/roles/other).
+- Features:
+    * Sticky summary bar (total + called + degraded + broken)
+    * Progress bar colored by severity
+    * Filters: All / Broken / Degraded / Working / Never used
+    * Search box (case-insensitive)
+    * Collapsible category groups (state in localStorage)
+    * Clickable rows expand to category, status, calls,
+      breaker state, last error, reason, raw JSON link
+    * 10s auto-refresh matching /status cadence
+    * Mobile responsive
+- status.html Tools Health card now shows 81 as headline
+  (never_used is not a failure) and links to /tools.
+- Smoke: 172b (18/18).

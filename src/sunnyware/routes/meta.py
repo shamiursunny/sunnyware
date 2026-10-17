@@ -2127,3 +2127,31 @@ async def webhooks_out_test(webhook_id: str):
     except Exception as e:
         return JSONResponse({"error": f"{type(e).__name__}: {e}"},
                             status_code=500)
+
+
+@router.get("/api/tools/health")
+async def tools_health_endpoint():
+    """Part 172b: full per-tool health snapshot."""
+    try:
+        from .. import tools_health as _th
+        return _th.snapshot()
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"},
+                            status_code=500)
+
+
+@router.get("/tools", response_class=HTMLResponse)
+async def tools_page():
+    """Part 172b: full tools page."""
+    from pathlib import Path as _P
+    here = _P(__file__).resolve()
+    root = here.parent.parent.parent.parent
+    p2 = root / "static" / "tools.html"
+    try:
+        return HTMLResponse(p2.read_text(encoding="utf-8"))
+    except Exception as e:
+        return HTMLResponse(
+            f"<h1>Tools page unavailable</h1>"
+            f"<pre>{type(e).__name__}: {e}</pre>",
+            status_code=500,
+        )

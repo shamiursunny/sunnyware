@@ -154,6 +154,11 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   Versions shows current version + last 3 working builds +
   rollback hint.
 
+- Full /tools page (Part 172b): static/tools.html. 81 tools
+  grouped by category with filters, search, collapsible
+  groups, expandable rows (reason + last error). Endpoints:
+  GET /tools + GET /api/tools/health.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP

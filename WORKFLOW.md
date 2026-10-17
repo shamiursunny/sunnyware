@@ -1321,3 +1321,16 @@ card shows current version + last 3 working builds + rollback
 hint. github_ci_status now returns successful + current_version.
 
 Smoke: 172 (29/29).
+
+## 2026-10-17 - Part 172b
+
+| Part  | Feature |
+|-------|---------|
+| 172b  | Full /tools page |
+
+static/tools.html: grouped per-tool view with filters,
+search, collapsible categories, expandable rows, sticky
+summary, 10s auto-refresh. Endpoints: GET /tools +
+GET /api/tools/health. Status card headline fixed.
+
+Smoke: 172b (18/18).

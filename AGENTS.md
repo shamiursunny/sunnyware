@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-17 (Part 172 - tools health + versions)
+**Last update:** 2026-10-17 (Part 172b - tools page)

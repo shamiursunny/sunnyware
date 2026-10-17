@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sunnyware - Tools</title>
+<style>
+  :root{
+    --bg:#0b0d12; --card:#151922; --card2:#1b202b;
+    --text:#e7ecf3; --dim:#8892a6;
+    --accent:#5b8def; --ok:#2ecc71; --warn:#f5a623; --err:#e74c3c;
+    --border:#232a38;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font:14px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+  header{display:flex;align-items:center;gap:16px;padding:14px 24px;
+    border-bottom:1px solid var(--border);position:sticky;top:0;
+    background:rgba(11,13,18,.94);backdrop-filter:blur(8px);z-index:20;
+    flex-wrap:wrap}
+  header h1{font-size:18px;margin:0;letter-spacing:.3px}
+  header .spacer{flex:1}
+  header a{color:var(--accent);text-decoration:none;font-size:13px}
+  header a:hover{text-decoration:underline}
+  .badge{padding:3px 9px;border-radius:14px;font-size:11px;
+    font-weight:600;letter-spacing:.4px;text-transform:uppercase;
+    display:inline-block}
+  .badge.ok{background:rgba(46,204,113,.15);color:var(--ok);
+    border:1px solid rgba(46,204,113,.4)}
+  .badge.warn{background:rgba(245,166,35,.15);color:var(--warn);
+    border:1px solid rgba(245,166,35,.4)}
+  .badge.err{background:rgba(231,76,60,.15);color:var(--err);
+    border:1px solid rgba(231,76,60,.4)}
+  .badge.dim{background:rgba(136,146,166,.15);color:var(--dim);
+    border:1px solid rgba(136,146,166,.3)}
+  .muted{color:var(--dim);font-size:12px}
+  main{max-width:1400px;margin:0 auto;padding:20px 24px 40px}
+  .topbar{background:var(--card);border:1px solid var(--border);
+    border-radius:10px;padding:16px 20px;margin-bottom:16px;
+    position:sticky;top:66px;z-index:10;backdrop-filter:blur(8px)}
+  .topbar .headline{display:flex;align-items:baseline;gap:12px;
+    flex-wrap:wrap}
+  .topbar .count{font-size:28px;font-weight:700;color:var(--accent)}
+  .topbar .sub{color:var(--dim);font-size:13px}
+  .topbar .bar{width:100%;height:8px;background:var(--card2);
+    border-radius:4px;overflow:hidden;margin-top:12px}
+  .topbar .bar>i{display:block;height:100%;
+    background:linear-gradient(90deg,var(--accent),#7fb0ff);
+    transition:width .3s ease}
+  .topbar .bar.warn>i{background:linear-gradient(90deg,#f5a623,#ffce6b)}
+  .topbar .bar.err>i{background:linear-gradient(90deg,#e74c3c,#ff8c80)}
+  .filters{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;
+    align-items:center}
+  .filters button{background:var(--card2);border:1px solid var(--border);
+    color:var(--text);padding:6px 14px;border-radius:16px;font-size:12px;
+    cursor:pointer;font:inherit;transition:all .12s}
+  .filters button:hover{border-color:var(--accent)}
+  .filters button.active{background:var(--accent);color:#fff;
+    border-color:var(--accent)}
+  .searchbox{flex:1;min-width:180px}
+  .searchbox input{width:100%;background:var(--card2);
+    border:1px solid var(--border);color:var(--text);
+    padding:6px 12px;border-radius:16px;font:inherit;font-size:12px}
+  .searchbox input:focus{outline:none;border-color:var(--accent)}
+  .group{margin-top:16px;background:var(--card);
+    border:1px solid var(--border);border-radius:10px;overflow:hidden}
+  .group h2{margin:0;padding:12px 18px;font-size:12px;
+    text-transform:uppercase;letter-spacing:.8px;color:var(--dim);
+    background:var(--card2);cursor:pointer;user-select:none;
+    display:flex;align-items:center;gap:8px}
+  .group h2::before{content:"\25BC";font-size:9px;
+    transition:transform .15s;display:inline-block}
+  .group.collapsed h2::before{transform:rotate(-90deg)}
+  .group.collapsed .rows{display:none}
+  .group h2 .count{margin-left:auto;color:var(--text);font-weight:600;
+    font-size:11px}
+  .rows{display:flex;flex-direction:column}
+  .row{border-top:1px solid var(--border);padding:10px 18px;
+    display:flex;align-items:center;gap:12px;cursor:pointer;
+    transition:background .1s}
+  .row:hover{background:var(--card2)}
+  .row .dot{width:9px;height:9px;border-radius:50%;
+    background:var(--dim);flex:0 0 auto}
+  .row .dot.ok{background:var(--ok)}
+  .row .dot.warn{background:var(--warn)}
+  .row .dot.err{background:var(--err)}
+  .row .dot.hollow{background:transparent;
+    border:1px solid var(--dim);width:7px;height:7px}
+  .row .name{font-family:var(--mono);font-size:12.5px;flex:1;
+    min-width:0;overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap}
+  .row .meta{font-size:11px;color:var(--dim);flex:0 0 auto;
+    text-align:right;min-width:80px}
+  .row .arrow{color:var(--dim);font-size:10px;flex:0 0 auto;
+    transition:transform .15s}
+  .row.open{background:var(--card2)}
+  .row.open .arrow{transform:rotate(90deg)}
+  .detail{background:var(--card2);border-top:1px solid var(--border);
+    padding:12px 18px 14px 42px;font-size:12px;display:none}
+  .detail.open{display:block}
+  .detail dl{margin:0;display:grid;grid-template-columns:auto 1fr;
+    gap:4px 16px;font-size:11.5px}
+  .detail dt{color:var(--dim)}
+  .detail dd{margin:0;font-family:var(--mono);word-break:break-all}
+  .detail .fix{margin-top:10px;padding:8px 12px;border-radius:6px;
+    background:rgba(91,141,239,.1);border:1px solid rgba(91,141,239,.3);
+    font-size:11.5px}
+  .detail .fix strong{color:var(--accent)}
+  .detail .actions{margin-top:8px;display:flex;gap:8px;flex-wrap:wrap}
+  .detail .actions a{color:var(--accent);font-size:11.5px;
+    text-decoration:none;padding:4px 10px;border:1px solid var(--border);
+    border-radius:6px}
+  .detail .actions a:hover{border-color:var(--accent)}
+  .empty{padding:40px;text-align:center;color:var(--dim);
+    font-style:italic}
+  .err-msg{color:var(--err);font-size:12px;font-family:var(--mono);
+    margin-top:6px}
+  @media (max-width:640px){
+    .row .meta{display:none}
+    .detail dl{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Sunnyware - Tools</h1>
+  <span id="badge-health" class="badge dim">...</span>
+  <span class="spacer"></span>
+  <span class="muted" id="refresh-info">-</span>
+  <a href="/status">&larr; Back to status</a>
+</header>
+
+<main>
+  <div class="topbar" id="topbar">
+    <div class="headline">
+      <span class="count" id="t-count">...</span>
+      <span class="sub" id="t-sub">loading</span>
+    </div>
+    <div class="bar" id="t-bar"><i style="width:0%"></i></div>
+    <div class="filters" id="filters">
+      <button data-filter="all" class="active">All</button>
+      <button data-filter="broken">Broken</button>
+      <button data-filter="degraded">Degraded</button>
+      <button data-filter="working">Working</button>
+      <button data-filter="never_used">Never used</button>
+      <div class="searchbox">
+        <input id="search" placeholder="Search tools..." />
+      </div>
+    </div>
+  </div>
+
+  <div id="groups"></div>
+  <div class="err-msg" id="err-box" style="display:none"></div>
+</main>
+
+<script>
+"use strict";
+var POLL_MS = 10000;
+var currentFilter = "all";
+var currentSearch = "";
+var expanded = {};
+
+function el(tag, cls, txt){
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (txt != null) e.textContent = txt;
+  return e;
+}
+function badge(cls, txt){
+  var b = el("span", "badge " + cls);
+  b.textContent = txt;
+  return b;
+}
+function dotCls(status){
+  if (status === "broken") return "err";
+  if (status === "degraded") return "warn";
+  if (status === "working") return "ok";
+  return "hollow";
+}
+function badgeCls(status){
+  if (status === "broken") return "err";
+  if (status === "degraded") return "warn";
+  if (status === "working") return "ok";
+  return "dim";
+}
+function humanStatus(status){
+  if (status === "broken") return "BROKEN";
+  if (status === "degraded") return "DEGRADED";
+  if (status === "working") return "WORKING";
+  return "NEVER USED";
+}
+
+var GROUP_LABELS = {
+  core: "Core", memory: "Memory", files: "Files", web: "Web",
+  data: "Data", sql: "SQL", workflow: "Workflow", roles: "Roles",
+  other: "Other"
+};
+
+function renderGroup(cat, tools){
+  if (!tools.length) return null;
+  var g = el("div", "group");
+  g.dataset.cat = cat;
+  var h = el("h2");
+  h.appendChild(el("span", null, GROUP_LABELS[cat] || cat));
+  h.appendChild(el("span", "count", String(tools.length)));
+  h.addEventListener("click", function(){
+    g.classList.toggle("collapsed");
+    try {
+      var st = JSON.parse(localStorage.getItem("tools_collapse") || "{}");
+      st[cat] = g.classList.contains("collapsed");
+      localStorage.setItem("tools_collapse", JSON.stringify(st));
+    } catch(e){}
+  });
+  g.appendChild(h);
+
+  var rows = el("div", "rows");
+  tools.forEach(function(t){
+    var rowId = t.name;
+    var row = el("div", "row");
+    row.dataset.id = rowId;
+    if (expanded[rowId]) row.classList.add("open");
+
+    row.appendChild(el("span", "dot " + dotCls(t.status)));
+    row.appendChild(el("span", "name", t.name));
+    row.appendChild(badge(badgeCls(t.status), humanStatus(t.status)));
+
+    var meta = el("div", "meta");
+    if (t.status === "never_used"){
+      meta.textContent = "no calls";
+    } else if (t.is_open){
+      meta.textContent = "open " + t.remaining_open_s + "s";
+    } else if (t.total_success + t.total_fails > 0){
+      var tot = t.total_success + t.total_fails;
+      meta.textContent = Math.round((t.total_success / tot) * 100) + "% ok";
+    }
+    row.appendChild(meta);
+    row.appendChild(el("span", "arrow", "\u25B6"));
+
+    var detail = el("div", "detail");
+    if (expanded[rowId]) detail.classList.add("open");
+
+    row.addEventListener("click", function(){
+      expanded[rowId] = !expanded[rowId];
+      row.classList.toggle("open");
+      detail.classList.toggle("open");
+    });
+
+    rows.appendChild(row);
+
+    var dl = el("dl");
+    dl.appendChild(el("dt", null, "category"));
+    dl.appendChild(el("dd", null, t.category || "other"));
+    dl.appendChild(el("dt", null, "status"));
+    dl.appendChild(el("dd", null, t.status));
+    if (t.total_success > 0 || t.total_fails > 0){
+      dl.appendChild(el("dt", null, "calls"));
+      dl.appendChild(el("dd", null,
+        t.total_success + " ok  /  " + t.total_fails + " failed"));
+    }
+    if (t.is_open){
+      dl.appendChild(el("dt", null, "breaker"));
+      dl.appendChild(el("dd", null,
+        "OPEN for " + t.remaining_open_s + "s"));
+    }
+    if (t.last_error){
+      dl.appendChild(el("dt", null, "last error"));
+      dl.appendChild(el("dd", null, t.last_error));
+    }
+    detail.appendChild(dl);
+
+    if (t.reason && t.reason !== t.last_error){
+      var fix = el("div", "fix");
+      fix.appendChild(el("strong", null, "reason: "));
+      fix.appendChild(document.createTextNode(String(t.reason).slice(0, 300)));
+      detail.appendChild(fix);
+    }
+
+    var actions = el("div", "actions");
+    var link = el("a");
+    link.href = "#";
+    link.textContent = "View raw JSON";
+    link.onclick = function(e){
+      e.preventDefault();
+      window.open("/api/tools/health", "_blank");
+    };
+    actions.appendChild(link);
+    detail.appendChild(actions);
+
+    rows.appendChild(detail);
+  });
+
+  g.appendChild(rows);
+  return g;
+}
+
+function applyFilters(tools){
+  return tools.filter(function(t){
+    if (currentFilter !== "all" && t.status !== currentFilter) return false;
+    if (currentSearch && t.name.toLowerCase().indexOf(currentSearch) === -1)
+      return false;
+    return true;
+  });
+}
+
+function render(snap){
+  var s = snap.summary || {};
+  var total = s.total || 0;
+  var working = s.working || 0;
+  var degraded = s.degraded || 0;
+  var broken = s.broken || 0;
+  var neverUsed = s.never_used || 0;
+  var called = Math.max(0, total - neverUsed);
+  var healthy = working + neverUsed;
+
+  document.getElementById("t-count").textContent = total;
+  var sub = document.getElementById("t-sub");
+  if (called === 0){
+    sub.textContent = "0 calls this session \u00b7 all ready";
+  } else if (broken === 0 && degraded === 0){
+    sub.textContent = called + " called \u00b7 0 degraded \u00b7 0 broken";
+  } else {
+    sub.textContent = called + " called \u00b7 " + degraded +
+      " degraded \u00b7 " + broken + " broken";
+  }
+
+  var bar = document.getElementById("t-bar");
+  var pct = total > 0 ? Math.round((healthy / total) * 100) : 100;
+  bar.className = "bar" + (broken > 0 ? " err" : (degraded > 0 ? " warn" : ""));
+  bar.firstElementChild.style.width = pct + "%";
+
+  var counts = {all: total, broken: broken, degraded: degraded,
+                working: working, never_used: neverUsed};
+  var btns = document.querySelectorAll("#filters button");
+  for (var i = 0; i < btns.length; i++){
+    var f = btns[i].dataset.filter;
+    var base = btns[i].textContent.replace(/\s*\(\d+\)$/,"");
+    btns[i].textContent = base + " (" + (counts[f] || 0) + ")";
+  }
+
+  var groupsBox = document.getElementById("groups");
+  groupsBox.innerHTML = "";
+  var allTools = snap.tools || [];
+  var visible = applyFilters(allTools);
+  if (!visible.length){
+    groupsBox.appendChild(el("div", "empty", "No tools match this filter"));
+    return;
+  }
+
+  var byCat = {};
+  visible.forEach(function(t){
+    var cat = t.category || "other";
+    if (!byCat[cat]) byCat[cat] = [];
+    byCat[cat].push(t);
+  });
+
+  var order = ["core","memory","files","web","data","sql","workflow",
+               "roles","other"];
+  var seen = {};
+  order.forEach(function(cat){
+    if (byCat[cat]){
+      var g = renderGroup(cat, byCat[cat]);
+      if (g){
+        try {
+          var st = JSON.parse(localStorage.getItem("tools_collapse") || "{}");
+          if (st[cat]) g.classList.add("collapsed");
+        } catch(e){}
+        groupsBox.appendChild(g);
+        seen[cat] = true;
+      }
+    }
+  });
+  Object.keys(byCat).forEach(function(cat){
+    if (seen[cat]) return;
+    var g = renderGroup(cat, byCat[cat]);
+    if (g) groupsBox.appendChild(g);
+  });
+}
+
+async function poll(){
+  var healthBadge = document.getElementById("badge-health");
+  var errBox = document.getElementById("err-box");
+  try {
+    var r = await fetch("/api/tools/health", {cache:"no-store"});
+    if (!r.ok){
+      healthBadge.className = "badge err";
+      healthBadge.textContent = "HTTP " + r.status;
+      errBox.style.display = "block";
+      errBox.textContent = "Failed to fetch tools health: HTTP " + r.status;
+      return;
+    }
+    var snap = await r.json();
+    healthBadge.className = "badge ok";
+    healthBadge.textContent = "READY";
+    errBox.style.display = "none";
+    document.getElementById("refresh-info").textContent =
+      "updated " + new Date().toLocaleTimeString();
+    render(snap);
+  } catch(e){
+    healthBadge.className = "badge err";
+    healthBadge.textContent = "UNREACHABLE";
+    errBox.style.display = "block";
+    errBox.textContent = (e && e.message) || "fetch failed";
+  }
+}
+
+document.querySelectorAll("#filters button").forEach(function(b){
+  b.addEventListener("click", function(){
+    document.querySelectorAll("#filters button").forEach(function(x){
+      x.classList.remove("active");
+    });
+    b.classList.add("active");
+    currentFilter = b.dataset.filter;
+    poll();
+  });
+});
+document.getElementById("search").addEventListener("input", function(e){
+  currentSearch = (e.target.value || "").toLowerCase().trim();
+  poll();
+});
+
+poll();
+setInterval(poll, POLL_MS);
+</script>
+
+</body>
+</html>
