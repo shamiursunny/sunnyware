@@ -21,6 +21,8 @@ async def create_checkout_url(org_id: str, plan_id: str, success_url: str, cance
                 auth=(_key(), ""),
                 data={
                     "mode": "subscription", "success_url": success_url, "cancel_url": cancel_url,
+                    "client_reference_id": org_id,
+                    "metadata[plan_id]": plan_id,
                     "line_items[0][price_data][currency]": "usd",
                     "line_items[0][price_data][product_data][name]": f"Sunnyware {plan_id.title()}",
                     "line_items[0][price_data][unit_amount]": 4900,

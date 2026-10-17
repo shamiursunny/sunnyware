@@ -246,6 +246,7 @@ async function loadOrgs() {
       <td>${o.status === 'active' ? 'Active' : o.status}</td>
       <td>
         <button onclick="checkout('${o.id}', '${o.plan}')" style="padding:4px 8px;font-size:12px;">Pay</button>
+        <button onclick="manageBilling('${o.id}')" style="padding:4px 8px;font-size:12px;">Billing</button>
         <button class="danger" onclick="deleteOrg('${o.id}')" style="padding:4px 8px;font-size:12px;">Delete</button>
       </td>
     </tr>
@@ -273,6 +274,14 @@ async function checkout(orgId, planId) {
   const res = await apiCall('/api/saas/checkout', 'POST', {org_id: orgId, plan_id: planId});
   if (res.ok && res.url) window.location.href = res.url;
   else showToast('Checkout error', 'error');
+}
+
+async function manageBilling(orgId) {
+  try {
+    const res = await apiCall('/api/saas/portal', 'POST', {org_id: orgId});
+    if (res.ok && res.url) window.location.href = res.url;
+    else showToast('Billing portal error', 'error');
+  } catch(e) { showToast('Billing portal error', 'error'); }
 }
 
 async function loadPlans() {

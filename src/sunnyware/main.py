@@ -21,6 +21,7 @@ from . import meta
 from .runtime import state, init_state, log
 from . import state as app_state
 from .routes import meta as meta_routes
+from .routes import billing as billing_routes
 from .routes import saas as saas_routes
 from .routes import approvals as approvals_routes
 from .routes import sso as sso_routes
@@ -117,6 +118,7 @@ app = Server(
 
 # Register all routers
 app.include_router(meta_routes.router)
+app.include_router(billing_routes.router)
 app.include_router(saas_routes.router)
 app.include_router(approvals_routes.router)
 app.include_router(sso_routes.router)
