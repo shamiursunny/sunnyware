@@ -347,7 +347,9 @@ class _MetricsMiddleware:
                 _tenant.set_role(_role)
             except Exception:
                 pass
-            is_protected = path.startswith("/api/") and path != "/api/auth/status"
+            # Part 183: exempt public endpoints from auth
+            _public_api = ("/api/auth/status", "/api/stripe/webhook")
+            is_protected = path.startswith("/api/") and path not in _public_api
             
             # Part 134c: auth gate (only when SUNNYWARE_API_KEYS is set).
             if is_protected and _auth.auth_enabled():
