@@ -195,3 +195,15 @@ def get_org_for_api_key(api_key: str) -> Optional[dict]:
     except Exception:
         pass
     return None
+
+def get_or_create_for_workos(workos_org_id: str, owner_email: str = "") -> dict:
+    """Find or create a SaaS Org for a WorkOS Organization ID."""
+    if not workos_org_id:
+        return None
+    orgs = _load("orgs.json", {})
+    for o in orgs.values():
+        if o.get("workos_org_id") == workos_org_id:
+            return o
+    # Not found -> Create new
+    name = "Org " + workos_org_id[-8:] if len(workos_org_id) > 8 else "New Org"
+    return create_org(name=name, plan="free", owner_email=owner_email, workos_org_id=workos_org_id)

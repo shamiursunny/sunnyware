@@ -133,6 +133,15 @@ async def sso_callback(saml_access_code: str = "", code: str = ""):
     role = existing.get("role") if existing else "analyst"
     record = _us.upsert(email=email, org_id=org_id, role=role)
     api_key = record.get("api_key", "")
+
+    # Part 185: Auto-provision SaaS Org for this WorkOS org_id
+    try:
+        from .. import saas_store as _saas
+        if org_id:
+            _saas.get_or_create_for_workos(org_id, owner_email=email)
+    except Exception:
+        pass
+
     return HTMLResponse(f"""<!doctype html>
 <html><head><meta charset="utf-8">
 <title>Sunnyware - Signed In</title>

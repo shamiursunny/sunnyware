@@ -242,7 +242,13 @@ async function loadOrgs() {
     <tr>
       <td><code>${o.id}</code></td>
       <td>${o.name}</td>
-      <td><span style="color:var(--accent)">${o.plan}</span></td>
+      <td>
+        <select onchange="updatePlan('${o.id}', this.value)" style="margin:0; padding:4px; font-size:12px; width:auto; background:#12161f; border-color:var(--border);">
+          <option value="free" ${o.plan === 'free' ? 'selected' : ''}>Free</option>
+          <option value="pro" ${o.plan === 'pro' ? 'selected' : ''}>Pro ($49)</option>
+          <option value="enterprise" ${o.plan === 'enterprise' ? 'selected' : ''}>Enterprise ($299)</option>
+        </select>
+      </td>
       <td>${o.status === 'active' ? 'Active' : o.status}</td>
       <td>
         <button onclick="checkout('${o.id}', '${o.plan}')" style="padding:4px 8px;font-size:12px;">Pay</button>
@@ -253,6 +259,16 @@ async function loadOrgs() {
   `).join('');
   const sel = document.getElementById('crm-org-select');
   sel.innerHTML = '<option value="">Select Organization...</option>' + d.orgs.map(o => `<option value="${o.id}">${o.name} (${o.id})</option>`).join('');
+}
+
+async function updatePlan(orgId, newPlan) {
+  try {
+    await apiCall('/api/saas/orgs/' + orgId, 'PATCH', { plan: newPlan });
+    showToast('Plan updated to ' + newPlan, 'success');
+    loadOrgs();
+  } catch(e) {
+    showToast('Error updating plan', 'error');
+  }
 }
 
 async function createOrg() {
