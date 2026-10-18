@@ -352,7 +352,7 @@ class _MetricsMiddleware:
             except Exception:
                 pass
             # Part 183: exempt public endpoints from auth
-            _public_api = ("/api/auth/status", "/api/stripe/webhook", "/api/paddle/webhook")
+            _public_api = ("/api/auth/status", "/api/auth/login", "/api/stripe/webhook", "/api/paddle/webhook")
             # Attachments are served publicly for <img> tags (random IDs, unguessable)
             is_attachment = path.startswith("/api/attachments/")
             is_protected = path.startswith("/api/") and not is_attachment and path not in _public_api
