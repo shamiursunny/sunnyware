@@ -333,13 +333,15 @@ input,textarea{font-family:inherit}
       <button class="icon-btn menu-btn" id="menuBtn" title="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <div style="position:relative">
         <button class="model-selector" id="modelSelector">
-          <span class="model-dot"></span><span id="modelName">Sunny 4.0 Turbo</span>
+          <span class="model-dot"></span><span id="modelName">Sunnyware Agent</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
         </button>
         <div class="dropdown" id="modelMenu">
-          <button class="dropdown-item model-option selected" data-model="Sunny 4.0 Turbo"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg><div class="dd-info"><div class="dd-name">Sunny 4.0 Turbo</div><div class="dd-desc">Fastest · everyday tasks</div></div></button>
-          <button class="dropdown-item model-option" data-model="Sunny 4.0 Pro"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="opacity:0"><path d="M20 6L9 17l-5-5"/></svg><div class="dd-info"><div class="dd-name">Sunny 4.0 Pro</div><div class="dd-desc">Deep reasoning · analysis</div></div></button>
-          <button class="dropdown-item model-option" data-model="Sunny Vision"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="opacity:0"><path d="M20 6L9 17l-5-5"/></svg><div class="dd-info"><div class="dd-name">Sunny Vision</div><div class="dd-desc">Image gen + vision · multimodal</div></div></button>
+          <button class="dropdown-item model-option selected" data-model="Sunnyware Agent"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg><div class="dd-info"><div class="dd-name">Sunnyware Agent</div><div class="dd-desc">Auto-selects best available provider</div></div></button>
+          <div class="dropdown-sep"></div>
+          <div style="padding:10px;font-size:11.5px;color:var(--text-tertiary);line-height:1.5;">
+            Tools available: calculator, python_eval, web_search, current_time, citation_lookup, memory, RAG, and more.
+          </div>
         </div>
       </div>
       <div class="topbar-spacer"></div>
@@ -364,14 +366,14 @@ input,textarea{font-family:inherit}
     <!-- ===== CHAT VIEW ===== -->
     <div class="chat-scroll" id="chatScroll">
       <div class="empty-state" id="emptyState">
-        <div class="empty-orb">*</div>
+        <div class="empty-orb">S</div>
         <h1>How can I help you today?</h1>
-        <p>Chat, generate images & documents, upload files — everything lives in your Library.</p>
+        <p>Chat with the Sunnyware Agent. Search, calculate, run code, and manage files — all in one place.</p>
         <div class="prompt-grid">
-          <button class="prompt-card" data-prompt="Generate an image of a futuristic city at sunset"><strong>Generate image</strong>Futuristic city at sunset</button>
-          <button class="prompt-card" data-prompt="Write a professional project proposal document"><strong>Write a document</strong>Professional proposal doc</button>
-          <button class="prompt-card" data-prompt="Write a Python function that checks if a string is a palindrome"><strong>Write code</strong>Python palindrome checker</button>
-          <button class="prompt-card" data-prompt="Explain quantum computing in simple terms"><strong>Explain simply</strong>Quantum computing basics</button>
+          <button class="prompt-card" data-prompt="What is the 18% tip on an $85 restaurant bill?"><strong>Calculate</strong>18% tip on $85</button>
+          <button class="prompt-card" data-prompt="Using Python, calculate the first 10 fibonacci numbers"><strong>Run Python</strong>First 10 fibonacci numbers</button>
+          <button class="prompt-card" data-prompt="Search the web for the latest AI safety news"><strong>Search web</strong>Latest AI safety news</button>
+          <button class="prompt-card" data-prompt="What is the current time in Tokyo right now?"><strong>Current time</strong>Tokyo current time</button>
         </div>
       </div>
       <div class="messages hidden" id="messages"></div>
@@ -387,7 +389,7 @@ input,textarea{font-family:inherit}
             <button class="lib-tab" data-kind="generated">AI Generated</button>
           </div>
         </div>
-        <div class="library-sub">Files you upload and files Nova creates for you — all in one place. Drag & drop to upload.</div>
+        <div class="library-sub">Files you upload and files Sunnyware creates for you — all in one place. Drag & drop to upload.</div>
         <div class="lib-toolbar" id="libToolbar">
           <span class="lib-count" id="libCount"></span>
           <div class="lib-spacer"></div>
@@ -416,7 +418,7 @@ input,textarea{font-family:inherit}
           <button class="send-btn" id="sendBtn" disabled title="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
         </div>
       </div>
-      <div class="disclaimer">Sunnyware can make mistakes · Design preview — responses & files are simulated locally.</div>
+      <div class="disclaimer">Sunnyware Agent can make mistakes · Powered by Sunnyware Orchestrator · Tool calls are logged</div>
     </div>
     <div class="drag-overlay" id="dragOverlay">Drop files to upload to Library</div>
   </main>
@@ -474,9 +476,9 @@ window.fetch = function(url, options) {
 };
 
 /* ================================================================
-   NOVA AI — Chat + Library  (fully client-side design prototype)
+   SUNNYWARE AGENT — Chat + Library  (fully client-side design prototype)
 ================================================================ */
-const LS_CHATS='nova_chats_v2', LS_FILES='nova_files_v2', LS_THEME='nova_theme';
+const LS_CHATS='sunny_chats_v1', LS_FILES='sunny_files_v1', LS_THEME='sunny_theme';
 let chats=[], files=[], activeChatId=null, isGenerating=false, editingId=null;
 let view='chat';                    // 'chat' | 'library'
 let libKind='upload';               // library tab
@@ -614,13 +616,9 @@ $('#optShare').onclick=()=>{
 };
 $('#optExport').onclick=()=>{
   const c=chats.find(x=>x.id===activeChatId); if(!c)return;
-  const md=c.messages.map(m=>`**${m.role==='user'?'You':'Nova'}:**
+  const md=c.messages.map(m=>`**${m.role==='user'?'You':'Sunnyware'}:**
 
-${m.text}`).join('
-
----
-
-');
+${m.text}`).join('\n\n---\n\n');
   download(c.title.replace(/[^\w\s-]/g,'').trim().replace(/\s+/g,'-').toLowerCase()+'.md', md, 'text/markdown');
   toast('Chat exported as Markdown');
 };
@@ -768,12 +766,9 @@ function startEdit(chat,m,msgDiv){
 }
 
 /* ==================== REAL SSE STREAMING (Part 193b) ==================== */
-function novaParseSSE(text) {
-  return text.split('
-
-').filter(Boolean).map(chunk => {
-    const dataLine = chunk.split('
-').find(l => l.startsWith('data: '));
+function sunnyParseSSE(text) {
+  return text.split('\n\n').filter(Boolean).map(chunk => {
+    const dataLine = chunk.split('\n').find(l => l.startsWith('data: '));
     if (!dataLine) return null;
     const data = dataLine.slice(6).trim();
     if (!data || data === '[DONE]') return null;
@@ -808,7 +803,7 @@ function sendMessage(textOverride){
   if(text) streamAI(chat, text);
 }
 
-function novaRenderToolPills(aiMsg) {
+function sunnyRenderToolPills(aiMsg) {
   return aiMsg.tools.map(t =>
     '<div class="tool-pill '+(t.status==='done'?'done':'running')+'" style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--bg-tertiary);border-radius:99px;font-size:11.5px;margin:0 4px 4px 0;">' +
       '<span style="width:6px;height:6px;border-radius:50%;background:var(--'+(t.status==='done'?'success':'warn')+');"></span>' +
@@ -818,8 +813,8 @@ function novaRenderToolPills(aiMsg) {
   ).join('');
 }
 
-function novaRenderStreaming(textEl, aiMsg, text) {
-  const pills = aiMsg.tools.length ? '<div style="margin-bottom:6px;">'+novaRenderToolPills(aiMsg)+'</div>' : '';
+function sunnyRenderStreaming(textEl, aiMsg, text) {
+  const pills = aiMsg.tools.length ? '<div style="margin-bottom:6px;">'+sunnyRenderToolPills(aiMsg)+'</div>' : '';
   textEl.innerHTML = pills + mdLite(text) + '<span class="cursor-blink"></span>';
   scrollBottom();
 }
@@ -873,7 +868,7 @@ async function streamAI(chat, prompt) {
       if(done) break;
 
       buffer += decoder.decode(value, { stream: true });
-      const events = novaParseSSE(buffer);
+      const events = sunnyParseSSE(buffer);
       const lastBoundary = buffer.lastIndexOf('
 
 ');
@@ -891,26 +886,26 @@ async function streamAI(chat, prompt) {
 
         } else if(type === 'iteration' || type === 'thinking') {
           if(firstContent) { textEl.replaceChildren(); firstContent = false; }
-          novaRenderStreaming(textEl, aiMsg, accumulatedText || 'thinking...');
+          sunnyRenderStreaming(textEl, aiMsg, accumulatedText || 'thinking...');
 
         } else if(type === 'tool_call') {
           const name = ev.name || ev.tool || 'tool';
           aiMsg.tools.push({ name, args: ev.args || {}, status: 'running' });
           if(firstContent) { textEl.replaceChildren(); firstContent = false; }
-          novaRenderStreaming(textEl, aiMsg, accumulatedText);
+          sunnyRenderStreaming(textEl, aiMsg, accumulatedText);
 
         } else if(type === 'tool_result') {
           const name = ev.name || ev.tool || 'tool';
           const t = aiMsg.tools.find(x => x.name === name && x.status === 'running');
           if(t) { t.status = 'done'; t.result = ev.result || ev.output || ''; }
           if(firstContent) { textEl.replaceChildren(); firstContent = false; }
-          novaRenderStreaming(textEl, aiMsg, accumulatedText);
+          sunnyRenderStreaming(textEl, aiMsg, accumulatedText);
 
         } else if(type === 'final') {
           if(firstContent) { textEl.replaceChildren(); firstContent = false; }
           if(ev.answer) accumulatedText = ev.answer;
           if(ev.error) throw new Error(ev.error);
-          novaRenderStreaming(textEl, aiMsg, accumulatedText);
+          sunnyRenderStreaming(textEl, aiMsg, accumulatedText);
 
         } else if(type === 'done') {
           // final marker, nothing to do
@@ -921,19 +916,19 @@ async function streamAI(chat, prompt) {
         } else if(type === 'answer' || type === 'content' || type === 'delta') {
           if(firstContent) { textEl.replaceChildren(); firstContent = false; }
           accumulatedText += (ev.content || ev.text || ev.delta || '');
-          novaRenderStreaming(textEl, aiMsg, accumulatedText);
+          sunnyRenderStreaming(textEl, aiMsg, accumulatedText);
 
         } else if(ev.content || ev.text) {
           if(firstContent) { textEl.replaceChildren(); firstContent = false; }
           accumulatedText += (ev.content || ev.text);
-          novaRenderStreaming(textEl, aiMsg, accumulatedText);
+          sunnyRenderStreaming(textEl, aiMsg, accumulatedText);
         }
       }
     }
 
     if(!accumulatedText) accumulatedText = '(no response)';
     aiMsg.text = accumulatedText;
-    const finalPills = aiMsg.tools.length ? '<div style="margin-bottom:6px;">'+novaRenderToolPills(aiMsg)+'</div>' : '';
+    const finalPills = aiMsg.tools.length ? '<div style="margin-bottom:6px;">'+sunnyRenderToolPills(aiMsg)+'</div>' : '';
     textEl.innerHTML = finalPills + mdLite(aiMsg.text);
     if(actionsEl) actionsEl.style.visibility = 'visible';
     bindCodeCopy(textEl);
@@ -1035,7 +1030,7 @@ function renderLibrary(){
   }
   if(!items.length){
     const e=document.createElement('div'); e.className='lib-empty';
-    e.innerHTML=`<div class="big">${libKind==='upload'?'Folder':'Magic'}</div><p>${libKind==='upload'?'No uploaded files yet.<br>Drag & drop, or click Upload to add documents, photos and more.':'Nothing generated yet.<br>Ask Nova to create an image or document in chat and it will appear here.'}</p>`;
+    e.innerHTML=`<div class="big">${libKind==='upload'?'Folder':'Magic'}</div><p>${libKind==='upload'?'No uploaded files yet.<br>Drag & drop, or click Upload to add documents, photos and more.':'No AI-generated files yet.<br>This tab is reserved for future features.'}</p>`;
     grid.appendChild(e); return;
   }
   items.forEach(f=>{
