@@ -882,23 +882,47 @@ async function streamAI(chat, prompt) {
       for(const ev of events) {
         const type = ev.type || ev.event || '';
 
-        if(type === 'tool_call') {
+        if(type === 'session') {
+          if(ev.session_uuid) chat.sessionUuid = ev.session_uuid;
+          if(ev.role) chat.role = ev.role;
+
+        } else if(type === 'start') {
+          if(ev.role) chat.role = ev.role;
+
+        } else if(type === 'iteration' || type === 'thinking') {
+          if(firstContent) { textEl.replaceChildren(); firstContent = false; }
+          novaRenderStreaming(textEl, aiMsg, accumulatedText || 'thinking...');
+
+        } else if(type === 'tool_call') {
           const name = ev.name || ev.tool || 'tool';
           aiMsg.tools.push({ name, args: ev.args || {}, status: 'running' });
           if(firstContent) { textEl.replaceChildren(); firstContent = false; }
           novaRenderStreaming(textEl, aiMsg, accumulatedText);
+
         } else if(type === 'tool_result') {
           const name = ev.name || ev.tool || 'tool';
           const t = aiMsg.tools.find(x => x.name === name && x.status === 'running');
           if(t) { t.status = 'done'; t.result = ev.result || ev.output || ''; }
           if(firstContent) { textEl.replaceChildren(); firstContent = false; }
           novaRenderStreaming(textEl, aiMsg, accumulatedText);
+
+        } else if(type === 'final') {
+          if(firstContent) { textEl.replaceChildren(); firstContent = false; }
+          if(ev.answer) accumulatedText = ev.answer;
+          if(ev.error) throw new Error(ev.error);
+          novaRenderStreaming(textEl, aiMsg, accumulatedText);
+
+        } else if(type === 'done') {
+          // final marker, nothing to do
+
+        } else if(type === 'error') {
+          throw new Error(ev.error || ev.message || 'stream error');
+
         } else if(type === 'answer' || type === 'content' || type === 'delta') {
           if(firstContent) { textEl.replaceChildren(); firstContent = false; }
           accumulatedText += (ev.content || ev.text || ev.delta || '');
           novaRenderStreaming(textEl, aiMsg, accumulatedText);
-        } else if(type === 'error') {
-          throw new Error(ev.error || ev.message || 'stream error');
+
         } else if(ev.content || ev.text) {
           if(firstContent) { textEl.replaceChildren(); firstContent = false; }
           accumulatedText += (ev.content || ev.text);
