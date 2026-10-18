@@ -2113,8 +2113,12 @@ async function streamAI(chat, prompt) {
         } else if(type === 'tool_call') {
 
           const name = ev.name || ev.tool || 'tool';
-
-          aiMsg.tools.push({ name, args: ev.args || {}, status: 'running' });
+          const _argsKey = JSON.stringify(ev.args || {});
+          // Part 199d: dedupe — don't add the same tool+args pill twice
+          const _existing = aiMsg.tools.find(x => x.name === name && JSON.stringify(x.args) === _argsKey && x.status === 'running');
+          if (!_existing) {
+            aiMsg.tools.push({ name, args: ev.args || {}, status: 'running' });
+          }
 
           if(firstContent) { textEl.replaceChildren(); firstContent = false; }
 
@@ -2128,7 +2132,17 @@ async function streamAI(chat, prompt) {
 
           const t = aiMsg.tools.find(x => x.name === name && x.status === 'running');
 
-          if(t) { t.status = 'done'; t.result = ev.result || ev.output || ''; }
+          if(t) {
+            const r = ev.result || ev.output || {};
+            const errStr = (typeof r === 'string') ? r : (r.error || '');
+            if (errStr === 'approval_timeout' || errStr === 'tool_denied' || errStr === 'approval_rejected') {
+              t.status = 'error';
+              t.error = errStr;
+            } else {
+              t.status = 'done';
+              t.result = r;
+            }
+          }
 
           // Capture image data from image_generate tool
 

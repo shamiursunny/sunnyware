@@ -689,6 +689,16 @@ async def _run_agent_body(
     if _role_addon:
         system_prompt = _role_addon + "\n\n" + system_prompt
 
+    # Part 199d: prevent wasteful retries when HITL times out or denies
+    _anti_retry = (
+        "\n\nCRITICAL TOOL RULE: If a tool returns an error like "
+        "'approval_timeout', 'tool_denied', or 'approval_rejected', "
+        "do NOT call the same tool again in this turn. "
+        "Instead, tell the user the tool is pending approval or has been blocked, "
+        "and suggest they either approve it in /admin or use a different approach."
+    )
+    system_prompt = system_prompt + _anti_retry
+
     # Part 169: A/B prompt experiment injection.
     # Deterministic per (session_uuid, experiment). No live experiment
     # -> pick_variant returns (None, None) and this is a no-op.
