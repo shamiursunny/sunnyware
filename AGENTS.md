@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-18 (Part 187 - Paddle Pipeline Verified)
+**Last update:** 2026-10-18 (Part 190 - Ledgerly ERP Merge)

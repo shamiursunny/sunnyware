@@ -2082,3 +2082,16 @@ Config:
 - Switch Paddle from Sandbox to Live.
 - Update HF Secrets with Live keys (PADDLE_API_KEY, WEBHOOK_SECRET, PRICE_PRO).
 - Update admin.html with Live client-side token.
+
+### Part 190 - Ledgerly Full Financial ERP Merge (20-tab Admin)
+- Replaced admin.html with admin-v2.html: grouped sidebar, 20 functional tabs.
+- accounting_store.py: full financial data model (customers, plans, invoices,
+  ledger, costs, capital, compliance, coupons, dunning, entitlements,
+  usage, audit, monthly history, settings).
+- routes/accounting.py: 30+ /api/acc/* endpoints with admin auth.
+- New tabs: Customers, Plans, Invoices, Accounting (P&L + Ledger), Reports
+  (printable), Coupons, Dunning, Compliance, Budget, Capital, Alerts,
+  Plan Access (entitlements matrix), Account Health (weighted scoring),
+  Team (audit log), Calculators (4 business tools), Settings.
+- Auto-sync from saas_store: plans and orgs flow into accounting on first load.
+- All endpoints verified returning HTTP 200.

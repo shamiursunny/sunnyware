@@ -1431,3 +1431,17 @@ Updated Stripe webhook to save customer_id for the customer portal.
 Completed the Paddle Sandbox integration. Added a public landing page.
 Webhooks now record invoices and update the dashboard revenue.
 Marked Paddle Live Verification as the next pending task.
+
+## 2026-10-18 - Part 190
+
+| Part | Feature |
+|------|---------|
+| 190  | Ledgerly Full Financial ERP Merge (20-tab Admin) |
+
+Replaced admin with a 20-tab financial control plane. Full CRUD for
+customers, plans, invoices, ledger, costs, capital, compliance, coupons,
+dunning, entitlements. Added printable financial statements, budget vs
+actual, runway calculator, customer health scoring, and audit log.
+
+Backend: accounting_store.py (14 model functions) + routes/accounting.py
+(30+ endpoints). Frontend: admin-v2.html at 74K+ chars, grouped sidebar.

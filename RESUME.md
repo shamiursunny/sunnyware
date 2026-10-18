@@ -198,6 +198,11 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   record invoices, update MRR, and handle plan upgrades. Landing page
   added at /. PENDING: Paddle Live KYC verification and key swap.
 
+- Ledgerly ERP Merge (Part 190): 20-tab admin panel with full financial
+  management (customers, invoices, ledger, P&L, budgets, capital, dunning,
+  compliance, coupons, entitlements, health scoring, calculators).
+  Backed by accounting_store.py + 30 /api/acc/* endpoints.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP
