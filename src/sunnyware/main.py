@@ -360,7 +360,17 @@ class _MetricsMiddleware:
             # Part 134c: auth gate (only when SUNNYWARE_API_KEYS is set).
             if is_protected and _auth.auth_enabled():
                 key = _incoming_key
-                if not _auth.is_valid_key(key or ""):
+                # Part 196: Check if it's a valid JWT
+                if key and "." in key and len(key) > 20:
+                    try:
+                        from sunnyware.routes.auth import verify_jwt
+                        email = verify_jwt(key)
+                        if email:
+                            key = f"user:{email}" # Multi-tenant isolation!
+                    except Exception:
+                        pass
+
+                if not _auth.is_valid_key(key or "") and not (key and key.startswith("user:")):
                     body = _json.dumps({
                         "error": "unauthorized",
                         "detail": "valid X-API-Key or Authorization: Bearer <key> required",

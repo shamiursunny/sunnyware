@@ -928,13 +928,9 @@ input,textarea{font-family:inherit}
 // Part 193: Global API Key Interceptor for Chat
 
 let _apiKey = localStorage.getItem('sunnyware_admin_key') || '';
-
 if (!_apiKey) {
-
-  _apiKey = prompt('Enter API Key to use Chat:') || '';
-
-  if (_apiKey) localStorage.setItem('sunnyware_admin_key', _apiKey);
-
+  // Part 196: Show modal instead of prompt
+  window._needsLogin = true;
 }
 
 const _originalFetch = window.fetch;
@@ -3409,6 +3405,17 @@ streamAI = async function(chat, prompt) {
 
 </script>
 
+
+<!-- Part 196: Login Modal -->
+<div id="loginModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;">
+  <div style="background:var(--bg-secondary);padding:30px;border-radius:12px;width:100%;max-width:400px;box-shadow:0 10px 30px rgba(0,0,0,0.5);border:1px solid var(--border);">
+    <h2 style="margin-top:0;color:var(--text-primary);">Welcome to Sunnyware</h2>
+    <p style="color:var(--text-secondary);font-size:14px;margin-bottom:20px;">Enter your email to access your private workspace.</p>
+    <input type="email" id="loginEmail" placeholder="name@company.com" style="width:100%;padding:12px;border-radius:8px;border:1px solid var(--border);background:var(--bg-primary);color:var(--text-primary);margin-bottom:15px;font-size:16px;box-sizing:border-box;">
+    <button id="loginBtn" style="width:100%;padding:12px;border-radius:8px;background:var(--accent-color);color:white;font-weight:bold;border:none;cursor:pointer;font-size:16px;">Continue</button>
+    <div id="loginError" style="color:var(--danger);font-size:13px;margin-top:10px;text-align:center;"></div>
+  </div>
+</div>
 </body>
 
 </html>
