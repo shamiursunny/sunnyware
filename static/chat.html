@@ -1211,15 +1211,30 @@ function loadAll(){
   }
 
   if(clean.length !== chats.length){
-
     chats = clean;
-
     localStorage.setItem(LS_CHATS, JSON.stringify(chats));
-
     console.log('[cleanup] removed ' + (clean.length - chats.length) + ' duplicates');
-
   }
 
+  // One-time sweep for quote-variant duplicates (e.g. "Prompt" vs Prompt)
+  try {
+    const normTitle = (s) => (s || '').replace(/^["']|["']$/g, '').replace(/[^a-z0-9]/gi, '').toLowerCase();
+    const seenTitles = new Set();
+    const finalClean = [];
+    for(const c of chats){
+      const n = normTitle(c.title);
+      if(n && seenTitles.has(n)){
+        console.log('[cleanup] removed quote-variant duplicate:', c.title);
+        continue;
+      }
+      if(n) seenTitles.add(n);
+      finalClean.push(c);
+    }
+    if(finalClean.length !== chats.length){
+      chats = finalClean;
+      localStorage.setItem(LS_CHATS, JSON.stringify(chats));
+    }
+  } catch(e) { console.warn('[cleanup] failed:', e); }
 }
 
 
