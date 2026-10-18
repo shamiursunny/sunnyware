@@ -502,6 +502,30 @@ async def agent_stream(req: Request):
     session_id = body.get("session_id", "stream-default")
     model = body.get("model")
     role = body.get("role")   # Part 112/113B: role persona
+    attachments = body.get("attachments", [])
+
+    # Part 194b: Process attachments (Files & Images)
+    if attachments:
+        prompt += "\n\n"
+        for att in attachments:
+            name = att.get("name", "file")
+            att_type = att.get("type", "")
+            text_content = att.get("textContent", "")
+            data_url = att.get("dataUrl", "")
+            
+            if att_type == "image" and data_url:
+                # Save base64 image to attachments directory so LLM can "see" it
+                b64 = data_url.split(",", 1)[-1]
+                try:
+                    from .. import attachments as _att
+                    saved = _att.save_base64(b64, "jpeg")
+                    prompt += f"\n![{name}]({saved['url']})\n"
+                except Exception as e:
+                    from ..runtime import log
+                    log.warning(f"Failed to save attachment image: {e}")
+            elif text_content:
+                # Inject document text directly into the prompt
+                prompt += f"\n[Attached File: {name}]\n{text_content}\n"
 
     if not prompt:
         return JSONResponse({"error": "input required"}, status_code=400)

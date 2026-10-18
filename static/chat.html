@@ -1996,6 +1996,9 @@ async function streamAI(chat, prompt) {
 
   try {
 
+    // Collect attachments from pendingAttach
+    const attachedFiles = (pendingAttach || []).map(id => files.find(f => f.id === id)).filter(Boolean);
+    
     const res = await fetch('/api/agent/stream', {
 
       method: 'POST',
@@ -2008,11 +2011,18 @@ async function streamAI(chat, prompt) {
 
         session_id: chat.sessionId,
 
-        role: window._selectedRole || chat.role || 'general'
+        role: window._selectedRole || chat.role || 'general',
+
+        attachments: attachedFiles
 
       })
 
     });
+
+    // Clear attachments after sending
+    pendingAttach = [];
+    const preview = document.getElementById('attachPreview');
+    if(preview){ preview.innerHTML = ''; preview.classList.add('hidden'); }
 
 
 
