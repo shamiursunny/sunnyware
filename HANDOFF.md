@@ -2145,3 +2145,32 @@ Config:
 - 19/19 DOM elements found.
 - 22/22 JS functions found.
 - 0 "Nova" references remaining.
+
+---
+
+# Part 194-198 Update (2026-10-18): Advanced UI Features
+
+## Part 194: Real File Uploads & Vision
+- Frontend `chat.html` now reads attached files as base64 (`dataUrl`) or text (`textContent`) and sends them in the `attachments` array to `/api/agent/stream`.
+- Backend `agent.py` saves images to `/api/attachments/` and injects text documents directly into the LLM prompt.
+- The AI can now read PDFs, CSVs, and images attached by the user.
+
+## Part 195: Voice Input (Speech-to-Text)
+- Replaced the fake mic toast with the **Web Speech API** (`webkitSpeechRecognition`).
+- Clicking the mic prompts for browser permissions, listens to the user's voice, and transcribes it directly into the chat input.
+
+## Part 196: Real JWT Auth & Multi-Tenancy
+- Removed the ugly browser `prompt()` for the master key.
+- Added a beautiful **Login Modal** to the UI. Users log in via email (or `admin`).
+- Backend `auth.py` issues JWTs (HMAC-SHA256). The `main.py` middleware verifies the JWT and assigns a unique `owner_key` (e.g., `user:alice@company.com`).
+- **Multi-Tenancy:** Alice and Bob now have completely isolated chat histories and file libraries.
+- Made the bottom-left "Admin" profile card clickable to switch users.
+
+## Part 197: Advanced Agent Tools (Manual Triggering)
+- Added a **Wrench (Tools) Dropdown** to the chat composer.
+- Users can manually force a tool: `web_search`, `calculator`, `python_eval`, `pdf_read`, or `Auto`.
+- Backend reads `forced_tool` and prepends a strict system instruction to force the LLM to use it.
+
+## Part 198: Safe-Tool Bypass for HITL
+- Fixed a bug where `web_search` (and other read-only tools) would hang for 120 seconds waiting for HITL (Human In The Loop) approval.
+- Updated `orchestrator.py` to bypass HITL for a predefined `_SAFE_READ_TOOLS` set.
