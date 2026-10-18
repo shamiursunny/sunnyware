@@ -87,6 +87,28 @@
 <main id="grid"></main>
 
 <script>
+// Part 192: Global API Key Interceptor for Status Dashboard
+let _apiKey = localStorage.getItem('sunnyware_admin_key') || '';
+if (!_apiKey) {
+  _apiKey = prompt('Enter API Key to view Status Dashboard:') || '';
+  if (_apiKey) localStorage.setItem('sunnyware_admin_key', _apiKey);
+}
+
+const _originalFetch = window.fetch;
+window.fetch = function(url, options) {
+  if (!options) options = {};
+  if (!options.headers) options.headers = {};
+  
+  if (typeof url === 'string' && url.startsWith('/api')) {
+    if (options.headers instanceof Headers) {
+      options.headers.set('X-API-Key', _apiKey);
+    } else {
+      options.headers['X-API-Key'] = _apiKey;
+    }
+  }
+  return _originalFetch(url, options);
+};
+
 "use strict";
 var POLL_MS = 10000;
 
