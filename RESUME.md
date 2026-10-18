@@ -194,6 +194,10 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - Usage Quotas (Part 184): enforced per-org daily call limits on
   /api/agent/stream. Stripe webhook saves customer_id for portal.
 
+- Paddle Billing Pipeline (Part 187): Sandbox verified. Webhooks
+  record invoices, update MRR, and handle plan upgrades. Landing page
+  added at /. PENDING: Paddle Live KYC verification and key swap.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP

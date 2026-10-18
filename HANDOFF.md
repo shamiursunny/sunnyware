@@ -2066,3 +2066,19 @@ Config:
   Injects HTTP 429 if the limit is reached.
 - routes/billing.py: webhook now saves stripe_customer_id on checkout completion,
   allowing the Customer Portal button to work for real customers.
+
+### Part 187 - Paddle Billing Pipeline (Sandbox Verified)
+- Added static/index.html: Public landing page with Features, Terms, Privacy.
+- Added /terms and /privacy routes in meta.py for Paddle compliance.
+- Root / route now serves index.html, but redirects ?_ptxn=... to /admin.
+- Added paddle_client.py and routes/paddle_webhook.py.
+- billing.py now uses Paddle instead of Stripe.
+- Webhook records invoices and updates MRR/Total Revenue on the dashboard.
+- Admin UI has Paddle.js overlay that opens on ?_ptxn= redirect.
+- Verified end-to-end: Checkout -> Webhook -> Invoice -> Dashboard update.
+
+### PENDING TASK: Paddle Live Account Verification
+- Need to complete KYC (Personal details, National ID, Bank Account).
+- Switch Paddle from Sandbox to Live.
+- Update HF Secrets with Live keys (PADDLE_API_KEY, WEBHOOK_SECRET, PRICE_PRO).
+- Update admin.html with Live client-side token.

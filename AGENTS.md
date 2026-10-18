@@ -200,4 +200,4 @@ See HANDOFF.md for the full queue.
 
 ---
 
-**Last update:** 2026-10-17 (Part 184 - Usage Quotas & Stripe)
+**Last update:** 2026-10-18 (Part 187 - Paddle Pipeline Verified)

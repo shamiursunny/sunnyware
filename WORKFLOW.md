@@ -1421,3 +1421,13 @@ for future per-org daily quota enforcement.
 
 Enforced plan quotas on /api/agent/stream based on the org plan.
 Updated Stripe webhook to save customer_id for the customer portal.
+
+## 2026-10-18 - Part 187
+
+| Part | Feature |
+|------|---------|
+| 187  | Paddle Billing Pipeline & Landing Page |
+
+Completed the Paddle Sandbox integration. Added a public landing page.
+Webhooks now record invoices and update the dashboard revenue.
+Marked Paddle Live Verification as the next pending task.
