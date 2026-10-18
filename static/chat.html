@@ -645,9 +645,10 @@ input,textarea{font-family:inherit}
 
     <div class="sidebar-footer">
 
-      <div class="user-avatar">SW</div>
-
-      <div class="user-info"><div class="user-name">Admin</div><div class="user-plan">Enterprise · Unlimited</div></div>
+      <div id="userProfileBtn" style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;" title="Click to switch user or log in">
+        <div class="user-avatar">SW</div>
+        <div class="user-info"><div class="user-name" id="currentUserName">Admin</div><div class="user-plan">Enterprise · Unlimited</div></div>
+      </div>
 
       <button class="icon-btn" id="themeToggle" title="Toggle theme">
 
@@ -1070,6 +1071,10 @@ document.addEventListener('click', function(e) {
     location.reload();
 
   }
+  if(e.target.closest('#userProfileBtn')){
+    document.getElementById('loginModal').classList.remove('hidden');
+  }
+
 
   if(e.target.closest('#refreshChatsBtn')){
 
