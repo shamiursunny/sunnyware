@@ -504,6 +504,12 @@ async def agent_stream(req: Request):
     role = body.get("role")   # Part 112/113B: role persona
     attachments = body.get("attachments", [])
 
+
+    forced_tool = body.get("forced_tool", "")
+    if forced_tool:
+        prompt = f"IMPORTANT SYSTEM INSTRUCTION: You MUST use the '{forced_tool}' tool for this request. Do not attempt to answer from your own knowledge.\n\nUser request: {prompt}"
+        from ..runtime import log
+        log.info(f"Forcing tool: {forced_tool}")
     # Part 194b: Process attachments (Files & Images)
     if attachments:
         prompt += "\n\n"
