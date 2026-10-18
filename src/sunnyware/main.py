@@ -353,7 +353,9 @@ class _MetricsMiddleware:
                 pass
             # Part 183: exempt public endpoints from auth
             _public_api = ("/api/auth/status", "/api/stripe/webhook", "/api/paddle/webhook")
-            is_protected = path.startswith("/api/") and path not in _public_api
+            # Attachments are served publicly for <img> tags (random IDs, unguessable)
+            is_attachment = path.startswith("/api/attachments/")
+            is_protected = path.startswith("/api/") and not is_attachment and path not in _public_api
             
             # Part 134c: auth gate (only when SUNNYWARE_API_KEYS is set).
             if is_protected and _auth.auth_enabled():
