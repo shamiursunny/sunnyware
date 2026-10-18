@@ -472,13 +472,440 @@ document.querySelectorAll('.nav-item').forEach(el => {
   el.addEventListener('click', () => nav(el.dataset.tab));
 });
 
-// ═══ PLACEHOLDER RENDERERS (Phase 2B will fill these in) ═══
-async function renderCustomers() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Phase 2B</p>'; }
-async function renderPlans() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Phase 2B</p>'; }
-async function renderInvoices() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Phase 2B</p>'; }
-async function renderAccounting() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Phase 2B</p>'; }
-async function renderReports() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Phase 2B</p>'; }
-async function renderSettings() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Phase 2B</p>'; }
+// ═════════════════════════════════════════════════════════════════
+// CUSTOMERS
+// ═════════════════════════════════════════════════════════════════
+async function renderCustomers() {
+  const d = await api('/api/acc/customers');
+  const plans = (ACC_STATE && ACC_STATE.plans) || [];
+  const planName = id => { const p = plans.find(x => x.id === id); return p ? p.name : id; };
+  const planPrice = id => { const p = plans.find(x => x.id === id); return p ? p.price : 0; };
+
+  $('content').innerHTML = `
+    <h2>Add Customer</h2>
+    <div class="form-row">
+      <div><label>Name</label><input id="cust-name" placeholder="Acme Inc"></div>
+      <div><label>Plan</label>
+        <select id="cust-plan">
+          ${plans.length ? plans.map(p => `<option value="${esc(p.id)}">${esc(p.name)} (${money(p.price)})</option>`).join('') : '<option value="">No plans — create one first</option>'}
+        </select>
+      </div>
+      <div><label>Status</label>
+        <select id="cust-status">
+          <option value="trial">Trial</option>
+          <option value="active">Active</option>
+          <option value="churned">Churned</option>
+        </select>
+      </div>
+      <button onclick="addCustomer()">Add Customer</button>
+    </div>
+
+    <h2>Customers (${d.customers.length})</h2>
+    ${d.customers.length === 0 ? '<p style="color:var(--muted)">No customers yet.</p>' : `
+    <table>
+      <thead><tr><th>Name</th><th>Plan</th><th>Status</th><th class="n">Monthly</th><th></th></tr></thead>
+      <tbody>
+        ${d.customers.map(c => `
+          <tr>
+            <td>${esc(c.name)}</td>
+            <td>
+              <select onchange="updateCustomer(${c.id}, {plan: this.value})" style="width:auto;padding:4px;font-size:12px">
+                ${plans.map(pp => `<option value="${esc(pp.id)}" ${pp.id===c.plan?'selected':''}>${esc(pp.name)}</option>`).join('')}
+              </select>
+            </td>
+            <td>
+              <select onchange="updateCustomer(${c.id}, {st: this.value})" style="width:auto;padding:4px;font-size:12px">
+                <option value="trial" ${c.st==='trial'?'selected':''}>Trial</option>
+                <option value="active" ${c.st==='active'?'selected':''}>Active</option>
+                <option value="churned" ${c.st==='churned'?'selected':''}>Churned</option>
+              </select>
+            </td>
+            <td class="n">${money(planPrice(c.plan))}</td>
+            <td><button class="ghost small" onclick="deleteCustomer(${c.id})">Delete</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+  `;
+}
+
+async function addCustomer() {
+  const name = $('cust-name').value.trim();
+  const plan = $('cust-plan').value;
+  const status = $('cust-status').value;
+  if (!name) return toast('Name required', 'error');
+  if (!plan) return toast('Create a plan first', 'error');
+  await api('/api/acc/customers', 'POST', { name, plan, status });
+  toast('Customer added', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('customers');
+}
+
+async function updateCustomer(id, patch) {
+  await api('/api/acc/customers/' + id, 'PATCH', patch);
+  toast('Updated', 'success');
+  ACC_STATE = await api('/api/acc/state');
+}
+
+async function deleteCustomer(id) {
+  if (!confirm('Delete customer?')) return;
+  await api('/api/acc/customers/' + id, 'DELETE');
+  toast('Deleted', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('customers');
+}
+
+// ═════════════════════════════════════════════════════════════════
+// PLANS
+// ═════════════════════════════════════════════════════════════════
+async function renderPlans() {
+  const d = await api('/api/acc/plans');
+  $('content').innerHTML = `
+    <h2>Add Plan</h2>
+    <div class="form-row">
+      <div><label>Plan Name</label><input id="plan-name" placeholder="Starter"></div>
+      <div><label>Price / month ($)</label><input id="plan-price" type="number" min="0" step="1" value="29"></div>
+      <div><label>AI Tokens (M)</label><input id="plan-tokens" type="number" min="0" value="5"></div>
+      <div><label>Trial Days</label><input id="plan-trial" type="number" min="0" value="7"></div>
+      <div><label>Annual Disc %</label><input id="plan-disc" type="number" min="0" value="15"></div>
+      <button onclick="addPlan()">Add Plan</button>
+    </div>
+
+    <h2>Plans (${d.plans.length})</h2>
+    ${d.plans.length === 0 ? '<p style="color:var(--muted)">No plans yet.</p>' : `
+    <table>
+      <thead><tr><th>Name</th><th class="n">Price/mo</th><th class="n">AI Tokens</th><th class="n">Trial</th><th class="n">Annual Disc</th><th class="n">Annual Price</th><th></th></tr></thead>
+      <tbody>
+        ${d.plans.map(p => `
+          <tr>
+            <td><input value="${esc(p.name)}" onchange="updatePlanData('${esc(p.id)}', 'name', this.value)" style="width:130px;padding:4px;font-size:12px"></td>
+            <td class="n"><input type="number" value="${p.price||0}" onchange="updatePlanData('${esc(p.id)}', 'price', parseFloat(this.value)||0)" style="width:90px;padding:4px;font-size:12px;text-align:right"></td>
+            <td class="n"><input type="number" value="${p.tokens||0}" onchange="updatePlanData('${esc(p.id)}', 'tokens', parseFloat(this.value)||0)" style="width:70px;padding:4px;font-size:12px;text-align:right"></td>
+            <td class="n"><input type="number" value="${p.trial||0}" onchange="updatePlanData('${esc(p.id)}', 'trial', parseFloat(this.value)||0)" style="width:70px;padding:4px;font-size:12px;text-align:right"></td>
+            <td class="n"><input type="number" value="${p.disc||0}" onchange="updatePlanData('${esc(p.id)}', 'disc', parseFloat(this.value)||0)" style="width:70px;padding:4px;font-size:12px;text-align:right"></td>
+            <td class="n">${money((p.price||0)*12*(1-(p.disc||0)/100))}</td>
+            <td><button class="ghost small" onclick="deletePlan('${esc(p.id)}')">Delete</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+  `;
+}
+
+async function addPlan() {
+  const name = $('plan-name').value.trim();
+  if (!name) return toast('Name required', 'error');
+  const data = {
+    name,
+    price: parseFloat($('plan-price').value) || 0,
+    tokens: parseFloat($('plan-tokens').value) || 0,
+    trial: parseFloat($('plan-trial').value) || 0,
+    disc: parseFloat($('plan-disc').value) || 0,
+  };
+  await api('/api/acc/plans', 'POST', data);
+  toast('Plan added', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('plans');
+}
+
+async function updatePlanData(id, field, value) {
+  const d = await api('/api/acc/plans');
+  const plan = d.plans.find(p => p.id === id);
+  if (!plan) return;
+  plan[field] = value;
+  await api('/api/acc/plans', 'POST', plan);
+  toast('Plan updated', 'success');
+  ACC_STATE = await api('/api/acc/state');
+}
+
+async function deletePlan(id) {
+  if (!confirm('Delete plan? (fails if customers use it)')) return;
+  const res = await api('/api/acc/plans/' + id, 'DELETE');
+  if (res.ok) { toast('Plan deleted', 'success'); ACC_STATE = await api('/api/acc/state'); nav('plans'); }
+  else toast('Cannot delete — customers still on this plan', 'error');
+}
+
+// ═════════════════════════════════════════════════════════════════
+// INVOICES
+// ═════════════════════════════════════════════════════════════════
+async function renderInvoices() {
+  const d = await api('/api/acc/invoices');
+  const custs = (ACC_STATE && ACC_STATE.cust) || [];
+  const cname = id => { const c = custs.find(x => x.id === id); return c ? c.name : `#${id}`; };
+
+  $('content').innerHTML = `
+    <h2>Create Invoice</h2>
+    <div class="form-row">
+      <div><label>Customer</label>
+        <select id="inv-cust">
+          ${custs.length ? custs.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('') : '<option value="">No customers</option>'}
+        </select>
+      </div>
+      <div><label>Amount ($)</label><input id="inv-amt" type="number" value="99" min="0" step="0.01"></div>
+      <div><label>Tax %</label><input id="inv-tax" type="number" value="18" min="0" step="0.1"></div>
+      <div><label>Status</label>
+        <select id="inv-status">
+          <option value="due">Due</option>
+          <option value="paid">Paid (auto-posts ledger)</option>
+        </select>
+      </div>
+      <button onclick="addInvoice()">Create Invoice</button>
+    </div>
+
+    <h2>Invoices (${d.invoices.length})</h2>
+    ${d.invoices.length === 0 ? '<p style="color:var(--muted)">No invoices yet.</p>' : `
+    <table>
+      <thead><tr><th>No.</th><th>Customer</th><th class="n">Amount</th><th class="n">Tax</th><th class="n">Total</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        ${d.invoices.map(v => {
+          const tax = v.amt * v.tax / 100;
+          const total = v.amt + tax;
+          const tagCls = v.st === 'paid' ? 'ok' : (v.st === 'refunded' ? 'bad' : '');
+          const actions = v.st === 'due'
+            ? `<button class="success small" onclick="markInvoicePaid('${esc(v.no)}')">Mark Paid</button>`
+            : (v.st === 'paid' ? `<button class="ghost small" onclick="refundInvoice('${esc(v.no)}')">Refund</button>` : '');
+          return `
+            <tr>
+              <td>${esc(v.no)}</td>
+              <td>${esc(cname(v.c))}</td>
+              <td class="n">${money(v.amt)}</td>
+              <td class="n">${money(tax)}</td>
+              <td class="n">${money(total)}</td>
+              <td><span class="tag ${tagCls}">${esc(v.st)}</span></td>
+              <td>${actions}</td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
+    `}
+  `;
+}
+
+async function addInvoice() {
+  const custId = parseInt($('inv-cust').value);
+  const amt = parseFloat($('inv-amt').value) || 0;
+  const tax = parseFloat($('inv-tax').value) || 0;
+  const status = $('inv-status').value;
+  if (!custId) return toast('Create a customer first', 'error');
+  if (!amt) return toast('Amount required', 'error');
+  await api('/api/acc/invoices', 'POST', {
+    customer_id: custId, amount: amt, tax, status
+  });
+  toast('Invoice created', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('invoices');
+}
+
+async function markInvoicePaid(no) {
+  await api('/api/acc/invoices/' + encodeURIComponent(no) + '/paid', 'POST');
+  toast('Invoice marked paid', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('invoices');
+}
+
+async function refundInvoice(no) {
+  if (!confirm('Refund this invoice?')) return;
+  await api('/api/acc/invoices/' + encodeURIComponent(no) + '/refund', 'POST');
+  toast('Invoice refunded', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('invoices');
+}
+
+// ==== ACCOUNTING (P&L + Ledger) ====
+async function renderAccounting() {
+  const [pnl, ledger] = await Promise.all([
+    api('/api/acc/pnl'),
+    api('/api/acc/ledger')
+  ]);
+
+  $('content').innerHTML = `
+    <h2>Profit & Loss (this month)</h2>
+    <div class="grid">
+      <div class="card"><div class="title">Revenue</div><div class="value">${money(pnl.revenue)}</div></div>
+      <div class="card"><div class="title">Gateway Fees</div><div class="value">${money(-pnl.fee)}</div></div>
+      <div class="card"><div class="title">AI Cost</div><div class="value">${money(-pnl.ai_cost)}</div></div>
+      <div class="card"><div class="title">Operating Expenses</div><div class="value">${money(-pnl.expenses)}</div></div>
+      <div class="card"><div class="title">Net Profit</div><div class="value ${pnl.net>=0?'ok':'bad'}">${money(pnl.net)}</div></div>
+      <div class="card"><div class="title">Tax Collected</div><div class="value">${money(pnl.tax_collected)}</div></div>
+    </div>
+
+    <h2>Add Ledger Entry</h2>
+    <div class="form-row">
+      <div><label>Type</label>
+        <select id="led-type">
+          <option value="Expense">Expense</option>
+          <option value="AI cost">AI Cost</option>
+          <option value="Revenue">Revenue</option>
+        </select>
+      </div>
+      <div><label>Description</label><input id="led-desc" placeholder="What is this for?"></div>
+      <div><label>Amount ($)</label><input id="led-amt" type="number" min="0" step="0.01" value="100"></div>
+      <button onclick="addLedgerEntry()">Add Entry</button>
+    </div>
+
+    <h2>Ledger (${ledger.entries.length})</h2>
+    ${ledger.entries.length === 0 ? '<p style="color:var(--muted)">No entries yet.</p>' : `
+    <table class="ledger">
+      <thead><tr><th>Date</th><th>Type</th><th>Description</th><th class="n">Amount</th></tr></thead>
+      <tbody>
+        ${ledger.entries.slice().reverse().map(l => `
+          <tr>
+            <td>${esc(l.d)}</td>
+            <td><span class="tag">${esc(l.t)}</span></td>
+            <td>${esc(l.desc)}</td>
+            <td class="n" style="color:var(--${l.amt>=0?'success':'danger'})">${money(l.amt)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+  `;
+}
+
+async function addLedgerEntry() {
+  const type = $('led-type').value;
+  const desc = $('led-desc').value.trim();
+  const amount = parseFloat($('led-amt').value) || 0;
+  if (!amount) return toast('Amount required', 'error');
+  await api('/api/acc/ledger', 'POST', { type, desc: desc || type, amount });
+  toast('Entry added', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('accounting');
+}
+
+// ==== REPORTS (printable financial statements) ====
+async function renderReports() {
+  const [dash, pnl, invoices, customers, ledger] = await Promise.all([
+    api('/api/acc/dashboard'),
+    api('/api/acc/pnl'),
+    api('/api/acc/invoices'),
+    api('/api/acc/customers'),
+    api('/api/acc/ledger')
+  ]);
+  const acc = ACC_STATE || {};
+  const co = acc.co || 'Sunnyware';
+  const thisMonth = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  $('content').innerHTML = `
+    <div class="form-row" style="margin-bottom:20px;">
+      <button onclick="window.print()" class="ghost">Print / Save as PDF</button>
+    </div>
+
+    <div class="card" style="max-width:820px;margin:0 auto;color:#111;background:#fff;padding:30px;">
+      <div style="display:flex;justify-content:space-between;border-bottom:2px solid #111;padding-bottom:12px;margin-bottom:16px;">
+        <div>
+          <h2 style="margin:0;font-size:18px;color:#111;border:none;padding:0;">${esc(co)}</h2>
+          <p style="margin:4px 0 0;font-size:12px;color:#555;">Financial Statements &middot; ${esc(thisMonth)}</p>
+        </div>
+        <div style="text-align:right;">
+          <p style="margin:0;font-size:11px;color:#555;">Report ID: RPT-${Date.now().toString(36).toUpperCase()}</p>
+          <p style="margin:4px 0 0;font-size:11px;color:#555;">Generated: ${new Date().toLocaleString()}</p>
+        </div>
+      </div>
+
+      <h3 style="color:#111;border:none;padding:0;margin:16px 0 8px;">Income Statement</h3>
+      <table style="background:#fff;">
+        <tr><td>Revenue</td><td class="n" style="color:#111;">${money(pnl.revenue)}</td></tr>
+        <tr><td>Gateway Fees</td><td class="n" style="color:#111;">${money(-pnl.fee)}</td></tr>
+        <tr><td>AI Cost</td><td class="n" style="color:#111;">${money(-pnl.ai_cost)}</td></tr>
+        <tr><td>Operating Expenses</td><td class="n" style="color:#111;">${money(-pnl.expenses)}</td></tr>
+        <tr style="font-weight:700;border-top:2px solid #111;"><td>Net Profit</td><td class="n" style="color:#111;">${money(pnl.net)}</td></tr>
+        <tr><td>Sales Tax Collected</td><td class="n" style="color:#111;">${money(pnl.tax_collected)}</td></tr>
+      </table>
+
+      <h3 style="color:#111;border:none;padding:0;margin:24px 0 8px;">Key Metrics</h3>
+      <table style="background:#fff;">
+        <tr><td>Monthly Recurring Revenue (MRR)</td><td class="n" style="color:#111;">${money(dash.mrr)}</td></tr>
+        <tr><td>Annual Recurring Revenue (ARR)</td><td class="n" style="color:#111;">${money(dash.arr)}</td></tr>
+        <tr><td>Gross Margin</td><td class="n" style="color:#111;">${dash.gross_margin.toFixed(1)}%</td></tr>
+        <tr><td>Active Customers</td><td class="n" style="color:#111;">${customers.customers.filter(c=>c.st==='active').length}</td></tr>
+        <tr><td>Paid Invoices</td><td class="n" style="color:#111;">${invoices.invoices.filter(v=>v.st==='paid').length}</td></tr>
+        <tr><td>Outstanding (Due)</td><td class="n" style="color:#111;">${money(invoices.invoices.filter(v=>v.st==='due').reduce((s,v)=>s+v.amt*(1+v.tax/100),0))}</td></tr>
+      </table>
+
+      <h3 style="color:#111;border:none;padding:0;margin:24px 0 8px;">Recent Ledger Activity</h3>
+      <table style="background:#fff;">
+        <thead><tr><th style="color:#111;background:#f5f5f5;">Date</th><th style="color:#111;background:#f5f5f5;">Description</th><th class="n" style="color:#111;background:#f5f5f5;">Amount</th></tr></thead>
+        <tbody>
+          ${ledger.entries.slice(-10).reverse().map(l => `
+            <tr>
+              <td>${esc(l.d)}</td>
+              <td>${esc(l.desc)}</td>
+              <td class="n" style="color:#111;">${money(l.amt)}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+
+      <p style="margin-top:32px;border-top:1px solid #ccc;padding-top:12px;font-size:11px;color:#555;">
+        Prepared by Sunnyware Admin &middot; ${new Date().toLocaleDateString()} &middot; Unaudited management figures.
+      </p>
+    </div>
+  `;
+}
+
+// ==== SETTINGS ====
+async function renderSettings() {
+  const acc = ACC_STATE || {};
+  $('content').innerHTML = `
+    <h2>Company Settings</h2>
+    <div class="form-row" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
+      <div><label>Company Name</label><input id="set-co" value="${esc(acc.co || 'Sunnyware')}"></div>
+      <div><label>Currency Symbol</label>
+        <select id="set-sym">
+          ${['$','€','£','₹','¥'].map(s => `<option ${s===acc.sym?'selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div><label>Sales Tax % (new invoices)</label><input id="set-tax" type="number" step="0.1" value="${acc.tax||18}"></div>
+      <div><label>Income Tax % (estimate)</label><input id="set-itx" type="number" step="0.1" value="${acc.itx||21}"></div>
+    </div>
+    <div style="margin-top:10px;">
+      <button onclick="saveSettings()">Save Settings</button>
+    </div>
+
+    <h2 style="margin-top:32px;">System Info</h2>
+    <div class="card">
+      <table style="background:transparent;">
+        <tr><td>Backend</td><td>FastAPI on Hugging Face Spaces</td></tr>
+        <tr><td>Auth</td><td>API Keys (X-API-Key header)</td></tr>
+        <tr><td>Billing</td><td>Paddle Sandbox</td></tr>
+        <tr><td>SSO</td><td>WorkOS</td></tr>
+        <tr><td>Financial data</td><td>accounting.json</td></tr>
+      </table>
+    </div>
+
+    <h2 style="margin-top:32px;">Danger Zone</h2>
+    <div class="card">
+      <p style="color:var(--muted);margin-top:0;">Reset all financial data (customers, invoices, ledger, plans). Organizations and Users are NOT affected.</p>
+      <button class="danger" onclick="resetAccounting()">Reset Financial Data</button>
+    </div>
+  `;
+}
+
+async function saveSettings() {
+  const patch = {
+    co: $('set-co').value.trim() || 'Sunnyware',
+    sym: $('set-sym').value,
+    tax: parseFloat($('set-tax').value) || 0,
+    itx: parseFloat($('set-itx').value) || 0,
+  };
+  await api('/api/acc/settings', 'PATCH', patch);
+  ACC_STATE = await api('/api/acc/state');
+  toast('Settings saved', 'success');
+  nav('settings');
+}
+
+async function resetAccounting() {
+  if (!confirm('Reset ALL financial data? This cannot be undone.')) return;
+  if (!confirm('Are you absolutely sure?')) return;
+  await api('/api/acc/reset', 'POST');
+  ACC_STATE = await api('/api/acc/state');
+  toast('Financial data reset', 'success');
+  nav('dashboard');
+}
 
 // ═══ START ═══
 init();
