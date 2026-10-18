@@ -1200,12 +1200,287 @@ async function deleteCompliance(id) {
   nav('compliance');
 }
 
-// ═════════════════════════════════════════════════════════════════
-// PLACEHOLDERS (Batch 2 and 3 will fill)
-// ═════════════════════════════════════════════════════════════════
-async function renderBudget() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 2</p>'; }
-async function renderCapital() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 2</p>'; }
-async function renderAlerts() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 2</p>'; }
+// ==== BUDGET ====
+async function renderBudget() {
+  const [state, ledger] = await Promise.all([
+    api('/api/acc/state'),
+    api('/api/acc/ledger')
+  ]);
+  const cats = state.cats || [];
+  const bud = state.bud || {};
+  const costs = state.costs || [];
+  const thisMonth = new Date().toISOString().slice(0,7);
+
+  const actuals = {};
+  ledger.entries.filter(l => l.d.startsWith(thisMonth) && l.amt < 0).forEach(l => {
+    const cat = l.t === 'AI cost' ? 'AI API' : l.t === 'Expense' ? 'Other' : l.t;
+    actuals[cat] = (actuals[cat] || 0) + Math.abs(l.amt);
+  });
+  costs.forEach(c => {
+    if (c.s === thisMonth) actuals[c.cat] = (actuals[c.cat] || 0) + c.amt;
+  });
+
+  const totalBud = cats.reduce((s, k) => s + (bud[k] || 0), 0);
+  const totalAct = cats.reduce((s, k) => s + (actuals[k] || 0), 0);
+
+  $('content').innerHTML = `
+    <h2>Budget Overview (${thisMonth})</h2>
+    <div class="grid">
+      <div class="card"><div class="title">Total Budget</div><div class="value">${money(totalBud)}</div></div>
+      <div class="card"><div class="title">Actual Spend</div><div class="value">${money(totalAct)}</div></div>
+      <div class="card"><div class="title">Remaining</div><div class="value ${totalBud-totalAct>=0?'ok':'bad'}">${money(totalBud-totalAct)}</div></div>
+      <div class="card"><div class="title">Utilization</div><div class="value">${totalBud ? ((totalAct/totalBud)*100).toFixed(0) : 0}%</div></div>
+    </div>
+
+    <h2>Budget vs Actual by Category</h2>
+    <table>
+      <thead><tr><th>Category</th><th class="n">Monthly Budget</th><th class="n">Actual</th><th class="n">Left</th><th class="n">% Used</th></tr></thead>
+      <tbody>
+        ${cats.map(k => {
+          const b = bud[k] || 0;
+          const a = actuals[k] || 0;
+          const pct = b ? Math.min(100, (a/b)*100) : 0;
+          return `
+            <tr>
+              <td>${esc(k)}</td>
+              <td class="n"><input type="number" value="${b}" onchange="updateBudget('${esc(k)}', parseFloat(this.value)||0)" style="width:110px;padding:4px;font-size:12px;text-align:right"></td>
+              <td class="n">${money(a)}</td>
+              <td class="n" style="color:var(--${b-a>=0?'success':'danger'})">${money(b-a)}</td>
+              <td class="n">${pct.toFixed(0)}%</td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
+
+    <h2>Recurring Costs (${costs.length})</h2>
+    ${costs.length === 0 ? '<p style="color:var(--muted)">No costs yet. Add payroll, hosting, subscriptions, etc.</p>' : `
+    <table>
+      <thead><tr><th>Name</th><th>Category</th><th class="n">Amount</th><th>Repeats</th><th>Starts</th><th>Life (mo)</th><th></th></tr></thead>
+      <tbody>
+        ${costs.map(c => `
+          <tr>
+            <td>${esc(c.name)}</td>
+            <td>${esc(c.cat)}</td>
+            <td class="n">${money(c.amt)}</td>
+            <td>${esc(c.f)}</td>
+            <td>${esc(c.s)}</td>
+            <td class="n">${c.life || 0}</td>
+            <td><button class="ghost small" onclick="deleteCost(${c.id})">Remove</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+
+    <h2>Add Recurring Cost</h2>
+    <div class="form-row">
+      <div><label>Name</label><input id="cost-name" placeholder="Server hosting"></div>
+      <div><label>Category</label>
+        <select id="cost-cat">${cats.map(k => `<option>${esc(k)}</option>`).join('')}</select>
+      </div>
+      <div><label>Amount</label><input id="cost-amt" type="number" min="0" step="0.01" value="100"></div>
+      <div><label>Repeats</label>
+        <select id="cost-freq">
+          <option value="month">Monthly</option>
+          <option value="quarter">Quarterly</option>
+          <option value="year">Yearly</option>
+          <option value="once">One time</option>
+        </select>
+      </div>
+      <div><label>Starts</label><input id="cost-start" type="month" value="${thisMonth}"></div>
+      <div><label>Life (mo, 0=expense)</label><input id="cost-life" type="number" min="0" value="0"></div>
+      <button onclick="addCost()">Add Cost</button>
+    </div>
+  `;
+}
+
+async function updateBudget(cat, value) {
+  const state = ACC_STATE || await api('/api/acc/state');
+  const bud = state.bud || {};
+  bud[cat] = value;
+  await api('/api/acc/settings', 'PATCH', { bud });
+  toast('Budget updated', 'success');
+}
+
+async function addCost() {
+  const name = $('cost-name').value.trim();
+  const cat = $('cost-cat').value;
+  const amt = parseFloat($('cost-amt').value) || 0;
+  const freq = $('cost-freq').value;
+  const start = $('cost-start').value;
+  const life = parseInt($('cost-life').value) || 0;
+  if (!name) return toast('Name required', 'error');
+  if (!amt) return toast('Amount required', 'error');
+  await api('/api/acc/costs', 'POST', { name, cat, amount: amt, freq, start, life });
+  toast('Cost added', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('budget');
+}
+
+async function deleteCost(id) {
+  if (!confirm('Remove this cost?')) return;
+  await api('/api/acc/costs/' + id, 'DELETE');
+  toast('Cost removed', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('budget');
+}
+
+// ==== CAPITAL ====
+async function renderCapital() {
+  const d = await api('/api/acc/capital');
+  const types = {
+    capital: 'Owner capital',
+    invest: 'Investor funding',
+    loan: 'Loan received',
+    repay: 'Loan repayment',
+    draw: 'Owner withdrawal',
+    taxpay: 'Tax payment',
+  };
+
+  const total = (type) => d.entries.filter(x => x.t === type).reduce((s, x) => s + x.amt, 0);
+  const capitalIn = total('capital');
+  const investIn = total('invest');
+  const loanIn = total('loan');
+  const repayOut = total('repay');
+  const drawOut = total('draw');
+  const taxPay = total('taxpay');
+  const loanBalance = loanIn - repayOut;
+  const equity = capitalIn + investIn - drawOut;
+
+  $('content').innerHTML = `
+    <h2>Capital Overview</h2>
+    <div class="grid">
+      <div class="card"><div class="title">Paid-in Capital</div><div class="value">${money(capitalIn + investIn)}</div></div>
+      <div class="card"><div class="title">Owner Withdrawals</div><div class="value">${money(-drawOut)}</div></div>
+      <div class="card"><div class="title">Loan Balance</div><div class="value">${money(loanBalance)}</div></div>
+      <div class="card"><div class="title">Equity</div><div class="value">${money(equity)}</div></div>
+      <div class="card"><div class="title">Tax Paid</div><div class="value">${money(taxPay)}</div></div>
+    </div>
+
+    <h2>Funding and Owner Transactions (${d.entries.length})</h2>
+    ${d.entries.length === 0 ? '<p style="color:var(--muted)">No capital transactions yet.</p>' : `
+    <table>
+      <thead><tr><th>Date</th><th>Type</th><th>Name</th><th class="n">Amount</th><th class="n">Interest %</th><th></th></tr></thead>
+      <tbody>
+        ${d.entries.slice().sort((a,b) => a.d < b.d ? -1 : 1).map(x => `
+          <tr>
+            <td>${esc(x.d)}</td>
+            <td>${esc(types[x.t] || x.t)}</td>
+            <td>${esc(x.name || '')}</td>
+            <td class="n">${money(x.amt)}</td>
+            <td class="n">${x.t === 'loan' ? x.r + '%' : '-'}</td>
+            <td><button class="ghost small" onclick="deleteCapital(${x.id})">Remove</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+
+    <h2>Add Capital Transaction</h2>
+    <div class="form-row">
+      <div><label>Type</label>
+        <select id="cap-type">
+          ${Object.entries(types).map(([k,v]) => `<option value="${k}">${v}</option>`).join('')}
+        </select>
+      </div>
+      <div><label>Name / Note</label><input id="cap-name" placeholder="Seed round, Bank loan, etc"></div>
+      <div><label>Amount</label><input id="cap-amt" type="number" min="0" step="0.01" value="10000"></div>
+      <div><label>Date</label><input id="cap-date" type="date" value="${new Date().toISOString().slice(0,10)}"></div>
+      <div><label>Interest % (loans)</label><input id="cap-rate" type="number" min="0" step="0.1" value="0"></div>
+      <button onclick="addCapital()">Add Transaction</button>
+    </div>
+
+    <div class="card" style="margin-top:24px;">
+      <h3 style="margin-top:0;color:var(--accent);">Quick Guide</h3>
+      <ul style="margin:0;padding-left:20px;font-size:13px;color:var(--muted);">
+        <li><strong>Owner capital</strong>: money you put into the business (increases equity)</li>
+        <li><strong>Investor funding</strong>: money from outside investors (dilutes ownership)</li>
+        <li><strong>Loan received</strong>: borrowed money (must be repaid, not equity)</li>
+        <li><strong>Loan repayment</strong>: paying back principal (reduces loan balance)</li>
+        <li><strong>Owner withdrawal</strong>: taking profit out (reduces equity, not an expense)</li>
+        <li><strong>Tax payment</strong>: paying collected sales tax or income tax</li>
+      </ul>
+    </div>
+  `;
+}
+
+async function addCapital() {
+  const type = $('cap-type').value;
+  const name = $('cap-name').value.trim();
+  const amount = parseFloat($('cap-amt').value) || 0;
+  const date = $('cap-date').value;
+  const rate = parseFloat($('cap-rate').value) || 0;
+  if (!amount) return toast('Amount required', 'error');
+  await api('/api/acc/capital', 'POST', { type, name, amount, date, rate });
+  toast('Capital transaction added', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('capital');
+}
+
+async function deleteCapital(id) {
+  if (!confirm('Delete this transaction?')) return;
+  await api('/api/acc/capital/' + id, 'DELETE');
+  toast('Deleted', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('capital');
+}
+
+// ==== ALERTS ====
+async function renderAlerts() {
+  const [dash, pnl, invoices, dunning] = await Promise.all([
+    api('/api/acc/dashboard'),
+    api('/api/acc/pnl'),
+    api('/api/acc/invoices'),
+    api('/api/acc/dunning')
+  ]);
+  const thr = (ACC_STATE && ACC_STATE.thr) || { gm: 70, ai: 30 };
+  const aiPct = pnl.revenue ? (pnl.ai_cost / pnl.revenue * 100) : 0;
+  const overdueCount = invoices.invoices.filter(v => v.st === 'due').length;
+  const failedCount = dunning.failed.length;
+
+  const alerts = [
+    { name: 'Gross margin below ' + thr.gm + '%', firing: dash.gross_margin < thr.gm, value: dash.gross_margin.toFixed(1) + '%' },
+    { name: 'AI cost above ' + thr.ai + '% of revenue', firing: aiPct > thr.ai, value: aiPct.toFixed(1) + '%' },
+    { name: 'Unpaid invoices', firing: overdueCount > 0, value: overdueCount },
+    { name: 'Failed payments', firing: failedCount > 0, value: failedCount },
+    { name: 'Net profit negative', firing: pnl.net < 0, value: money(pnl.net) },
+    { name: 'Zero MRR', firing: dash.mrr === 0, value: money(dash.mrr) },
+  ];
+  const firingCount = alerts.filter(a => a.firing).length;
+
+  $('content').innerHTML = `
+    <h2>Alerts (${firingCount} of ${alerts.length} firing)</h2>
+    <div class="grid">
+      ${alerts.map(a => `
+        <div class="card">
+          <div class="title">${esc(a.name)}</div>
+          <div class="value ${a.firing ? 'bad' : 'ok'}">${esc(String(a.value))}</div>
+          <div style="margin-top:8px;font-size:11px;color:var(--muted);">${a.firing ? 'FIRING' : 'OK'}</div>
+        </div>
+      `).join('')}
+    </div>
+
+    <h2>Thresholds</h2>
+    <div class="form-row">
+      <div><label>Minimum gross margin %</label><input id="thr-gm" type="number" value="${thr.gm}" min="0"></div>
+      <div><label>Max AI cost % of revenue</label><input id="thr-ai" type="number" value="${thr.ai}" min="0"></div>
+      <button onclick="saveThresholds()">Save</button>
+    </div>
+    <p style="color:var(--muted);font-size:12px;">Alerts check when you open this tab. Sending to email/Slack needs a backend automation.</p>
+  `;
+}
+
+async function saveThresholds() {
+  const thr = {
+    gm: parseFloat($('thr-gm').value) || 0,
+    ai: parseFloat($('thr-ai').value) || 0,
+  };
+  await api('/api/acc/settings', 'PATCH', { thr });
+  ACC_STATE = await api('/api/acc/state');
+  toast('Thresholds saved', 'success');
+  nav('alerts');
+}
 async function renderAccess() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 3</p>'; }
 async function renderHealth() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 3</p>'; }
 async function renderTeam() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 3</p>'; }
