@@ -478,6 +478,29 @@ async function renderApprovals() {
       </tbody>
     </table>
     `}
+    
+    <h2>Subscription Invoices (Paddle) (${saasInvoices.length})</h2>
+    ${saasInvoices.length === 0 ? '<p style="color:var(--muted)">No subscription invoices yet.</p>' : `
+    <table>
+      <thead><tr><th>Date</th><th>Org</th><th class="n">Amount</th><th>Description</th><th>Status</th></tr></thead>
+      <tbody>
+        ${saasInvoices.map(v => {
+          const amt = (v.amount_cents || 0) / 100;
+          const dt = new Date((v.created_at || 0) * 1000).toLocaleDateString();
+          const tagCls = v.status === 'paid' ? 'ok' : (v.status === 'refunded' ? 'bad' : '');
+          return `
+            <tr>
+              <td>${dt}</td>
+              <td><code style="font-size:11px">${esc(v.org_id || '')}</code></td>
+              <td class="n">${money(amt)}</td>
+              <td>${esc(v.description || '')}</td>
+              <td><span class="tag ${tagCls}">${esc(v.status || '')}</span></td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
+    `}
   `;
 }
 
@@ -816,6 +839,9 @@ async function deletePlan(id) {
 // ═════════════════════════════════════════════════════════════════
 async function renderInvoices() {
   const d = await api('/api/acc/invoices');
+  // Part 202: also fetch SaaS (Paddle) subscription invoices
+  const saasInv = await api('/api/saas/invoices').catch(() => ({invoices: []}));
+  const saasInvoices = saasInv.invoices || [];
   const custs = (ACC_STATE && ACC_STATE.cust) || [];
   const cname = id => { const c = custs.find(x => x.id === id); return c ? c.name : `#${id}`; };
 
