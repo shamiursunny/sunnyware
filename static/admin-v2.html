@@ -133,6 +133,7 @@ button.ghost { background: rgba(255,255,255,0.05); color: var(--text); border: 1
     <div class="nav-item" data-tab="health">Account Health</div>
     <div class="nav-item" data-tab="team">Team</div>
     <div class="nav-item" data-tab="calculators">Calculators</div>
+    <div class="nav-item" data-tab="cfo">CFO Agent</div>
   </div>
 
   <div class="nav-group">
@@ -264,6 +265,7 @@ function nav(tab) {
     health: 'Account Health',
     team: 'Team',
     calculators: 'Calculators',
+    cfo: 'CFO Agent',
     settings: 'Settings'
   };
   $('page-title').textContent = titles[tab] || tab;
@@ -287,6 +289,7 @@ function nav(tab) {
     health: renderHealth,
     team: renderTeam,
     calculators: renderCalculators,
+    cfo: renderCFO,
     settings: renderSettings
   };
   const fn = renderers[tab];
@@ -1746,6 +1749,208 @@ function calcRunway() {
     'Cash:     $' + cash.toFixed(2) + '\n' +
     'Burn:     $' + burn.toFixed(2) + '/mo\n' +
     'Runway:   ' + (isFinite(months) ? months.toFixed(1) + ' months' : 'Self-funding');
+}
+
+// ==== CFO AGENT (AI ACCOUNTANT CHAT) ====
+let CFO_HISTORY = [];  // persists across navigation
+
+async function renderCFO() {
+  // Load pending drafts
+  let draftsData = { drafts: [], count: 0 };
+  let agentStatus = { enabled: false };
+  try {
+    const [d, s] = await Promise.all([
+      api('/api/acc/drafts'),
+      api('/api/acc/agent/status')
+    ]);
+    draftsData = d;
+    agentStatus = s;
+  } catch(e) {}
+
+  const statusBadge = agentStatus.enabled
+    ? '<span class="tag ok">Agent Ready</span> <small style="color:var(--muted)">' + esc(agentStatus.model || '') + '</small>'
+    : '<span class="tag bad">Agent Offline</span> <small style="color:var(--muted)">Add LLM_API_KEY to HF Secrets</small>';
+
+  $('content').innerHTML = `
+    <h2>CFO Agent <span style="float:right;font-size:12px;font-weight:400;">${statusBadge}</span></h2>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:16px;">
+      Ask the AI accountant to add costs, withdraw funds, categorize expenses, or generate reports.
+      Every entry is drafted first and requires your approval before posting.
+    </p>
+
+    <div class="card" style="padding:0;overflow:hidden;max-width:900px;margin:0 auto;">
+      <div id="cfo-chat-log" style="max-height:420px;overflow-y:auto;padding:16px;">
+        ${CFO_HISTORY.length === 0 ? `
+          <div style="text-align:center;padding:40px 20px;color:var(--muted);font-size:13px;">
+            <p style="margin:0 0 12px;font-size:15px;color:var(--text);">Try a sample request:</p>
+            <p style="margin:6px 0;"><button class="ghost small" onclick="cfoQuick('Add a cost of $500 for Facebook ads today')">Add a cost of $500 for Facebook ads today</button></p>
+            <p style="margin:6px 0;"><button class="ghost small" onclick="cfoQuick('Withdraw $1000 for owner draw')">Withdraw $1000 for owner draw</button></p>
+            <p style="margin:6px 0;"><button class="ghost small" onclick="cfoQuick('Paid $50 for team lunch')">Paid $50 for team lunch</button></p>
+            <p style="margin:6px 0;"><button class="ghost small" onclick="cfoQuick('Add a $120 software cost for GitHub today')">Add a $120 software cost for GitHub today</button></p>
+          </div>
+        ` : CFO_HISTORY.map(m => cfoRenderMessage(m)).join('')}
+      </div>
+      <div style="border-top:1px solid var(--border);padding:12px;display:flex;gap:8px;">
+        <input id="cfo-input" placeholder="e.g. Add a $500 cost for Facebook ads today..." style="flex:1;margin:0;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();cfoSend();}">
+        <button onclick="cfoSend()" id="cfo-send-btn">Send</button>
+      </div>
+    </div>
+
+    <h2 style="margin-top:32px;">Pending Drafts (${draftsData.count})</h2>
+    ${draftsData.count === 0 ? '<p style="color:var(--muted);font-size:13px;">No pending drafts. All entries are approved.</p>' : `
+    <table>
+      <thead><tr><th>Date</th><th>Description</th><th>Debit</th><th>Credit</th><th class="n">Amount</th><th>Confidence</th><th></th></tr></thead>
+      <tbody>
+        ${draftsData.drafts.map(dr => `
+          <tr>
+            <td>${esc(dr.d)}</td>
+            <td>${esc(dr.desc)}</td>
+            <td><code style="font-size:11px">${esc(dr.debit_account || '')}</code></td>
+            <td><code style="font-size:11px">${esc(dr.credit_account || '')}</code></td>
+            <td class="n">${money(Math.abs(dr.amt))}</td>
+            <td><span class="tag ${dr.confidence === 'high' ? 'ok' : dr.confidence === 'low' ? 'bad' : ''}">${esc(dr.confidence || 'med')}</span></td>
+            <td>
+              <button class="success small" onclick="cfoApprove('${esc(dr.id)}')">Approve</button>
+              <button class="danger small" onclick="cfoReject('${esc(dr.id)}')">Reject</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+  `;
+
+  // Scroll to bottom
+  const log = $('cfo-chat-log');
+  if (log) log.scrollTop = log.scrollHeight;
+  // Focus input
+  const inp = $('cfo-input');
+  if (inp) inp.focus();
+}
+
+function cfoRenderMessage(m) {
+  if (m.role === 'user') {
+    return `<div style="display:flex;justify-content:flex-end;margin-bottom:12px;">
+      <div style="background:var(--accent);color:#fff;padding:10px 14px;border-radius:12px 12px 2px 12px;max-width:75%;font-size:13px;white-space:pre-wrap;">${esc(m.content)}</div>
+    </div>`;
+  }
+  if (m.role === 'assistant') {
+    const draftsHtml = (m.drafts || []).map(dr => `
+      <div style="margin-top:12px;padding:12px;background:var(--bg);border:1px solid var(--border);border-left:3px solid var(--accent);border-radius:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <strong style="color:var(--accent);font-size:12px;">DRAFT #${esc((dr.id || '').replace('draft_',''))}</strong>
+          <span class="tag ${dr.confidence === 'high' ? 'ok' : dr.confidence === 'low' ? 'bad' : ''}">${esc(dr.confidence || 'med')}</span>
+        </div>
+        <div style="font-size:13px;margin-bottom:8px;">${esc(dr.desc)}</div>
+        <table style="background:transparent;margin:0 0 8px 0;font-size:12px;">
+          <tr><td style="padding:2px 8px 2px 0;color:var(--muted);border:none;">Date</td><td style="padding:2px 0;border:none;">${esc(dr.d)}</td></tr>
+          <tr><td style="padding:2px 8px 2px 0;color:var(--muted);border:none;">Debit</td><td style="padding:2px 0;border:none;"><code>${esc(dr.debit_account || '')}</code></td></tr>
+          <tr><td style="padding:2px 8px 2px 0;color:var(--muted);border:none;">Credit</td><td style="padding:2px 0;border:none;"><code>${esc(dr.credit_account || '')}</code></td></tr>
+          <tr><td style="padding:2px 8px 2px 0;color:var(--muted);border:none;">Amount</td><td style="padding:2px 0;border:none;"><strong>${money(Math.abs(dr.amt))}</strong></td></tr>
+          ${dr.reasoning ? `<tr><td style="padding:2px 8px 2px 0;color:var(--muted);border:none;">Reasoning</td><td style="padding:2px 0;border:none;font-size:11px;color:var(--muted);">${esc(dr.reasoning)}</td></tr>` : ''}
+        </table>
+        <button class="success small" onclick="cfoApprove('${esc(dr.id)}')">Approve</button>
+        <button class="danger small" onclick="cfoReject('${esc(dr.id)}')">Reject</button>
+      </div>
+    `).join('');
+
+    return `<div style="display:flex;justify-content:flex-start;margin-bottom:12px;">
+      <div style="background:var(--panel);color:var(--text);padding:12px 16px;border-radius:12px 12px 12px 2px;max-width:85%;font-size:13px;border:1px solid var(--border);">
+        <div style="white-space:pre-wrap;">${esc(m.content || '')}</div>
+        ${draftsHtml}
+      </div>
+    </div>`;
+  }
+  return '';
+}
+
+function cfoQuick(text) {
+  const inp = $('cfo-input');
+  if (inp) inp.value = text;
+  cfoSend();
+}
+
+async function cfoSend() {
+  const inp = $('cfo-input');
+  const btn = $('cfo-send-btn');
+  if (!inp || !inp.value.trim()) return;
+  const message = inp.value.trim();
+  inp.value = '';
+  btn.disabled = true;
+  btn.textContent = 'Thinking...';
+
+  CFO_HISTORY.push({ role: 'user', content: message });
+
+  const log = $('cfo-chat-log');
+  if (log) {
+    if (CFO_HISTORY.length === 1) log.innerHTML = '';
+    log.innerHTML += cfoRenderMessage({ role: 'user', content: message });
+    log.innerHTML += `<div id="cfo-loading" style="display:flex;justify-content:flex-start;margin-bottom:12px;"><div style="background:var(--panel);color:var(--muted);padding:10px 14px;border-radius:12px;font-size:12px;border:1px solid var(--border);">CFO is thinking...</div></div>`;
+    log.scrollTop = log.scrollHeight;
+  }
+
+  try {
+    // Send only last 10 history entries to keep context small
+    const hist = CFO_HISTORY.slice(-10, -1).map(m => ({ role: m.role, content: m.content }));
+    const res = await api('/api/acc/chat', 'POST', { message, history: hist });
+
+    const loading = $('cfo-loading');
+    if (loading) loading.remove();
+
+    CFO_HISTORY.push({ role: 'assistant', content: res.reply || res.error || '(no response)', drafts: res.drafts || [] });
+
+    if (log) {
+      log.innerHTML += cfoRenderMessage({ role: 'assistant', content: res.reply || res.error || '(no response)', drafts: res.drafts || [] });
+      log.scrollTop = log.scrollHeight;
+    }
+  } catch(e) {
+    const loading = $('cfo-loading');
+    if (loading) loading.remove();
+    const errMsg = 'Error: ' + e.message;
+    CFO_HISTORY.push({ role: 'assistant', content: errMsg });
+    if (log) {
+      log.innerHTML += cfoRenderMessage({ role: 'assistant', content: errMsg });
+      log.scrollTop = log.scrollHeight;
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Send';
+    if (inp) inp.focus();
+  }
+}
+
+async function cfoApprove(draftId) {
+  try {
+    await api('/api/acc/drafts/' + encodeURIComponent(draftId) + '/approve', 'POST');
+    toast('Entry approved and posted to ledger', 'success');
+    // Update the draft card in chat to show it's approved
+    CFO_HISTORY = CFO_HISTORY.map(m => {
+      if (m.drafts) {
+        m.drafts = m.drafts.map(d => d.id === draftId ? { ...d, status: 'posted' } : d);
+      }
+      return m;
+    });
+    nav('cfo');
+  } catch(e) {
+    toast('Approval failed: ' + e.message, 'error');
+  }
+}
+
+async function cfoReject(draftId) {
+  if (!confirm('Reject this draft?')) return;
+  try {
+    await api('/api/acc/drafts/' + encodeURIComponent(draftId) + '/reject', 'POST');
+    toast('Draft rejected', 'success');
+    CFO_HISTORY = CFO_HISTORY.map(m => {
+      if (m.drafts) {
+        m.drafts = m.drafts.filter(d => d.id !== draftId);
+      }
+      return m;
+    });
+    nav('cfo');
+  } catch(e) {
+    toast('Reject failed: ' + e.message, 'error');
+  }
 }
 
 // ═══ START ═══

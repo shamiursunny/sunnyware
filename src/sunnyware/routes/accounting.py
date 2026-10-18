@@ -389,3 +389,67 @@ async def acc_settings(req: Request):
     body = await req.json()
     from .. import accounting_store as a
     return {"ok": True, "settings": a.update_settings(body)}
+
+
+# ============================================================
+# Part 191: CFO Chat + Draft Approval
+# ============================================================
+
+@router.get("/api/acc/coa")
+async def acc_coa(req: Request):
+    d = _admin(req)
+    if d: return d
+    from .. import accounting_store as a
+    return {"chart_of_accounts": a.get_chart_of_accounts()}
+
+
+@router.get("/api/acc/drafts")
+async def acc_drafts(req: Request):
+    d = _admin(req)
+    if d: return d
+    from .. import accounting_store as a
+    items = a.list_drafts()
+    return {"drafts": items, "count": len(items)}
+
+
+@router.post("/api/acc/drafts/{draft_id}/approve")
+async def acc_approve_draft(draft_id: str, req: Request):
+    d = _admin(req)
+    if d: return d
+    from .. import accounting_store as a
+    entry = a.post_draft_entry(draft_id, approved_by="admin")
+    if not entry:
+        return JSONResponse({"error": "draft not found"}, status_code=404)
+    return {"ok": True, "entry": entry}
+
+
+@router.post("/api/acc/drafts/{draft_id}/reject")
+async def acc_reject_draft(draft_id: str, req: Request):
+    d = _admin(req)
+    if d: return d
+    from .. import accounting_store as a
+    return {"ok": a.reject_draft_entry(draft_id), "draft_id": draft_id}
+
+
+@router.get("/api/acc/agent/status")
+async def acc_agent_status(req: Request):
+    d = _admin(req)
+    if d: return d
+    from .. import cfo_agent
+    return cfo_agent.status()
+
+
+@router.post("/api/acc/chat")
+async def acc_chat(req: Request):
+    d = _admin(req)
+    if d: return d
+    body = await req.json()
+    message = (body.get("message") or "").strip()
+    if not message:
+        return JSONResponse({"error": "message required"}, status_code=400)
+    history = body.get("history") or []
+    from .. import cfo_agent
+    try:
+        return await cfo_agent.handle_chat(message, history)
+    except Exception as e:
+        return JSONResponse({"error": f"{type(e).__name__}: {e}"}, status_code=500)

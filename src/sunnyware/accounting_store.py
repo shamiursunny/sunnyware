@@ -478,7 +478,8 @@ def _this_month() -> str:
 def _sum_ledger(etype: str, month: str) -> float:
     s = _load()
     return sum(l["amt"] for l in s["led"]
-               if l["t"] == etype and l["d"].startswith(month))
+               if l["t"] == etype and l["d"].startswith(month)
+               and l.get("status", "posted") == "posted")
 
 
 def dashboard() -> dict:
@@ -546,3 +547,123 @@ def sync_from_saas() -> bool:
         return True
     except Exception:
         return False
+
+
+# ============================================================
+# Part 191: CFO Chart of Accounts + AI Draft Workflow
+# ============================================================
+
+CHART_OF_ACCOUNTS = {
+    "Assets": [
+        "Assets:Cash", "Assets:Bank", "Assets:Accounts Receivable",
+        "Assets:Equipment",
+    ],
+    "Liabilities": [
+        "Liabilities:Accounts Payable", "Liabilities:Sales Tax Payable",
+        "Liabilities:Loans",
+    ],
+    "Equity": [
+        "Equity:Owner Capital", "Equity:Retained Earnings",
+        "Equity:Owner Draws",
+    ],
+    "Revenue": ["Revenue:Subscriptions", "Revenue:One-Time"],
+    "Expenses": [
+        "Expenses:Payroll", "Expenses:Hosting", "Expenses:AI API",
+        "Expenses:Software", "Expenses:Marketing", "Expenses:Legal",
+        "Expenses:Accounting", "Expenses:Equipment", "Expenses:Meals",
+        "Expenses:Travel", "Expenses:Other",
+    ],
+}
+
+
+def get_chart_of_accounts() -> dict:
+    return CHART_OF_ACCOUNTS
+
+
+def _infer_type_from_debit(debit_account: str) -> str:
+    if not debit_account:
+        return "Other"
+    if debit_account.startswith("Revenue:"):
+        return "Revenue"
+    if debit_account == "Expenses:AI API":
+        return "AI cost"
+    if debit_account.startswith("Expenses:"):
+        return "Expense"
+    return "Other"
+
+
+def _signed_amount(amount: float, t: str) -> float:
+    return amount if t == "Revenue" else -amount
+
+
+def get_ledger_history(query: str, limit: int = 10) -> list:
+    s = _load()
+    q = (query or "").lower()
+    if not q:
+        return []
+    out = []
+    for e in s["led"]:
+        if e.get("status", "posted") != "posted":
+            continue
+        haystack = ((e.get("desc") or "") + " " +
+                    (e.get("debit_account") or "") + " " +
+                    (e.get("credit_account") or "")).lower()
+        if q in haystack:
+            out.append(e)
+    out.sort(key=lambda e: e.get("created_at", 0), reverse=True)
+    return out[:limit]
+
+
+def create_draft_entry(date: str, description: str,
+                       debit_account: str, credit_account: str,
+                       amount: float, tax_amount: float = 0,
+                       tax_account: str = "", confidence: str = "medium",
+                       reasoning: str = "") -> dict:
+    s = _load()
+    t = _infer_type_from_debit(debit_account)
+    entry = {
+        "id": "draft_" + secrets.token_hex(6),
+        "d": date or time.strftime("%Y-%m-%d"),
+        "t": t,
+        "desc": description,
+        "amt": _signed_amount(amount, t),
+        "debit_account": debit_account,
+        "credit_account": credit_account,
+        "tax_amount": tax_amount,
+        "tax_account": tax_account,
+        "confidence": confidence,
+        "reasoning": reasoning,
+        "status": "draft",
+        "created_at": time.time(),
+    }
+    s["led"].append(entry)
+    _save(s)
+    return entry
+
+
+def post_draft_entry(draft_id: str, approved_by: str = "admin") -> Optional[dict]:
+    s = _load()
+    for e in s["led"]:
+        if e.get("id") == draft_id and e.get("status") == "draft":
+            e["status"] = "posted"
+            e["approved_by"] = approved_by
+            e["approved_at"] = time.time()
+            _save(s)
+            return e
+    return None
+
+
+def reject_draft_entry(draft_id: str) -> bool:
+    s = _load()
+    before = len(s["led"])
+    s["led"] = [e for e in s["led"]
+                if not (e.get("id") == draft_id and e.get("status") == "draft")]
+    if len(s["led"]) < before:
+        _save(s)
+        return True
+    return False
+
+
+def list_drafts() -> list:
+    s = _load()
+    return [e for e in s["led"] if e.get("status") == "draft"]
