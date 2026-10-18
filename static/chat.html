@@ -482,7 +482,7 @@ window.fetch = function(url, options) {
 /* ================================================================
    SUNNYWARE AGENT — Chat + Library  (fully client-side design prototype)
 ================================================================ */
-const LS_CHATS='sunny_chats_v1', LS_FILES='sunny_files_v1', LS_THEME='sunny_theme';
+const LS_CHATS='sunny_chats_v2', LS_FILES='sunny_files_v1', LS_THEME='sunny_theme';
 let chats=[], files=[], activeChatId=null, isGenerating=false, editingId=null;
 let view='chat';                    // 'chat' | 'library'
 let libKind='upload';               // library tab
@@ -547,17 +547,68 @@ document.addEventListener('click', function(e) {
 /* ==================== STORAGE ==================== */
 function saveAll(){ try{ localStorage.setItem(LS_CHATS,JSON.stringify(chats)); localStorage.setItem(LS_FILES,JSON.stringify(files)); }catch(e){ toast('Storage full — large files kept for this session only'); } }
 function loadAll(){
-  // Migrate from old nova_* keys if present
+  // Migration v1 -> v2: dedupe chats, drop stale server entries, keep local user chats
   if(!localStorage.getItem(LS_CHATS)){
+    const oldV1 = localStorage.getItem('sunny_chats_v1');
+    if(oldV1){
+      try {
+        const old = JSON.parse(oldV1) || [];
+        const seen = new Set();
+        const clean = [];
+        for(const c of old){
+          // Unique key: prefer sessionId, then sessionKey, then id
+          const k = c.sessionId || c.sessionKey || c.id;
+          if(!k || seen.has(k)){ continue; }  // skip duplicates
+          seen.add(k);
+          // Skip stale srv-<uuid> entries that also have a sessionId
+          if(c.id && c.id.startsWith('srv-') && c.sessionId && c.id !== 'srv-' + c.sessionId){ continue; }
+          clean.push(c);
+        }
+        localStorage.setItem(LS_CHATS, JSON.stringify(clean));
+        localStorage.removeItem('sunny_chats_v1');
+        console.log('[migration] v1 -> v2: kept ' + clean.length + ' of ' + old.length + ' chats');
+      } catch(e){ console.warn('[migration] failed:', e); }
+    }
+    // Also try old nova_* as fallback
     const oldNova = localStorage.getItem('nova_chats_v2');
-    if(oldNova){ localStorage.setItem(LS_CHATS, oldNova); localStorage.removeItem('nova_chats_v2'); console.log('[migration] chats moved from nova_chats_v2'); }
+    if(oldNova && !localStorage.getItem(LS_CHATS)){
+      try {
+        const old = JSON.parse(oldNova) || [];
+        const seen = new Set();
+        const clean = [];
+        for(const c of old){
+          const k = c.sessionId || c.sessionKey || c.id;
+          if(!k || seen.has(k)){ continue; }
+          seen.add(k);
+          clean.push(c);
+        }
+        localStorage.setItem(LS_CHATS, JSON.stringify(clean));
+        localStorage.removeItem('nova_chats_v2');
+        console.log('[migration] nova_chats_v2 -> sunny_chats_v2: kept ' + clean.length);
+      } catch(e){}
+    }
   }
   if(!localStorage.getItem(LS_FILES)){
-    const oldFiles = localStorage.getItem('nova_files_v2');
-    if(oldFiles){ localStorage.setItem(LS_FILES, oldFiles); localStorage.removeItem('nova_files_v2'); console.log('[migration] files moved from nova_files_v2'); }
+    const oldFiles = localStorage.getItem('sunny_files_v1') || localStorage.getItem('nova_files_v2');
+    if(oldFiles){ localStorage.setItem(LS_FILES, oldFiles); }
   }
   try{ chats=JSON.parse(localStorage.getItem(LS_CHATS))||[]; }catch(e){ chats=[]; }
   try{ files=JSON.parse(localStorage.getItem(LS_FILES))||[]; }catch(e){ files=[]; }
+
+  // Cleanup: remove any duplicated chats by sessionId/sessionKey now
+  const seen = new Set();
+  const clean = [];
+  for(const c of chats){
+    const k = c.sessionKey || c.sessionId || c.id;
+    if(!k || seen.has(k)){ console.log('[cleanup] removed duplicate:', c.title); continue; }
+    seen.add(k);
+    clean.push(c);
+  }
+  if(clean.length !== chats.length){
+    chats = clean;
+    localStorage.setItem(LS_CHATS, JSON.stringify(chats));
+    console.log('[cleanup] removed ' + (clean.length - chats.length) + ' duplicates');
+  }
 }
 
 /* ==================== SIDEBAR (mobile) ==================== */
@@ -856,10 +907,22 @@ function sendMessage(textOverride){
 
   let chat=chats.find(c=>c.id===activeChatId);
   if(!chat){
-    chat={id:uid(), title:(text||'Attachments').slice(0,40), created:new Date().toISOString(), updated:new Date().toISOString(), branched:false, messages:[], sessionId:'sunny-'+uid()};
+    // Generate a session_key that matches backend format
+    const newSessionKey = 'sunny-' + uid();
+    chat={
+      id: uid(),
+      title: (text||'Attachments').slice(0,40),
+      created: new Date().toISOString(),
+      updated: new Date().toISOString(),
+      branched: false,
+      messages: [],
+      sessionId: newSessionKey,
+      sessionKey: newSessionKey
+    };
     chats.unshift(chat); activeChatId=chat.id;
   }
   if(!chat.sessionId) chat.sessionId='sunny-'+uid();
+  if(!chat.sessionKey) chat.sessionKey = chat.sessionId;
   chat.messages.push({id:uid(), role:'user', text, attachments:attachIds});
   chat.updated=new Date().toISOString();
   saveAll(); renderChatList($('#searchInput').value); renderMessages();
@@ -1284,18 +1347,16 @@ async function loadServerSessions() {
 async function loadServerHistory(chat) {
   if(!chat) return;
   if(chat.messages && chat.messages.length > 0) return;
-  // Try UUID first (backend uses id), then session_key
-  const keys = [chat.sessionUuid, chat.sessionKey, chat.sessionId].filter(Boolean);
-  if(!keys.length) return;
+  // Backend ONLY supports session_key (UUID returns 404)
+  const key = chat.sessionKey || chat.sessionId;
+  if(!key) return;
 
   let data = null;
-  for(const key of keys){
-    try {
-      const res = await fetch('/api/sessions/' + encodeURIComponent(key) + '/history?limit=200');
-      if(res.ok){ data = await res.json(); console.log('[history] loaded via key:', key); break; }
-      else { console.warn('[history] HTTP', res.status, 'for key:', key); }
-    } catch(e) { console.warn('[history] fetch error:', e.message); }
-  }
+  try {
+    const res = await fetch('/api/sessions/' + encodeURIComponent(key) + '/history?limit=200');
+    if(res.ok){ data = await res.json(); console.log('[history] loaded via session_key:', key, '→', (data.events||[]).length, 'events'); }
+    else { console.warn('[history] HTTP', res.status, 'for session_key:', key); return; }
+  } catch(e) { console.warn('[history] fetch error:', e.message); return; }
   if(!data) return;
 
   try {
@@ -1339,48 +1400,73 @@ async function syncSessionsFromServer(){
   try {
     const res = await fetch('/api/sessions');
     if(res.status === 401){
-      console.warn('[sync] 401 — API key invalid, user needs to re-login');
+      console.warn('[sync] 401 — invalid API key');
       showAuthBanner();
       return;
     }
     if(!res.ok){ return; }
     const data = await res.json();
     const sessions = data.sessions || [];
-    let added = 0;
+    let added = 0, updated = 0;
+
     for(const s of sessions){
       const sid = s.id || s.session_id || '';
       const skey = s.session_key || s.id || '';
-      if(!sid && !skey) continue;
+      if(!skey) continue;
       let meta = {};
       try { meta = JSON.parse(s.metadata || '{}'); } catch(e) {}
-      const exists = chats.find(c => c.sessionUuid === skey || c.sessionKey === skey || c.id === 'srv-' + (sid || skey));
+      const serverTitle = meta.title || '';
+      const serverRole = meta.role || '';
+
+      // Find local match by any possible key format
+      const exists = chats.find(c =>
+        c.sessionKey === skey ||
+        c.sessionId === skey ||
+        c.sessionUuid === skey ||
+        c.sessionUuid === sid ||
+        c.id === 'srv-' + skey ||
+        c.id === 'srv-' + sid
+      );
+
       if(exists){
-        // Update timestamp if changed (for re-sorting)
+        // Update fields but prefer local title unless local is generic
+        if(!exists.sessionKey) exists.sessionKey = skey;
+        if(!exists.sessionUuid) exists.sessionUuid = sid;
+        if(!exists.sessionId) exists.sessionId = skey;
+        if(!exists.role && serverRole) exists.role = serverRole;
         if(s.updated_at && exists.updated !== s.updated_at){
           exists.updated = s.updated_at;
+          updated++;
         }
-        continue;
+        // Prefer server title if local has generic "Chat ..." title
+        if(serverTitle && (!exists.title || /^Chat (sunny-|[0-9a-f]{8}|\d+)/.test(exists.title))){
+          exists.title = serverTitle;
+          console.log('[sync] updated title for', skey, '→', serverTitle);
+        }
+      } else {
+        const title = serverTitle || ('Chat ' + String(skey).slice(0, 12));
+        chats.push({
+          id: 'srv-' + skey,
+          sessionUuid: sid,
+          sessionKey: skey,
+          sessionId: skey,
+          title: title,
+          created: s.created_at || new Date().toISOString(),
+          updated: s.updated_at || s.updated || new Date().toISOString(),
+          branched: false,
+          isServer: true,
+          messages: [],
+          role: serverRole
+        });
+        added++;
       }
-      chats.push({
-        id: 'srv-' + (sid || skey),
-        sessionUuid: sid,
-        sessionKey: skey,
-        sessionId: skey,
-        title: meta.title || s.title || s.name || ('Chat ' + String(skey).slice(0, 12)),
-        created: s.created_at || new Date().toISOString(),
-        updated: s.updated_at || s.updated || new Date().toISOString(),
-        branched: false,
-        isServer: true,
-        messages: [],
-        role: meta.role || s.role || ''
-      });
-      added++;
     }
-    if(added > 0){
+
+    if(added > 0 || updated > 0){
       chats.sort((a, b) => new Date(b.updated || 0) - new Date(a.updated || 0));
       saveAll();
       renderChatList($('#searchInput').value);
-      console.log('[sync] +'+added+' new session(s) synced from server');
+      console.log('[sync] +' + added + ' added, ' + updated + ' updated');
     }
   } catch(e) { console.warn('[sync] error:', e); }
 }
