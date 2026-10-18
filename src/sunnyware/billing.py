@@ -16,8 +16,17 @@ async def create_checkout_url(org_id: str, plan_id: str,
 
 
 def status() -> dict:
+    # Part 200: return real environment (sandbox/live/simulated)
+    if not enabled():
+        mode = "simulated"
+    else:
+        try:
+            from . import paddle_client
+            mode = paddle_client._environment()  # "live" or "sandbox"
+        except Exception:
+            mode = "live"
     return {
         "enabled": enabled(),
         "provider": "paddle",
-        "mode": "live" if enabled() else "simulated",
+        "mode": mode,
     }

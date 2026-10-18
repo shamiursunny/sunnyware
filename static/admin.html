@@ -232,7 +232,12 @@ async function loadDashboard() {
       <div class="card"><div class="title">Invoices</div><div class="value">${d.total_invoices}</div></div>
     `;
     const b = await apiCall('/api/saas/billing/status');
-    document.getElementById('stripe-status').innerHTML = b.enabled ? '<strong>Live Mode</strong> (Paddle Connected)' : '<strong>Simulated Mode</strong> (Add PADDLE_API_KEY to go live)';
+    const _modeHtml = b.mode === 'live'
+      ? '<strong style="color:#2ecc71;">Live Mode</strong> (Paddle Connected — Real Payments)'
+      : b.mode === 'sandbox'
+        ? '<strong style="color:#f39c12;">Sandbox Mode</strong> (Paddle Sandbox — Test Payments Only)'
+        : '<strong style="color:#e74c3c;">Simulated</strong> (Add PADDLE_API_KEY to enable billing)';
+    document.getElementById('stripe-status').innerHTML = _modeHtml + ' <small style="opacity:0.7;">mode: ' + (b.mode || '?') + '</small>';
   } catch(e) {}
 }
 
