@@ -305,6 +305,7 @@ input,textarea{font-family:inherit}
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <div class="logo"><div class="logo-icon">S</div><span>Sunnyware</span></div>
+      <button class="icon-btn" id="refreshChatsBtn" title="Refresh from server"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg></button>
       <button class="icon-btn" id="sidebarClose" title="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
     </div>
     <button class="new-chat-btn" id="newChatBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>New chat</button>
@@ -532,6 +533,14 @@ document.addEventListener('click', function(e) {
     if(!confirm('Clear your API key and log out? You will be asked to enter a new one.')) return;
     localStorage.removeItem('sunnyware_admin_key');
     location.reload();
+  }
+  if(e.target.closest('#refreshChatsBtn')){
+    const btn = e.target.closest('#refreshChatsBtn');
+    btn.style.opacity = '0.5';
+    Promise.all([syncSessionsFromServer(), loadRoles()]).finally(() => {
+      btn.style.opacity = '1';
+      toast('Refreshed from server');
+    });
   }
 });
 
@@ -1165,6 +1174,11 @@ $('#micBtn').onclick=function(){ this.style.color='var(--danger)'; toast('Listen
 async function loadRoles() {
   try {
     const res = await fetch('/api/roles');
+    if(res.status === 401){
+      console.warn('[roles] 401 — invalid API key, showing auth banner');
+      showAuthBanner();
+      return;
+    }
     if(!res.ok){ console.warn('[roles] HTTP', res.status); return; }
     const data = await res.json();
     const roles = data.roles || [];
@@ -1317,9 +1331,89 @@ loadAll(); renderChatList(); renderMessages(); renderLibrary(); autoGrow();
 (async () => {
   try { await loadRoles(); } catch(e) { console.warn('[init] roles failed:', e); }
   try { await loadServerSessions(); } catch(e) { console.warn('[init] sessions failed:', e); }
-  // Final render after all data loaded
   try { renderChatList($('#searchInput').value); } catch(e) {}
 })();
+
+/* ==================== CROSS-DEVICE SYNC (Part 193j) ==================== */
+async function syncSessionsFromServer(){
+  try {
+    const res = await fetch('/api/sessions');
+    if(res.status === 401){
+      console.warn('[sync] 401 — API key invalid, user needs to re-login');
+      showAuthBanner();
+      return;
+    }
+    if(!res.ok){ return; }
+    const data = await res.json();
+    const sessions = data.sessions || [];
+    let added = 0;
+    for(const s of sessions){
+      const sid = s.id || s.session_id || '';
+      const skey = s.session_key || s.id || '';
+      if(!sid && !skey) continue;
+      let meta = {};
+      try { meta = JSON.parse(s.metadata || '{}'); } catch(e) {}
+      const exists = chats.find(c => c.sessionUuid === skey || c.sessionKey === skey || c.id === 'srv-' + (sid || skey));
+      if(exists){
+        // Update timestamp if changed (for re-sorting)
+        if(s.updated_at && exists.updated !== s.updated_at){
+          exists.updated = s.updated_at;
+        }
+        continue;
+      }
+      chats.push({
+        id: 'srv-' + (sid || skey),
+        sessionUuid: sid,
+        sessionKey: skey,
+        sessionId: skey,
+        title: meta.title || s.title || s.name || ('Chat ' + String(skey).slice(0, 12)),
+        created: s.created_at || new Date().toISOString(),
+        updated: s.updated_at || s.updated || new Date().toISOString(),
+        branched: false,
+        isServer: true,
+        messages: [],
+        role: meta.role || s.role || ''
+      });
+      added++;
+    }
+    if(added > 0){
+      chats.sort((a, b) => new Date(b.updated || 0) - new Date(a.updated || 0));
+      saveAll();
+      renderChatList($('#searchInput').value);
+      console.log('[sync] +'+added+' new session(s) synced from server');
+    }
+  } catch(e) { console.warn('[sync] error:', e); }
+}
+
+function showAuthBanner(){
+  let b = document.getElementById('authBanner');
+  if(b){ b.style.display = 'flex'; return; }
+  b = document.createElement('div');
+  b.id = 'authBanner';
+  b.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ef5b5b;color:#fff;padding:10px 20px;text-align:center;z-index:9999;font-size:13px;display:flex;align-items:center;justify-content:center;gap:12px;';
+  b.innerHTML = '<span>API key is invalid or missing — cannot sync data</span><button onclick="location.reload()" style="background:#fff;color:#ef5b5b;border:0;padding:6px 12px;border-radius:6px;font-weight:600;cursor:pointer;">Re-login</button>';
+  document.body.prepend(b);
+}
+
+// Visibility-based sync: when user returns to tab
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible'){
+    syncSessionsFromServer();
+  }
+});
+
+// Poll every 30s while tab is active
+setInterval(() => {
+  if(document.visibilityState === 'visible') syncSessionsFromServer();
+}, 30000);
+
+// After a successful AI response, re-sync (in case other devices opened this session)
+const _origStreamAI = streamAI;
+streamAI = async function(chat, prompt) {
+  await _origStreamAI(chat, prompt);
+  // Session was created or updated server-side, refresh
+  setTimeout(() => syncSessionsFromServer(), 500);
+};
 </script>
 </body>
 </html>
