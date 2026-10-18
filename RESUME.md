@@ -203,6 +203,10 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
   compliance, coupons, entitlements, health scoring, calculators).
   Backed by accounting_store.py + 30 /api/acc/* endpoints.
 
+- AI CFO Agent (Part 191): autonomous accountant with function calling.
+  Drafts double-entry journal entries, human approves. Verified on revenue,
+  owner draw, and expense transactions. Model: Groq gpt-oss-20b.
+
 ## Production safety layers (Parts 134-140)
 
 - Rate limiting: SUNNYWARE_RATE_LIMIT_PER_MINUTE=60 (per-tenant, IP

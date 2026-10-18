@@ -2095,3 +2095,18 @@ Config:
   Team (audit log), Calculators (4 business tools), Settings.
 - Auto-sync from saas_store: plans and orgs flow into accounting on first load.
 - All endpoints verified returning HTTP 200.
+
+### Part 191 - AI CFO Agent (Autonomous Accountant)
+- New cfo_agent.py: function-calling AI with 3 tools:
+  get_chart_of_accounts, get_ledger_history, create_draft_entry.
+- accounting_store.py: Chart of Accounts + draft workflow.
+  create_draft_entry / post_draft_entry / reject_draft_entry / list_drafts
+- routes/accounting.py: 6 new endpoints for COA, drafts, chat, agent status.
+- admin-v2.html: new CFO Agent tab with chat UI, draft cards, approve/reject.
+- Model: Groq openai/gpt-oss-20b (auto-activated via LLM_API_KEY).
+- WORKFLOW: AI drafts → human approves → posts to ledger → dashboard updates.
+- VERIFIED END-TO-END with 3 transaction types:
+  * Revenue subscription (Assets:Cash / Revenue:Subscriptions)
+  * Owner draw (Equity:Owner Draws / Assets:Cash) — correct equity treatment
+  * Team meal (Expenses:Meals / Assets:Cash)
+  All 3 posted to ledger with correct P&L impact.

@@ -1445,3 +1445,14 @@ actual, runway calculator, customer health scoring, and audit log.
 
 Backend: accounting_store.py (14 model functions) + routes/accounting.py
 (30+ endpoints). Frontend: admin-v2.html at 74K+ chars, grouped sidebar.
+
+## 2026-10-18 - Part 191
+
+| Part | Feature |
+|------|---------|
+| 191  | AI CFO Agent (Autonomous Accountant) |
+
+Function-calling accountant: get_chart_of_accounts, get_ledger_history,
+create_draft_entry. Double-entry bookkeeping with draft approval workflow.
+Verified with revenue, owner draw, and expense transactions.
+Model: Groq openai/gpt-oss-20b.
