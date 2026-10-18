@@ -2110,3 +2110,38 @@ Config:
   * Owner draw (Equity:Owner Draws / Assets:Cash) — correct equity treatment
   * Team meal (Expenses:Meals / Assets:Cash)
   All 3 posted to ledger with correct P&L impact.
+
+---
+
+# Part 193 Update (2026-10-18): Chat UI & SSO Production Ready
+
+## 1. Enterprise SSO (WorkOS Migration)
+- Migrated from Scalekit to WorkOS.
+- `src/sunnyware/sso.py` rewritten to use WorkOS endpoints (`/sso/authorize`, `/sso/token`, `/sso/profile`).
+- WorkOS Test Organization (`org_01M54WF99GDGYNWQADWCSQHFY`) is configured and working.
+- HF Space Secrets required: `WORKOS_CLIENT_ID`, `WORKOS_API_KEY`, `WORKOS_ORGANIZATION_ID`.
+
+## 2. Chat UI (`static/chat.html`) Overhaul
+- Rebranded: Fully scrubbed all "Nova" references. Now branded "Sunnyware Agent".
+- Real Agents: Removed fake model dropdowns. Wired to `/api/roles` to display 10 real agents (General, CFO, Auditor, etc.).
+- Markdown Parser (`mdLite`): Added support for images `![alt](url)`, links, code blocks, and bold text.
+- SSE Streaming: Fixed `sunnyParseSSE` to correctly parse `session`, `start`, `tool_call`, `tool_result`, `final`, and `done` events.
+- Cross-Device Sync: Added `syncSessionsFromServer()` which runs every 30s and on tab focus (`visibilitychange`) to keep sessions in sync.
+- Auth Banner: If API key is invalid (401), a red banner prompts the user to "Re-login".
+- Logout: Added a logout button (->) in the sidebar footer to clear the API key.
+
+## 3. Backend Fixes
+- Public Attachments: Updated `src/sunnyware/main.py` middleware (`is_protected`) to bypass auth for `/api/attachments/`. This allows `<img>` tags to load images without needing an `X-API-Key` header.
+- Image Generation Retry: Updated `src/sunnyware/tools/image_generate.py`. It now has a 3-attempt retry loop with exponential backoff (2s, 4s) to handle Pollinations API 503/429 overloads.
+- History Fix: The frontend now correctly uses `session_key` instead of UUID to fetch `/api/sessions/{key}/history`.
+
+## 4. Bug Fixes & Edge Cases
+- Duplicate Images: Stopped the UI from saving two images when the LLM calls `image_generate` multiple times. Deduplication logic added in the frontend.
+- Sidebar Duplicates: Added a one-time `localStorage` sweep in `loadAll()` to merge "quote-variant" duplicates (e.g., `"Prompt"` vs `Prompt`).
+- Literal Newlines: Fixed severe JS syntax errors where Python `\n` was written as a literal newline inside JS regexes, breaking the entire file.
+- Library Auto-Save: AI-generated images are now automatically saved to the Library when the stream completes.
+
+## 5. Smoke Test Results (100% Green)
+- 19/19 DOM elements found.
+- 22/22 JS functions found.
+- 0 "Nova" references remaining.
