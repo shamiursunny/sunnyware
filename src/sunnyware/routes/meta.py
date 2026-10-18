@@ -1807,7 +1807,7 @@ async def admin_panel():
     from fastapi.responses import HTMLResponse as _HR
     here = _P(__file__).resolve()
     root = here.parent.parent.parent.parent
-    p = root / "static" / "admin.html"
+    p = root / "static" / "admin-v2.html"
     if not p.exists():
         return _HR("Admin panel not found", status_code=404)
     try:

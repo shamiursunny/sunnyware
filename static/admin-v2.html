@@ -1,0 +1,487 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sunnyware - Admin</title>
+<style>
+:root {
+  --bg: #0b0d12; --sidebar: #12161f; --panel: #12161f; --border: #232a38;
+  --text: #e7ecf3; --muted: #8892a6; --accent: #5b8def; --danger: #ef5b5b;
+  --success: #2ecc71; --warn: #f1c40f;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--text); font: 14px/1.5 system-ui, -apple-system, sans-serif; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+
+/* Sidebar */
+.sidebar { width: 240px; background: var(--sidebar); border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; }
+.logo { padding: 20px 24px; font-size: 16px; font-weight: 700; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.logo small { font-size: 11px; color: var(--muted); font-weight: 400; }
+.nav-group { padding: 12px 0; border-bottom: 1px solid var(--border); }
+.nav-group-label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; padding: 0 24px 6px; }
+.nav-item { padding: 8px 24px; color: var(--muted); cursor: pointer; border-left: 3px solid transparent; transition: 0.15s; font-size: 13px; }
+.nav-item:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+.nav-item.active { color: var(--text); border-left-color: var(--accent); background: rgba(91, 141, 239, 0.12); font-weight: 500; }
+
+/* Main */
+.main { flex: 1; overflow-y: auto; padding: 24px 32px; min-width: 0; }
+.main-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; gap: 12px; flex-wrap: wrap; }
+.main-header h1 { margin: 0; font-size: 22px; }
+.header-actions { display: flex; gap: 8px; align-items: center; font-size: 13px; }
+.header-actions .who { color: var(--muted); font-size: 12px; }
+.hidden { display: none !important; }
+h2 { font-size: 16px; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin: 24px 0 14px; }
+h2:first-child { margin-top: 0; }
+
+/* Cards */
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; padding: 16px; }
+.card .title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+.card .value { font-size: 24px; font-weight: 700; }
+.card .value.ok { color: var(--success); }
+.card .value.bad { color: var(--danger); }
+
+/* Tables & Forms */
+table { width: 100%; border-collapse: collapse; margin-bottom: 20px; background: var(--panel); border-radius: 8px; overflow: hidden; }
+th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); font-size: 13px; }
+th { background: rgba(0,0,0,0.2); color: var(--muted); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; }
+tr:hover td { background: rgba(255,255,255,0.02); }
+
+input, select, textarea {
+  background: #0b0d12; border: 1px solid var(--border); color: var(--text);
+  padding: 8px 10px; border-radius: 6px; font: inherit; width: 100%; font-size: 13px;
+}
+input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+label { display: block; font-size: 11px; color: var(--muted); margin: 10px 0 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+button {
+  background: var(--accent); color: #fff; border: 0; padding: 8px 14px;
+  border-radius: 6px; font: inherit; font-weight: 500; cursor: pointer; font-size: 13px; transition: 0.15s;
+}
+button:hover { opacity: 0.85; }
+button.danger { background: var(--danger); }
+button.success { background: var(--success); }
+button.small { padding: 4px 8px; font-size: 11px; }
+button.ghost { background: rgba(255,255,255,0.05); color: var(--text); border: 1px solid var(--border); }
+
+.form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; align-items: end; margin-bottom: 14px; }
+.form-row button { height: 36px; }
+.form-row label { margin-bottom: 3px; }
+
+.ledger { max-height: 300px; overflow-y: auto; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; background: rgba(91, 141, 239, 0.15); color: var(--accent); }
+.tag.ok { background: rgba(46, 204, 113, 0.15); color: var(--success); }
+.tag.bad { background: rgba(239, 91, 91, 0.15); color: var(--danger); }
+
+/* Toast */
+#toast {
+  position: fixed; bottom: 20px; right: 20px; padding: 10px 18px;
+  border-radius: 6px; color: #fff; font-weight: 500; opacity: 0;
+  transform: translateY(10px); transition: all 0.25s; z-index: 1000; font-size: 13px;
+}
+#toast.show { opacity: 1; transform: translateY(0); }
+#toast.error { background: var(--danger); }
+#toast.success { background: var(--success); }
+
+/* Print */
+@media print {
+  .sidebar, .header-actions, .nav-item, button, .form-row { display: none !important; }
+  body { display: block; background: #fff; color: #000; }
+  .main { padding: 0; }
+  .card, table { border-color: #ccc; }
+  th, td { border-color: #ddd; color: #000; }
+  th { background: #f5f5f5; }
+}
+</style>
+</head>
+<body>
+
+<div class="sidebar" id="sidebar" style="display:none;">
+  <div class="logo">Sunnyware <small>v2</small></div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Overview</div>
+    <div class="nav-item" data-tab="dashboard">Dashboard</div>
+    <div class="nav-item" data-tab="organizations">Organizations</div>
+    <div class="nav-item" data-tab="users">Users (SSO)</div>
+    <div class="nav-item" data-tab="approvals">HITL Approvals</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Finance</div>
+    <div class="nav-item" data-tab="customers">Customers</div>
+    <div class="nav-item" data-tab="plans">Plans</div>
+    <div class="nav-item" data-tab="invoices">Invoices</div>
+    <div class="nav-item" data-tab="accounting">Accounting</div>
+    <div class="nav-item" data-tab="reports">Reports</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Settings</div>
+    <div class="nav-item" data-tab="settings">Settings</div>
+  </div>
+</div>
+
+<div class="main" id="main-content">
+  <div id="login-section">
+    <h1>Sunnyware Admin</h1>
+    <div class="card" style="max-width: 400px;">
+      <div class="title">Admin API Key</div>
+      <input type="password" id="api-key" placeholder="master-admin-key">
+      <button onclick="saveKey()" style="margin-top: 12px;">Authenticate</button>
+    </div>
+  </div>
+
+  <div id="admin-section" class="hidden">
+    <div class="main-header">
+      <h1 id="page-title">Dashboard</h1>
+      <div class="header-actions">
+        <span class="who" id="who"></span>
+        <button class="ghost small" onclick="logout()">Log out</button>
+      </div>
+    </div>
+    <div id="content"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+// ═════════════════════════════════════════════════════════════════
+// CORE STATE
+// ═════════════════════════════════════════════════════════════════
+let API_KEY = localStorage.getItem('sunnyware_admin_key') || '';
+let CURRENT_TAB = 'dashboard';
+let CACHE = {};  // { customers: [], plans: [], invoices: [], ledger: [], ... }
+let ACC_STATE = null;
+
+// ═════════════════════════════════════════════════════════════════
+// HELPERS
+// ═════════════════════════════════════════════════════════════════
+function $(id) { return document.getElementById(id); }
+function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function money(n) {
+  const sym = (ACC_STATE && ACC_STATE.sym) || '$';
+  const num = parseFloat(n) || 0;
+  return (num < 0 ? '-' : '') + sym + Math.abs(num).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function num(n) { return (parseFloat(n) || 0).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}); }
+function fmtDate(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts * 1000 || ts);
+  return d.toLocaleDateString('en-US', {month:'short', day:'numeric', year:'numeric'});
+}
+
+function toast(msg, type) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = type + ' show';
+  setTimeout(() => t.className = '', 2800);
+}
+
+// ═════════════════════════════════════════════════════════════════
+// API CALLS
+// ═════════════════════════════════════════════════════════════════
+async function api(path, method = 'GET', body = null) {
+  const opts = {
+    method,
+    headers: { 'X-API-Key': API_KEY, 'Content-Type': 'application/json' }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(path, opts);
+  if (res.status === 401) { logout(); throw new Error('Unauthorized'); }
+  if (res.status === 403) { toast('Forbidden — admin role required', 'error'); throw new Error('Forbidden'); }
+  if (!res.ok) {
+    const txt = await res.text();
+    throw new Error(txt || res.statusText);
+  }
+  return res.json();
+}
+
+// ═════════════════════════════════════════════════════════════════
+// AUTH
+// ═════════════════════════════════════════════════════════════════
+function saveKey() {
+  const k = $('api-key').value.trim();
+  if (!k) return toast('Key required', 'error');
+  API_KEY = k;
+  localStorage.setItem('sunnyware_admin_key', k);
+  init();
+}
+
+function logout() {
+  API_KEY = '';
+  localStorage.removeItem('sunnyware_admin_key');
+  $('sidebar').style.display = 'none';
+  $('login-section').style.display = 'block';
+  $('admin-section').classList.add('hidden');
+}
+
+// ═════════════════════════════════════════════════════════════════
+// NAVIGATION
+// ═════════════════════════════════════════════════════════════════
+function nav(tab) {
+  CURRENT_TAB = tab;
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.tab === tab);
+  });
+  const titles = {
+    dashboard: 'Dashboard',
+    organizations: 'Organizations',
+    users: 'Users (SSO)',
+    approvals: 'HITL Approvals',
+    customers: 'Customers',
+    plans: 'Plans',
+    invoices: 'Invoices',
+    accounting: 'Accounting',
+    reports: 'Reports',
+    settings: 'Settings'
+  };
+  $('page-title').textContent = titles[tab] || tab;
+  const renderers = {
+    dashboard: renderDashboard,
+    organizations: renderOrganizations,
+    users: renderUsers,
+    approvals: renderApprovals,
+    customers: renderCustomers,
+    plans: renderPlans,
+    invoices: renderInvoices,
+    accounting: renderAccounting,
+    reports: renderReports,
+    settings: renderSettings
+  };
+  const fn = renderers[tab];
+  if (!fn) return;
+  $('content').innerHTML = '<p style="color:var(--muted);">Loading...</p>';
+  Promise.resolve(fn()).catch(err => {
+    console.error(err);
+    $('content').innerHTML = '<p style="color:var(--danger);">Error: ' + esc(err.message) + '</p>';
+  });
+}
+
+// ═════════════════════════════════════════════════════════════════
+// DASHBOARD
+// ═════════════════════════════════════════════════════════════════
+async function renderDashboard() {
+  const [saas, acc] = await Promise.all([
+    api('/api/saas/dashboard'),
+    api('/api/acc/dashboard')
+  ]);
+  const billing = await api('/api/saas/billing/status');
+
+  $('content').innerHTML = `
+    <div class="grid">
+      <div class="card"><div class="title">MRR</div><div class="value">${money(saas.mrr)}</div></div>
+      <div class="card"><div class="title">ARR</div><div class="value">${money(saas.arr)}</div></div>
+      <div class="card"><div class="title">Active Orgs</div><div class="value">${saas.active_orgs} / ${saas.total_orgs}</div></div>
+      <div class="card"><div class="title">Total Revenue</div><div class="value">${money(saas.total_revenue)}</div></div>
+      <div class="card"><div class="title">Invoices</div><div class="value">${saas.total_invoices}</div></div>
+    </div>
+
+    <h2>Financial Overview</h2>
+    <div class="grid">
+      <div class="card"><div class="title">Revenue (this month)</div><div class="value">${money(acc.revenue)}</div></div>
+      <div class="card"><div class="title">AI Cost</div><div class="value">${money(acc.ai_cost)}</div></div>
+      <div class="card"><div class="title">Gateway Fees</div><div class="value">${money(acc.fee)}</div></div>
+      <div class="card"><div class="title">Expenses</div><div class="value">${money(acc.expenses)}</div></div>
+      <div class="card"><div class="title">Gross Margin</div><div class="value ${acc.gross_margin >= 70 ? 'ok' : 'bad'}">${acc.gross_margin.toFixed(1)}%</div></div>
+      <div class="card"><div class="title">Net Profit</div><div class="value ${acc.net >= 0 ? 'ok' : 'bad'}">${money(acc.net)}</div></div>
+    </div>
+
+    <h2>Paddle Billing</h2>
+    <div class="card">
+      <p style="margin:0;">${billing.enabled ? '<strong style="color:var(--success);">Live Mode</strong> — Paddle Connected' : '<strong style="color:var(--warn);">Simulated</strong> — Add PADDLE_API_KEY to go live'}</p>
+    </div>
+  `;
+}
+
+// ═════════════════════════════════════════════════════════════════
+// ORGANIZATIONS (existing)
+// ═════════════════════════════════════════════════════════════════
+async function renderOrganizations() {
+  const d = await api('/api/saas/orgs');
+  $('content').innerHTML = `
+    <h2>Create Organization</h2>
+    <div class="form-row">
+      <div><label>Name</label><input id="new-org-name" placeholder="Company Name"></div>
+      <div><label>Owner Email</label><input id="new-org-email" type="email" placeholder="owner@company.com"></div>
+      <div><label>Plan</label>
+        <select id="new-org-plan">
+          <option value="free">Free</option>
+          <option value="pro">Pro ($49)</option>
+          <option value="enterprise">Enterprise ($299)</option>
+        </select>
+      </div>
+      <button onclick="createOrg()">Create Org</button>
+    </div>
+
+    <h2>Organizations (${d.count})</h2>
+    <table>
+      <thead><tr><th>Org ID</th><th>Name</th><th>Plan</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody>
+        ${d.orgs.map(o => `
+          <tr>
+            <td><code style="font-size:11px">${esc(o.id)}</code></td>
+            <td>${esc(o.name)}</td>
+            <td>
+              <select onchange="updatePlan('${o.id}', this.value)" style="width:auto;padding:4px;font-size:12px">
+                <option value="free" ${o.plan==='free'?'selected':''}>Free</option>
+                <option value="pro" ${o.plan==='pro'?'selected':''}>Pro</option>
+                <option value="enterprise" ${o.plan==='enterprise'?'selected':''}>Enterprise</option>
+              </select>
+            </td>
+            <td><span class="tag ${o.status==='active'?'ok':'bad'}">${o.status}</span></td>
+            <td>
+              <button class="small" onclick="checkout('${o.id}', '${o.plan}')">Pay</button>
+              <button class="ghost small" onclick="deleteOrg('${o.id}')">Delete</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+async function createOrg() {
+  const name = $('new-org-name').value.trim();
+  const email = $('new-org-email').value.trim();
+  const plan = $('new-org-plan').value;
+  if (!name) return toast('Name required', 'error');
+  await api('/api/saas/orgs', 'POST', { name, owner_email: email, plan });
+  toast('Organization created', 'success');
+  nav('organizations');
+}
+
+async function updatePlan(orgId, plan) {
+  await api('/api/saas/orgs/' + orgId, 'PATCH', { plan });
+  toast('Plan updated to ' + plan, 'success');
+}
+
+async function deleteOrg(id) {
+  if (!confirm('Delete this organization?')) return;
+  await api('/api/saas/orgs/' + id, 'DELETE');
+  toast('Deleted', 'success');
+  nav('organizations');
+}
+
+async function checkout(orgId, planId) {
+  const res = await api('/api/saas/checkout', 'POST', { org_id: orgId, plan_id: planId });
+  if (res.ok && res.url) window.location.href = res.url;
+  else toast('Checkout error: ' + (res.error || 'unknown'), 'error');
+}
+
+// ═════════════════════════════════════════════════════════════════
+// USERS (existing)
+// ═════════════════════════════════════════════════════════════════
+async function renderUsers() {
+  const d = await api('/sso/users');
+  $('content').innerHTML = `
+    <h2>SSO Users (${d.count || d.users.length})</h2>
+    <table>
+      <thead><tr><th>Email</th><th>Role</th><th>Key Preview</th><th>Created</th><th></th></tr></thead>
+      <tbody>
+        ${d.users.map(u => `
+          <tr>
+            <td>${esc(u.email)}</td>
+            <td><span class="tag ${u.role==='admin'?'ok':''}">${u.role}</span></td>
+            <td><code style="font-size:11px">${esc(u.api_key_preview || '—')}</code></td>
+            <td>${fmtDate(u.created_at)}</td>
+            <td><button class="ghost small" onclick="deleteUser('${esc(u.email)}')">Delete</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+async function deleteUser(email) {
+  if (!confirm('Delete ' + email + '?')) return;
+  await api('/sso/users/delete', 'POST', { email });
+  toast('User deleted', 'success');
+  nav('users');
+}
+
+// ═════════════════════════════════════════════════════════════════
+// APPROVALS (existing)
+// ═════════════════════════════════════════════════════════════════
+async function renderApprovals() {
+  const d = await api('/api/approvals');
+  $('content').innerHTML = `
+    <h2>Pending Approvals (${d.count})</h2>
+    ${d.count === 0 ? '<p style="color:var(--muted)">No pending approvals.</p>' : `
+    <table>
+      <thead><tr><th>Tool</th><th>Args</th><th>Time</th><th></th></tr></thead>
+      <tbody>
+        ${d.approvals.map(a => `
+          <tr>
+            <td><strong>${esc(a.tool)}</strong></td>
+            <td><code style="font-size:11px">${esc(JSON.stringify(a.args).slice(0,80))}</code></td>
+            <td>${new Date(a.created_at*1000).toLocaleTimeString()}</td>
+            <td>
+              <button class="success small" onclick="approveReq('${a.id}')">Approve</button>
+              <button class="danger small" onclick="rejectReq('${a.id}')">Reject</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+  `;
+}
+
+async function approveReq(id) {
+  await api('/api/approvals/' + id + '/approve', 'POST');
+  toast('Approved', 'success');
+  nav('approvals');
+}
+
+async function rejectReq(id) {
+  await api('/api/approvals/' + id + '/reject', 'POST');
+  toast('Rejected', 'success');
+  nav('approvals');
+}
+
+// ═════════════════════════════════════════════════════════════════
+// INIT
+// ═════════════════════════════════════════════════════════════════
+async function init() {
+  if (!API_KEY) {
+    $('login-section').style.display = 'block';
+    $('admin-section').classList.add('hidden');
+    $('sidebar').style.display = 'none';
+    return;
+  }
+  try {
+    await api('/api/saas/dashboard');
+    $('login-section').style.display = 'none';
+    $('admin-section').classList.remove('hidden');
+    $('sidebar').style.display = 'block';
+    $('who').textContent = 'Admin';
+    // Preload ACC state
+    try { ACC_STATE = await api('/api/acc/state'); } catch(e) {}
+    nav('dashboard');
+  } catch(e) {
+    $('login-section').style.display = 'block';
+    $('admin-section').classList.add('hidden');
+    $('sidebar').style.display = 'none';
+  }
+}
+
+document.querySelectorAll('.nav-item').forEach(el => {
+  el.addEventListener('click', () => nav(el.dataset.tab));
+});
+
+// ═══ PLACEHOLDER RENDERERS (Phase 2B will fill these in) ═══
+async function renderCustomers() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Phase 2B</p>'; }
+async function renderPlans() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Phase 2B</p>'; }
+async function renderInvoices() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Phase 2B</p>'; }
+async function renderAccounting() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Phase 2B</p>'; }
+async function renderReports() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Phase 2B</p>'; }
+async function renderSettings() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Phase 2B</p>'; }
+
+// ═══ START ═══
+init();
+</script>
+</body>
+</html>
