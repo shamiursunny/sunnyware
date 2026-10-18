@@ -118,6 +118,24 @@ button.ghost { background: rgba(255,255,255,0.05); color: var(--text); border: 1
   </div>
 
   <div class="nav-group">
+    <div class="nav-group-label">Operations</div>
+    <div class="nav-item" data-tab="coupons">Coupons</div>
+    <div class="nav-item" data-tab="dunning">Dunning</div>
+    <div class="nav-item" data-tab="compliance">Compliance</div>
+    <div class="nav-item" data-tab="budget">Budget</div>
+    <div class="nav-item" data-tab="capital">Capital</div>
+    <div class="nav-item" data-tab="alerts">Alerts</div>
+  </div>
+
+  <div class="nav-group">
+    <div class="nav-group-label">Team and Access</div>
+    <div class="nav-item" data-tab="access">Plan Access</div>
+    <div class="nav-item" data-tab="health">Account Health</div>
+    <div class="nav-item" data-tab="team">Team</div>
+    <div class="nav-item" data-tab="calculators">Calculators</div>
+  </div>
+
+  <div class="nav-group">
     <div class="nav-group-label">Settings</div>
     <div class="nav-item" data-tab="settings">Settings</div>
   </div>
@@ -236,6 +254,16 @@ function nav(tab) {
     invoices: 'Invoices',
     accounting: 'Accounting',
     reports: 'Reports',
+    coupons: 'Coupons',
+    dunning: 'Dunning',
+    compliance: 'Compliance',
+    budget: 'Budget',
+    capital: 'Capital',
+    alerts: 'Alerts',
+    access: 'Plan Access',
+    health: 'Account Health',
+    team: 'Team',
+    calculators: 'Calculators',
     settings: 'Settings'
   };
   $('page-title').textContent = titles[tab] || tab;
@@ -249,6 +277,16 @@ function nav(tab) {
     invoices: renderInvoices,
     accounting: renderAccounting,
     reports: renderReports,
+    coupons: renderCoupons,
+    dunning: renderDunning,
+    compliance: renderCompliance,
+    budget: renderBudget,
+    capital: renderCapital,
+    alerts: renderAlerts,
+    access: renderAccess,
+    health: renderHealth,
+    team: renderTeam,
+    calculators: renderCalculators,
     settings: renderSettings
   };
   const fn = renderers[tab];
@@ -906,6 +944,272 @@ async function resetAccounting() {
   toast('Financial data reset', 'success');
   nav('dashboard');
 }
+
+// ═════════════════════════════════════════════════════════════════
+// COUPONS
+// ═════════════════════════════════════════════════════════════════
+async function renderCoupons() {
+  const d = await api('/api/acc/coupons');
+  const plans = (ACC_STATE && ACC_STATE.plans) || [];
+
+  $('content').innerHTML = `
+    <h2>Create Coupon</h2>
+    <div class="form-row">
+      <div><label>Code</label><input id="cp-code" placeholder="WELCOME20"></div>
+      <div><label>Type</label>
+        <select id="cp-type">
+          <option value="pct">Percent off</option>
+          <option value="flat">Fixed amount</option>
+        </select>
+      </div>
+      <div><label>Value</label><input id="cp-val" type="number" value="20" min="0"></div>
+      <div><label>Max uses (0=unlimited)</label><input id="cp-max" type="number" value="100" min="0"></div>
+      <div><label>Expires</label><input id="cp-exp" type="date" value="2027-12-31"></div>
+      <button onclick="addCoupon()">Create Coupon</button>
+    </div>
+
+    <h2>Coupons (${d.coupons.length})</h2>
+    ${d.coupons.length === 0 ? '<p style="color:var(--muted)">No coupons yet.</p>' : `
+    <table>
+      <thead><tr><th>Code</th><th>Discount</th><th>Used / Max</th><th>Expires</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        ${d.coupons.map(c => {
+          const used = c.used || 0;
+          const max = c.max || 0;
+          const isExpired = c.exp && c.exp < new Date().toISOString().slice(0,10);
+          const isUsed = max && used >= max;
+          const status = !c.on ? 'Disabled' : isExpired ? 'Expired' : isUsed ? 'Used up' : 'Active';
+          const tagCls = status === 'Active' ? 'ok' : 'bad';
+          return `
+            <tr>
+              <td><strong>${esc(c.code)}</strong></td>
+              <td>${c.type==='pct' ? c.val+'% off' : money(c.val)+' off'}</td>
+              <td>${used} / ${max || 'unlimited'}</td>
+              <td>${esc(c.exp || 'Never')}</td>
+              <td><span class="tag ${tagCls}">${status}</span></td>
+              <td>
+                <button class="ghost small" onclick="toggleCoupon('${esc(c.code)}')">${c.on ? 'Disable' : 'Enable'}</button>
+                <button class="danger small" onclick="deleteCoupon('${esc(c.code)}')">Delete</button>
+              </td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
+    `}
+  `;
+}
+
+async function addCoupon() {
+  const code = $('cp-code').value.trim().toUpperCase();
+  const type = $('cp-type').value;
+  const val = parseFloat($('cp-val').value) || 0;
+  const max = parseInt($('cp-max').value) || 0;
+  const exp = $('cp-exp').value || '';
+  if (!code) return toast('Code required', 'error');
+  if (!val) return toast('Value required', 'error');
+  await api('/api/acc/coupons', 'POST', {
+    code, type, val, plans: [], max, exp
+  });
+  toast('Coupon created', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('coupons');
+}
+
+async function toggleCoupon(code) {
+  await api('/api/acc/coupons/' + encodeURIComponent(code) + '/toggle', 'POST');
+  toast('Coupon toggled', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('coupons');
+}
+
+async function deleteCoupon(code) {
+  if (!confirm('Delete coupon ' + code + '?')) return;
+  await api('/api/acc/coupons/' + encodeURIComponent(code), 'DELETE');
+  toast('Coupon deleted', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('coupons');
+}
+
+// ═════════════════════════════════════════════════════════════════
+// DUNNING (failed payment recovery)
+// ═════════════════════════════════════════════════════════════════
+async function renderDunning() {
+  const d = await api('/api/acc/dunning');
+  const custs = (ACC_STATE && ACC_STATE.cust) || [];
+  const cname = id => { const c = custs.find(x => x.id === id); return c ? c.name : `#${id}`; };
+  const STEPS = ['Retry day 0', 'Email day 3', 'Retry day 5', 'Final notice day 7', 'Suspend day 10'];
+
+  $('content').innerHTML = `
+    <h2>Failed Payments (${d.failed.length})</h2>
+    ${d.failed.length === 0 ? '<p style="color:var(--muted)">No failed payments. All customers paying successfully.</p>' : `
+    <table>
+      <thead><tr><th>Customer</th><th>Reason</th><th class="n">Amount</th><th>Next step</th><th></th></tr></thead>
+      <tbody>
+        ${d.failed.map((f, i) => {
+          const step = f.st || 1;
+          const nextStep = step >= 4 ? 'Lapsed - moved to free tier' : STEPS[step] || STEPS[0];
+          const tagCls = step >= 4 ? 'bad' : '';
+          return `
+            <tr>
+              <td>${esc(cname(f.c))}</td>
+              <td>${esc(f.why)}</td>
+              <td class="n">${money(f.amt)}</td>
+              <td><span class="tag ${tagCls}">${esc(nextStep)}</span></td>
+              <td>
+                <button class="success small" onclick="retryDunning(${i})">Retry via Paddle</button>
+                <button class="ghost small" onclick="advanceDunning(${i})">Advance step</button>
+              </td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
+    `}
+
+    <h2>Retry Schedule</h2>
+    <div class="card">
+      <p style="margin:0;font-size:13px;">${STEPS.join(' -> ')}</p>
+      <p style="margin:8px 0 0;color:var(--muted);font-size:12px;">Retries are simulated. Live retries require Paddle webhook integration.</p>
+    </div>
+  `;
+}
+
+async function retryDunning(idx) {
+  const d = await api('/api/acc/dunning/' + idx + '/retry', 'POST');
+  if (d.result && d.result.recovered) {
+    toast('Payment recovered: ' + money(d.result.amount), 'success');
+  } else {
+    toast('Retry failed, advanced to next step', 'error');
+  }
+  ACC_STATE = await api('/api/acc/state');
+  nav('dunning');
+}
+
+async function advanceDunning(idx) {
+  await api('/api/acc/dunning/' + idx + '/advance', 'POST');
+  toast('Advanced to next step', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('dunning');
+}
+
+// ═════════════════════════════════════════════════════════════════
+// COMPLIANCE (filings calendar)
+// ═════════════════════════════════════════════════════════════════
+async function renderCompliance() {
+  const d = await api('/api/acc/compliance');
+  const today = new Date().toISOString().slice(0,10);
+  const daysUntil = s => Math.round((new Date(s) - new Date(today)) / 86400000);
+  const sorted = d.items.slice().sort((a,b) => a.due < b.due ? -1 : 1);
+  const overdue = sorted.filter(x => daysUntil(x.due) < 0).length;
+
+  $('content').innerHTML = `
+    <h2>Add Compliance Item</h2>
+    <div class="form-row">
+      <div><label>Name</label><input id="cmp-name" placeholder="Quarterly tax filing"></div>
+      <div><label>Area</label>
+        <select id="cmp-area">
+          <option>Tax</option>
+          <option>Legal</option>
+          <option>Payroll</option>
+          <option>Audit</option>
+          <option>Corporate</option>
+          <option>Accounting</option>
+        </select>
+      </div>
+      <div><label>Repeats</label>
+        <select id="cmp-freq">
+          <option value="month">Monthly</option>
+          <option value="quarter">Quarterly</option>
+          <option value="year" selected>Yearly</option>
+          <option value="once">One time</option>
+        </select>
+      </div>
+      <div><label>Next due</label><input id="cmp-due" type="date" value="2027-12-31"></div>
+      <button onclick="addCompliance()">Add Item</button>
+    </div>
+
+    <h2>Filings (${sorted.length}) ${overdue ? `<span style="color:var(--danger);font-size:12px;">(${overdue} overdue)</span>` : ''}</h2>
+    ${sorted.length === 0 ? '<p style="color:var(--muted)">No compliance items yet. Add tax filings, legal reviews, etc.</p>' : `
+    <table>
+      <thead><tr><th>Item</th><th>Area</th><th>Repeats</th><th>Next due</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        ${sorted.map(c => {
+          const days = daysUntil(c.due);
+          const status = days < 0 ? 'Overdue' : days <= 30 ? `Due in ${days} days` : 'Upcoming';
+          const tagCls = days < 0 ? 'bad' : days <= 30 ? '' : 'ok';
+          return `
+            <tr>
+              <td>${esc(c.name)}</td>
+              <td>${esc(c.area)}</td>
+              <td>${esc(c.f)}</td>
+              <td>${esc(c.due)}</td>
+              <td><span class="tag ${tagCls}">${status}</span></td>
+              <td>
+                <button class="success small" onclick="markFiled(${c.id})">Mark Filed</button>
+                <button class="danger small" onclick="deleteCompliance(${c.id})">Delete</button>
+              </td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
+    `}
+
+    <div class="card" style="margin-top:24px;">
+      <h3 style="margin-top:0;color:var(--accent);">Audit-Ready Folder</h3>
+      <p style="margin:0;font-size:13px;color:var(--muted);">Keep these ready for auditors, lenders, or investors:</p>
+      <ul style="margin:8px 0 0;padding-left:20px;font-size:13px;">
+        <li>Bank statements and reconciliations</li>
+        <li>Ledger and the three statements from Reports</li>
+        <li>Invoices and payment records</li>
+        <li>Contracts, loan agreements, and cap table</li>
+        <li>Tax filings and payment receipts</li>
+        <li>Payroll records</li>
+        <li>Asset and depreciation schedule</li>
+      </ul>
+    </div>
+  `;
+}
+
+async function addCompliance() {
+  const name = $('cmp-name').value.trim();
+  const area = $('cmp-area').value;
+  const freq = $('cmp-freq').value;
+  const due = $('cmp-due').value;
+  if (!name) return toast('Name required', 'error');
+  if (!due) return toast('Due date required', 'error');
+  await api('/api/acc/compliance', 'POST', { name, area, freq, due });
+  toast('Compliance item added', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('compliance');
+}
+
+async function markFiled(id) {
+  await api('/api/acc/compliance/' + id + '/filed', 'POST');
+  toast('Marked as filed, next cycle scheduled', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('compliance');
+}
+
+async function deleteCompliance(id) {
+  if (!confirm('Delete this compliance item?')) return;
+  await api('/api/acc/compliance/' + id, 'DELETE');
+  toast('Deleted', 'success');
+  ACC_STATE = await api('/api/acc/state');
+  nav('compliance');
+}
+
+// ═════════════════════════════════════════════════════════════════
+// PLACEHOLDERS (Batch 2 and 3 will fill)
+// ═════════════════════════════════════════════════════════════════
+async function renderBudget() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 2</p>'; }
+async function renderCapital() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 2</p>'; }
+async function renderAlerts() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 2</p>'; }
+async function renderAccess() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 3</p>'; }
+async function renderHealth() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 3</p>'; }
+async function renderTeam() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 3</p>'; }
+async function renderCalculators() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 3</p>'; }
 
 // ═══ START ═══
 init();
