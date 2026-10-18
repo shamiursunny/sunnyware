@@ -8,6 +8,7 @@ the WebUI renders it inline -- same contract as chart_from_data.
 """
 import base64
 import os
+import asyncio
 
 try:
     import httpx
@@ -113,16 +114,34 @@ class ImageGenerateTool:
             except (TypeError, ValueError):
                 pass
 
-        try:
-            async with httpx.AsyncClient(timeout=_TIMEOUT, follow_redirects=True) as client:
-                r = await client.get(url, params=params)
-        except Exception as e:
-            return {"error": f"request failed: {type(e).__name__}: {e}"}
+        # Retry logic for flaky free-tier API (Pollinations 503/429)
+        max_retries = 3
+        r = None
+        for attempt in range(max_retries):
+            try:
+                async with httpx.AsyncClient(timeout=_TIMEOUT, follow_redirects=True) as client:
+                    r = await client.get(url, params=params)
+                
+                if r.status_code == 200:
+                    break  # Success
+                elif r.status_code in (429, 502, 503, 504) and attempt < max_retries - 1:
+                    # Wait 2s, then 4s before retrying
+                    await asyncio.sleep(2 ** (attempt + 1)) 
+                    continue
+                else:
+                    break  # Non-retryable error, or out of retries
+            except Exception as e:
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(2 ** (attempt + 1))
+                    continue
+                return {"error": f"request failed after {max_retries} attempts: {type(e).__name__}: {e}"}
 
-        if r.status_code != 200:
+        if r is None or r.status_code != 200:
+            status = r.status_code if r else 'unknown'
+            detail = (r.text or "")[:300] if r else ''
             return {
-                "error": f"Pollinations returned HTTP {r.status_code}",
-                "detail": (r.text or "")[:300],
+                "error": f"Pollinations returned HTTP {status} after {max_retries} attempts",
+                "detail": detail,
             }
 
         raw = r.content
