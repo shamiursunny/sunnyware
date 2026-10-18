@@ -2215,3 +2215,25 @@ async def tools_page():
             f"<pre>{type(e).__name__}: {e}</pre>",
             status_code=500,
         )
+
+
+# Part 201: Paddle checkout redirect handler
+# If Paddle returns to root domain with ?_ptxn= or ?ptxn=, redirect to /admin
+@router.get("/checkout-return")
+async def checkout_return(request: Request):
+    from fastapi.responses import RedirectResponse
+    qs = str(request.url.query)
+    return RedirectResponse(url=f"/admin?checkout=success&{qs}" if qs else "/admin?checkout=success")
+
+
+# Part 201: Root redirect for Paddle auto-approve returns
+# If Paddle returns to root domain with ?_ptxn= or ?ptxn=, redirect to /admin
+@router.get("/")
+async def root_redirect_for_paddle(request: Request):
+    """Part 201: If root has Paddle params, redirect to /admin (preserves auth)."""
+    from fastapi.responses import RedirectResponse
+    qs = str(request.url.query)
+    if "_ptxn" in qs or "ptxn" in qs or "checkout" in qs:
+        return RedirectResponse(url=f"/admin?{qs}" if qs else "/admin?checkout=success", status_code=302)
+    # Otherwise serve the normal UI entry point
+    return RedirectResponse(url="/ui", status_code=302)

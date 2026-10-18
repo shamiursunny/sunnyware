@@ -83,6 +83,13 @@ async def create_checkout_url(org_id: str, plan_id: str,
             url = checkout.get("url", "")
             if not url:
                 return {"ok": False, "error": "No checkout URL in Paddle response"}
+
+            # Part 201: detect auto-approval (URL points to our own domain with _ptxn)
+            # This means the price is $0 or trial-only and Paddle auto-completed it.
+            # Redirect to /admin so the frontend can show "Payment successful".
+            if "shamiur-sunnyware" in url or "_ptxn" in url:
+                return {"ok": True, "simulated": False, "auto_approved": True, "url": "/admin?checkout=success"}
+
             return {"ok": True, "simulated": False, "url": url}
 
     except Exception as e:

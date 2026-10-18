@@ -603,7 +603,7 @@ async function init() {
   // Part 201: handle Paddle redirect params
   const params = new URLSearchParams(window.location.search);
   const checkoutStatus = params.get('checkout');
-  const ptxn = params.get('ptxn');
+  const ptxn = params.get('ptxn') || params.get('_ptxn');  // Paddle uses both
   const simulated = params.get('simulated');
 
   if (checkoutStatus === 'success' || ptxn || simulated) {
