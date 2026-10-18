@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Nova AI — Chat & Library</title>
+<title>Sunnyware — Chat & Library</title>
 <style>
 /* ============ TOKENS ============ */
 :root{
@@ -304,7 +304,7 @@ input,textarea{font-family:inherit}
   <!-- ============ SIDEBAR ============ -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <div class="logo"><div class="logo-icon">N</div><span>Nova AI</span></div>
+      <div class="logo"><div class="logo-icon">S</div><span>Sunnyware</span></div>
       <button class="icon-btn" id="sidebarClose" title="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
     </div>
     <button class="new-chat-btn" id="newChatBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>New chat</button>
@@ -318,8 +318,8 @@ input,textarea{font-family:inherit}
     </div>
     <nav class="chat-list" id="chatList"></nav>
     <div class="sidebar-footer">
-      <div class="user-avatar">JD</div>
-      <div class="user-info"><div class="user-name">John Doe</div><div class="user-plan">Pro Plan · Unlimited</div></div>
+      <div class="user-avatar">SW</div>
+      <div class="user-info"><div class="user-name">Admin</div><div class="user-plan">Enterprise · Unlimited</div></div>
       <button class="icon-btn" id="themeToggle" title="Toggle theme">
         <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
         <svg id="iconSun" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
@@ -333,13 +333,13 @@ input,textarea{font-family:inherit}
       <button class="icon-btn menu-btn" id="menuBtn" title="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
       <div style="position:relative">
         <button class="model-selector" id="modelSelector">
-          <span class="model-dot"></span><span id="modelName">Nova 4.0 Turbo</span>
+          <span class="model-dot"></span><span id="modelName">Sunny 4.0 Turbo</span>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg>
         </button>
         <div class="dropdown" id="modelMenu">
-          <button class="dropdown-item model-option selected" data-model="Nova 4.0 Turbo"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg><div class="dd-info"><div class="dd-name">Nova 4.0 Turbo</div><div class="dd-desc">Fastest · everyday tasks</div></div></button>
-          <button class="dropdown-item model-option" data-model="Nova 4.0 Pro"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="opacity:0"><path d="M20 6L9 17l-5-5"/></svg><div class="dd-info"><div class="dd-name">Nova 4.0 Pro</div><div class="dd-desc">Deep reasoning · analysis</div></div></button>
-          <button class="dropdown-item model-option" data-model="Nova Vision"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="opacity:0"><path d="M20 6L9 17l-5-5"/></svg><div class="dd-info"><div class="dd-name">Nova Vision</div><div class="dd-desc">Image gen + vision · multimodal</div></div></button>
+          <button class="dropdown-item model-option selected" data-model="Sunny 4.0 Turbo"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg><div class="dd-info"><div class="dd-name">Sunny 4.0 Turbo</div><div class="dd-desc">Fastest · everyday tasks</div></div></button>
+          <button class="dropdown-item model-option" data-model="Sunny 4.0 Pro"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="opacity:0"><path d="M20 6L9 17l-5-5"/></svg><div class="dd-info"><div class="dd-name">Sunny 4.0 Pro</div><div class="dd-desc">Deep reasoning · analysis</div></div></button>
+          <button class="dropdown-item model-option" data-model="Sunny Vision"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="opacity:0"><path d="M20 6L9 17l-5-5"/></svg><div class="dd-info"><div class="dd-name">Sunny Vision</div><div class="dd-desc">Image gen + vision · multimodal</div></div></button>
         </div>
       </div>
       <div class="topbar-spacer"></div>
@@ -408,7 +408,7 @@ input,textarea{font-family:inherit}
     <div class="composer-wrap" id="composerWrap">
       <div class="composer">
         <div class="attach-preview hidden" id="attachPreview"></div>
-        <textarea id="chatInput" rows="1" placeholder="Message Nova AI..."></textarea>
+        <textarea id="chatInput" rows="1" placeholder="Message Sunnyware..."></textarea>
         <div class="composer-bottom">
           <button class="icon-btn" id="attachBtn" title="Attach files (saved to Library)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg></button>
           <input type="file" id="fileInput" multiple hidden>
@@ -416,7 +416,7 @@ input,textarea{font-family:inherit}
           <button class="send-btn" id="sendBtn" disabled title="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
         </div>
       </div>
-      <div class="disclaimer">Nova AI can make mistakes · Design preview — responses & files are simulated locally.</div>
+      <div class="disclaimer">Sunnyware can make mistakes · Design preview — responses & files are simulated locally.</div>
     </div>
     <div class="drag-overlay" id="dragOverlay">Drop files to upload to Library</div>
   </main>
@@ -610,7 +610,7 @@ $('#newChatBtn').onclick=newChat;
 /* ==================== CHAT-LEVEL OPTIONS ==================== */
 $('#optShare').onclick=()=>{
   const c=chats.find(x=>x.id===activeChatId); if(!c)return;
-  navigator.clipboard.writeText('https://nova.ai/share/'+c.id).then(()=>toast('Share link copied to clipboard'));
+  navigator.clipboard.writeText('https://shamiur-sunnyware.hf.space/share/'+c.id).then(()=>toast('Share link copied to clipboard'));
 };
 $('#optExport').onclick=()=>{
   const c=chats.find(x=>x.id===activeChatId); if(!c)return;
@@ -763,108 +763,23 @@ function startEdit(chat,m,msgDiv){
     chats.unshift(br); saveAll();
     selectChat(br.id);
     toast('Edited & branched — original chat is unchanged');
-    streamAI(br, routeReply(newText));
+    streamAI(br, newText);
   };
 }
 
-/* ==================== AI SIMULATION ==================== */
-const svgPalette=[['#7c5cff','#00d4ff'],['#ff5c8a','#ffb35c'],['#2ea44f','#00d4ff'],['#f5a623','#ff5c8a'],['#5c9dff','#7c5cff']];
-function makeArtSVG(promptText){
-  const [c1,c2]=svgPalette[Math.floor(Math.random()*svgPalette.length)];
-  const shapes=[];
-  for(let i=0;i<6;i++){
-    const x=Math.random()*400, y=Math.random()*300, r=20+Math.random()*70, o=(.25+Math.random()*.4).toFixed(2);
-    shapes.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="#ffffff" opacity="${o}"/>`);
-  }
-  const label=esc(promptText).slice(0,60);
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="800" height="600" viewBox="0 0 400 300"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${c1}"/><stop offset="1" stop-color="${c2}"/></linearGradient></defs><rect width="400" height="300" fill="url(#g)"/>${shapes.join('')}<text x="20" y="280" font-family="Arial" font-size="13" fill="#ffffff" opacity=".85">Nova AI · ${label}</text></svg>`;
-  return 'data:image/svg+xml;utf8,'+encodeURIComponent(svg);
+/* ==================== REAL SSE STREAMING (Part 193b) ==================== */
+function novaParseSSE(text) {
+  return text.split('
+
+').filter(Boolean).map(chunk => {
+    const dataLine = chunk.split('
+').find(l => l.startsWith('data: '));
+    if (!dataLine) return null;
+    const data = dataLine.slice(6).trim();
+    if (!data || data === '[DONE]') return null;
+    try { return JSON.parse(data); } catch(e) { return null; }
+  }).filter(Boolean);
 }
-function makeDoc(promptText){
-  const topic=promptText.replace(/^(write|create|generate|make)\s+(a|an|the)?\s*/i,'').trim();
-  return `# ${topic.charAt(0).toUpperCase()+topic.slice(1)}
-
-Generated by Nova AI — ${new Date().toLocaleString()}
-
-## Executive Summary
-
-This document provides a comprehensive overview of ${topic}. It was drafted to give you a professional starting structure you can refine with your own data, tone, and requirements.
-
-## 1. Introduction
-
-${topic.charAt(0).toUpperCase()+topic.slice(1)} is an important topic that benefits from clear structure and careful planning. This section frames the context, objectives, and scope.
-
-## 2. Key Points
-
-- **Point one** — a strong opening argument establishes credibility early.
-- **Point two** — supporting evidence and examples make the case concrete.
-- **Point three** — addressing counterpoints proactively strengthens the position.
-
-## 3. Recommendations
-
-1. Start with a minimal viable version and iterate.
-2. Gather feedback early from stakeholders.
-3. Measure outcomes and adjust the approach.
-
-## 4. Next Steps
-
-Review this draft, replace the placeholder content with your specifics, and Nova AI can refine any section on request.
-
----
-*Simulated document — in production Nova would generate full tailored content.*`;
-}
-const genericReplies=[
-  `That's a great question! Here's a helpful overview:
-
-**Key points to consider:**
-- Start with the fundamentals before diving into advanced topics
-- Practice consistently — small daily sessions beat occasional marathon ones
-- Don't hesitate to experiment and learn from mistakes
-
-Would you like me to go deeper into any specific part?`,
-  `Here's a Python example to illustrate:
-
-\`\`\`python
-def solution(data):
-    if not data:
-        return None
-    return [x * 2 for x in data if x > 0]
-
-print(solution([1, -2, 3, 4]))  # [2, 6, 8]
-\`\`\`
-
-This pattern keeps things clean and testable. Want a version with type hints and error handling?`,
-  `Great idea! Let me break that down:
-
-1. **The core concept** — simpler than it first appears; think building blocks.
-2. **Common pitfalls** — most people overcomplicate the early steps.
-3. **Next steps** — ship a minimal version, then iterate.
-
-This is a simulated response (design preview) — production Nova would give a fully tailored answer.`,
-  `Interesting! My take:
-
-- **Clarity beats cleverness** — especially early on
-- **Measure before optimizing** — decide with data
-- **Iterate in small loops** — ship, learn, adjust, repeat
-
-Want concrete examples for any of these?`
-];
-function routeReply(prompt){
-  const p=prompt.toLowerCase();
-  if(/(image|picture|photo|logo|wallpaper|art|illustration|draw|paint)/.test(p)) return {type:'image'};
-  if(/(document|report|essay|proposal|letter|resume|plan|write an?|article|blog)/.test(p)) return {type:'doc'};
-  if(/(code|python|javascript|function|script)/.test(p)) return {type:'text', text:genericReplies[1]};
-  if(/(how|why|explain)/.test(p)) return {type:'text', text:genericReplies[0]};
-  return {type:'text', text:genericReplies[Math.floor(Math.random()*genericReplies.length)]};
-}
-const imgReplies=[
-  `Here's the image you asked for — I've saved it to your **Library → AI Generated** tab, and you can download it right from the card below.`,
-  `Done! I generated this artwork based on your prompt. It's stored in your Library, so you can re-download it anytime.`
-];
-const docReplies=[
-  `I've drafted your document — it's saved to **Library → AI Generated** and attached below. Download it as a Markdown file and edit anywhere.`,
-  `Your document is ready! Grab it below, or find it anytime in your Library under the AI Generated tab.`
-];
 
 /* ==================== SEND FLOW ==================== */
 function autoGrow(){ input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,180)+'px'; }
@@ -872,92 +787,145 @@ input.addEventListener('input',()=>{ sendBtn.disabled=!input.value.trim()||isGen
 input.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage(); } });
 sendBtn.onclick=()=>sendMessage();
 
-let pendingAttach=[]; // file ids staged in composer
+let pendingAttach=[];
+
 function sendMessage(textOverride){
   const text=(textOverride??input.value).trim();
-  if(!text&&pendingAttach.length===0||isGenerating) return;
+  if((!text&&pendingAttach.length===0)||isGenerating) return;
   if(!text&&!pendingAttach.length)return;
   input.value=''; autoGrow(); sendBtn.disabled=true;
   const attachIds=[...pendingAttach]; pendingAttach=[]; $('#attachPreview').innerHTML=''; $('#attachPreview').classList.add('hidden');
 
   let chat=chats.find(c=>c.id===activeChatId);
   if(!chat){
-    chat={id:uid(), title:(text||'Attachments').slice(0,40), created:new Date().toISOString(), updated:new Date().toISOString(), branched:false, messages:[]};
+    chat={id:uid(), title:(text||'Attachments').slice(0,40), created:new Date().toISOString(), updated:new Date().toISOString(), branched:false, messages:[], sessionId:'sunny-'+uid()};
     chats.unshift(chat); activeChatId=chat.id;
   }
+  if(!chat.sessionId) chat.sessionId='sunny-'+uid();
   chat.messages.push({id:uid(), role:'user', text, attachments:attachIds});
   chat.updated=new Date().toISOString();
   saveAll(); renderChatList($('#searchInput').value); renderMessages();
-  if(text) streamAI(chat, routeReply(text));
+  if(text) streamAI(chat, text);
 }
 
-function streamAI(chat, route){
-  isGenerating=true;
-  let aiMsg={id:uid(), role:'ai', text:''};
+function novaRenderToolPills(aiMsg) {
+  return aiMsg.tools.map(t =>
+    '<div class="tool-pill '+(t.status==='done'?'done':'running')+'" style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--bg-tertiary);border-radius:99px;font-size:11.5px;margin:0 4px 4px 0;">' +
+      '<span style="width:6px;height:6px;border-radius:50%;background:var(--'+(t.status==='done'?'success':'warn')+');"></span>' +
+      '<strong>'+esc(t.name)+'</strong>' +
+      (t.status==='running'?'<span style="color:var(--text-tertiary);">running...</span>':'') +
+    '</div>'
+  ).join('');
+}
+
+function novaRenderStreaming(textEl, aiMsg, text) {
+  const pills = aiMsg.tools.length ? '<div style="margin-bottom:6px;">'+novaRenderToolPills(aiMsg)+'</div>' : '';
+  textEl.innerHTML = pills + mdLite(text) + '<span class="cursor-blink"></span>';
+  scrollBottom();
+}
+
+async function streamAI(chat, prompt) {
+  isGenerating = true;
+  if(!chat.sessionId) chat.sessionId = 'sunny-' + uid();
+
+  const aiMsg = { id: uid(), role: 'ai', text: '', tools: [] };
   chat.messages.push(aiMsg);
-  const bubbleEl=msgEl(aiMsg), textEl=bubbleEl.querySelector('.msg-text');
-  const actionsEl=bubbleEl.querySelector('.msg-actions'); if(actionsEl)actionsEl.style.visibility='hidden';
+
+  const bubbleEl = msgEl(aiMsg);
+  const textEl = bubbleEl.querySelector('.msg-text');
+  const actionsEl = bubbleEl.querySelector('.msg-actions');
+  if(actionsEl) actionsEl.style.visibility = 'hidden';
   messagesEl.appendChild(bubbleEl);
-  emptyState.classList.add('hidden'); messagesEl.classList.remove('hidden');
+  emptyState.classList.add('hidden');
+  messagesEl.classList.remove('hidden');
   scrollBottom();
 
-  const typing=document.createElement('div'); typing.className='typing'; typing.innerHTML='<span></span><span></span><span></span>';
+  const typing = document.createElement('div');
+  typing.className = 'typing';
+  typing.innerHTML = '<span></span><span></span><span></span>';
   textEl.replaceChildren(typing);
 
-  setTimeout(()=>{
-    if(route.type==='image'){
-      const name='nova-image-'+new Date().toISOString().slice(0,10)+'-'+Math.floor(Math.random()*999)+'.svg';
-      const file={id:uid(), name, type:'image', kind:'generated', size:0, date:new Date().toISOString(), dataUrl:makeArtSVG(lastPrompt), mime:'image/svg+xml'};
-      file.size=file.dataUrl.length; files.unshift(file);
-      aiMsg.text=imgReplies[Math.floor(Math.random()*imgReplies.length)];
-      finishWithArtifact(chat, aiMsg, bubbleEl, textEl, actionsEl, file.id);
-    } else if(route.type==='doc'){
-      const name='nova-doc-'+new Date().toISOString().slice(0,10)+'-'+Math.floor(Math.random()*999)+'.md';
-      const content=makeDoc(lastPrompt);
-      const file={id:uid(), name, type:'doc', kind:'generated', size:content.length, date:new Date().toISOString(), textContent:content, mime:'text/markdown'};
-      files.unshift(file);
-      aiMsg.text=docReplies[Math.floor(Math.random()*docReplies.length)];
-      finishWithArtifact(chat, aiMsg, bubbleEl, textEl, actionsEl, file.id);
-    } else {
-      const full=route.text;
-      let i=0;
-      const step=()=>{
-        i=Math.min(i+2+Math.floor(Math.random()*4), full.length);
-        textEl.innerHTML=mdLite(full.slice(0,i))+'<span class="cursor-blink"></span>';
-        scrollBottom();
-        if(i<full.length){ setTimeout(step,10+Math.random()*22); }
-        else{
-          aiMsg.text=full; textEl.innerHTML=mdLite(full);
-          if(actionsEl)actionsEl.style.visibility='visible';
-          bindCodeCopy(textEl); isGenerating=false; sendBtn.disabled=!input.value.trim(); saveAll();
-        }
-      };
-      step();
-    }
-  }, 800+Math.random()*600);
-}
-let lastPrompt='';
-const _origSend=sendMessage;
-sendMessage=function(t){ lastPrompt=(t??input.value).trim(); _origSend(t); };
+  let accumulatedText = '';
+  let firstContent = true;
 
-function finishWithArtifact(chat, aiMsg, bubbleEl, textEl, actionsEl, fileId){
-  aiMsg.genFileId=fileId;
-  const full=aiMsg.text; let i=0;
-  const step=()=>{
-    i=Math.min(i+3+Math.floor(Math.random()*4), full.length);
-    textEl.innerHTML=mdLite(full.slice(0,i))+'<span class="cursor-blink"></span>';
-    scrollBottom();
-    if(i<full.length){ setTimeout(step,10+Math.random()*20); }
-    else{
-      textEl.innerHTML=mdLite(full);
-      const f=files.find(x=>x.id===fileId);
-      bubbleEl.querySelector('.msg-bubble').insertAdjacentHTML('beforeend', artifactEl(f));
-      if(actionsEl)actionsEl.style.visibility='visible';
-      isGenerating=false; sendBtn.disabled=!input.value.trim(); saveAll(); renderLibrary();
-      toast('Saved to Library -> AI Generated');
+  try {
+    const res = await fetch('/api/agent/stream', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        input: prompt,
+        session_id: chat.sessionId,
+        role: chat.role || ''
+      })
+    });
+
+    if(!res.ok) {
+      const errText = await res.text();
+      throw new Error('HTTP ' + res.status + ' — ' + errText.slice(0, 200));
     }
-  };
-  step();
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while(true) {
+      const { done, value } = await reader.read();
+      if(done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const events = novaParseSSE(buffer);
+      const lastBoundary = buffer.lastIndexOf('
+
+');
+      if(lastBoundary >= 0) buffer = buffer.slice(lastBoundary + 2);
+
+      for(const ev of events) {
+        const type = ev.type || ev.event || '';
+
+        if(type === 'tool_call') {
+          const name = ev.name || ev.tool || 'tool';
+          aiMsg.tools.push({ name, args: ev.args || {}, status: 'running' });
+          if(firstContent) { textEl.replaceChildren(); firstContent = false; }
+          novaRenderStreaming(textEl, aiMsg, accumulatedText);
+        } else if(type === 'tool_result') {
+          const name = ev.name || ev.tool || 'tool';
+          const t = aiMsg.tools.find(x => x.name === name && x.status === 'running');
+          if(t) { t.status = 'done'; t.result = ev.result || ev.output || ''; }
+          if(firstContent) { textEl.replaceChildren(); firstContent = false; }
+          novaRenderStreaming(textEl, aiMsg, accumulatedText);
+        } else if(type === 'answer' || type === 'content' || type === 'delta') {
+          if(firstContent) { textEl.replaceChildren(); firstContent = false; }
+          accumulatedText += (ev.content || ev.text || ev.delta || '');
+          novaRenderStreaming(textEl, aiMsg, accumulatedText);
+        } else if(type === 'error') {
+          throw new Error(ev.error || ev.message || 'stream error');
+        } else if(ev.content || ev.text) {
+          if(firstContent) { textEl.replaceChildren(); firstContent = false; }
+          accumulatedText += (ev.content || ev.text);
+          novaRenderStreaming(textEl, aiMsg, accumulatedText);
+        }
+      }
+    }
+
+    if(!accumulatedText) accumulatedText = '(no response)';
+    aiMsg.text = accumulatedText;
+    const finalPills = aiMsg.tools.length ? '<div style="margin-bottom:6px;">'+novaRenderToolPills(aiMsg)+'</div>' : '';
+    textEl.innerHTML = finalPills + mdLite(aiMsg.text);
+    if(actionsEl) actionsEl.style.visibility = 'visible';
+    bindCodeCopy(textEl);
+
+  } catch(err) {
+    console.error('Stream error:', err);
+    aiMsg.text = 'Error: ' + err.message;
+    textEl.innerHTML = '<span style="color:var(--danger);">' + esc(aiMsg.text) + '</span>';
+    if(actionsEl) actionsEl.style.visibility = 'visible';
+  }
+
+  isGenerating = false;
+  sendBtn.disabled = !input.value.trim();
+  chat.updated = new Date().toISOString();
+  saveAll();
+  scrollBottom();
 }
 
 function regenerateMsg(chat,m){
@@ -966,7 +934,7 @@ function regenerateMsg(chat,m){
   const lastUser=[...chat.messages.slice(0,idx)].reverse().find(x=>x.role==='user');
   chat.messages.splice(idx,1);
   saveAll(); renderMessages();
-  if(lastUser){ lastPrompt=lastUser.text; streamAI(chat, routeReply(lastUser.text)); }
+  if(lastUser){ streamAI(chat, lastUser.text); }
 }
 
 /* ==================== PROMPT CARDS ==================== */
