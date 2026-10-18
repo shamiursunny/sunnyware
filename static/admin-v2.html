@@ -1481,10 +1481,272 @@ async function saveThresholds() {
   toast('Thresholds saved', 'success');
   nav('alerts');
 }
-async function renderAccess() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 3</p>'; }
-async function renderHealth() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 3</p>'; }
-async function renderTeam() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 3</p>'; }
-async function renderCalculators() { $('content').innerHTML = '<p style="color:var(--muted)">Coming in Batch 3</p>'; }
+// ==== PLAN ACCESS ====
+async function renderAccess() {
+  const [state, plans] = await Promise.all([api('/api/acc/state'), api('/api/acc/plans')]);
+  const feat = state.feat || [];
+  const ent = state.ent || {};
+  const plist = plans.plans || [];
+  $('content').innerHTML = `
+    <h2>Plan Entitlements Matrix</h2>
+    <p style="color:var(--muted);font-size:12px;">Checkboxes = on/off, numbers = quota.</p>
+    <table>
+      <thead><tr><th>Feature</th>${plist.map(pp => `<th class="n">${esc(pp.name)}</th>`).join('')}</tr></thead>
+      <tbody>
+        ${feat.map(f => `
+          <tr>
+            <td><strong>${esc(f.n)}</strong></td>
+            ${plist.map(pp => {
+              const val = (ent[pp.id] && ent[pp.id][f.k]) || 0;
+              const input = f.t === 'b'
+                ? `<input type="checkbox" ${val ? 'checked' : ''} onchange="updateEntitlement('${esc(pp.id)}', '${esc(f.k)}', this.checked ? 1 : 0)">`
+                : `<input type="number" value="${val}" min="0" style="width:80px;padding:4px;font-size:12px;text-align:right" onchange="updateEntitlement('${esc(pp.id)}', '${esc(f.k)}', parseInt(this.value)||0)">`;
+              return `<td class="n">${input}</td>`;
+            }).join('')}
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <h2>Quick Access Test</h2>
+    <div class="card">
+      <select onchange="showPlanAccess(this.value)" style="max-width:300px;">
+        <option value="">-- Select plan --</option>
+        ${plist.map(pp => `<option value="${esc(pp.id)}">${esc(pp.name)}</option>`).join('')}
+      </select>
+      <div id="access-preview" style="margin-top:12px;font-size:13px;"></div>
+    </div>
+  `;
+}
+
+async function updateEntitlement(planId, featKey, value) {
+  await api('/api/acc/entitlements', 'POST', { plan_id: planId, feat_key: featKey, value });
+  toast('Entitlement updated', 'success');
+  ACC_STATE = await api('/api/acc/state');
+}
+
+function showPlanAccess(planId) {
+  if (!planId) { $('access-preview').innerHTML = ''; return; }
+  const state = ACC_STATE || {};
+  const feat = state.feat || [];
+  const ent = (state.ent || {})[planId] || {};
+  const plans = state.plans || [];
+  const plan = plans.find(p => p.id === planId);
+  $('access-preview').innerHTML = `
+    <strong style="color:var(--accent);">${esc(plan ? plan.name : planId)}</strong>
+    <ul style="margin:8px 0 0;padding-left:20px;">
+      ${feat.map(f => {
+        const v = ent[f.k] || 0;
+        const display = f.t === 'b' ? (v ? 'ON' : 'OFF') : v;
+        return `<li>${esc(f.n)}: <strong>${display}</strong></li>`;
+      }).join('')}
+      <li>AI tokens/mo: <strong>${plan ? plan.tokens : 0}M</strong></li>
+    </ul>
+  `;
+}
+
+// ==== ACCOUNT HEALTH ====
+async function renderHealth() {
+  const [customers, dunning] = await Promise.all([api('/api/acc/customers'), api('/api/acc/dunning')]);
+  const dunningIds = dunning.failed.map(f => f.c);
+  const usage = (ACC_STATE && ACC_STATE.use) || {};
+  const rows = customers.customers.filter(c => c.st !== 'churned').map(c => {
+    const u = usage[c.id] || { tr: 0, lg: 3, f: 3, tk: 0 };
+    const score = Math.max(0, Math.round(
+      0.4 * (u.tr >= 0 ? 100 : Math.max(0, 100 + u.tr * 2))
+      + 0.2 * Math.min(100, u.lg * 20)
+      + 0.25 * ((u.f / 5) * 100)
+      + 0.15 * Math.max(0, 100 - u.tk * 25)
+      - (dunningIds.includes(c.id) ? 15 : 0)
+    ));
+    return { c, u, score };
+  }).sort((a, b) => a.score - b.score);
+
+  $('content').innerHTML = `
+    <h2>Account Health (${rows.length})</h2>
+    <p style="color:var(--muted);font-size:12px;">Lowest scores first. Weights: usage 40%, features 25%, logins 20%, tickets 15%.</p>
+    ${rows.length === 0 ? '<p style="color:var(--muted)">No active customers to score.</p>' : `
+    <table>
+      <thead><tr><th>Customer</th><th class="n">Score</th><th>Status</th><th class="n">Trend</th><th class="n">Logins/wk</th><th class="n">Features</th><th class="n">Tickets</th></tr></thead>
+      <tbody>
+        ${rows.map(r => {
+          const cls = r.score >= 70 ? 'ok' : r.score >= 40 ? '' : 'bad';
+          const label = r.score >= 70 ? 'Healthy' : r.score >= 40 ? 'At risk' : 'Red alert';
+          return `
+            <tr>
+              <td>${esc(r.c.name)}</td>
+              <td class="n"><strong>${r.score}</strong></td>
+              <td><span class="tag ${cls}">${label}</span></td>
+              <td class="n">${r.u.tr >= 0 ? '+' : ''}${r.u.tr}%</td>
+              <td class="n">${r.u.lg}</td>
+              <td class="n">${r.u.f} / 5</td>
+              <td class="n">${r.u.tk}</td>
+            </tr>
+          `;
+        }).join('')}
+      </tbody>
+    </table>
+    `}
+    <div class="card" style="margin-top:20px;">
+      <h3 style="margin-top:0;color:var(--accent);">How Scores Work</h3>
+      <ul style="margin:0;padding-left:20px;font-size:13px;color:var(--muted);">
+        <li><strong>Healthy (70+)</strong>: active, engaged, no issues</li>
+        <li><strong>At risk (40-69)</strong>: declining usage or low adoption</li>
+        <li><strong>Red alert (&lt;40)</strong>: about to churn, needs outreach</li>
+        <li>Failed payments subtract 15 points automatically</li>
+      </ul>
+    </div>
+  `;
+}
+
+// ==== TEAM ====
+async function renderTeam() {
+  const audit = await api('/api/acc/audit');
+  const roles = {
+    Owner: 'Full access to everything',
+    Finance: 'Plans, Invoices, Accounting, Budget, Capital, Reports',
+    Support: 'Customers, Access, Health, view-only sessions',
+    Viewer: 'Read-only: Dashboard, Customers, Plans, Health, Alerts',
+  };
+  $('content').innerHTML = `
+    <h2>Team Roles</h2>
+    <table>
+      <thead><tr><th>Role</th><th>Access</th></tr></thead>
+      <tbody>
+        ${Object.entries(roles).map(([r, desc]) => `
+          <tr><td><strong>${esc(r)}</strong></td><td>${esc(desc)}</td></tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <h2>Audit Log (${audit.audit.length})</h2>
+    ${audit.audit.length === 0 ? '<p style="color:var(--muted)">No audit entries yet.</p>' : `
+    <table class="ledger">
+      <thead><tr><th>Time</th><th>User</th><th>Action</th></tr></thead>
+      <tbody>
+        ${audit.audit.slice().reverse().slice(0, 100).map(a => `
+          <tr>
+            <td>${esc(a.t)}</td>
+            <td>${esc(a.u)}</td>
+            <td>${esc(a.a)}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+    <div class="card" style="margin-top:20px;">
+      <h3 style="margin-top:0;color:var(--accent);">Add Audit Entry</h3>
+      <div class="form-row">
+        <div><label>User</label><input id="audit-user" placeholder="admin"></div>
+        <div><label>Action</label><input id="audit-action" placeholder="What was done"></div>
+        <button onclick="logAudit()">Log</button>
+      </div>
+    </div>
+  `;
+}
+
+async function logAudit() {
+  const user = $('audit-user').value.trim() || 'admin';
+  const action = $('audit-action').value.trim();
+  if (!action) return toast('Action required', 'error');
+  await api('/api/acc/audit', 'POST', { user, action });
+  toast('Logged', 'success');
+  nav('team');
+}
+
+// ==== CALCULATORS ====
+async function renderCalculators() {
+  $('content').innerHTML = `
+    <h2>Business Calculators</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;">
+      <div class="card">
+        <h3 style="margin-top:0;color:var(--accent);">Subscription Metrics</h3>
+        <div><label>Customers at start</label><input id="c1" type="number" value="200"></div>
+        <div><label>Churned this month</label><input id="c2" type="number" value="8"></div>
+        <div><label>ARPU per month ($)</label><input id="c3" type="number" value="99"></div>
+        <div><label>CAC per customer ($)</label><input id="c4" type="number" value="240"></div>
+        <button onclick="calcSubs()" style="margin-top:10px;">Calculate</button>
+        <div id="r1" style="margin-top:12px;padding:10px;background:var(--bg);border-radius:6px;font-family:monospace;font-size:12px;white-space:pre-line;"></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0;color:var(--accent);">AI Usage Margin</h3>
+        <div><label>Price per 1M tokens ($)</label><input id="a1" type="number" value="12"></div>
+        <div><label>Model cost per 1M tokens ($)</label><input id="a2" type="number" value="4.5"></div>
+        <div><label>Tokens/month (millions)</label><input id="a3" type="number" value="60"></div>
+        <button onclick="calcAI()" style="margin-top:10px;">Calculate</button>
+        <div id="r2" style="margin-top:12px;padding:10px;background:var(--bg);border-radius:6px;font-family:monospace;font-size:12px;white-space:pre-line;"></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0;color:var(--accent);">Tax & Gateway Fee</h3>
+        <div><label>Price ($)</label><input id="t1" type="number" value="100"></div>
+        <div><label>Tax rate %</label><input id="t2" type="number" value="18"></div>
+        <div><label>Gateway fee %</label><input id="t3" type="number" value="2.9"></div>
+        <div><label>Fixed fee ($)</label><input id="t4" type="number" value="0.3"></div>
+        <button onclick="calcFee()" style="margin-top:10px;">Calculate</button>
+        <div id="r3" style="margin-top:12px;padding:10px;background:var(--bg);border-radius:6px;font-family:monospace;font-size:12px;white-space:pre-line;"></div>
+      </div>
+      <div class="card">
+        <h3 style="margin-top:0;color:var(--accent);">Runway Calculator</h3>
+        <div><label>Cash on hand ($)</label><input id="rw1" type="number" value="100000"></div>
+        <div><label>Monthly burn ($)</label><input id="rw2" type="number" value="12000"></div>
+        <button onclick="calcRunway()" style="margin-top:10px;">Calculate</button>
+        <div id="r4" style="margin-top:12px;padding:10px;background:var(--bg);border-radius:6px;font-family:monospace;font-size:12px;white-space:pre-line;"></div>
+      </div>
+    </div>
+  `;
+}
+
+function calcSubs() {
+  const s = parseFloat($('c1').value) || 0;
+  const c = parseFloat($('c2').value) || 0;
+  const p = parseFloat($('c3').value) || 0;
+  const a = parseFloat($('c4').value) || 0;
+  const churn = s ? c / s : 0;
+  const life = churn ? 1 / churn : 0;
+  const ltv = p * life;
+  const ratio = a ? ltv / a : 0;
+  const payback = p ? a / p : 0;
+  $('r1').textContent =
+    'Churn rate:       ' + (churn * 100).toFixed(2) + '%\n' +
+    'Avg lifetime:     ' + life.toFixed(1) + ' months\n' +
+    'LTV:              $' + ltv.toFixed(2) + '\n' +
+    'LTV : CAC ratio:  ' + ratio.toFixed(1) + ' : 1\n' +
+    'CAC payback:      ' + payback.toFixed(1) + ' months';
+}
+
+function calcAI() {
+  const price = parseFloat($('a1').value) || 0;
+  const cost = parseFloat($('a2').value) || 0;
+  const tokens = parseFloat($('a3').value) || 0;
+  const rev = price * tokens;
+  const c = cost * tokens;
+  const margin = rev ? ((rev - c) / rev * 100) : 0;
+  $('r2').textContent =
+    'Revenue:  $' + rev.toFixed(2) + '\n' +
+    'AI cost:  $' + c.toFixed(2) + '\n' +
+    'Profit:   $' + (rev - c).toFixed(2) + '\n' +
+    'Margin:   ' + margin.toFixed(1) + '%';
+}
+
+function calcFee() {
+  const p = parseFloat($('t1').value) || 0;
+  const tx = p * ((parseFloat($('t2').value) || 0) / 100);
+  const tot = p + tx;
+  const fee = tot * ((parseFloat($('t3').value) || 0) / 100) + (parseFloat($('t4').value) || 0);
+  $('r3').textContent =
+    'Customer pays:    $' + tot.toFixed(2) + '\n' +
+    'Tax collected:    $' + tx.toFixed(2) + '\n' +
+    'Gateway fee:      $' + fee.toFixed(2) + '\n' +
+    'You keep:         $' + (p - fee).toFixed(2) + ' (' + (p ? ((p-fee)/p*100).toFixed(1) : '0') + '%)';
+}
+
+function calcRunway() {
+  const cash = parseFloat($('rw1').value) || 0;
+  const burn = parseFloat($('rw2').value) || 0;
+  const months = burn > 0 ? cash / burn : Infinity;
+  $('r4').textContent =
+    'Cash:     $' + cash.toFixed(2) + '\n' +
+    'Burn:     $' + burn.toFixed(2) + '/mo\n' +
+    'Runway:   ' + (isFinite(months) ? months.toFixed(1) + ' months' : 'Self-funding');
+}
 
 // ═══ START ═══
 init();
