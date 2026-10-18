@@ -22,6 +22,7 @@ from .runtime import state, init_state, log
 from . import state as app_state
 from .routes import meta as meta_routes
 from .routes import paddle_webhook as paddle_webhook_routes
+from .routes import accounting as accounting_routes
 from .routes import billing as billing_routes
 from .routes import saas as saas_routes
 from .routes import approvals as approvals_routes
@@ -120,6 +121,7 @@ app = Server(
 # Register all routers
 app.include_router(meta_routes.router)
 app.include_router(paddle_webhook_routes.router)
+app.include_router(accounting_routes.router)
 app.include_router(billing_routes.router)
 app.include_router(saas_routes.router)
 app.include_router(approvals_routes.router)
