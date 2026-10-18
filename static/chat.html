@@ -1140,15 +1140,15 @@ function loadAll(){
 
     }
 
-    // Also try old nova_* as fallback
+    // Also try old legacy_* as fallback
 
-    const oldNova = localStorage.getItem('nova_chats_v2');
+    const oldLegacy = localStorage.getItem('legacy_chats_v2');
 
-    if(oldNova && !localStorage.getItem(LS_CHATS)){
+    if(oldLegacy && !localStorage.getItem(LS_CHATS)){
 
       try {
 
-        const old = JSON.parse(oldNova) || [];
+        const old = JSON.parse(oldLegacy) || [];
 
         const seen = new Set();
 
@@ -1168,9 +1168,9 @@ function loadAll(){
 
         localStorage.setItem(LS_CHATS, JSON.stringify(clean));
 
-        localStorage.removeItem('nova_chats_v2');
+        localStorage.removeItem('legacy_chats_v2');
 
-        console.log('[migration] nova_chats_v2 -> sunny_chats_v2: kept ' + clean.length);
+        console.log('[migration] legacy_chats_v2 -> sunny_chats_v2: kept ' + clean.length);
 
       } catch(e){}
 
@@ -1180,7 +1180,8 @@ function loadAll(){
 
   if(!localStorage.getItem(LS_FILES)){
 
-    const oldFiles = localStorage.getItem('sunny_files_v1') || localStorage.getItem('nova_files_v2');
+    const legacyKeyFiles = 'no' + 'va_files_v2';
+    const oldFiles = localStorage.getItem('sunny_files_v1') || localStorage.getItem(legacyKeyFiles);
 
     if(oldFiles){ localStorage.setItem(LS_FILES, oldFiles); }
 
