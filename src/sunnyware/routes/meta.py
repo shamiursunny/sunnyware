@@ -297,10 +297,15 @@ async def metrics_flush():
 
 @router.get("/ui", response_class=None)
 async def web_ui():
-    """Minimal chat web UI."""
-    from fastapi.responses import HTMLResponse
-    from .. import webui
-    return HTMLResponse(webui.HTML)
+    """Nova AI Chat UI (Part 193)."""
+    from pathlib import Path as _P
+    from fastapi.responses import HTMLResponse as _HR
+    here = _P(__file__).resolve()
+    root = here.parent.parent.parent.parent
+    p = root / "static" / "chat.html"
+    if p.exists():
+        return _HR(p.read_text(encoding="utf-8"))
+    return _HR("<h1>Chat UI not found</h1>")
 
 @router.get("/api/firewall/status")
 async def firewall_status():
