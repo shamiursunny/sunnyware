@@ -816,7 +816,11 @@ function msgEl(m){
   div.innerHTML=(isAI?'<div class="msg-avatar ai">N</div>':'')+
    `<div class="msg-body">
       <div class="msg-role">${isAI?esc($('#modelName').textContent):'You'}${editedTag}</div>
-      <div class="msg-bubble"><div class="msg-text">${mdLite(m.text)}</div>${attachChipsEl(m.attachments)}${art}</div>
+      <div class="msg-bubble"><div class="msg-text">${mdLite(m.text)}${(m.toolImages||[]).map(img=>{
+        let src = img.url || (img.base64 ? 'data:image/'+img.format+';base64,'+img.base64 : '');
+        if(!src) return '';
+        return '<div style="margin:12px 0;"><img src="'+src+'" alt="'+(img.prompt||'image')+'" style="max-width:100%;border-radius:8px;border:1px solid var(--border);" onerror="this.style.display=\'none\'" /><div style="margin-top:6px;font-size:11px;color:var(--text-tertiary);">'+esc((img.prompt||'Generated image').slice(0,100))+'</div></div>';
+      }).join('')}</div>${attachChipsEl(m.attachments)}${art}</div>
       ${isAI?`<div class="msg-actions">
         <button class="icon-btn a-copy" title="Copy">${ICONS.copy}</button>
         <button class="icon-btn a-like ${m.liked===1?'liked':''}" title="Good response">${ICONS.like}</button>
@@ -1037,6 +1041,23 @@ async function streamAI(chat, prompt) {
           const name = ev.name || ev.tool || 'tool';
           const t = aiMsg.tools.find(x => x.name === name && x.status === 'running');
           if(t) { t.status = 'done'; t.result = ev.result || ev.output || ''; }
+          // Capture image data from image_generate tool
+          try {
+            const res = ev.result || ev.output || {};
+            if(name === 'image_generate' && res){
+              if(!aiMsg.toolImages) aiMsg.toolImages = [];
+              aiMsg.toolImages.push({
+                base64: res.image_base64 || '',
+                format: res.image_format || 'jpeg',
+                url: res.attachment_url || '',
+                prompt: res.prompt || '',
+                model: res.model || 'flux',
+                w: res.width || 0,
+                h: res.height || 0
+              });
+              console.log('[image] captured from tool_result:', res.attachment_url || 'base64', res.image_bytes || '?', 'bytes');
+            }
+          } catch(e) { console.warn('[image] capture failed:', e); }
           if(firstContent) { textEl.replaceChildren(); firstContent = false; }
           sunnyRenderStreaming(textEl, aiMsg, accumulatedText);
 
@@ -1068,11 +1089,47 @@ async function streamAI(chat, prompt) {
     if(!accumulatedText) accumulatedText = '(no response)';
     aiMsg.text = accumulatedText;
     const finalPills = aiMsg.tools.length ? '<div style="margin-bottom:6px;">'+sunnyRenderToolPills(aiMsg)+'</div>' : '';
-    textEl.innerHTML = finalPills + mdLite(aiMsg.text);
+    // Strip image markdown from LLM text if we have real tool images (LLM hallucinates URLs)
+    let displayText = aiMsg.text;
+    if(aiMsg.toolImages && aiMsg.toolImages.length){
+      displayText = displayText.replace(/!\[[^\]]*\]\([^)\s]+\)/g, '').trim();
+      if(!displayText) displayText = 'Here is your generated image.';
+    }
+    // Render image(s) from tool data (guaranteed to work)
+    const toolImagesHtml = (aiMsg.toolImages || []).map((img, i) => {
+      let src = '';
+      if(img.url && /^https?:/.test(img.url)) src = img.url;
+      else if(img.url) src = img.url; // relative /api/attachments/... (browser will resolve)
+      else if(img.base64) src = 'data:image/' + img.format + ';base64,' + img.base64;
+      if(!src) return '';
+      const label = (img.prompt || 'Generated image').slice(0, 100);
+      return '<div style="margin:12px 0;">'
+        + '<img src="' + src + '" alt="' + esc(label) + '" style="max-width:100%;border-radius:8px;border:1px solid var(--border);" onerror="this.style.display=\'none\'" />'
+        + '<div style="margin-top:6px;font-size:11px;color:var(--text-tertiary);">' + esc(label) + ' · ' + esc(img.model || 'flux') + (img.w ? ' · ' + img.w + '×' + img.h : '') + '</div>'
+        + '</div>';
+    }).join('');
+
+    textEl.innerHTML = finalPills + mdLite(displayText) + toolImagesHtml;
     if(actionsEl) actionsEl.style.visibility = 'visible';
     bindCodeCopy(textEl);
 
-    // Auto-save any image/attachment URLs from AI response into Library
+    // Auto-save tool images + any markdown URLs to Library
+    if(aiMsg.toolImages && aiMsg.toolImages.length){
+      for(const img of aiMsg.toolImages){
+        const url = img.url || (img.base64 ? 'data:image/' + img.format + ';base64,' + img.base64 : '');
+        if(!url) continue;
+        const exists = files.find(x => x.url === url || (x.dataUrl && x.dataUrl === url));
+        if(exists) continue;
+        files.unshift({
+          id: uid(), name: (img.prompt || 'image').slice(0, 40) + '.' + (img.format || 'jpeg'),
+          type: 'image', kind: 'generated', size: Math.round((img.base64 || '').length * 0.75),
+          date: new Date().toISOString(), url: img.url || '', dataUrl: url,
+          mime: 'image/' + (img.format || 'jpeg')
+        });
+      }
+      saveAll();
+      try { renderLibrary(); } catch(e) {}
+    }
     autoSaveAttachmentsFromMessage(aiMsg.text, chat);
 
   } catch(err) {
