@@ -60,29 +60,22 @@ async def root(request: Request):
         from fastapi.responses import RedirectResponse
         return RedirectResponse(url="/admin?" + request.url.query)
 
-    return {
-        "name": "sunnyware",
-        "version": meta.PROJECT_VERSION,
-        "author": {
-            "name": meta.AUTHOR_NAME,
-            "email": meta.AUTHOR_EMAIL,
-            "phone": meta.AUTHOR_PHONE,
-            "website": meta.AUTHOR_WEBSITE,
-            "github": meta.AUTHOR_GITHUB,
-        },
-        "copyright": meta.COPYRIGHT,
-        "license": meta.LICENSE_ID,
-        "architecture": "part-12alt-refactor",
-        "endpoints": [
-            "/", "/about", "/health/live", "/health/ready",
-            "/api/agent/run", "/api/agent/run/stream", "/api/agent/plan",
-            "/api/tools", "/api/tools/{name}",
-            "/api/sessions", "/api/sessions/{key}",
-            "/api/sessions/{key}/history", "/api/sessions/{key}/export",
-            "/api/sessions/{key}/rewind",
-            "/api/memory/context",
-        ],
-    }
+    from pathlib import Path as _P
+    from fastapi.responses import HTMLResponse as _HR
+    here = _P(__file__).resolve()
+    root = here.parent.parent.parent.parent
+    p = root / "static" / "index.html"
+    if p.exists():
+        return _HR(p.read_text(encoding="utf-8"))
+    return _HR("<h1>Sunnyware API is running</h1>")
+
+@router.get("/terms", response_class=HTMLResponse)
+async def terms_page():
+    return HTMLResponse("<div style='background:#0b0d12;color:#fff;padding:40px;font-family:sans-serif;'><h1>Terms of Service</h1><p>Your terms go here...</p></div>")
+
+@router.get("/privacy", response_class=HTMLResponse)
+async def privacy_page():
+    return HTMLResponse("<div style='background:#0b0d12;color:#fff;padding:40px;font-family:sans-serif;'><h1>Privacy Policy</h1><p>Your privacy policy goes here...</p></div>")
 
 
 @router.get("/about", response_class=HTMLResponse)
