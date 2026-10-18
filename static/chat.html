@@ -711,12 +711,15 @@ function selectChat(id){
   renderChatList($('#searchInput').value);
   renderMessages();
   if(chat && chat.isServer){
-    // Ensure sessionId is the session_key for continuation
     chat.sessionId = chat.sessionKey || chat.sessionUuid || chat.sessionId;
     if(!chat.messages || chat.messages.length === 0){
       loadServerHistory(chat).then(() => {
-        renderMessages();
-        console.log('[selectChat] history loaded for', chat.sessionKey, '→', chat.messages.length, 'messages');
+        if(activeChatId === id){
+          renderMessages();
+          renderChatList($('#searchInput').value);
+          scrollBottom();
+          console.log('[selectChat] history loaded for', chat.sessionKey, '→', chat.messages.length, 'messages');
+        }
       });
     }
   }
@@ -1347,7 +1350,6 @@ async function loadServerSessions() {
 async function loadServerHistory(chat) {
   if(!chat) return;
   if(chat.messages && chat.messages.length > 0) return;
-  // Backend ONLY supports session_key (UUID returns 404)
   const key = chat.sessionKey || chat.sessionId;
   if(!key) return;
 
@@ -1361,6 +1363,7 @@ async function loadServerHistory(chat) {
 
   try {
     const events = data.events || [];
+    let userMsgs = 0, aiMsgs = 0;
 
     for(const ev of events){
       let payload = ev.payload;
@@ -1369,21 +1372,40 @@ async function loadServerHistory(chat) {
       }
       if(!payload) payload = {};
 
-      const evType = ev.type || ev.kind || '';
+      // Backend uses ev.event_type; also try type/kind as fallback
+      const evType = ev.event_type || ev.type || ev.kind || '';
       const content = payload.content || payload.text || payload.answer || '';
       if(!content) continue;
 
+      // USER messages
       if(evType === 'user_message' || evType === 'user' || evType === 'input'){
         chat.messages.push({ id: uid(), role: 'user', text: content });
-      } else if(evType === 'ai_message' || evType === 'ai' || evType === 'answer' || evType === 'output'){
+        userMsgs++;
+      }
+      // AI messages — backend uses "assistant_message"
+      else if(evType === 'assistant_message' || evType === 'ai_message' || evType === 'ai' || evType === 'answer' || evType === 'output'){
         chat.messages.push({ id: uid(), role: 'ai', text: content });
+        aiMsgs++;
+      }
+    }
+
+    // If title is generic, use first user message as title
+    const titleMatch = /^Chat (sunny-|[0-9a-f]{8}|\d+|web-)/;
+    if(titleMatch.test(chat.title || '') && userMsgs > 0){
+      const firstUser = chat.messages.find(m => m.role === 'user');
+      if(firstUser && firstUser.text){
+        const newTitle = firstUser.text.slice(0, 40).trim();
+        if(newTitle.length > 3){
+          chat.title = newTitle;
+          console.log('[history] title updated to:', newTitle);
+        }
       }
     }
 
     saveAll();
-    console.log('[history] loaded', chat.messages.length, 'messages for', chat.sessionUuid);
+    console.log('[history] parsed', userMsgs, 'user +', aiMsgs, 'ai =', chat.messages.length, 'messages');
   } catch(e) {
-    console.error('[history] error:', e);
+    console.error('[history] parse error:', e);
   }
 }
 
