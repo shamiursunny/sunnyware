@@ -51,13 +51,25 @@ async def create_checkout_url(org_id: str, plan_id: str,
     try:
         import httpx
         async with httpx.AsyncClient(timeout=15.0) as cli:
+            # Part 201: explicitly pass success_url and cancel_url so Paddle
+            # redirects back to the admin panel with ?checkout=success|cancel
+            # (instead of its default ?ptxn=... URL which we can't handle)
+            body = {
+                "items": [{"price_id": price_id, "quantity": 1}],
+                "collection_mode": "automatic",
+                "custom_data": {"org_id": org_id, "plan_id": plan_id},
+            }
+            # Paddle accepts these in a "checkout" object (Billing API)
+            if success_url or cancel_url:
+                body["checkout"] = {}
+                if success_url:
+                    body["checkout"]["success_url"] = success_url
+                if cancel_url:
+                    body["checkout"]["cancel_url"] = cancel_url
+
             r = await cli.post(
                 _base_url() + "/transactions",
-                json={
-                    "items": [{"price_id": price_id, "quantity": 1}],
-                    "collection_mode": "automatic",
-                    "custom_data": {"org_id": org_id, "plan_id": plan_id},
-                },
+                json=body,
                 headers={
                     "Authorization": "Bearer " + _api_key(),
                     "Content-Type": "application/json",

@@ -600,6 +600,27 @@ async function rejectReq(id) {
 // INIT
 // ═════════════════════════════════════════════════════════════════
 async function init() {
+  // Part 201: handle Paddle redirect params
+  const params = new URLSearchParams(window.location.search);
+  const checkoutStatus = params.get('checkout');
+  const ptxn = params.get('ptxn');
+  const simulated = params.get('simulated');
+
+  if (checkoutStatus === 'success' || ptxn || simulated) {
+    // Clean URL so refresh doesn't re-trigger
+    window.history.replaceState({}, '', window.location.pathname);
+    // Show toast after a short delay
+    setTimeout(() => {
+      if (checkoutStatus === 'cancel') {
+        toast('Checkout cancelled', 'error');
+      } else if (simulated) {
+        toast('Checkout simulated (Paddle not configured)', 'success');
+      } else {
+        toast('Payment successful — subscription active', 'success');
+      }
+    }, 500);
+  }
+
   if (!API_KEY) {
     $('login-section').style.display = 'block';
     $('admin-section').classList.add('hidden');
@@ -612,13 +633,22 @@ async function init() {
     $('admin-section').classList.remove('hidden');
     $('sidebar').style.display = 'block';
     $('who').textContent = 'Admin';
-    // Preload ACC state
     try { ACC_STATE = await api('/api/acc/state'); } catch(e) {}
     nav('dashboard');
   } catch(e) {
-    $('login-section').style.display = 'block';
-    $('admin-section').classList.add('hidden');
-    $('sidebar').style.display = 'none';
+    console.error('[init] dashboard failed:', e);
+    // Only force login if the key is truly invalid
+    if (e.message === 'Unauthorized' || e.message === 'Forbidden') {
+      $('login-section').style.display = 'block';
+      $('admin-section').classList.add('hidden');
+      $('sidebar').style.display = 'none';
+    } else {
+      // Transient error — show login but preserve key
+      toast('Connection issue: ' + e.message + ' (click Authenticate to retry)', 'error');
+      $('login-section').style.display = 'block';
+      $('admin-section').classList.add('hidden');
+      $('sidebar').style.display = 'none';
+    }
   }
 }
 
