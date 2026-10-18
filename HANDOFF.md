@@ -2174,3 +2174,12 @@ Config:
 ## Part 198: Safe-Tool Bypass for HITL
 - Fixed a bug where `web_search` (and other read-only tools) would hang for 120 seconds waiting for HITL (Human In The Loop) approval.
 - Updated `orchestrator.py` to bypass HITL for a predefined `_SAFE_READ_TOOLS` set.
+
+---
+
+# Part 199d Update (2026-10-18): HITL Polish
+
+- **Anti-Retry Rule**: Injected a strict "CRITICAL TOOL RULE" into the orchestrator system prompt. If a tool returns `approval_timeout`, `tool_denied`, or `approval_rejected`, the LLM is forbidden from calling it again in the same turn.
+- **Frontend Deduplication**: `chat.html` now dedupes tool pills by `(name + args)` to prevent duplicate UI elements if the backend emits duplicate events.
+- **Frontend Error States**: Tool pills now turn red (error state) on HITL timeouts instead of showing an infinite loading spinner.
+- **Verified**: Chat with `forced_tool=python_eval` now completes in ~10s with exactly 1 `tool_call` and 1 `tool_result`.
