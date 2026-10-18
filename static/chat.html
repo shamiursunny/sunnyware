@@ -592,6 +592,11 @@ input,textarea{font-family:inherit}
 
 }
 
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.2); opacity: 0.7; }
+  100% { transform: scale(1); opacity: 1; }
+}
 </style>
 
 </head>
@@ -2654,7 +2659,81 @@ $('#fileInput').onchange=e=>{
 
 };
 
-$('#micBtn').onclick=function(){ this.style.color='var(--danger)'; toast('Listening... (simulated in preview)'); setTimeout(()=>this.style.color='',2500); };
+// Part 195: Real Voice Input via Web Speech API
+let _recognition = null;
+let _isListening = false;
+
+$('#micBtn').onclick = function() {
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  
+  if (!SpeechRecognition) {
+    toast('Voice input is not supported in this browser. Try Chrome or Edge.');
+    return;
+  }
+
+  const btn = this;
+
+  if (_isListening) {
+    if (_recognition) _recognition.stop();
+    return;
+  }
+
+  if (!_recognition) {
+    _recognition = new SpeechRecognition();
+    _recognition.continuous = false;
+    _recognition.interimResults = true;
+    _recognition.lang = 'en-US';
+
+    _recognition.onstart = function() {
+      _isListening = true;
+      btn.style.color = 'var(--danger)';
+      btn.style.animation = 'pulse 1.5s infinite';
+      toast('Listening... Speak now.');
+    };
+
+    _recognition.onresult = function(event) {
+      const input = $('#chatInput');
+      let finalTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; ++i) {
+        if (event.results[i].isFinal) {
+          finalTranscript += event.results[i][0].transcript;
+        }
+      }
+
+      if (finalTranscript) {
+        const currentText = input.value.trim();
+        input.value = currentText ? currentText + ' ' + finalTranscript : finalTranscript;
+        // Trigger input event to auto-resize and enable send button
+        input.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    };
+
+    _recognition.onerror = function(event) {
+      console.warn('[voice] error:', event.error);
+      if (event.error === 'not-allowed') {
+        toast('Microphone access denied. Please allow it in your browser settings.');
+      } else if (event.error !== 'no-speech') {
+        toast('Voice error: ' + event.error);
+      }
+    };
+
+    _recognition.onend = function() {
+      _isListening = false;
+      btn.style.color = '';
+      btn.style.animation = '';
+    };
+  }
+
+  try {
+    _recognition.start();
+  } catch(e) {
+    console.warn('[voice] start error:', e);
+    _isListening = false;
+    btn.style.color = '';
+    btn.style.animation = '';
+  }
+};
 
 
 
