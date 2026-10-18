@@ -2742,13 +2742,9 @@ async function loadRoles() {
     const res = await fetch('/api/roles');
 
     if(res.status === 401){
-
-      console.warn('[roles] 401 — invalid API key, showing auth banner');
-
-      showAuthBanner();
-
+      console.warn('[roles] 401 — invalid API key');
+      handle401();
       return;
-
     }
 
     if(!res.ok){ console.warn('[roles] HTTP', res.status); return; }
@@ -2855,6 +2851,11 @@ async function loadServerSessions() {
 
     const res = await fetch('/api/sessions');
 
+    if(res.status === 401) {
+      console.warn('[sessions] 401 — invalid API key');
+      handle401();
+      return;
+    }
     if(!res.ok){ console.warn('[sessions] HTTP', res.status); return; }
 
     const data = await res.json();
@@ -3345,6 +3346,13 @@ async function syncSessionsFromServer(){
 
 
 
+
+function handle401() {
+  console.warn('[auth] 401 Unauthorized. Clearing invalid key and reloading for login...');
+  localStorage.removeItem('sunnyware_admin_key');
+  location.reload();
+}
+
 function showAuthBanner(){
 
   let b = document.getElementById('authBanner');
@@ -3357,7 +3365,7 @@ function showAuthBanner(){
 
   b.style.cssText = 'position:fixed;top:0;left:0;right:0;background:#ef5b5b;color:#fff;padding:10px 20px;text-align:center;z-index:9999;font-size:13px;display:flex;align-items:center;justify-content:center;gap:12px;';
 
-  b.innerHTML = '<span>API key is invalid or missing — cannot sync data</span><button onclick="location.reload()" style="background:#fff;color:#ef5b5b;border:0;padding:6px 12px;border-radius:6px;font-weight:600;cursor:pointer;">Re-login</button>';
+  b.innerHTML = '<span>API key is invalid or missing — cannot sync data</span><button onclick="localStorage.removeItem(\'sunnyware_admin_key\'); location.reload();" style="background:#fff;color:#ef5b5b;border:0;padding:6px 12px;border-radius:6px;font-weight:600;cursor:pointer;">Re-login</button>';
 
   document.body.prepend(b);
 
