@@ -638,11 +638,9 @@ $('#optDelete').onclick=()=>{
 /* ==================== MARKDOWN LITE ==================== */
 function mdLite(text){
   let t=esc(text);
-  t=t.replace(/```(\w*)
-([\s\S]*?)```/g,(m,l,code)=>'<div class="code-block"><div class="code-head"><span>'+(l||'code')+'</span><button class="code-copy">Copy</button></div><pre><code>'+code.trim()+'</code></pre></div>');
+  t=t.replace(/```(\w*)\n([\s\S]*?)```/g,(m,l,code)=>'<div class="code-block"><div class="code-head"><span>'+(l||'code')+'</span><button class="code-copy">Copy</button></div><pre><code>'+code.trim()+'</code></pre></div>');
   t=t.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
-  t=t.replace(/`([^`
-]+)`/g,'<code>$1</code>');
+  t=t.replace(/`([^`\n]+)`/g,'<code>$1</code>');
   return t;
 }
 
@@ -869,9 +867,7 @@ async function streamAI(chat, prompt) {
 
       buffer += decoder.decode(value, { stream: true });
       const events = sunnyParseSSE(buffer);
-      const lastBoundary = buffer.lastIndexOf('
-
-');
+      const lastBoundary = buffer.lastIndexOf('\n\n');
       if(lastBoundary >= 0) buffer = buffer.slice(lastBoundary + 2);
 
       for(const ev of events) {
