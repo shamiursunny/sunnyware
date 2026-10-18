@@ -403,10 +403,14 @@ async def _execute_tool_raw(tool_name: str, tool_args: dict) -> dict:
     # Part 180: HITL Interceptor
     try:
         from . import approval_store as _as
-        # Part 198: Safe read-only tools should NEVER require manual HITL approval
-        _SAFE_READ_TOOLS = {"web_search", "calculator", "python_eval", "current_time", "weather", "web_fetch", "pdf_read"}
-        if _as.requires_approval(tool_name) and tool_name not in _SAFE_READ_TOOLS:
-            req = _as.create_request(tool_name, tool_args)
+        from . import hitl_config as _hc
+        # Part 199: Use hitl_config for auto/approve/deny decisions
+        _user_key = _hc.current_user_key.get() or ""
+        _decision = _hc.get_decision(tool_name, _user_key)
+        if _decision == "deny":
+            return {"error": "tool_denied", "detail": f"Tool '{tool_name}' is disabled for this user."}
+        if _decision == "approve":
+            req = _as.create_request(tool_name, tool_args, user_key=_user_key)
             req_id = req["id"]
             import asyncio
             # Wait up to 120 seconds (60 * 2s)

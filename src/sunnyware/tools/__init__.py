@@ -83,10 +83,12 @@ from .risk_metrics import RiskMetricsTool
 from .legal_citation_check import LegalCitationCheckTool
 from .delegate_to_agent import DelegateToAgentTool
 from .auditor_full_spec import AuditorFullSpecTool
+from .hitl_config_update import HitlConfigUpdateTool
 
 
 _TOOLS = {
     EchoTool.name: EchoTool(),
+    HitlConfigUpdateTool.name: HitlConfigUpdateTool(),
     CurrentTimeTool.name: CurrentTimeTool(),
     ReadFileTool.name: ReadFileTool(),
     WriteFileTool.name: WriteFileTool(),

@@ -504,6 +504,31 @@ async def agent_stream(req: Request):
     role = body.get("role")   # Part 112/113B: role persona
     attachments = body.get("attachments", [])
 
+    # Part 199: extract user_key and set contextvar for HITL decisions
+    _user_key = ""
+    _tok = req.headers.get("X-API-Key", "")
+    if not _tok:
+        _auth = req.headers.get("Authorization", "")
+        if _auth.startswith("Bearer "):
+            _tok = _auth[7:]
+    if _tok:
+        if "." in _tok and len(_tok) > 20:
+            try:
+                from .auth import verify_jwt
+                _email = verify_jwt(_tok)
+                if _email:
+                    _user_key = f"user:{_email}"
+            except Exception:
+                pass
+        if not _user_key:
+            _user_key = _tok
+    try:
+        from .. import hitl_config as _hc
+        _hc.current_user_key.set(_user_key)
+    except Exception:
+        pass
+
+
 
     forced_tool = body.get("forced_tool", "")
     if forced_tool:

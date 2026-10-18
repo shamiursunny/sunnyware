@@ -106,6 +106,7 @@ button.ghost { background: rgba(255,255,255,0.05); color: var(--text); border: 1
     <div class="nav-item" data-tab="organizations">Organizations</div>
     <div class="nav-item" data-tab="users">Users (SSO)</div>
     <div class="nav-item" data-tab="approvals">HITL Approvals</div>
+    <div class="nav-item" data-tab="hitl-config">HITL Config</div>
   </div>
 
   <div class="nav-group">
@@ -250,6 +251,7 @@ function nav(tab) {
     organizations: 'Organizations',
     users: 'Users (SSO)',
     approvals: 'HITL Approvals',
+    'hitl-config': 'HITL Config',
     customers: 'Customers',
     plans: 'Plans',
     invoices: 'Invoices',
@@ -274,6 +276,7 @@ function nav(tab) {
     organizations: renderOrganizations,
     users: renderUsers,
     approvals: renderApprovals,
+    'hitl-config': renderHitlConfig,
     customers: renderCustomers,
     plans: renderPlans,
     invoices: renderInvoices,
@@ -469,6 +472,109 @@ async function renderApprovals() {
     </table>
     `}
   `;
+}
+
+
+// ═══════════════════════════════════════════════════════════════
+// PART 199: HITL Config
+// ═══════════════════════════════════════════════════════════════
+async function renderHitlConfig() {
+  const d = await api('/api/hitl/tools');
+  const tools = d.tools || [];
+  const globalMap = d.global || {};
+  const overrides = d.overrides || {};
+  const effective = d.effective || {};
+  const selectedUser = window._hitlUser || '';
+
+  const rows = tools.map(toolName => {
+    let decision;
+    if (selectedUser) {
+      decision = (overrides[selectedUser] && overrides[selectedUser][toolName]) || globalMap[toolName] || effective[toolName] || 'auto';
+    } else {
+      decision = globalMap[toolName] || effective[toolName] || 'auto';
+    }
+    const isOverride = selectedUser && overrides[selectedUser] && overrides[selectedUser][toolName];
+    return `<tr>
+      <td><strong>${esc(toolName)}</strong>${isOverride ? ' <span style="color:var(--accent);font-size:10px;">(override)</span>' : ''}</td>
+      <td>
+        <select data-tool="${esc(toolName)}" onchange="setHitlDecision('${esc(toolName)}', this.value)">
+          <option value="auto" ${decision==='auto'?'selected':''}>Auto</option>
+          <option value="approve" ${decision==='approve'?'selected':''}>Approve</option>
+          <option value="deny" ${decision==='deny'?'selected':''}>Deny</option>
+        </select>
+      </td>
+    </tr>`;
+  }).join('');
+
+  $('content').innerHTML = `
+    <h2>HITL Config</h2>
+    <p style="color:var(--muted);margin-bottom:16px;">
+      Control which tools require manual approval. Safe read-only tools default to <strong>Auto</strong>.
+      ${selectedUser ? `<span style="color:var(--accent);">Editing overrides for <strong>${esc(selectedUser)}</strong></span>` : ''}
+    </p>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="title">Bulk Actions (${selectedUser ? 'for ' + esc(selectedUser) : 'Global'})</div>
+      <button class="success small" onclick="bulkHitl('auto')">Set All → Auto</button>
+      <button class="small" onclick="bulkHitl('approve')">Set All → Approve</button>
+      <button class="danger small" onclick="bulkHitl('deny')">Set All → Deny</button>
+      <button class="ghost small" onclick="resetHitl()" style="margin-left:8px;">Reset All</button>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="title">Per-User Override</div>
+      <p style="font-size:12px;color:var(--muted);margin:0 0 8px 0;">
+        Enter a user key (e.g. <code>user:alice@company.com</code>) to set rules for one user only.
+      </p>
+      <input id="hitl-user-input" placeholder="user:email@company.com" value="${esc(selectedUser)}" style="width:100%;margin-bottom:8px;">
+      <button class="small" onclick="applyUserFilter()">Apply Filter</button>
+      <button class="ghost small" onclick="clearUserFilter()">Clear (Global)</button>
+    </div>
+
+    <div class="card">
+      <div class="title">Tools (${tools.length} total)</div>
+      <div style="max-height:500px;overflow-y:auto;">
+        <table>
+          <thead><tr><th>Tool</th><th style="width:150px;">Decision</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+async function setHitlDecision(tool, decision) {
+  const userKey = window._hitlUser || null;
+  await api('/api/hitl/config', 'POST', { tool, decision, user_key: userKey });
+  toast(tool + ' → ' + decision, 'success');
+}
+
+async function bulkHitl(decision) {
+  const userKey = window._hitlUser || null;
+  const target = userKey ? 'for ' + userKey : 'globally';
+  if (!confirm('Set ALL tools to "' + decision + '" ' + target + '?')) return;
+  await api('/api/hitl/config/bulk', 'POST', { decision, user_key: userKey });
+  toast('All tools → ' + decision, 'success');
+  nav('hitl-config');
+}
+
+async function resetHitl() {
+  if (!confirm('Reset all HITL config to defaults?')) return;
+  await api('/api/hitl/config/reset', 'POST');
+  toast('Reset complete', 'success');
+  nav('hitl-config');
+}
+
+function applyUserFilter() {
+  let u = (document.getElementById('hitl-user-input').value || '').trim();
+  if (u && !u.startsWith('user:') && u.includes('@')) u = 'user:' + u;
+  window._hitlUser = u;
+  nav('hitl-config');
+}
+
+function clearUserFilter() {
+  window._hitlUser = '';
+  nav('hitl-config');
 }
 
 async function approveReq(id) {

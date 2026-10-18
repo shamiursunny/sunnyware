@@ -20,6 +20,7 @@ import uvicorn
 from . import meta
 from .runtime import state, init_state, log
 from . import state as app_state
+from .routes import hitl as hitl_routes
 from .routes import meta as meta_routes
 from .routes import paddle_webhook as paddle_webhook_routes
 from .routes import accounting as accounting_routes
@@ -125,6 +126,7 @@ app.include_router(accounting_routes.router)
 app.include_router(billing_routes.router)
 app.include_router(saas_routes.router)
 app.include_router(approvals_routes.router)
+app.include_router(hitl_routes.router)
 app.include_router(sso_routes.router)
 app.include_router(agent_routes.router)
 app.include_router(tools_routes.router)

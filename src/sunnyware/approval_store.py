@@ -51,15 +51,19 @@ def _save(items: dict) -> bool:
     except Exception:
         return False
 
-def requires_approval(tool_name: str) -> bool:
-    """Check if a tool is in the HITL list. Env: SUNNYWARE_HITL_TOOLS=tool1,tool2"""
-    raw = (os.getenv("SUNNYWARE_HITL_TOOLS") or "").strip()
-    if not raw:
-        return False
-    tools = [t.strip() for t in raw.split(",") if t.strip()]
-    return tool_name in tools
+def requires_approval(tool_name: str, user_key: str = "") -> bool:
+    """Part 199: Delegates to hitl_config for auto/approve/deny decisions."""
+    try:
+        from . import hitl_config
+        return hitl_config.get_decision(tool_name, user_key) == "approve"
+    except Exception:
+        raw = (os.getenv("SUNNYWARE_HITL_TOOLS") or "").strip()
+        if not raw:
+            return False
+        tools = [t.strip() for t in raw.split(",") if t.strip()]
+        return tool_name in tools
 
-def create_request(tool_name: str, args: dict) -> dict:
+def create_request(tool_name: str, args: dict, user_key: str = "") -> dict:
     items = _load()
     req_id = "req_" + secrets.token_hex(8)
     now = time.time()
@@ -67,6 +71,7 @@ def create_request(tool_name: str, args: dict) -> dict:
         "id": req_id,
         "tool": tool_name,
         "args": args,
+        "user_key": user_key,
         "status": "pending",
         "created_at": now,
         "resolved_at": None,
