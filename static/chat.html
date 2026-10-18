@@ -324,6 +324,9 @@ input,textarea{font-family:inherit}
         <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
         <svg id="iconSun" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
       </button>
+      <button class="icon-btn" id="logoutBtn" title="Change API Key">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+      </button>
     </div>
   </aside>
 
@@ -523,6 +526,15 @@ function applyTheme(t){
 applyTheme(localStorage.getItem(LS_THEME)||'dark');
 $('#themeToggle').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
 
+// Logout / change API key handler
+document.addEventListener('click', function(e) {
+  if(e.target.closest('#logoutBtn')){
+    if(!confirm('Clear your API key and log out? You will be asked to enter a new one.')) return;
+    localStorage.removeItem('sunnyware_admin_key');
+    location.reload();
+  }
+});
+
 /* ==================== STORAGE ==================== */
 function saveAll(){ try{ localStorage.setItem(LS_CHATS,JSON.stringify(chats)); localStorage.setItem(LS_FILES,JSON.stringify(files)); }catch(e){ toast('Storage full — large files kept for this session only'); } }
 function loadAll(){
@@ -638,8 +650,15 @@ function selectChat(id){
   }
   renderChatList($('#searchInput').value);
   renderMessages();
-  if(chat && chat.isServer && (!chat.messages || chat.messages.length === 0)){
-    loadServerHistory(chat).then(() => renderMessages());
+  if(chat && chat.isServer){
+    // Ensure sessionId is the session_key for continuation
+    chat.sessionId = chat.sessionKey || chat.sessionUuid || chat.sessionId;
+    if(!chat.messages || chat.messages.length === 0){
+      loadServerHistory(chat).then(() => {
+        renderMessages();
+        console.log('[selectChat] history loaded for', chat.sessionKey, '→', chat.messages.length, 'messages');
+      });
+    }
   }
   setView('chat');
 }
@@ -1204,24 +1223,33 @@ async function loadServerSessions() {
     let added = 0;
 
     for(const s of sessions){
-      const sid = s.id || s.session_id || s.key || '';
-      if(!sid) continue;
-      const exists = chats.find(c => c.sessionUuid === sid || c.id === sid || c.id === 'srv-' + sid);
+      const sid = s.id || s.session_id || '';
+      const skey = s.session_key || s.id || '';
+      if(!sid && !skey) continue;
+
+      let meta = {};
+      try { meta = JSON.parse(s.metadata || '{}'); } catch(e) {}
+      const role = meta.role || s.role || '';
+      const metaTitle = meta.title || '';
+
+      const exists = chats.find(c => c.sessionUuid === skey || c.sessionKey === skey || c.id === 'srv-' + (sid || skey));
       if(exists) continue;
 
-      const title = s.title || s.name || ('Chat ' + String(sid).slice(0, 8));
+      const title = metaTitle || s.title || s.name || ('Chat ' + String(skey).slice(0, 12));
       const updated = s.updated_at || s.updated || s.created_at || s.created || new Date().toISOString();
 
       chats.push({
-        id: 'srv-' + sid,
+        id: 'srv-' + (sid || skey),
         sessionUuid: sid,
+        sessionKey: skey,
+        sessionId: skey,
         title: title,
         created: s.created_at || updated,
         updated: updated,
         branched: false,
         isServer: true,
         messages: [],
-        role: s.role || ''
+        role: role
       });
       added++;
     }
@@ -1231,6 +1259,8 @@ async function loadServerSessions() {
       saveAll();
       renderChatList($('#searchInput').value);
       console.log('[sessions] loaded', added, 'server sessions');
+      // Force re-render after a tick to ensure DOM updated
+      setTimeout(() => { try { renderChatList($('#searchInput').value); } catch(e) { console.warn(e); } }, 50);
     }
   } catch(e) {
     console.error('[sessions] error:', e);
@@ -1238,12 +1268,23 @@ async function loadServerSessions() {
 }
 
 async function loadServerHistory(chat) {
-  if(!chat || !chat.sessionUuid) return;
+  if(!chat) return;
   if(chat.messages && chat.messages.length > 0) return;
+  // Try UUID first (backend uses id), then session_key
+  const keys = [chat.sessionUuid, chat.sessionKey, chat.sessionId].filter(Boolean);
+  if(!keys.length) return;
+
+  let data = null;
+  for(const key of keys){
+    try {
+      const res = await fetch('/api/sessions/' + encodeURIComponent(key) + '/history?limit=200');
+      if(res.ok){ data = await res.json(); console.log('[history] loaded via key:', key); break; }
+      else { console.warn('[history] HTTP', res.status, 'for key:', key); }
+    } catch(e) { console.warn('[history] fetch error:', e.message); }
+  }
+  if(!data) return;
+
   try {
-    const res = await fetch('/api/sessions/' + encodeURIComponent(chat.sessionUuid) + '/history?limit=200');
-    if(!res.ok){ console.warn('[history] HTTP', res.status); return; }
-    const data = await res.json();
     const events = data.events || [];
 
     for(const ev of events){
@@ -1273,8 +1314,12 @@ async function loadServerHistory(chat) {
 
 /* ==================== INIT ==================== */
 loadAll(); renderChatList(); renderMessages(); renderLibrary(); autoGrow();
-loadRoles();
-loadServerSessions();
+(async () => {
+  try { await loadRoles(); } catch(e) { console.warn('[init] roles failed:', e); }
+  try { await loadServerSessions(); } catch(e) { console.warn('[init] sessions failed:', e); }
+  // Final render after all data loaded
+  try { renderChatList($('#searchInput').value); } catch(e) {}
+})();
 </script>
 </body>
 </html>
