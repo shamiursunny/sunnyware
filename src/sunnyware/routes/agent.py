@@ -17,6 +17,43 @@ from .. import orchestrator
 from .. import planner
 from .. import guardrails as _guard
 
+def _set_analytics_user_from_request(req: Request) -> None:
+    """Part 214e: explicitly set analytics context inside the route handler.
+    This bypasses contextvar propagation issues across async tasks."""
+    try:
+        from .. import analytics_store as _as
+        from .. import saas_store as _s
+        user = getattr(req.state, "analytics_user", "") or ""
+        if not user:
+            key = req.headers.get("x-api-key") or ""
+            if not key:
+                authz = req.headers.get("authorization", "")
+                if authz.lower().startswith("bearer "):
+                    key = authz[7:].strip()
+            if key and key != "master-admin-key" and "." in key and len(key) > 20:
+                try:
+                    import base64 as _b64
+                    import json as _json
+                    b64 = key.split(".")[0]
+                    padded = b64 + "=" * (-len(b64) % 4)
+                    payload = _json.loads(_b64.urlsafe_b64decode(padded))
+                    user = payload.get("sub") or payload.get("email") or ""
+                except Exception:
+                    pass
+        org = ""
+        if user:
+            try:
+                o = _s.get_org_by_email(user)
+                if o:
+                    org = o.get("id", "")
+            except Exception:
+                pass
+        _as.set_current(user, org)
+        print(f"[analytics-route] set user={user!r} org={org!r}")
+    except Exception as e:
+        print(f"[analytics-route] failed to set context: {e}")
+
+
 def _auditor_verdict_or_none(role, content):
     """Part 146b: for the auditor role, extract and return the parsed
     JSON verdict as a structured object; otherwise return None.
@@ -239,6 +276,7 @@ def _record_token_usage(req: Request, tokens_used: int) -> None:
 
 @router.post("/api/agent/run")
 async def run_agent(req: Request):
+    _set_analytics_user_from_request(req)
     if not state["ready"]:
         return JSONResponse({"error": "server not ready"}, status_code=503)
 
@@ -377,6 +415,7 @@ async def run_agent(req: Request):
 
 @router.post("/api/agent/run/stream")
 async def run_agent_stream(req: Request):
+    _set_analytics_user_from_request(req)
     if not state["ready"]:
         return JSONResponse({"error": "server not ready"}, status_code=503)
 
@@ -461,6 +500,7 @@ async def run_agent_stream(req: Request):
 
 @router.post("/api/agent/plan")
 async def run_agent_plan(req: Request):
+    _set_analytics_user_from_request(req)
     if not state["ready"]:
         return JSONResponse({"error": "server not ready"}, status_code=503)
 
