@@ -107,10 +107,13 @@ async def checkout(req: Request):
     d = _admin(req)
     if d: return d
     body = await req.json()
+    plan_id = body["plan_id"]
+    # Ensure Paddle price exists before checkout
+    await _ensure_paddle_price(plan_id)
     from .. import billing
     base = "https://shamiur-sunnyware.hf.space/admin"
     return await billing.create_checkout_url(
-        body["org_id"], body["plan_id"],
+        body["org_id"], plan_id,
         body.get("success_url", base + "?checkout=success"),
         body.get("cancel_url", base + "?checkout=cancel"),
     )
@@ -298,3 +301,141 @@ async def update_saas_plan(plan_id: str, req: Request):
     if not plan:
         return JSONResponse({"error": "Plan not found"}, status_code=404)
     return {"ok": True, "plan": plan}
+
+
+# ═══════════════════════════════════════════════════════════
+# Part 209: User-facing upgrade flow (JWT auth)
+# ═══════════════════════════════════════════════════════════
+
+async def _ensure_paddle_price(plan_id: str) -> str:
+    """Ensure the plan has a paddle_price_id. If not, create it on the fly."""
+    from .. import saas_store as s
+    from .. import paddle_client as _paddle
+
+    plan = s.get_plan(plan_id)
+    if not plan:
+        return ""
+    if plan.get("paddle_price_id"):
+        return plan["paddle_price_id"]
+
+    price = float(plan.get("price_monthly", 0))
+    if price <= 0:
+        return ""  # Free plans don't need Paddle
+    if not _paddle.enabled():
+        return ""
+
+    name = plan.get("name", plan_id)
+    prod_res = await _paddle.create_product(name, f"Sunnyware {name} Plan")
+    if not prod_res.get("ok"):
+        return ""
+    price_res = await _paddle.create_price(
+        product_id=prod_res["product_id"],
+        amount_cents=int(price * 100),
+        interval="month",
+        trial_days=int(plan.get("trial_days", 0)),
+    )
+    if not price_res.get("ok"):
+        return ""
+
+    s.update_plan(plan_id, {
+        "paddle_product_id": prod_res["product_id"],
+        "paddle_price_id": price_res["price_id"],
+    })
+    return price_res["price_id"]
+
+
+def _extract_jwt_email(req: Request) -> str:
+    token = req.headers.get("x-api-key") or ""
+    if not token:
+        auth = req.headers.get("authorization") or ""
+        if auth.lower().startswith("bearer "):
+            token = auth[7:].strip()
+    if token and "." in token and len(token) > 20:
+        try:
+            from .auth import verify_jwt
+            return verify_jwt(token) or ""
+        except Exception:
+            pass
+    return ""
+
+
+@router.get("/api/saas/me")
+async def saas_me(req: Request):
+    """Return the caller's org info + available upgrade plans (auth via JWT)."""
+    email = _extract_jwt_email(req)
+    if not email:
+        return JSONResponse({"error": "auth_required"}, status_code=401)
+
+    from .. import saas_store as s
+    from .. import usage as _usage
+
+    org = s.get_org_by_email(email)
+    if not org:
+        return JSONResponse({"error": "no_org"}, status_code=404)
+
+    plan_id = org.get("plan", "free")
+    plan = s.get_plan(plan_id) or {}
+    tokens = _usage.check_token_quota(org["id"], plan.get("token_limit_millions", -1))
+
+    # Available upgrade plans (paid only)
+    upgrade_plans = []
+    for p in s.list_plans():
+        if p.get("id") == "free":
+            continue
+        if p.get("price_monthly", 0) <= 0:
+            continue
+        upgrade_plans.append({
+            "id": p.get("id"),
+            "name": p.get("name", p.get("id")),
+            "price_monthly": p.get("price_monthly", 0),
+            "token_limit_millions": p.get("token_limit_millions", 0),
+        })
+
+    return {
+        "email": email,
+        "org_id": org["id"],
+        "plan_id": plan_id,
+        "plan_name": plan.get("name", "Free"),
+        "price_monthly": plan.get("price_monthly", 0),
+        "token_limit_millions": plan.get("token_limit_millions", 1),
+        "tokens_used": tokens.get("used", 0),
+        "tokens_limit": tokens.get("limit", 1_000_000),
+        "status": org.get("status", "active"),
+        "upgrade_plans": upgrade_plans,
+    }
+
+
+@router.post("/api/saas/upgrade")
+async def saas_upgrade(req: Request):
+    """Create Paddle checkout URL for the caller's org to upgrade to plan_id."""
+    email = _extract_jwt_email(req)
+    if not email:
+        return JSONResponse({"error": "auth_required"}, status_code=401)
+
+    body = await req.json()
+    plan_id = (body.get("plan_id") or "").strip()
+    if not plan_id:
+        return JSONResponse({"error": "plan_id required"}, status_code=400)
+
+    from .. import saas_store as s
+    from .. import billing
+
+    org = s.get_org_by_email(email)
+    if not org:
+        return JSONResponse({"error": "no_org"}, status_code=404)
+
+    # Ensure Paddle price exists
+    price_id = await _ensure_paddle_price(plan_id)
+    if not price_id:
+        return JSONResponse({
+            "error": "no_paddle_price",
+            "detail": "Paddle price not configured for this plan. Admin needs to re-save the plan.",
+        }, status_code=400)
+
+    base = "https://shamiur-sunnyware.hf.space/ui"
+    result = await billing.create_checkout_url(
+        org["id"], plan_id,
+        success_url=base + "?checkout=success",
+        cancel_url=base + "?checkout=cancel",
+    )
+    return result

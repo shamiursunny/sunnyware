@@ -652,7 +652,7 @@ input,textarea{font-family:inherit}
 
       <div id="userProfileBtn" style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;" title="Click to switch user or log in">
         <div class="user-avatar">SW</div>
-        <div class="user-info"><div class="user-name" id="currentUserName">Admin</div><div class="user-plan">Enterprise · Unlimited</div></div>
+        <div class="user-info"><div class="user-name" id="currentUserName">Admin</div><div class="user-plan" id="currentUserPlan" style="cursor:pointer;" title="Click to view plans">Loading...</div></div>
       </div>
 
       <button class="icon-btn" id="themeToggle" title="Toggle theme">
@@ -976,6 +976,100 @@ if (_apiKey) {
   } else if (_apiKey.includes('.')) {
     const payload = _parseJwt(_apiKey);
     if (payload && payload.sub) _userEmail = payload.sub;
+  }
+}
+
+// Part 209: Load user plan & show upgrade options
+async function loadUserPlan() {
+  if (!_apiKey) return;
+  try {
+    const res = await fetch('/api/saas/me', {
+      headers: { 'X-API-Key': _apiKey }
+    });
+    if (!res.ok) return;
+    const d = await res.json();
+    if (d.error) return;
+
+    const planEl = document.getElementById('currentUserPlan');
+    if (planEl) {
+      const priceText = d.price_monthly > 0 ? '$' + d.price_monthly + '/mo' : 'Free';
+      const tokenText = d.token_limit_millions < 0 ? 'Unlimited' : d.token_limit_millions + 'M tokens';
+      planEl.textContent = d.plan_name + ' · ' + priceText + ' · ' + tokenText;
+    }
+
+    window._upgradePlans = d.upgrade_plans || [];
+    window._currentPlanId = d.plan_id;
+
+    if (planEl) {
+      planEl.onclick = () => {
+        const modal = document.getElementById('upgradeModal');
+        const list = document.getElementById('upgradePlansList');
+        if (!modal || !list) return;
+        const plans = window._upgradePlans || [];
+        if (!plans.length) {
+          list.innerHTML = '<p style="color:var(--text-secondary);">No paid plans available yet. Contact admin.</p>';
+        } else {
+          list.innerHTML = plans.map(p => {
+            const isCurrent = p.id === window._currentPlanId;
+            const tokenText = p.token_limit_millions < 0 ? 'Unlimited tokens' : p.token_limit_millions + 'M tokens';
+            return `
+              <div style="background:var(--bg-primary);border:1px solid var(--border);padding:16px;border-radius:8px;display:flex;justify-content:space-between;align-items:center;${isCurrent ? 'border-color:var(--accent-color);' : ''}">
+                <div>
+                  <div style="font-weight:600;color:var(--text-primary);">${esc(p.name)}</div>
+                  <div style="font-size:13px;color:var(--text-secondary);">${tokenText}</div>
+                </div>
+                <div style="text-align:right;">
+                  <div style="font-size:20px;font-weight:700;color:var(--text-primary);">$${p.price_monthly}<span style="font-size:12px;font-weight:400;color:var(--text-secondary);">/mo</span></div>
+                  ${isCurrent
+                    ? '<span style="font-size:12px;color:var(--accent-color);">Current plan</span>'
+                    : `<button data-plan="${esc(p.id)}" class="upgrade-plan-btn" style="margin-top:6px;padding:6px 12px;border-radius:6px;background:var(--accent-color);color:white;border:none;cursor:pointer;font-size:13px;font-weight:600;">Upgrade</button>`
+                  }
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          list.querySelectorAll('.upgrade-plan-btn').forEach(btn => {
+            btn.onclick = async () => {
+              const planId = btn.dataset.plan;
+              btn.textContent = 'Redirecting...';
+              btn.disabled = true;
+              try {
+                const r = await fetch('/api/saas/upgrade', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json', 'X-API-Key': _apiKey },
+                  body: JSON.stringify({ plan_id: planId })
+                });
+                const data = await r.json();
+                if (data.ok && data.url) {
+                  window.location.href = data.url;
+                } else {
+                  alert(data.detail || data.error || 'Upgrade failed');
+                  btn.textContent = 'Upgrade';
+                  btn.disabled = false;
+                }
+              } catch(e) {
+                alert('Error: ' + e.message);
+                btn.textContent = 'Upgrade';
+                btn.disabled = false;
+              }
+            };
+          });
+        }
+        modal.classList.remove('hidden');
+      };
+    }
+
+    const closeBtn = document.getElementById('closeUpgradeBtn');
+    if (closeBtn) {
+      closeBtn.onclick = () => document.getElementById('upgradeModal').classList.add('hidden');
+    }
+    const modal = document.getElementById('upgradeModal');
+    if (modal) {
+      modal.onclick = (e) => { if (e.target === modal) modal.classList.add('hidden'); };
+    }
+  } catch(e) {
+    console.warn('[plan] failed to load:', e);
   }
 }
 
@@ -3379,6 +3473,8 @@ loadAll(); renderChatList(); renderMessages(); renderLibrary(); autoGrow();
       console.log('[init] post-load re-render — chats:', cnt);
       renderChatList($('#searchInput').value);
     } catch(e) { console.warn('[init] re-render failed:', e); }
+    // Part 209: Load user plan
+    loadUserPlan();
   }, 300);
 })();
 
@@ -3626,6 +3722,18 @@ streamAI = async function(chat, prompt) {
     <div id="loginError" style="color:var(--danger);font-size:13px;margin-top:10px;text-align:center;"></div>
   </div>
 </div>
+
+<!-- Part 209: Upgrade Modal -->
+<div id="upgradeModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;">
+  <div style="background:var(--bg-secondary);padding:30px;border-radius:12px;width:100%;max-width:500px;box-shadow:0 10px 30px rgba(0,0,0,0.5);border:1px solid var(--border);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h2 style="margin:0;color:var(--text-primary);">Upgrade your plan</h2>
+      <button id="closeUpgradeBtn" style="background:none;border:none;color:var(--text-secondary);font-size:24px;cursor:pointer;">×</button>
+    </div>
+    <div id="upgradePlansList" style="display:flex;flex-direction:column;gap:12px;"></div>
+  </div>
+</div>
+
 </body>
 
 </html>
