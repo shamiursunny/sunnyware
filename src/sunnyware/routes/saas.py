@@ -456,7 +456,7 @@ async def saas_upgrade(req: Request):
     return result
 
 
-@router.post("/admin/force-upgrade")
+@router.post("/api/saas/admin/force-upgrade")
 async def admin_force_upgrade(req: Request):
     """Part 210e: Force-upgrade an org to a given plan (admin only, for testing)."""
     api_key = req.headers.get("X-API-Key", "")
