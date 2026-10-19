@@ -10,17 +10,34 @@ def _log_llm(result: dict, model_hint: str = ""):
         from . import analytics_store as _as
         from . import llm_dashboard_store as _lds
         user, org = _as.get_current()
+        if not user:
+            try:
+                import inspect
+                for frame_info in inspect.stack():
+                    frame = frame_info.frame
+                    if "request" in frame.f_locals:
+                        req = frame.f_locals["request"]
+                        if hasattr(req, "state") and hasattr(req.state, "user"):
+                            user = getattr(req.state, "user", "")
+                            break
+            except Exception:
+                pass
+        if not user:
+            user = "anonymous"
+
         provider = result.get("provider", "unknown")
         model = result.get("resolved_model") or model_hint or ""
         ok = bool(result.get("ok"))
+        
         tokens = 0
-        usage = result.get("usage")
+        usage = result.get("usage") or result.get("token_usage")
         if isinstance(usage, dict):
-            tokens = int(usage.get("total_tokens") or 0)
+            tokens = int(usage.get("total_tokens") or (usage.get("prompt_tokens", 0) + usage.get("completion_tokens", 0)))
         elif isinstance(usage, int):
             tokens = usage
         else:
-            tokens = int(result.get("total_tokens") or 0)
+            tokens = int(result.get("total_tokens") or result.get("tokens", 0))
+            
         latency = float(result.get("latency_ms") or 0)
         error = str(result.get("error") or "")[:500]
 
@@ -51,7 +68,13 @@ def install() -> dict:
             _orig_chat = _llm.chat
 
             async def _wrapped_chat(*args, **kwargs):
+                from . import llm_dashboard_store as _lds
+                cfg = _lds.get_orchestrator_config()
+                if cfg.get("disable_all"):
+                    return {"ok": False, "error": "Global LLM disable switch is ON (Speed Breaker)"}
+                
                 model_hint = kwargs.get("model") or (args[1] if len(args) > 1 else "")
+                
                 t0 = time.time()
                 try:
                     r = await _orig_chat(*args, **kwargs)

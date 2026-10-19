@@ -54,6 +54,8 @@ DEFAULT_LIMITS = {
     "limit_per_day": 5000,
     "enabled": True,
     "model_override": "",
+    "max_tokens": 2048,
+    "temperature": 0.7,
 }
 
 
@@ -199,3 +201,25 @@ def record_call_and_check_limits(provider: str) -> dict:
         "limit_hour": cfg.get("limit_per_hour", 500),
         "limit_day": cfg.get("limit_per_day", 5000),
     }
+
+ORCHESTRATOR_FILE = "orchestrator_config.json"
+DEFAULT_ORCHESTRATOR = {
+    "disable_all": False,
+    "routing_strategy": "fallback",
+    "global_rate_limit": 60,
+    "max_retries": 2,
+    "system_prompt_addon": "",
+}
+
+def get_orchestrator_config() -> dict:
+    cfg = _load(ORCHESTRATOR_FILE, {})
+    base = dict(DEFAULT_ORCHESTRATOR)
+    base.update(cfg)
+    return base
+
+def set_orchestrator_config(patch: dict) -> dict:
+    cfg = _load(ORCHESTRATOR_FILE, {})
+    cfg.update(patch)
+    _save(ORCHESTRATOR_FILE, cfg)
+    return get_orchestrator_config()
+

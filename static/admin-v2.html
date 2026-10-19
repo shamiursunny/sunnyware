@@ -94,6 +94,16 @@ button.ghost { background: rgba(255,255,255,0.05); color: var(--text); border: 1
   th { background: #f5f5f5; }
 }
 </style>
+
+<style>
+.toggle-switch { position: relative; display: inline-block; width: 40px; height: 22px; }
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #444; transition: .2s; border-radius: 22px; }
+.toggle-slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 3px; bottom: 3px; background-color: white; transition: .2s; border-radius: 50%; }
+input:checked + .toggle-slider { background-color: var(--accent); }
+input:checked + .toggle-slider:before { transform: translateX(18px); }
+</style>
+
 </head>
 <body>
 
@@ -2519,13 +2529,47 @@ async function renderLlmDashboard() {
   const data = await api('/api/llm-dashboard/providers').catch(() => ({ providers: [] }));
   const providers = data.providers || [];
 
+  const orch = await api('/api/llm-dashboard/orchestrator').catch(() => ({}));
+
   $('content').innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:center;">
       <div>
         <h2>LLM Dashboard</h2>
-        <p style="color:var(--muted);margin-bottom:16px;">Monitor &amp; configure providers. Live log auto-refreshes every 5s.</p>
+        <p style="color:var(--muted);margin-bottom:16px;">Advanced orchestrator controls &amp; monitoring.</p>
       </div>
       <button class="ghost small" onclick="renderLlmDashboard()">Refresh</button>
+    </div>
+
+    <div class="card" style="margin-bottom:24px;border:1px solid ${orch.disable_all ? 'var(--danger)' : 'var(--accent)'};">
+      <h3 style="margin-top:0;color:${orch.disable_all ? 'var(--danger)' : 'var(--accent)'};">Orchestrator Control Panel</h3>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;align-items:center;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <label class="toggle-switch">
+            <input type="checkbox" id="orch-disable" ${orch.disable_all ? 'checked' : ''} onchange="saveOrch('disable_all', this.checked)">
+            <span class="toggle-slider"></span>
+          </label>
+          <div>
+            <div style="font-weight:600;color:${orch.disable_all ? 'var(--danger)' : 'inherit'};">Global Kill Switch</div>
+            <div style="font-size:11px;color:var(--muted);">Stop all LLM calls immediately</div>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);">Routing Strategy</label>
+          <select id="orch-strategy" onchange="saveOrch('routing_strategy', this.value)" style="width:100%;margin-top:4px;">
+            <option value="fallback" ${orch.routing_strategy === 'fallback' ? 'selected' : ''}>Fallback (Priority)</option>
+            <option value="round_robin" ${orch.routing_strategy === 'round_robin' ? 'selected' : ''}>Round Robin</option>
+            <option value="fastest" ${orch.routing_strategy === 'fastest' ? 'selected' : ''}>Fastest Response</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:11px;color:var(--muted);">Global Rate Limit (req/min)</label>
+          <input type="number" value="${orch.global_rate_limit || 60}" style="width:100%;margin-top:4px;" onblur="saveOrch('global_rate_limit', parseInt(this.value))">
+        </div>
+      </div>
+      <div>
+        <label style="font-size:11px;color:var(--muted);">System Prompt Addon</label>
+        <input type="text" value="${esc(orch.system_prompt_addon || '')}" placeholder="e.g. Always answer in JSON" style="width:100%;margin-top:4px;" onblur="saveOrch('system_prompt_addon', this.value)">
+      </div>
     </div>
 
     <h3>Providers (${providers.length})</h3>
@@ -2539,8 +2583,19 @@ async function renderLlmDashboard() {
               <button class="ghost small" onclick="moveProvider('${esc(p.name)}', -1)" title="Move up" ${i===0?'disabled':''}>^</button>
               <button class="ghost small" onclick="moveProvider('${esc(p.name)}', 1)" title="Move down" ${i===providers.length-1?'disabled':''}>v</button>
             </td>
-            <td><strong>${esc(p.name)}</strong><br><span style="font-size:10px;color:var(--muted);">${esc(p.provider_type)}</span></td>
-            <td style="font-size:11px;">${esc(p.model || '-')}</td>
+            <td>
+              <div style="display:flex;align-items:center;gap:8px;">
+                <label class="toggle-switch" style="transform:scale(0.8);transform-origin:left;">
+                  <input type="checkbox" ${p.config.enabled !== false ? 'checked' : ''} onchange="saveProviderConfig('${esc(p.name)}', 'enabled', this.checked)">
+                  <span class="toggle-slider"></span>
+                </label>
+                <strong>${esc(p.name)}</strong>
+              </div>
+              <span style="font-size:10px;color:var(--muted);margin-left:42px;">${esc(p.provider_type)}</span>
+            </td>
+            <td style="font-size:11px;">
+              <input type="text" value="${esc(p.config.model_override || p.model || '')}" placeholder="${esc(p.model)}" style="width:130px;padding:4px;font-size:11px;" onblur="saveProviderConfig('${esc(p.name)}', 'model_override', this.value)">
+            </td>
             <td>${p.is_cooling
               ? '<span style="color:#f39c12;font-weight:600;">Cooling</span>'
               : '<span style="color:#2ecc71;font-weight:600;">Active</span>'}</td>
@@ -2629,6 +2684,16 @@ async function resetCooldown(provider) {
     await api('/api/llm-dashboard/reset-cooldown/' + encodeURIComponent(provider), 'POST', {});
     toast('Cooldown reset for ' + provider);
     renderLlmDashboard();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+
+
+async function saveOrch(field, value) {
+  try {
+    await api('/api/llm-dashboard/orchestrator', 'POST', { [field]: value });
+    toast('Saved global setting: ' + field);
+    if (field === 'disable_all') renderLlmDashboard();
   } catch (e) { toast('Failed: ' + e.message, 'error'); }
 }
 

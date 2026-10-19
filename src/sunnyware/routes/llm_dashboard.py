@@ -114,3 +114,23 @@ async def reset_cooldown(provider: str, req: Request):
         return {"ok": True, "message": f"Cooldown reset for {provider}"}
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
+
+@router.get("/api/llm-dashboard/orchestrator")
+async def get_orchestrator(req: Request):
+    d = _admin_only(req)
+    if d: return d
+    return _lds.get_orchestrator_config()
+
+@router.post("/api/llm-dashboard/orchestrator")
+async def set_orchestrator(req: Request):
+    d = _admin_only(req)
+    if d: return d
+    try:
+        body = await req.json()
+    except Exception:
+        return JSONResponse({"error": "invalid_json"}, status_code=400)
+    allowed = {"disable_all", "routing_strategy", "global_rate_limit", "max_retries", "system_prompt_addon"}
+    patch = {k: v for k, v in body.items() if k in allowed}
+    cfg = _lds.set_orchestrator_config(patch)
+    return {"ok": True, "config": cfg}
+
