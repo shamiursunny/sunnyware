@@ -102,23 +102,12 @@ def _log_llm(result: dict, model_hint: str = ""):
         cost_per_1k = float(cfg.get("cost_per_1k_cents", 0.0))
         cost_cents = (tokens / 1000.0) * cost_per_1k if tokens else 0.0
 
-        # Telemetry from request state
-        ip, ua, device, loc = "", "", "", ""
-        try:
-            import inspect
-            for frame_info in inspect.stack():
-                frame = frame_info.frame
-                req = frame.f_locals.get("request") or frame.f_locals.get("req")
-                if req is not None:
-                    st = getattr(req, "state", None)
-                    if st:
-                        ip = getattr(st, "ip", "")
-                        ua = getattr(st, "ua", "")
-                        device = getattr(st, "device", "")
-                        loc = getattr(st, "location", "")
-                    break
-        except Exception:
-            pass
+        # Telemetry from contextvars (reliable across async tasks)
+        tel = _as.get_telemetry()
+        ip = tel.get("ip", "")
+        ua = tel.get("ua", "")
+        device = tel.get("device", "")
+        loc = tel.get("location", "")
 
         _lds.log_llm_call(provider, model, ok, tokens, latency, error, user)
         _as.log_event(user, "chat",

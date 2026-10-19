@@ -78,7 +78,7 @@ checks = [
     ("chat.html has user pill", 'id="userPillBtn"' in chat),
     ("chat.html has cancel button", 'id="settingsCancelBtn"' in chat),
     ("chat.html has applyTheme", "applyTheme" in chat),
-    ("admin-v2.html Chart.js in <head>", cdns_ok),
+    ("admin-v2.html has _renderSimpleChart", "function _renderSimpleChart" in admin),
     ("admin-v2.html has renderAnalytics", "async function renderAnalytics" in admin),
     ("admin-v2.html has renderLlmDashboard", "async function renderLlmDashboard" in admin),
     ("admin-v2.html has renderEmail", "async function renderEmail" in admin),

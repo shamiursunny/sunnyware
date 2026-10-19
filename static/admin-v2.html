@@ -4,7 +4,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sunnyware - Admin</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <style>
 :root {
   --bg: #0b0d12; --sidebar: #12161f; --panel: #12161f; --border: #232a38;
@@ -2471,7 +2470,7 @@ async function renderAnalytics() {
 
     <div class="card" style="margin-bottom:24px;">
       <h3 style="margin-top:0;">Usage Overview (Last 7 Days)</h3>
-      <canvas id="usageChart" height="80"></canvas>
+      <div id="usageChart-container" style="min-height:200px;"></div>
     </div>
 
     <h3>Users (${userList.length})</h3>
@@ -2524,74 +2523,17 @@ async function renderAnalytics() {
     <div id="user-detail-panel" style="margin-top:24px;"></div>
   `;
 
-  // Draw Chart (guard + lazy load Chart.js if not present)
+  // Draw Chart (pure SVG, no external dependencies)
   try {
-    if (typeof Chart === 'undefined') {
-      console.warn('[chart] Chart.js not loaded — attempting dynamic load');
-      await new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js';
-        script.onload = resolve;
-        script.onerror = () => reject(new Error('CDN load failed'));
-        document.head.appendChild(script);
-      });
-      if (typeof Chart === 'undefined') {
-        throw new Error('Chart.js still undefined after dynamic load');
-      }
-      console.log('[chart] Chart.js loaded dynamically');
-    }
     const chartRes = await api('/api/analytics/charts?days=7');
     if (!chartRes || !Array.isArray(chartRes.data)) {
-      throw new Error('Invalid chart data shape');
+      throw new Error('Invalid chart data');
     }
-    const labels = chartRes.data.map(d => d.date.slice(5));
-    const tokens = chartRes.data.map(d => d.tokens);
-    const chats = chartRes.data.map(d => d.chats);
-    
-    const ctx = document.getElementById('usageChart').getContext('2d');
-    new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: 'Tokens',
-            data: tokens,
-            borderColor: '#5b8def',
-            backgroundColor: 'rgba(91, 141, 239, 0.1)',
-            fill: true,
-            tension: 0.3,
-            yAxisID: 'y'
-          },
-          {
-            label: 'Chats',
-            data: chats,
-            borderColor: '#2ecc71',
-            backgroundColor: 'transparent',
-            tension: 0.3,
-            yAxisID: 'y1'
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        interaction: { mode: 'index', intersect: false },
-        scales: {
-          y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Tokens' } },
-          y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Chats' } }
-        }
-      }
-    });
+    _renderSimpleChart('usageChart-container', chartRes.data);
   } catch(e) {
     console.error('[chart] Error:', e);
-    const canvas = document.getElementById('usageChart');
-    if (canvas && canvas.parentElement) {
-      const msg = document.createElement('p');
-      msg.style.color = 'var(--muted)';
-      msg.style.fontSize = '12px';
-      msg.textContent = 'Chart unavailable: ' + (e.message || 'unknown');
-      canvas.parentElement.appendChild(msg);
-    }
+    const c = document.getElementById('usageChart-container');
+    if (c) c.innerHTML = '<p style="color:var(--muted);font-size:12px;">Chart unavailable: ' + (e.message || 'unknown') + '</p>';
   }
 }
 
@@ -2969,6 +2911,78 @@ async function sendPromoEmail() {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
   else hook();
 })();
+
+
+
+// ═══════════════════════════════════════════════════════════
+// Part 219: Inline SVG chart renderer (no external deps)
+// ═══════════════════════════════════════════════════════════
+function _renderSimpleChart(containerId, data) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  if (!data || data.length === 0) {
+    container.innerHTML = '<p style="color:var(--muted);font-size:12px;">No chart data</p>';
+    return;
+  }
+
+  const W = 800, H = 220, padX = 40, padY = 30;
+  const plotW = W - padX * 2;
+  const plotH = H - padY * 2;
+  const maxTokens = Math.max(1, ...data.map(d => d.tokens || 0));
+  const maxChats = Math.max(1, ...data.map(d => d.chats || 0));
+  const stepX = data.length > 1 ? plotW / (data.length - 1) : plotW;
+
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" style="width:100%;height:auto;display:block;">';
+
+  // Grid lines
+  for (let i = 0; i <= 4; i++) {
+    const y = padY + (plotH * i) / 4;
+    svg += '<line x1="' + padX + '" y1="' + y + '" x2="' + (W - padX) + '" y2="' + y + '" stroke="#232a38" stroke-dasharray="2,2" stroke-width="1"/>';
+    const val = Math.round(maxTokens * (1 - i / 4));
+    svg += '<text x="' + (padX - 6) + '" y="' + (y + 3) + '" text-anchor="end" font-size="9" fill="#8892a6">' + val + '</text>';
+  }
+
+  // X axis labels
+  data.forEach((d, i) => {
+    const x = padX + i * stepX;
+    svg += '<text x="' + x + '" y="' + (H - 8) + '" text-anchor="middle" font-size="9" fill="#8892a6">' + (d.date || '').slice(5) + '</text>';
+  });
+
+  // Tokens line (blue)
+  const tokenPts = data.map((d, i) => {
+    const x = padX + i * stepX;
+    const y = padY + plotH - ((d.tokens || 0) / maxTokens) * plotH;
+    return x + ',' + y;
+  }).join(' ');
+  svg += '<polyline points="' + tokenPts + '" fill="none" stroke="#5b8def" stroke-width="2"/>';
+  data.forEach((d, i) => {
+    const x = padX + i * stepX;
+    const y = padY + plotH - ((d.tokens || 0) / maxTokens) * plotH;
+    svg += '<circle cx="' + x + '" cy="' + y + '" r="3" fill="#5b8def"><title>' + (d.date || '') + ': ' + (d.tokens || 0) + ' tokens</title></circle>';
+  });
+
+  // Chats line (green, scaled to its own max)
+  const chatPts = data.map((d, i) => {
+    const x = padX + i * stepX;
+    const y = padY + plotH - ((d.chats || 0) / maxChats) * plotH;
+    return x + ',' + y;
+  }).join(' ');
+  svg += '<polyline points="' + chatPts + '" fill="none" stroke="#2ecc71" stroke-width="2" stroke-dasharray="4,2"/>';
+  data.forEach((d, i) => {
+    const x = padX + i * stepX;
+    const y = padY + plotH - ((d.chats || 0) / maxChats) * plotH;
+    svg += '<circle cx="' + x + '" cy="' + y + '" r="2.5" fill="#2ecc71"><title>' + (d.date || '') + ': ' + (d.chats || 0) + ' chats</title></circle>';
+  });
+
+  // Legend
+  svg += '<rect x="' + padX + '" y="' + (padY - 22) + '" width="12" height="3" fill="#5b8def"/>';
+  svg += '<text x="' + (padX + 18) + '" y="' + (padY - 19) + '" font-size="10" fill="#5b8def">Tokens</text>';
+  svg += '<rect x="' + (padX + 75) + '" y="' + (padY - 22) + '" width="12" height="3" fill="#2ecc71"/>';
+  svg += '<text x="' + (padX + 93) + '" y="' + (padY - 19) + '" font-size="10" fill="#2ecc71">Chats</text>';
+
+  svg += '</svg>';
+  container.innerHTML = svg;
+}
 
 </script>
 </body>

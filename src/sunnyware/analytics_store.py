@@ -13,11 +13,31 @@ from typing import Optional
 # ─── Request-scoped context ───
 _current_user = contextvars.ContextVar("analytics_user", default="")
 _current_org = contextvars.ContextVar("analytics_org", default="")
+_current_ip = contextvars.ContextVar("analytics_ip", default="")
+_current_ua = contextvars.ContextVar("analytics_ua", default="")
+_current_device = contextvars.ContextVar("analytics_device", default="")
+_current_location = contextvars.ContextVar("analytics_location", default="")
 
 
 def set_current(user: str, org: str = "") -> None:
     _current_user.set(user or "")
     _current_org.set(org or "")
+
+
+def set_telemetry(ip: str = "", ua: str = "", device: str = "", location: str = "") -> None:
+    _current_ip.set(ip or "")
+    _current_ua.set(ua or "")
+    _current_device.set(device or "")
+    _current_location.set(location or "")
+
+
+def get_telemetry() -> dict:
+    return {
+        "ip": _current_ip.get(),
+        "ua": _current_ua.get(),
+        "device": _current_device.get(),
+        "location": _current_location.get(),
+    }
 
 
 def get_current() -> tuple:
@@ -99,6 +119,32 @@ def log_event(user: str, event_type: str, **kwargs) -> dict:
         items = sorted(events.items(), key=lambda kv: kv[1].get("ts", 0))
         for k, _ in items[:-MAX_EVENTS]:
             del events[k]
+
+    # Part 219: auto-login on first chat in 30 min session
+    if event_type == "chat" and user:
+        try:
+            sessions = _load("session_state.json", {})
+            now = time.time()
+            last = sessions.get(user.lower(), 0)
+            if now - last > 1800:
+                lid = "e_" + secrets.token_hex(6)
+                events[lid] = {
+                    "id": lid, "ts": now, "user": user.lower().strip(),
+                    "type": "login", "org_id": kwargs.get("org_id", ""),
+                    "provider": "", "model": "", "tokens": 0,
+                    "tokens_in": 0, "tokens_out": 0,
+                    "latency_ms": 0, "ok": True, "error": "", "tool_name": "",
+                    "details": "auto (new session)", "cost_cents": 0,
+                    "ip": kwargs.get("ip", ""),
+                    "ua": kwargs.get("ua", ""),
+                    "device": kwargs.get("device", ""),
+                    "location": kwargs.get("location", ""),
+                }
+            sessions[user.lower()] = now
+            _save("session_state.json", sessions)
+        except Exception:
+            pass
+
     _save(EVENTS_FILE, events)
     return entry
 

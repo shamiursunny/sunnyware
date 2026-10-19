@@ -49,12 +49,13 @@ def _set_analytics_user_from_request(req: Request) -> None:
             except Exception:
                 pass
         _as.set_current(user, org)
-        # Part 217: telemetry
-        req.state.ip = (req.headers.get("x-forwarded-for", "").split(",")[0].strip() or (req.client.host if req.client else ""))
-        req.state.ua = req.headers.get("user-agent", "")
-        req.state.device = req.headers.get("x-device-id", "")
-        req.state.location = req.headers.get("x-location", "")
-        print(f"[analytics-route] user={user!r} org={org!r} ip={req.state.ip!r} device={req.state.device!r}")
+        # Part 219: set telemetry contextvars too
+        _ip = req.headers.get("x-forwarded-for", "").split(",")[0].strip() or (req.client.host if req.client else "")
+        _ua = req.headers.get("user-agent", "")
+        _device = req.headers.get("x-device-id", "")
+        _location = req.headers.get("x-location", "")
+        _as.set_telemetry(ip=_ip, ua=_ua, device=_device, location=_location)
+        print(f"[analytics-route] user={user!r} org={org!r} ip={_ip!r} device={_device!r}")
     except Exception as e:
         print(f"[analytics-route] failed to set context: {e}")
 
