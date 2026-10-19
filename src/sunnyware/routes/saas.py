@@ -438,4 +438,19 @@ async def saas_upgrade(req: Request):
         success_url=base + "?checkout=success",
         cancel_url=base + "?checkout=cancel",
     )
+    if result.get("ok") and result.get("auto_approved"):
+        # Part 210d: Sandbox auto-approved — upgrade synchronously (no webhook fired)
+        try:
+            from .. import saas_store as s
+            _plan_price = next((pl.get("price_monthly", 0) for pl in s.list_plans() if pl["id"] == plan_id), 0)
+            s.update_org(org["id"], {"plan": plan_id, "status": "active"})
+            s.create_invoice(
+                org_id=org["id"],
+                amount=float(_plan_price),
+                description=f"Sandbox auto-approved: {plan_id}",
+                status="paid"
+            )
+            print(f"[saas] Auto-approved upgrade for org {org['id']} -> {plan_id}")
+        except Exception as e:
+            print(f"[saas] Auto-approved upgrade failed: {e}")
     return result
