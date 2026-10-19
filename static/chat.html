@@ -602,6 +602,218 @@ input,textarea{font-family:inherit}
 .sidebar-footer { position: relative; z-index: 100; flex-shrink: 0 !important; }
 .sidebar-footer .icon-btn { position: relative !important; z-index: 101 !important; pointer-events: auto !important; }
 
+
+/* ═══════════════════════════════════════════════════════════
+   Part 210: ChatGPT-style Settings Menu
+   ═══════════════════════════════════════════════════════════ */
+
+/* User pill in footer */
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s;
+  text-align: left;
+  color: inherit;
+  font-family: inherit;
+}
+.user-pill:hover { background: var(--hover); }
+.user-pill:active { background: var(--active); }
+.user-pill .user-info {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+.user-pill .pill-chevron {
+  width: 14px;
+  height: 14px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+  transition: transform 0.2s;
+}
+.user-pill.menu-open .pill-chevron { transform: rotate(180deg); }
+
+/* Overlay (mobile + desktop dim backdrop) */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 198;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+}
+.settings-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Settings menu (dropdown card) */
+.settings-menu {
+  position: fixed;
+  bottom: 76px;
+  left: 12px;
+  width: 300px;
+  max-width: calc(100vw - 24px);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.35);
+  z-index: 199;
+  padding: 6px;
+  transform: translateY(8px) scale(0.98);
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.18s cubic-bezier(.4,0,.2,1);
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+}
+.settings-menu.open {
+  transform: translateY(0) scale(1);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Header inside menu */
+.settings-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 10px 14px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+.settings-avatar-lg {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: linear-gradient(135deg,#ff8a5c,#ff5c8a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+.settings-info {
+  flex: 1;
+  min-width: 0;
+}
+.settings-email {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.settings-plan-line {
+  font-size: 11.5px;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Sections and items */
+.settings-section {
+  padding: 4px 0;
+  border-bottom: 1px solid var(--border);
+}
+.settings-section:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.settings-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  font-size: 13.5px;
+  font-family: inherit;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+.settings-item:hover { background: var(--hover); }
+.settings-item:active { background: var(--active); }
+.settings-item svg {
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+}
+.settings-item .settings-item-label {
+  flex: 1;
+}
+.settings-item .settings-item-badge {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  background: var(--bg-tertiary);
+  padding: 2px 8px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+.settings-item.upgrade-item {
+  color: var(--accent-color);
+}
+.settings-item.upgrade-item svg {
+  color: var(--accent-color);
+}
+.settings-item.upgrade-item .settings-item-badge {
+  background: rgba(124,92,255,0.15);
+  color: var(--accent-color);
+}
+.settings-item.danger {
+  color: var(--danger);
+}
+.settings-item.danger svg {
+  color: var(--danger);
+}
+
+/* Mobile: full-width bottom sheet */
+@media (max-width: 768px) {
+  .settings-menu {
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 18px 18px 0 0;
+    padding: 8px 8px calc(18px + env(safe-area-inset-bottom));
+    transform: translateY(100%);
+    max-height: 85vh;
+  }
+  .settings-menu.open {
+    transform: translateY(0);
+  }
+  .settings-header {
+    padding: 14px 10px 16px;
+  }
+  .settings-item {
+    padding: 13px 14px;
+    font-size: 14.5px;
+  }
+  .settings-item svg {
+    width: 18px;
+    height: 18px;
+  }
+}
 </style>
 
 </head>
@@ -649,32 +861,17 @@ input,textarea{font-family:inherit}
     <nav class="chat-list" id="chatList"></nav>
 
     <div class="sidebar-footer">
-
-      <div id="userProfileBtn" style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1;" title="Click to switch user or log in">
+      <button class="user-pill" id="userPillBtn" title="Settings & account">
         <div class="user-avatar">SW</div>
-        <div class="user-info"><div class="user-name" id="currentUserName">Admin</div><div class="user-plan" id="currentUserPlan" style="cursor:pointer;" title="Click to view plans">Loading...</div></div>
-      </div>
-
-      <button class="icon-btn" id="themeToggle" title="Toggle theme">
-
-        <svg id="iconMoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-
-        <svg id="iconSun" class="hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.41 1.41m11.32 11.32l1.41 1.41M2 12h2m16 0h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/></svg>
-
+        <div class="user-info">
+          <div class="user-name" id="currentUserName">Admin</div>
+          <div class="user-plan" id="currentUserPlan">Loading...</div>
+        </div>
+        <svg class="pill-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M18 15l-6-6-6 6"/>
+        </svg>
       </button>
-
-      <button class="icon-btn" id="billingBtn" title="Manage Billing">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-      </button>
-
-      <button class="icon-btn" id="logoutBtn" title="Change API Key">
-
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
-
-      </button>
-
     </div>
-
   </aside>
 
 
@@ -1034,7 +1231,12 @@ async function loadUserPlan() {
     if (planEl) {
       const priceText = d.price_monthly > 0 ? '$' + d.price_monthly + '/mo' : 'Free';
       const tokenText = d.token_limit_millions < 0 ? 'Unlimited' : d.token_limit_millions + 'M tokens';
-      planEl.textContent = d.plan_name + ' · ' + priceText + ' · ' + tokenText;
+      // Part 210: avoid "Free · Free" redundancy
+      const parts = [d.plan_name || 'Free'];
+      if (d.price_monthly > 0) parts.push('$' + d.price_monthly + '/mo');
+      parts.push(d.token_limit_millions < 0 ? 'Unlimited' : d.token_limit_millions + 'M tokens');
+      planEl.textContent = parts.join(' · ');
+      window._planData = d;
     }
 
     window._upgradePlans = d.upgrade_plans || [];
@@ -1265,36 +1467,141 @@ function applyTheme(t){
 
 applyTheme(localStorage.getItem(LS_THEME)||'dark');
 
-$('#themeToggle').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
 
-// Part 205: direct onclick handlers for billing + logout (backup for document listener)
-const _billingBtn = document.getElementById('billingBtn');
-if (_billingBtn) {
-  _billingBtn.addEventListener('click', async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('[billing] clicked');
-    try {
-      const res = await fetch('/api/saas/portal', {
-        headers: { 'X-API-Key': _apiKey || '' }
-      });
-      const data = await res.json();
-      console.log('[billing] response:', data);
-      if (data.ok && data.url) {
-        toast('Opening Paddle Customer Portal...');
-        window.location.href = data.url;
-      } else {
-        toast(data.detail || data.error || 'Could not open billing portal', 'error');
-      }
-    } catch(err) {
-      console.error('[billing] error:', err);
-      toast('Billing portal error: ' + err.message, 'error');
-    }
-  });
-  console.log('[init] billingBtn handler attached');
-} else {
-  console.warn('[init] billingBtn NOT FOUND');
+
+
+// ═══════════════════════════════════════════════════════════
+// Part 210: Settings Menu Logic
+// ═══════════════════════════════════════════════════════════
+const _settingsMenu = document.getElementById('settingsMenu');
+const _settingsOverlay = document.getElementById('settingsOverlay');
+const _userPillBtn = document.getElementById('userPillBtn');
+
+function openSettings() {
+  if (!_settingsMenu) return;
+  _settingsMenu.classList.add('open');
+  if (_settingsOverlay) _settingsOverlay.classList.add('open');
+  if (_userPillBtn) _userPillBtn.classList.add('menu-open');
+  if (typeof updateSettingsMenu === 'function') updateSettingsMenu();
 }
+
+function closeSettings() {
+  if (!_settingsMenu) return;
+  _settingsMenu.classList.remove('open');
+  if (_settingsOverlay) _settingsOverlay.classList.remove('open');
+  if (_userPillBtn) _userPillBtn.classList.remove('menu-open');
+}
+
+function toggleSettings() {
+  if (_settingsMenu && _settingsMenu.classList.contains('open')) {
+    closeSettings();
+  } else {
+    openSettings();
+  }
+}
+
+function updateSettingsMenu() {
+  const emailEl = document.getElementById('settingsEmail');
+  const planLineEl = document.getElementById('settingsPlanLine');
+  const badgeEl = document.getElementById('settingsCurrentPlanBadge');
+  const themeEl = document.getElementById('settingsThemeLabel');
+
+  if (emailEl) emailEl.textContent = _userEmail || 'Not signed in';
+  if (planLineEl && window._planData) {
+    const d = window._planData;
+    const parts = [d.plan_name || 'Free'];
+    if (d.price_monthly > 0) parts.push('$' + d.price_monthly + '/mo');
+    parts.push(d.token_limit_millions < 0 ? 'Unlimited' : d.token_limit_millions + 'M tokens');
+    planLineEl.textContent = parts.join(' · ');
+  }
+  if (badgeEl && window._planData) {
+    badgeEl.textContent = window._planData.plan_name || 'Free';
+  }
+  if (themeEl) {
+    themeEl.textContent = (document.documentElement.dataset.theme === 'dark') ? 'Dark' : 'Light';
+  }
+}
+
+if (_userPillBtn) {
+  _userPillBtn.onclick = (e) => {
+    e.stopPropagation();
+    toggleSettings();
+  };
+}
+
+if (_settingsOverlay) _settingsOverlay.onclick = closeSettings;
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeSettings();
+});
+
+// Upgrade plan
+document.getElementById('settingsUpgradeBtn')?.addEventListener('click', () => {
+  closeSettings();
+  const plans = window._upgradePlans || [];
+  if (!plans.length) {
+    alert('No paid plans available yet. Please contact admin.');
+    return;
+  }
+  const modal = document.getElementById('upgradeModal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    const planEl = document.getElementById('currentUserPlan');
+    if (planEl && planEl.onclick) planEl.onclick(new Event('click'));
+  }
+});
+
+// Manage billing
+document.getElementById('settingsBillingBtn')?.addEventListener('click', async () => {
+  closeSettings();
+  try {
+    const res = await fetch('/api/saas/portal', {
+      headers: { 'X-API-Key': _apiKey || '' }
+    });
+    const data = await res.json();
+    if (data.ok && data.url) {
+      toast('Opening Paddle Customer Portal...');
+      window.location.href = data.url;
+    } else {
+      toast(data.detail || data.error || 'Could not open billing portal', 'error');
+    }
+  } catch(err) {
+    toast('Billing error: ' + err.message, 'error');
+  }
+});
+
+// Theme toggle
+document.getElementById('settingsThemeBtn')?.addEventListener('click', () => {
+  applyTheme(document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark');
+  updateSettingsMenu();
+});
+
+// Switch account
+document.getElementById('settingsSwitchBtn')?.addEventListener('click', () => {
+  closeSettings();
+  const lm = document.getElementById('loginModal');
+  if (lm) lm.classList.remove('hidden');
+});
+
+// Logout
+document.getElementById('settingsLogoutBtn')?.addEventListener('click', () => {
+  if (!confirm('Clear your API key and log out? You will be asked to enter a new one.')) return;
+  localStorage.removeItem('sunnyware_admin_key');
+  localStorage.removeItem('sunny_chats_v2');
+  localStorage.removeItem('sunny_files_v1');
+  window.location.href = '/ui';
+});
+
+// Close menu when clicking outside
+document.addEventListener('click', (e) => {
+  if (!_settingsMenu || !_settingsMenu.classList.contains('open')) return;
+  if (e.target.closest('#settingsMenu') || e.target.closest('#userPillBtn')) return;
+  closeSettings();
+});
+
+
+// Part 210: Old billing/logout handlers removed (now in Settings menu)
+
 
 // Part 206d: Removed duplicate direct logout handler (document handler now handles it)
 
@@ -1304,42 +1611,8 @@ if (_billingBtn) {
 
 document.addEventListener('click', function(e) {
 
-  if(e.target.closest('#billingBtn')){
-    // Part 204: Open Paddle Customer Portal
-    (async () => {
-      try {
-        const res = await fetch('/api/saas/portal', {
-          headers: { 'X-API-Key': _apiKey || '' }
-        });
-        const data = await res.json();
-        if (data.ok && data.url) {
-          toast('Opening Paddle Customer Portal...');
-          window.location.href = data.url;
-        } else {
-          toast(data.detail || data.error || 'Could not open billing portal', 'error');
-        }
-      } catch(err) {
-        toast('Billing portal error: ' + err.message, 'error');
-      }
-    })();
-  }
-  if(e.target.closest('#logoutBtn')){
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('[logout] initiated');
-    
-    // Use confirm, but if it's blocked, we still want to log out
-    const userConfirmed = confirm('Clear your API key and log out? You will be asked to enter a new one.');
-    if(!userConfirmed) return;
-    
-    // Clear ALL auth and data keys to ensure a clean logout
-    localStorage.removeItem('sunnyware_admin_key');
-    localStorage.removeItem('sunny_chats_v2');
-    localStorage.removeItem('sunny_files_v1');
-    
-    // Force a hard reload to /ui to reset the app
-    window.location.href = '/ui';
-  }
+  // Part 210: Old document-level billing/logout removed
+
   if(e.target.closest('#userProfileBtn')){
     // Skip if user clicked the plan text (it has its own handler)
     if(e.target.closest('#currentUserPlan')) return;
@@ -3787,6 +4060,63 @@ streamAI = async function(chat, prompt) {
       <button id="closeUpgradeBtn" style="background:none;border:none;color:var(--text-secondary);font-size:24px;cursor:pointer;">×</button>
     </div>
     <div id="upgradePlansList" style="display:flex;flex-direction:column;gap:12px;"></div>
+  </div>
+</div>
+
+
+<!-- Part 210: Settings menu (dropdown desktop, sheet mobile) -->
+<div id="settingsOverlay" class="settings-overlay"></div>
+<div id="settingsMenu" class="settings-menu">
+  <div class="settings-header">
+    <div class="settings-avatar-lg" id="settingsAvatar">SW</div>
+    <div class="settings-info">
+      <div class="settings-email" id="settingsEmail">-</div>
+      <div class="settings-plan-line" id="settingsPlanLine">Loading...</div>
+    </div>
+  </div>
+
+  <div class="settings-section">
+    <button class="settings-item upgrade-item" id="settingsUpgradeBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2l3 6 6.5 1-5 4.5L18 21l-6-3-6 3 1.5-7.5L2.5 9 9 8l3-6z"/>
+      </svg>
+      <span class="settings-item-label">Upgrade plan</span>
+      <span class="settings-item-badge" id="settingsCurrentPlanBadge">Free</span>
+    </button>
+    <button class="settings-item" id="settingsBillingBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+        <line x1="1" y1="10" x2="23" y2="10"/>
+      </svg>
+      <span class="settings-item-label">Manage billing</span>
+    </button>
+  </div>
+
+  <div class="settings-section">
+    <button class="settings-item" id="settingsThemeBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
+      </svg>
+      <span class="settings-item-label">Theme</span>
+      <span class="settings-item-badge" id="settingsThemeLabel">Dark</span>
+    </button>
+    <button class="settings-item" id="settingsSwitchBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/>
+      </svg>
+      <span class="settings-item-label">Switch account</span>
+    </button>
+  </div>
+
+  <div class="settings-section">
+    <button class="settings-item danger" id="settingsLogoutBtn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+      </svg>
+      <span class="settings-item-label">Log out</span>
+    </button>
   </div>
 </div>
 
