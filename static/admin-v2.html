@@ -105,6 +105,7 @@ button.ghost { background: rgba(255,255,255,0.05); color: var(--text); border: 1
     <div class="nav-item" data-tab="dashboard">Dashboard</div>
     <div class="nav-item" data-tab="organizations">Organizations</div>
     <div class="nav-item" data-tab="users">Users (SSO)</div>
+    <div class="nav-item" data-tab="workos-users">WorkOS Users</div>
     <div class="nav-item" data-tab="approvals">HITL Approvals</div>
     <div class="nav-item" data-tab="hitl-config">HITL Config</div>
   </div>
@@ -250,6 +251,7 @@ function nav(tab) {
     dashboard: 'Dashboard',
     organizations: 'Organizations',
     users: 'Users (SSO)',
+    'workos-users': 'WorkOS Users',
     approvals: 'HITL Approvals',
     'hitl-config': 'HITL Config',
     customers: 'Customers',
@@ -275,6 +277,7 @@ function nav(tab) {
     dashboard: renderDashboard,
     organizations: renderOrganizations,
     users: renderUsers,
+    'workos-users': renderWorkOSUsers,
     approvals: renderApprovals,
     'hitl-config': renderHitlConfig,
     customers: renderCustomers,
@@ -307,6 +310,42 @@ function nav(tab) {
 // ═════════════════════════════════════════════════════════════════
 // DASHBOARD
 // ═════════════════════════════════════════════════════════════════
+
+async function renderWorkOSUsers() {
+  $('content').innerHTML = '<p style="color:var(--muted);">Loading WorkOS users...</p>';
+  try {
+    const d = await api('/api/admin/workos/users');
+    const users = d.users || [];
+
+    if (!users.length) {
+      $('content').innerHTML = '<h2>WorkOS Users</h2><p style="color:var(--muted);">No users found in WorkOS.</p>';
+      return;
+    }
+
+    $('content').innerHTML = `
+      <h2>WorkOS Users (${users.length})</h2>
+      <p style="color:var(--muted); margin-bottom: 15px;">Users synced from WorkOS AuthKit (Google, Microsoft, etc.)</p>
+      <table>
+        <thead><tr><th>Email</th><th>First Name</th><th>Last Name</th><th>ID</th><th>Created</th><th>Status</th></tr></thead>
+        <tbody>
+          ${users.map(u => `
+            <tr>
+              <td><strong>${esc(u.email || '')}</strong></td>
+              <td>${esc(u.first_name || '—')}</td>
+              <td>${esc(u.last_name || '—')}</td>
+              <td><code style="font-size:11px">${esc(u.id || '')}</code></td>
+              <td>${u.created_at ? new Date(u.created_at).toLocaleDateString() : '—'}</td>
+              <td><span class="tag ${u.email_verified ? 'ok' : 'warn'}">${u.email_verified ? 'Verified' : 'Unverified'}</span></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (e) {
+    $('content').innerHTML = `<h2>WorkOS Users</h2><p style="color:var(--danger);">Error loading users: ${esc(e.message)}</p>`;
+  }
+}
+
 async function renderDashboard() {
   const [saas, acc] = await Promise.all([
     api('/api/saas/dashboard'),
