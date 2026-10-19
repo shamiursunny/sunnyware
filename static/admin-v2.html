@@ -2413,6 +2413,23 @@ async function renderAnalytics() {
   const usersData = await api('/api/analytics/users?days=30').catch(() => ({ users: [] }));
   const userList = usersData.users || [];
 
+  const now = Date.now() / 1000;
+  const isOnline = (lastActiveTs) => lastActiveTs && (now - lastActiveTs) < 300; // < 5 mins
+
+  const fmtDate = (ts) => {
+    if (!ts) return '-';
+    const d = new Date(ts * 1000);
+    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+  };
+
+  const fmtDuration = (seconds) => {
+    if (!seconds) return '0m';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if (h > 0) return h + 'h ' + m + 'm';
+    return m + 'm';
+  };
+
   const fmtNum = (n) => n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(1)+'K' : String(n || 0);
   const fmtAgo = (ts) => {
     if (!ts) return '-';
@@ -2438,22 +2455,47 @@ async function renderAnalytics() {
     <h3>Users (${userList.length})</h3>
     ${userList.length === 0 ? '<p style="color:var(--muted)">No activity yet. Chat or login to generate data.</p>' : `
     <table>
-      <thead><tr><th>User</th><th>Today</th><th>Week</th><th>Month</th><th>Active</th><th>Last Active</th><th></th></tr></thead>
+      <thead>
+        <tr>
+          <th>User Email</th>
+          <th>Status</th>
+          <th>Today (Tok / Chats)</th>
+          <th>Week (Tok / Chats)</th>
+          <th>Month (Tok / Chats)</th>
+          <th>Last Login</th>
+          <th>Last Active</th>
+          <th>Total Active</th>
+          <th></th>
+        </tr>
+      </thead>
       <tbody>
-        ${userList.map(u => `
+        ${userList.map(u => {
+          const online = isOnline(u.last_active);
+          const safeEmail = esc(u.user).split(String.fromCharCode(39)).join('&#39;');
+          return `
           <tr>
-            <td><strong>${esc(u.user)}</strong></td>
+            <td>
+              <strong>${esc(u.user)}</strong>
+              <div style="font-size:10px;color:var(--muted);">Sessions: ${u.total_sessions || 0}</div>
+            </td>
+            <td>
+              <span style="display:inline-block;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;background:${online ? '#2ecc7122' : '#66666622'};color:${online ? '#2ecc71' : '#888'};">
+                ${online ? 'Online' : 'Offline'}
+              </span>
+            </td>
             <td>${fmtNum(u.today.tokens)} tok / ${u.today.chats} c</td>
             <td>${fmtNum(u.week.tokens)} tok / ${u.week.chats} c</td>
             <td>${fmtNum(u.month.tokens)} tok / ${u.month.chats} c</td>
-            <td>${Math.floor((u.month.active_seconds||0)/60)}m</td>
-            <td>${fmtAgo(u.last_active)}</td>
-            <td><button class="ghost small" onclick="showUserDetail('${esc(u.user).replace(/\x27/g, '&#39;')}')">Details</button></td>
+            <td style="font-size:11px;">${fmtDate(u.last_login)}</td>
+            <td style="font-size:11px;">${fmtAgo(u.last_active)}</td>
+            <td style="font-size:11px;">${fmtDuration(u.total_active_seconds)}</td>
+            <td><button class="ghost small" onclick="showUserDetail('${safeEmail}')">Details</button></td>
           </tr>
-        `).join('')}
+        `}).join('')}
       </tbody>
     </table>
     `}
+
 
     <div id="user-detail-panel" style="margin-top:24px;"></div>
   `;
@@ -2482,8 +2524,8 @@ async function showUserDetail(email) {
         <div><div style="font-size:11px;color:var(--muted);">Month Tokens</div><div style="font-size:20px;font-weight:700;">${fmtNum(detail.month.tokens)}</div></div>
         <div><div style="font-size:11px;color:var(--muted);">Month Chats</div><div style="font-size:20px;font-weight:700;">${detail.month.chats}</div></div>
         <div><div style="font-size:11px;color:var(--muted);">Month Tools</div><div style="font-size:20px;font-weight:700;">${detail.month.tools}</div></div>
-        <div><div style="font-size:11px;color:var(--muted);">Active Time</div><div style="font-size:20px;font-weight:700;">${Math.floor((detail.month.active_seconds||0)/60)}m</div></div>
-        <div><div style="font-size:11px;color:var(--muted);">Sessions</div><div style="font-size:20px;font-weight:700;">${detail.month.sessions}</div></div>
+        <div><div style="font-size:11px;color:var(--muted);">Total Active Time</div><div style="font-size:20px;font-weight:700;">${fmtDuration(detail.total_active_seconds)}</div></div>
+        <div><div style="font-size:11px;color:var(--muted);">Total Sessions</div><div style="font-size:20px;font-weight:700;">${detail.total_sessions || 0}</div></div>
       </div>
 
       <h4>Daily Usage (last 7 days)</h4>

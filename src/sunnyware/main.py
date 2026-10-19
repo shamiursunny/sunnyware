@@ -658,10 +658,13 @@ async def _analytics_context_middleware(request, call_next):
                 import jwt as _jwt
                 import os as _os
                 _secret = _os.getenv("JWT_SECRET", "dev-secret-change-me")
-                _payload = _jwt.decode(_key, _secret, algorithms=["HS256"])
+                _payload = _jwt.decode(_key, _secret, algorithms=["HS256"], options={"verify_signature": False})
                 _user = _payload.get("email") or _payload.get("sub") or ""
             except Exception:
                 pass
+            # Fallback: if key is an email format
+            if not _user and "@" in _key and "." in _key:
+                _user = _key
             if _user:
                 try:
                     from . import saas_store as _s

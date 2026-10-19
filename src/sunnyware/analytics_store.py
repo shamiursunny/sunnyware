@@ -154,6 +154,9 @@ def user_summary(email: str, days: int = 30) -> dict:
     last_login_ts = next((e["ts"] for e in events if e.get("type") == "login"), None)
     last_logout_ts = next((e["ts"] for e in events if e.get("type") == "logout"), None)
 
+    total_sessions = sum(1 for e in events if e.get("type") == "login")
+    total_active_seconds = _session_active_seconds(events)
+
     return {
         "user": email,
         "today": _agg(today_events),
@@ -162,6 +165,8 @@ def user_summary(email: str, days: int = 30) -> dict:
         "last_active": events[0].get("ts") if events else None,
         "last_login": last_login_ts,
         "last_logout": last_logout_ts,
+        "total_sessions": total_sessions,
+        "total_active_seconds": total_active_seconds,
     }
 
 
