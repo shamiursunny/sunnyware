@@ -2326,3 +2326,13 @@ Config:
 - Added robust error handling for user details panel.
 - Fixed PDF invoice date formatting to be human-readable (e.g., Oct 19, 2026).
 - Verified: All features (Analytics, PDFs, Charts, Cancel Sub) are fully functional.
+
+## Part 218b — Smoke Test System Proven (2026-10-19)
+- Fixed fmtDuration is not defined (module-level helpers + aliases in renderAnalytics/showUserDetail)
+- Fixed fmtNum already declared (removed duplicate arrow function in showUserDetail)
+- Moved Chart.js CDN to head for reliable load
+- safe_deploy.sh ran full pipeline successfully:
+  - LOCAL PASSED -> pushed 4a62a96 -> HF rebuilt in 45s -> REMOTE PASSED
+
+### Workflow (proven end-to-end)
+  ./safe_deploy.sh "Part XXX: description"
