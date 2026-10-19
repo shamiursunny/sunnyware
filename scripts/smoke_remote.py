@@ -82,7 +82,7 @@ for marker, desc in [
     ("async function downloadInvoicePdf", "downloadInvoicePdf defined"),
     ("async function saveOrch", "saveOrch defined"),
     ('data-tab="email"', "Email nav item"),
-    ("chart.js@3", "Chart.js v3 CDN served"),
+    ("function _renderSimpleChart", "Inline SVG chart renderer"),
 ]:
     (pass_ if marker in html else fail)(desc)
 
