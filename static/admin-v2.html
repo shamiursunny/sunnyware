@@ -190,6 +190,37 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
 <div id="toast"></div>
 
 <script>
+// ═══════════════════════════════════════════════════════════
+// Module-level helpers (accessible from all render functions)
+// ═══════════════════════════════════════════════════════════
+function _fmtNum(n) {
+  return n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(1)+'K' : String(n || 0);
+}
+function _fmtAgo(ts) {
+  if (!ts) return '-';
+  const s = Math.floor(Date.now()/1000 - ts);
+  if (s < 60) return 'just now';
+  if (s < 3600) return Math.floor(s/60)+'m ago';
+  if (s < 86400) return Math.floor(s/3600)+'h ago';
+  return Math.floor(s/86400)+'d ago';
+}
+function _fmtDate(ts) {
+  if (!ts) return '-';
+  const d = new Date(ts * 1000);
+  return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+}
+function _fmtDuration(seconds) {
+  if (!seconds) return '0m';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h > 0) return h + 'h ' + m + 'm';
+  return m + 'm';
+}
+function _isOnline(lastActiveTs) {
+  return lastActiveTs && (Date.now()/1000 - lastActiveTs) < 300;
+}
+
+
 // ═════════════════════════════════════════════════════════════════
 // CORE STATE
 // ═════════════════════════════════════════════════════════════════
@@ -2418,32 +2449,13 @@ async function renderAnalytics() {
   const usersData = await api('/api/analytics/users?days=30').catch(() => ({ users: [] }));
   const userList = usersData.users || [];
 
-  const now = Date.now() / 1000;
-  const isOnline = (lastActiveTs) => lastActiveTs && (now - lastActiveTs) < 300; // < 5 mins
+  const isOnline = _isOnline;
+  const fmtDate = _fmtDate;
+  const fmtDuration = _fmtDuration;
+  const fmtNum = _fmtNum;
+  const fmtAgo = _fmtAgo;
 
-  const fmtDate = (ts) => {
-    if (!ts) return '-';
-    const d = new Date(ts * 1000);
-    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
-  };
 
-  const fmtDuration = (seconds) => {
-    if (!seconds) return '0m';
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    if (h > 0) return h + 'h ' + m + 'm';
-    return m + 'm';
-  };
-
-  const fmtNum = (n) => n >= 1000000 ? (n/1000000).toFixed(1)+'M' : n >= 1000 ? (n/1000).toFixed(1)+'K' : String(n || 0);
-  const fmtAgo = (ts) => {
-    if (!ts) return '-';
-    const s = Math.floor(Date.now()/1000 - ts);
-    if (s < 60) return 'just now';
-    if (s < 3600) return Math.floor(s/60)+'m ago';
-    if (s < 86400) return Math.floor(s/3600)+'h ago';
-    return Math.floor(s/86400)+'d ago';
-  };
 
   $('content').innerHTML = `
     <h2>User Analytics</h2>
@@ -2512,11 +2524,21 @@ async function renderAnalytics() {
     <div id="user-detail-panel" style="margin-top:24px;"></div>
   `;
 
-  // Draw Chart (guard for missing Chart global)
+  // Draw Chart (guard + lazy load Chart.js if not present)
   try {
     if (typeof Chart === 'undefined') {
-      console.warn('[chart] Chart.js not loaded');
-      throw new Error('Chart.js not loaded');
+      console.warn('[chart] Chart.js not loaded — attempting dynamic load');
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js';
+        script.onload = resolve;
+        script.onerror = () => reject(new Error('CDN load failed'));
+        document.head.appendChild(script);
+      });
+      if (typeof Chart === 'undefined') {
+        throw new Error('Chart.js still undefined after dynamic load');
+      }
+      console.log('[chart] Chart.js loaded dynamically');
     }
     const chartRes = await api('/api/analytics/charts?days=7');
     if (!chartRes || !Array.isArray(chartRes.data)) {
@@ -2576,6 +2598,8 @@ async function renderAnalytics() {
 async function showUserDetail(email) {
   const panel = $('user-detail-panel');
   if (!panel) return;
+  // Alias helpers so they're accessible in this scope
+  const fmtNum = _fmtNum, fmtAgo = _fmtAgo, fmtDate = _fmtDate, fmtDuration = _fmtDuration;
   panel.innerHTML = '<p style="color:var(--muted)">Loading details...</p>';
   let detail;
   try {
@@ -2588,7 +2612,6 @@ async function showUserDetail(email) {
   const eventsData = await api('/api/analytics/events?user=' + encodeURIComponent(email) + '&limit=100').catch(() => ({ events: [] }));
   const daily = detail.daily_usage || [];
   const evtList = eventsData.events || [];
-  const fmtNum = (n) => n >= 1000 ? (n/1000).toFixed(1)+'K' : String(n || 0);
   const maxTok = Math.max(1, ...daily.map(d => d.tokens || 0));
 
   panel.innerHTML = `
