@@ -680,6 +680,12 @@ async def _analytics_context_middleware(request, call_next):
                 except Exception:
                     pass
         _as.set_current(_user, _org)
+        # Part 220: also set telemetry contextvars in middleware (guaranteed to run)
+        _ip = request.headers.get("x-forwarded-for", "").split(",")[0].strip() or (request.client.host if request.client else "")
+        _ua = request.headers.get("user-agent", "")
+        _dev = request.headers.get("x-device-id", "")
+        _loc = request.headers.get("x-location", "")
+        _as.set_telemetry(ip=_ip, ua=_ua, device=_dev, location=_loc)
         # Part 214c: also store on request.state so it survives across async tasks
         try:
             request.state.analytics_user = _user

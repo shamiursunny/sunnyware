@@ -102,12 +102,53 @@ def _log_llm(result: dict, model_hint: str = ""):
         cost_per_1k = float(cfg.get("cost_per_1k_cents", 0.0))
         cost_cents = (tokens / 1000.0) * cost_per_1k if tokens else 0.0
 
-        # Telemetry from contextvars (reliable across async tasks)
+        # Telemetry: try contextvars first, fall back to request state
         tel = _as.get_telemetry()
         ip = tel.get("ip", "")
         ua = tel.get("ua", "")
         device = tel.get("device", "")
         loc = tel.get("location", "")
+        # Fallback: try to find request in stack
+        if not ip or not device:
+            try:
+                import inspect
+                for frame_info in inspect.stack():
+                    frame = frame_info.frame
+                    req = frame.f_locals.get("request") or frame.f_locals.get("req")
+                    if req is not None:
+                        st = getattr(req, "state", None)
+                        if st:
+                            if not ip:
+                                ip = getattr(st, "ip", "") or ""
+                            if not ua:
+                                ua = getattr(st, "ua", "") or ""
+                            if not device:
+                                device = getattr(st, "device", "") or ""
+                            if not loc:
+                                loc = getattr(st, "location", "") or ""
+                        if not ip:
+                            headers = getattr(req, "headers", None)
+                            if headers:
+                                ip = headers.get("x-forwarded-for", "").split(",")[0].strip() or ""
+                                if not ip and hasattr(req, "client") and req.client:
+                                    ip = req.client.host or ""
+                                if not ua:
+                                    ua = headers.get("user-agent", "") or ""
+                        break
+            except Exception:
+                pass
+        # Final fallback: device name from UA if possible
+        if not device and ua:
+            if "Mobile" in ua:
+                device = "Mobile"
+            elif "Tablet" in ua:
+                device = "Tablet"
+            elif "Windows" in ua:
+                device = "Windows"
+            elif "Macintosh" in ua:
+                device = "Mac"
+            elif "Linux" in ua:
+                device = "Linux"
 
         _lds.log_llm_call(provider, model, ok, tokens, latency, error, user)
         _as.log_event(user, "chat",

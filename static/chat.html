@@ -1300,6 +1300,12 @@ function _parseJwt(token) {
 }
 
 let _apiKey = localStorage.getItem('sunnyware_admin_key') || '';
+// Part 220: device ID for telemetry
+let _deviceId = localStorage.getItem('sunnyware_device_id');
+if (!_deviceId) {
+  _deviceId = 'dev_' + Math.random().toString(36).substring(2, 14);
+  localStorage.setItem('sunnyware_device_id', _deviceId);
+}
 let _userEmail = 'Not logged in';
 
 if (_apiKey) {
@@ -1551,9 +1557,13 @@ window.fetch = function(url, options) {
 
       options.headers.set('X-API-Key', _apiKey);
 
+      if (typeof _deviceId !== 'undefined' && _deviceId) options.headers.set('X-Device-ID', _deviceId);
+
     } else {
 
       options.headers['X-API-Key'] = _apiKey;
+
+      if (typeof _deviceId !== 'undefined' && _deviceId) options.headers['X-Device-ID'] = _deviceId;
 
     }
 
