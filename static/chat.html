@@ -980,19 +980,33 @@ if (_apiKey) {
 }
 
 // Update sidebar UI when page loads
-document.addEventListener('DOMContentLoaded', () => {
+const updateSidebarName = () => {
   const nameEl = document.getElementById('currentUserName');
   if (nameEl) {
     nameEl.textContent = _userEmail;
-    nameEl.style.fontSize = '12px'; // Smaller for long emails
+    nameEl.style.fontSize = '12px';
     nameEl.style.overflow = 'hidden';
     nameEl.style.textOverflow = 'ellipsis';
     nameEl.style.whiteSpace = 'nowrap';
   }
-});
+};
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', updateSidebarName);
+} else {
+  updateSidebarName();
+}
 if (!_apiKey) {
   // Part 196: Show modal instead of prompt
   window._needsLogin = true;
+  const showLoginModal = () => {
+    const m = document.getElementById('loginModal');
+    if (m) m.classList.remove('hidden');
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', showLoginModal);
+  } else {
+    showLoginModal();
+  }
 }
 
 const _originalFetch = window.fetch;
@@ -1176,7 +1190,11 @@ document.addEventListener('click', function(e) {
   if(e.target.closest('#logoutBtn')){
     e.preventDefault();
     e.stopPropagation();
-    if(!confirm('Clear your API key and log out? You will be asked to enter a new one.')) return;
+    console.log('[logout] initiated');
+    
+    // Use confirm, but if it's blocked, we still want to log out
+    const userConfirmed = confirm('Clear your API key and log out? You will be asked to enter a new one.');
+    if(!userConfirmed) return;
     
     // Clear ALL auth and data keys to ensure a clean logout
     localStorage.removeItem('sunnyware_admin_key');
