@@ -28,6 +28,7 @@ from .routes import billing as billing_routes
 from .routes import saas as saas_routes
 from .routes import approvals as approvals_routes
 from .routes import sso as sso_routes
+from .routes import authkit as authkit_routes
 from .routes import agent as agent_routes
 from .routes import eval as eval_routes
 from .routes import mcp as mcp_routes
@@ -128,6 +129,7 @@ app.include_router(saas_routes.router)
 app.include_router(approvals_routes.router)
 app.include_router(hitl_routes.router)
 app.include_router(sso_routes.router)
+app.include_router(authkit_routes.router)
 app.include_router(agent_routes.router)
 app.include_router(tools_routes.router)
 app.include_router(sessions_routes.router)
