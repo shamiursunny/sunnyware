@@ -33,3 +33,6 @@ playwright>=1.40.0
 chainladder>=0.10
 lifelib>=0.17
 solvency2-data>=0.5
+
+tiktoken>=0.7.0
+fpdf2>=2.7.9

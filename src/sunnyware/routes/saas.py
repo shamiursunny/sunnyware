@@ -3,7 +3,7 @@
 """Part 182: SaaS Control Plane API."""
 
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 
 router = APIRouter(tags=["saas"])
 
@@ -612,4 +612,32 @@ async def cancel_subscription(req: Request):
         return {"ok": True, "message": "Subscription canceled. Downgraded to Free."}
     except Exception as e:
         return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+
+@router.get("/api/saas/invoices/{invoice_id}/pdf")
+async def download_invoice_pdf(invoice_id: str, req: Request):
+    from .. import auth as _auth
+    key = req.headers.get("x-api-key") or ""
+    if not key:
+        authz = req.headers.get("authorization") or ""
+        if authz.lower().startswith("bearer "):
+            key = authz[7:].strip()
+    if _auth.auth_enabled():
+        if not key or not _auth.is_valid_key(key):
+            return JSONResponse({"error": "auth_required"}, status_code=401)
+
+    try:
+        from .. import saas_store as _s
+        from .. import invoice_pdf as _pdf
+        invoices = _s.list_invoices()
+        inv = next((i for i in invoices if i.get("id") == invoice_id), None)
+        if not inv:
+            return JSONResponse({"error": "Invoice not found"}, status_code=404)
+        pdf_bytes = _pdf.generate_invoice_pdf(inv)
+        return Response(
+            content=pdf_bytes,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f'attachment; filename="invoice_{invoice_id}.pdf"'},
+        )
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
 

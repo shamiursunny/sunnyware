@@ -347,7 +347,7 @@ async function renderWorkOSUsers() {
       <h2>WorkOS Users (${users.length})</h2>
       <p style="color:var(--muted); margin-bottom: 15px;">Users synced from WorkOS AuthKit (Google, Microsoft, etc.)</p>
       <table>
-        <thead><tr><th>Email</th><th>First Name</th><th>Last Name</th><th>ID</th><th>Created</th><th>Status</th></tr></thead>
+        <thead><tr><th>Email</th><th>First Name</th><th>Last Name</th><th>ID</th><th>Created</th><th>Status</th><th>PDF</th></tr></thead>
         <tbody>
           ${users.map(u => `
             <tr>
@@ -1042,7 +1042,7 @@ async function renderInvoices() {
     <h2>Subscription Invoices (Paddle) (${saasInvoices.length})</h2>
     ${saasInvoices.length === 0 ? '<p style="color:var(--muted)">No subscription invoices yet.</p>' : `
     <table>
-      <thead><tr><th>Date</th><th>Org</th><th class="n">Amount</th><th>Description</th><th>Status</th></tr></thead>
+      <thead><tr><th>Date</th><th>Org</th><th class="n">Amount</th><th>Description</th><th>Status</th><th>PDF</th></tr></thead>
       <tbody>
         ${saasInvoices.map(v => {
           const amt = (v.amount_cents || 0) / 100;
@@ -1055,6 +1055,7 @@ async function renderInvoices() {
               <td class="n">${money(amt)}</td>
               <td>${esc(v.description || '')}</td>
               <td><span class="tag ${tagCls}">${esc(v.status || '')}</span></td>
+              <td><button class="ghost small" onclick="downloadInvoicePdf('${esc(v.id)}')">PDF</button></td>
             </tr>
           `;
         }).join('')}
@@ -2817,6 +2818,29 @@ async function clearLlmLogs() {
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
   else hook();
 })();
+
+
+
+async function downloadInvoicePdf(invoiceId) {
+  try {
+    toast('Downloading PDF...');
+    const res = await fetch('/api/saas/invoices/' + encodeURIComponent(invoiceId) + '/pdf', {
+      headers: { 'X-API-Key': localStorage.getItem('sunnyware_admin_key') || 'master-admin-key' }
+    });
+    if (!res.ok) throw new Error('Failed to generate PDF');
+    const blob = await res.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'invoice_' + invoiceId + '.pdf';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
 
 </script>
 </body>

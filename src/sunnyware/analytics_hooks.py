@@ -4,6 +4,23 @@
 
 import time
 
+try:
+    import tiktoken
+    _TIKTOKEN_ENC = tiktoken.get_encoding("cl100k_base")
+except Exception:
+    _TIKTOKEN_ENC = None
+
+def _count_tokens(text: str) -> int:
+    if not text:
+        return 0
+    if _TIKTOKEN_ENC is not None:
+        try:
+            return len(_TIKTOKEN_ENC.encode(str(text)))
+        except Exception:
+            pass
+    return len(str(text)) // 4  # Fallback
+
+
 
 def _extract_user_from_stack():
     """Walk the call stack to find any `request` object with user info."""
@@ -70,11 +87,11 @@ def _log_llm(result: dict, model_hint: str = ""):
         if tokens == 0:
             tokens = int(result.get("total_tokens") or result.get("tokens", 0))
             
-        if tokens == 0 and "content" in result:
-            # Estimate: ~4 chars per token for prompt + completion
-            prompt_len = len(str(result.get("prompt", "")))
-            content_len = len(str(result.get("content", "")))
-            tokens = (prompt_len + content_len) // 4
+        if tokens == 0:
+            # Exact count using tiktoken
+            prompt_tokens = _count_tokens(result.get("prompt", ""))
+            completion_tokens = _count_tokens(result.get("content", ""))
+            tokens = prompt_tokens + completion_tokens
 
             
         latency = float(result.get("latency_ms") or 0)
