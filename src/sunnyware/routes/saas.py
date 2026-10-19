@@ -209,8 +209,7 @@ async def customer_portal(req: Request, org_id: str = ""):
         )
 
     # 3. Create portal session
-    return_url = "https://shamiur-sunnyware.hf.space/ui"
-    res = await _paddle.create_portal_session(cust_id, return_url=return_url)
+    res = await _paddle.create_portal_session(cust_id)
     if not res.get("ok"):
         return JSONResponse(
             {"error": "portal_failed", "detail": res.get("error", "unknown")},

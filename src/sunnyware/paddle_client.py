@@ -150,10 +150,10 @@ async def create_portal_session(customer_id: str, return_url: str = "") -> dict:
     try:
         import httpx
         async with httpx.AsyncClient(timeout=15.0) as cli:
-            # Part 204c: Paddle Billing API uses /customers/{id}/portal-sessions
+            # Part 204d: Paddle Billing API /portal-sessions takes empty body.
+            # return_url is NOT a valid field (that's Paddle Classic); the
+            # return URL is configured in the Paddle dashboard.
             body = {}
-            if return_url:
-                body["return_url"] = return_url
             r = await cli.post(
                 _base_url() + f"/customers/{customer_id}/portal-sessions",
                 json=body,
