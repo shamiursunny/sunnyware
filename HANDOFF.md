@@ -2343,3 +2343,21 @@ Config:
 - Auto-login event fired on first chat in 30 min session (Sessions counter now works)
 - Updated smoke test markers: `_renderSimpleChart` instead of `chart.js@3`
 - Deployment verified: LOCAL PASSED -> pushed `ad061d9` -> HF rebuilt in 30s -> REMOTE PASSED
+
+## Part 220 — Device Header + Telemetry Fixes (2026-10-19) VERIFIED
+- Added `X-Device-ID` header to central fetch wrapper in chat.html
+- Middleware now sets telemetry contextvars (IP, UA, Device) on every request
+- `_log_llm` has robust fallback (contextvars → stack → UA parsing)
+- Auto-login event fires on first chat in 30 min session
+- `_session_active_seconds` has span fallback (Active Time now shows real value)
+- **Verified in live screenshots**:
+  - Devices / IPs: `1 dev / 1 IP`
+  - Sessions: `1`
+  - Total Active Time: `10m`
+  - Chart renders inline SVG
+  - Login events appear in timeline
+  - Chat with tool calls works (list_files returned 27 files)
+
+## Proven Deployment Pipeline
+- `./safe_deploy.sh "message"` runs local smoke → push → poll HF → remote smoke → SUCCESS
+- 27 local checks + 24 remote checks pass every deploy
