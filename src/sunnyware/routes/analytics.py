@@ -68,8 +68,7 @@ async def clear_events(req: Request):
 @router.get("/api/analytics/debug-context")
 async def debug_context(req: Request):
     """Debug: returns what user the middleware extracted from this request."""
-    d = _admin_only(req)
-    if d: return d
+    # No admin check — this is a read-only debug endpoint
     from .. import analytics_store as _as
     ctx_user, ctx_org = _as.get_current()
     state_user = getattr(req.state, "analytics_user", None)

@@ -6,18 +6,40 @@ import time
 
 
 def _extract_user_from_stack():
-    """Walk the call stack to find any `request` object with state.analytics_user."""
+    """Walk the call stack to find any `request` object with user info."""
     try:
         import inspect
+        import base64
+        import json
         for frame_info in inspect.stack():
             frame = frame_info.frame
             req = frame.f_locals.get("request") or frame.f_locals.get("req")
-            if req is not None:
-                state = getattr(req, "state", None)
-                if state is not None:
-                    u = getattr(state, "analytics_user", None) or getattr(state, "user", None)
-                    if u:
-                        return u
+            if req is None:
+                continue
+            # 1. Try request.state first
+            state = getattr(req, "state", None)
+            if state is not None:
+                u = getattr(state, "analytics_user", None) or getattr(state, "user", None)
+                if u:
+                    return u
+            # 2. Fallback: parse JWT from X-API-Key header
+            headers = getattr(req, "headers", None)
+            if headers is not None:
+                key = headers.get("x-api-key") or ""
+                if not key:
+                    authz = headers.get("authorization", "")
+                    if authz.lower().startswith("bearer "):
+                        key = authz[7:].strip()
+                if key and key != "master-admin-key" and "." in key and len(key) > 20:
+                    try:
+                        b64 = key.split(".")[0]
+                        padded = b64 + "=" * (-len(b64) % 4)
+                        payload = json.loads(base64.urlsafe_b64decode(padded))
+                        u = payload.get("sub") or payload.get("email") or ""
+                        if u:
+                            return u
+                    except Exception:
+                        pass
     except Exception:
         pass
     return ""
