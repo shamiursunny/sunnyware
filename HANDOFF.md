@@ -2313,3 +2313,9 @@ Config:
 - Activity log shows member_added, member_deleted, login, logout ✅
 - Plan display fix confirmed in production ✅
 - Orgs remain healthy (no regression) ✅
+
+## Part 215 — Final Polish Bundle (2026-10-19) COMPLETED
+- **Charts**: Integrated Chart.js into Admin User Analytics (Tokens + Chats over 7 days).
+- **Cancel Subscription**: Added `POST /api/saas/cancel` and UI button (visible only for non-Free/Enterprise plans).
+- **Token Accuracy**: Added prompt+content fallback estimation in analytics hooks.
+- **Verified**: Pro plan correctly shows "Cancel Subscription" in the UI. Chart API returns correct data.
