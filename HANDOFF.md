@@ -2224,3 +2224,29 @@ Config:
 ## Verified
 - Live WorkOS API connection works (fetched real Google user: shamiur.sunny@gmail.com with correct first/last names).
 - Admin auth protects the endpoint (401 without key, 200 with key).
+
+---
+
+# Part 209 Update (2026-10-19): User Upgrade Flow & UI Polish
+
+## Backend
+- **`routes/saas.py`**:
+  - Added `GET /api/saas/me`: returns user's org plan, token usage, and available upgrade plans (auth via JWT).
+  - Added `POST /api/saas/upgrade`: creates a Paddle checkout URL for the caller's org.
+  - Added `_ensure_paddle_price()`: auto-creates a Paddle Price if the plan doesn't have one yet.
+  - Updated `/api/saas/checkout` to ensure Paddle prices exist before creating a checkout.
+
+## Frontend (`static/chat.html`)
+- **Plan Display**: Sidebar now shows the user's real plan (`Free · Free · 1M tokens`) instead of the hardcoded "Enterprise · Unlimited".
+- **Upgrade Modal**: Clicking the plan text opens a modal with Pro/Enterprise options.
+- **Checkout Redirect**: Clicking "Upgrade" redirects to Paddle checkout.
+- **Admin Mode**: Logged in as `master-admin-key`, the plan text shows "Admin · Full Access" and clicking it shows an alert.
+- **Auth Guard**: API calls (`/api/roles`, `/api/sessions`, `/api/saas/me`) are skipped when no API key is present to prevent 401 loops.
+- **Loop Guards**: `handle401` now has a 5-second cooldown to prevent infinite reload loops.
+- **Flicker Guard**: `syncSessionsFromServer` only re-renders the sidebar if the session data has actually changed.
+
+## Verified
+- Google login sets the plan text to `Free · Free · 1M tokens`.
+- Billing button opens Paddle Customer Portal with correct user email.
+- No 401 errors or red banners appear when logged out.
+- UI is stable with no flicker.
