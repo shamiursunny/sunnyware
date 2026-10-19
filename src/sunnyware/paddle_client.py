@@ -150,11 +150,12 @@ async def create_portal_session(customer_id: str, return_url: str = "") -> dict:
     try:
         import httpx
         async with httpx.AsyncClient(timeout=15.0) as cli:
-            body = {"customer_id": customer_id}
+            # Part 204c: Paddle Billing API uses /customers/{id}/portal-sessions
+            body = {}
             if return_url:
                 body["return_url"] = return_url
             r = await cli.post(
-                _base_url() + "/customer-portal-sessions",
+                _base_url() + f"/customers/{customer_id}/portal-sessions",
                 json=body,
                 headers={
                     "Authorization": "Bearer " + _api_key(),
@@ -164,10 +165,13 @@ async def create_portal_session(customer_id: str, return_url: str = "") -> dict:
             if r.status_code not in (200, 201):
                 return {"ok": False, "error": r.text[:300]}
             data = r.json().get("data", {})
-            general = data.get("urls", {}).get("general", {})
-            overview = general.get("overview", "")
+            # Paddle returns { data: { urls: { general: { overview: "..." } } } }
+            urls = data.get("urls") or {}
+            general = urls.get("general") or {}
+            overview = general.get("overview") or data.get("url", "")
             if not overview:
-                return {"ok": False, "error": "no portal URL in response"}
+                # Fallback — return full response so we can debug
+                return {"ok": False, "error": f"no portal URL in response: {str(data)[:200]}"}
             return {"ok": True, "url": overview}
     except Exception as e:
         return {"ok": False, "error": f"{type(e).__name__}: {e}"}
