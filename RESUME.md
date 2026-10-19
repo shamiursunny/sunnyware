@@ -1291,3 +1291,32 @@ me the exact git commands to commit + push both remotes."
 - Billing button opens Paddle Customer Portal with correct user email.
 - No 401 errors or red banners appear when logged out.
 - UI is stable with no flicker.
+
+---
+
+# Part 210 Update (2026-10-19): ChatGPT-Style Settings Menu + Upgrade Fixes
+
+## Frontend (`static/chat.html`)
+- **Settings Menu**: Single clickable user pill (bottom-left) replaces the old 4-icon footer.
+  - Desktop: dropdown card above the pill.
+  - Mobile: full-width bottom sheet with overlay.
+  - Menu items: Upgrade plan (with current plan badge), Manage billing, Theme toggle, Switch account, Log out.
+- **Close Buttons**: Added X button to Settings menu header and Login modal header.
+- **Plan Display Fix**: No more "Free · Free · 1M tokens"; now shows "Free · 1M tokens".
+- **Billing Opens in New Tab**: Paddle Customer Portal opens in a new tab, keeping the chat UI intact.
+- **Null-Safety**: `applyTheme` now gracefully handles missing `#iconMoon`/`#iconSun` elements.
+- **Script Position**: Moved `<script>` to the end of `<body>` so all DOM elements exist at parse time.
+- **Standalone `openUpgradeModal()`**: Defined for use in the upgrade flow.
+- **Upgrade Modal**: Shows current plan with "Current plan" label instead of an Upgrade button.
+- **Loading Fallback**: `loadUserPlan` falls back to "Free · 1M tokens" if the API call fails or hangs.
+
+## Backend (`src/sunnyware/routes/saas.py`)
+- **Force-Upgrade Endpoint** (`POST /api/saas/admin/force-upgrade`): Admin-only endpoint to instantly upgrade an org to a given plan for testing. Fixed path to include `/api/saas` prefix.
+- **Synchronous Upgrade on Auto-Approval**: When Paddle returns `auto_approved: true`, the org is upgraded immediately in the same request (no webhook needed). This solves the sandbox quirk where webhooks are not sent for auto-approved transactions.
+- **Paddle Webhook Fixes**: `transaction.completed` event now checks multiple locations for `custom_data` and falls back to `paddle_customer_id` lookup.
+
+## Verified
+- `system_monitor.py`: 99.8/100 (A+), PRODUCTION-READY.
+- `pre_push_check.py`: ALL PASS, READY TO PUSH.
+- UI: Settings menu opens/closes via pill, X, outside click, Escape. Login modal closes via X. Billing opens in new tab. Plan text shows "Pro · $49/mo · 20M tokens" after force-upgrade.
+- Console: No errors, no flicker, chat works, history loads.
