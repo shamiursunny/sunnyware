@@ -454,3 +454,33 @@ async def saas_upgrade(req: Request):
         except Exception as e:
             print(f"[saas] Auto-approved upgrade failed: {e}")
     return result
+
+
+@router.post("/admin/force-upgrade")
+async def admin_force_upgrade(req: Request):
+    """Part 210e: Force-upgrade an org to a given plan (admin only, for testing)."""
+    api_key = req.headers.get("X-API-Key", "")
+    if api_key != "master-admin-key":
+        return JSONResponse({"error": "unauthorized"}, status_code=401)
+
+    body = await req.json()
+    org_id = body.get("org_id")
+    plan_id = body.get("plan_id", "pro")
+    if not org_id:
+        return JSONResponse({"error": "org_id required"}, status_code=400)
+
+    from .. import saas_store as s
+    org = s.get_org(org_id)
+    if not org:
+        return JSONResponse({"error": "org_not_found"}, status_code=404)
+
+    s.update_org(org_id, {"plan": plan_id, "status": "active"})
+    _plan_price = next((pl.get("price_monthly", 0) for pl in s.list_plans() if pl["id"] == plan_id), 0)
+    s.create_invoice(
+        org_id=org_id,
+        amount=float(_plan_price),
+        description=f"Admin force-upgrade: {plan_id}",
+        status="paid"
+    )
+    print(f"[saas] Admin force-upgraded org {org_id} to {plan_id}")
+    return {"ok": True, "org_id": org_id, "plan": plan_id}
