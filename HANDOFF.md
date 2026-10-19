@@ -2183,3 +2183,25 @@ Config:
 - **Frontend Deduplication**: `chat.html` now dedupes tool pills by `(name + args)` to prevent duplicate UI elements if the backend emits duplicate events.
 - **Frontend Error States**: Tool pills now turn red (error state) on HITL timeouts instead of showing an infinite loading spinner.
 - **Verified**: Chat with `forced_tool=python_eval` now completes in ~10s with exactly 1 `tool_call` and 1 `tool_result`.
+
+---
+
+# Part 206 Update (2026-10-19): WorkOS AuthKit Google Login
+
+## Backend
+- **New** `src/sunnyware/workos_auth.py`: WorkOS User Management client (`get_authorize_url`, `authenticate_with_code`).
+- **New** `src/sunnyware/routes/authkit.py`: Routes for `/auth/google` (redirect) and `/auth/callback` (exchange code + issue JWT).
+- **Updated** `src/sunnyware/main.py`: Registered `authkit_routes`.
+- **Updated** `src/sunnyware/routes/auth.py`: Added `_generate_jwt` to support AuthKit callback.
+
+## Frontend (`static/chat.html`)
+- **Login Modal**: Added "Sign in with Google" button (blue Google styling).
+- **Token Handling**: Added logic to parse `?token=JWT` from AuthKit redirect, save to `localStorage`, and clean the URL.
+- **Sidebar Profile**: Added JWT parsing to display the real logged-in email in the bottom-left corner.
+- **Logout**: Fixed race conditions and duplicate handlers. Logout now reliably clears `localStorage` and reloads to the login screen.
+- **Modal Display**: Fixed `DOMContentLoaded` race condition to ensure the login modal appears instantly on load if no token exists.
+
+## Verified
+- Google Login works end-to-end.
+- Paddle Customer Portal correctly identifies the Google user (pulls their email/name).
+- Chat history is isolated per Google account.
