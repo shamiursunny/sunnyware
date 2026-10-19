@@ -73,3 +73,44 @@ def check_quota(org_id: str, limit: int) -> dict:
         "limit": limit,
         "remaining": max(0, limit - used),
     }
+
+
+# ═══════════════════════════════════════════════════════════
+# Part 203: Monthly token quota (rolling month, not daily)
+# ═══════════════════════════════════════════════════════════
+def _this_month() -> str:
+    return time.strftime("%Y-%m")
+
+
+def increment_tokens(org_id: str, count: int) -> int:
+    """Add `count` tokens to this month's usage for the org. Returns new total."""
+    if not org_id or count <= 0:
+        return 0
+    data = _load()
+    key = f"{org_id}:{_this_month()}:tokens"
+    data[key] = data.get(key, 0) + int(count)
+    _save(data)
+    return data[key]
+
+
+def get_tokens(org_id: str) -> int:
+    """This month's total token usage for the org."""
+    if not org_id:
+        return 0
+    data = _load()
+    return data.get(f"{org_id}:{_this_month()}:tokens", 0)
+
+
+def check_token_quota(org_id: str, limit_millions: int) -> dict:
+    """Return {allowed, used, limit, remaining}. -1 limit = unlimited."""
+    if limit_millions is None or limit_millions < 0:
+        return {"allowed": True, "used": get_tokens(org_id),
+                "limit": -1, "remaining": -1}
+    limit = int(limit_millions) * 1_000_000
+    used = get_tokens(org_id)
+    return {
+        "allowed": used < limit,
+        "used": used,
+        "limit": limit,
+        "remaining": max(0, limit - used),
+    }

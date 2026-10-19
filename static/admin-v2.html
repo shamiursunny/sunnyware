@@ -352,6 +352,11 @@ async function renderDashboard() {
 // ═════════════════════════════════════════════════════════════════
 async function renderOrganizations() {
   const d = await api('/api/saas/orgs');
+  const usageMap = {};
+  try {
+    const u = await api('/api/saas/usage/summary');
+    for (const row of (u.orgs || [])) { usageMap[row.org_id] = row; }
+  } catch(e) {}
   $('content').innerHTML = `
     <h2>Create Organization</h2>
     <div class="form-row">
@@ -369,7 +374,7 @@ async function renderOrganizations() {
 
     <h2>Organizations (${d.count})</h2>
     <table>
-      <thead><tr><th>Org ID</th><th>Name</th><th>Plan</th><th>Status</th><th>Actions</th></tr></thead>
+      <thead><tr><th>Org ID</th><th>Name</th><th>Plan</th><th>Token Usage</th><th>Status</th><th>Actions</th></tr></thead>
       <tbody>
         ${d.orgs.map(o => `
           <tr>
@@ -382,6 +387,21 @@ async function renderOrganizations() {
                 <option value="enterprise" ${o.plan==='enterprise'?'selected':''}>Enterprise</option>
               </select>
             </td>
+            <td>${(() => {
+              const u = usageMap[o.id];
+              if (!u || !u.tokens) return '<span style="color:var(--muted);font-size:11px;">—</span>';
+              const tk = u.tokens;
+              const used = tk.used || 0;
+              const limit = tk.limit || 0;
+              const pct = limit > 0 ? Math.min(100, Math.round(used / limit * 100)) : 0;
+              const color = limit > 0 && pct >= 90 ? '#e74c3c' : (limit > 0 && pct >= 70 ? '#f39c12' : '#2ecc71');
+              const fmt = n => n >= 1e9 ? (n/1e9).toFixed(1)+'B' : (n >= 1e6 ? (n/1e6).toFixed(1)+'M' : (n >= 1e3 ? (n/1e3).toFixed(1)+'K' : n));
+              if (limit < 0) return `<span style="color:var(--muted);font-size:11px;">unlimited (${fmt(used)} used)</span>`;
+              return `<div style="font-size:11px;">${fmt(used)} / ${fmt(limit)} <span style="color:${color};">(${pct}%)</span></div>
+                <div style="height:4px;background:var(--bg-tertiary);border-radius:2px;margin-top:3px;overflow:hidden;">
+                  <div style="height:100%;width:${pct}%;background:${color};"></div>
+                </div>`;
+            })()}</td>
             <td><span class="tag ${o.status==='active'?'ok':'bad'}">${o.status}</span></td>
             <td>
               <button class="small" onclick="checkout('${o.id}', '${o.plan}')">Pay</button>

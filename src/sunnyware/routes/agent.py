@@ -172,7 +172,7 @@ async def _auditor_verdict_with_retry(role, content):
 router = APIRouter()
 
 def _check_quota(req: Request):
-    """Check and increment usage quota. Returns a 429 response if exceeded."""
+    """Part 203: Check daily calls AND monthly tokens. Returns 429 if exceeded."""
     try:
         from .. import saas_store as _saas
         from .. import usage as _usage
@@ -181,6 +181,9 @@ def _check_quota(req: Request):
             authz = req.headers.get("authorization") or ""
             if authz.lower().startswith("bearer "):
                 key = authz[7:].strip()
+        # Admin bypass
+        if key == "master-admin-key":
+            return None
         org = _saas.get_org_for_api_key(key)
         if not org:
             return None
@@ -188,6 +191,7 @@ def _check_quota(req: Request):
         plan_id = org.get("plan", "free")
         plans = {pp["id"]: pp for pp in _saas.list_plans()}
         plan = plans.get(plan_id, {})
+        # 1) Daily call quota
         limit = plan.get("calls_per_day", 100)
         check = _usage.check_quota(org_id, limit)
         if not check["allowed"]:
@@ -196,10 +200,40 @@ def _check_quota(req: Request):
                  "detail": f"Daily limit of {limit} calls reached. Please upgrade your plan."},
                 status_code=429,
             )
+        # 2) Monthly token quota
+        tok_limit_m = plan.get("token_limit_millions", -1)
+        tok_check = _usage.check_token_quota(org_id, tok_limit_m)
+        if not tok_check["allowed"]:
+            return JSONResponse(
+                {"error": "token_quota_exceeded",
+                 "detail": f"Monthly token limit reached ({tok_check['used']:,} / {tok_check['limit']:,} tokens). Please upgrade your plan."},
+                status_code=429,
+            )
         _usage.increment(org_id)
     except Exception:
         pass
     return None
+
+
+def _record_token_usage(req: Request, tokens_used: int) -> None:
+    """Part 203: persist tokens_used to the caller's org for monthly quota."""
+    if not tokens_used or tokens_used <= 0:
+        return
+    try:
+        from .. import usage as _usage
+        from .. import saas_store as _saas
+        key = req.headers.get("x-api-key") or ""
+        if not key:
+            authz = req.headers.get("authorization") or ""
+            if authz.lower().startswith("bearer "):
+                key = authz[7:].strip()
+        if key == "master-admin-key":
+            return
+        org = _saas.get_org_for_api_key(key)
+        if org:
+            _usage.increment_tokens(org["id"], tokens_used)
+    except Exception:
+        pass
 
 
 
@@ -286,6 +320,9 @@ async def run_agent(req: Request):
             status_code=504,
         )
     total_latency_ms = int((_time.time() - _t0) * 1000)
+
+    # Part 203: record token usage for quota tracking
+    _record_token_usage(req, agent_result.get("tokens_used", 0))
 
     if session_uuid:
         if agent_result.get("ok"):
@@ -598,6 +635,8 @@ async def agent_stream(req: Request):
                 prompt, session_uuid=session_uuid, model=model, on_event=_cb,
                 role=role,
             )
+            # Part 203: record token usage for quota tracking
+            _record_token_usage(req, result.get("tokens_used", 0) if isinstance(result, dict) else 0)
             if session_uuid:
                 if result.get("ok"):
                     await _memory.log_event(

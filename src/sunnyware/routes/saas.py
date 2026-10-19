@@ -114,3 +114,28 @@ async def checkout(req: Request):
         body.get("success_url", base + "?checkout=success"),
         body.get("cancel_url", base + "?checkout=cancel"),
     )
+
+
+# Part 203: Bulk usage summary for admin dashboard
+@router.get("/api/saas/usage/summary")
+async def usage_summary(req: Request):
+    d = _admin(req)
+    if d: return d
+    from .. import usage as _usage
+    from .. import saas_store as s
+    orgs = s.list_orgs()
+    plans = {pp["id"]: pp for pp in s.list_plans()}
+    out = []
+    for org in orgs:
+        plan = plans.get(org.get("plan", "free"), {})
+        org_id = org["id"]
+        calls = _usage.check_quota(org_id, plan.get("calls_per_day", 100))
+        tokens = _usage.check_token_quota(org_id, plan.get("token_limit_millions", -1))
+        out.append({
+            "org_id": org_id,
+            "name": org.get("name", ""),
+            "plan": org.get("plan", "free"),
+            "calls": calls,
+            "tokens": tokens,
+        })
+    return {"orgs": out}

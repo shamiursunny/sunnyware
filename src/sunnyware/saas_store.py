@@ -42,16 +42,19 @@ DEFAULT_PLANS = {
     "free": {
         "id": "free", "name": "Free", "price_monthly": 0,
         "calls_per_day": 100, "max_api_keys": 1,
+        "token_limit_millions": 1,
         "features": ["Basic tools", "Community support"], "created_at": 0,
     },
     "pro": {
         "id": "pro", "name": "Pro", "price_monthly": 49,
         "calls_per_day": 10000, "max_api_keys": 5,
+        "token_limit_millions": 20,
         "features": ["All tools", "Priority support", "HITL approvals"], "created_at": 0,
     },
     "enterprise": {
         "id": "enterprise", "name": "Enterprise", "price_monthly": 299,
         "calls_per_day": -1, "max_api_keys": -1,
+        "token_limit_millions": -1,
         "features": ["Unlimited", "SLA", "Dedicated support", "SSO"], "created_at": 0,
     },
 }
@@ -62,6 +65,15 @@ def _seed_plans() -> dict:
         plans = dict(DEFAULT_PLANS)
         for k in plans:
             plans[k]["created_at"] = time.time()
+        _save("plans.json", plans)
+    # Part 203: migrate legacy plans missing token_limit_millions
+    _changed = False
+    for _pid, _pl in plans.items():
+        if "token_limit_millions" not in _pl:
+            _default = DEFAULT_PLANS.get(_pid, {}).get("token_limit_millions", -1)
+            _pl["token_limit_millions"] = _default
+            _changed = True
+    if _changed:
         _save("plans.json", plans)
     return plans
 
