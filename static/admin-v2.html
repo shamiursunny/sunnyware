@@ -804,22 +804,23 @@ async function deleteCustomer(id) {
 // PLANS
 // ═════════════════════════════════════════════════════════════════
 async function renderPlans() {
-  const d = await api('/api/acc/plans');
+  // Part 208b: Fetch from the SaaS store, not accounting
+  const d = await api('/api/saas/plans');
   $('content').innerHTML = `
     <h2>Add Plan</h2>
     <div class="form-row">
       <div><label>Plan Name</label><input id="plan-name" placeholder="Starter"></div>
       <div><label>Price / month ($)</label><input id="plan-price" type="number" min="0" step="1" value="29"></div>
       <div><label>AI Tokens (M)</label><input id="plan-tokens" type="number" min="0" value="5"></div>
-      <div><label>Trial Days</label><input id="plan-trial" type="number" min="0" value="7"></div>
-      <div><label>Annual Disc %</label><input id="plan-disc" type="number" min="0" value="15"></div>
+      <div><label>Trial Days</label><input id="plan-trial" type="number" min="0" value="0"></div>
+      <div><label>Annual Disc %</label><input id="plan-disc" type="number" min="0" value="10"></div>
       <button onclick="addPlan()">Add Plan</button>
     </div>
 
     <h2>Plans (${d.plans.length})</h2>
     ${d.plans.length === 0 ? '<p style="color:var(--muted)">No plans yet.</p>' : `
     <table>
-      <thead><tr><th>Name</th><th class="n">Price/mo</th><th class="n">AI Tokens</th><th class="n">Trial</th><th class="n">Annual Disc</th><th class="n">Annual Price</th><th>Paddle ID</th><th></th></tr></thead>
+      <thead><tr><th>Name</th><th class="n">Price/mo</th><th class="n">AI Tokens (M)</th><th class="n">Trial</th><th class="n">Annual Disc</th><th class="n">Annual Price</th><th>Paddle ID</th><th></th></tr></thead>
       <tbody>
         ${d.plans.map(p => `
           <tr>
@@ -860,20 +861,18 @@ async function addPlan() {
 }
 
 async function updatePlanData(id, field, value) {
-  const d = await api('/api/acc/plans');
-  const plan = d.plans.find(p => p.id === id);
-  if (!plan) return;
-  plan[field] = value;
-  await api('/api/acc/plans', 'POST', plan);
+  const payload = {};
+  payload[field] = value;
+  await api('/api/saas/plans/' + id, 'PATCH', payload);
   toast('Plan updated', 'success');
-  ACC_STATE = await api('/api/acc/state');
+  nav('plans'); // Re-render to reflect changes
 }
 
 async function deletePlan(id) {
-  if (!confirm('Delete plan? (fails if customers use it)')) return;
-  const res = await api('/api/acc/plans/' + id, 'DELETE');
-  if (res.ok) { toast('Plan deleted', 'success'); ACC_STATE = await api('/api/acc/state'); nav('plans'); }
-  else toast('Cannot delete — customers still on this plan', 'error');
+  if (!confirm('Delete this plan?')) return;
+  await api('/api/saas/plans/' + id, 'DELETE');
+  toast('Deleted', 'success');
+  nav('plans');
 }
 
 // ═════════════════════════════════════════════════════════════════

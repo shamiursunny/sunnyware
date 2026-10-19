@@ -286,3 +286,15 @@ async def delete_saas_plan(plan_id: str, req: Request):
     from .. import saas_store as s
     ok = s.delete_plan(plan_id)
     return {"ok": ok}
+
+
+@router.patch("/api/saas/plans/{plan_id}")
+async def update_saas_plan(plan_id: str, req: Request):
+    d = _admin(req)
+    if d: return d
+    body = await req.json()
+    from .. import saas_store as s
+    plan = s.update_plan(plan_id, body)
+    if not plan:
+        return JSONResponse({"error": "Plan not found"}, status_code=404)
+    return {"ok": True, "plan": plan}
