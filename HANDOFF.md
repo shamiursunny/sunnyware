@@ -2319,3 +2319,10 @@ Config:
 - **Cancel Subscription**: Added `POST /api/saas/cancel` and UI button (visible only for non-Free/Enterprise plans).
 - **Token Accuracy**: Added prompt+content fallback estimation in analytics hooks.
 - **Verified**: Pro plan correctly shows "Cancel Subscription" in the UI. Chart API returns correct data.
+
+## Part 216d — Final Polish & Fixes (2026-10-19)
+- Fixed PDF `bytearray` error (now returns `bytes` in `saas.py`).
+- Downgraded Chart.js to v3.9.1 to fix blank charts.
+- Added robust error handling for user details panel.
+- Fixed PDF invoice date formatting to be human-readable (e.g., Oct 19, 2026).
+- Verified: All features (Analytics, PDFs, Charts, Cancel Sub) are fully functional.
