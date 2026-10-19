@@ -183,13 +183,23 @@ async def customer_portal(req: Request, org_id: str = ""):
 
     # 2. Ensure Paddle customer exists
     cust_id = target.get("paddle_customer_id", "")
-    if not cust_id and target.get("owner_email"):
+    if not cust_id:
+        # Part 204b: fall back to generated email if owner_email is empty
+        email = (target.get("owner_email") or "").strip()
+        if not email:
+            email = f"{target['id']}@sunnyware.local"
         create = await _paddle.create_customer(
-            target["owner_email"], name=target.get("name", ""),
+            email, name=target.get("name", ""),
         )
         if create.get("ok"):
             cust_id = create["customer_id"]
             _s.update_org(target["id"], {"paddle_customer_id": cust_id})
+        else:
+            return JSONResponse(
+                {"error": "customer_create_failed",
+                 "detail": create.get("error", "unknown")},
+                status_code=500,
+            )
 
     if not cust_id:
         return JSONResponse(
