@@ -5,25 +5,34 @@
 import time
 
 
+def _extract_user_from_stack():
+    """Walk the call stack to find any `request` object with state.analytics_user."""
+    try:
+        import inspect
+        for frame_info in inspect.stack():
+            frame = frame_info.frame
+            req = frame.f_locals.get("request") or frame.f_locals.get("req")
+            if req is not None:
+                state = getattr(req, "state", None)
+                if state is not None:
+                    u = getattr(state, "analytics_user", None) or getattr(state, "user", None)
+                    if u:
+                        return u
+    except Exception:
+        pass
+    return ""
+
+
 def _log_llm(result: dict, model_hint: str = ""):
     try:
         from . import analytics_store as _as
         from . import llm_dashboard_store as _lds
         user, org = _as.get_current()
         if not user:
-            try:
-                import inspect
-                for frame_info in inspect.stack():
-                    frame = frame_info.frame
-                    if "request" in frame.f_locals:
-                        req = frame.f_locals["request"]
-                        if hasattr(req, "state") and hasattr(req.state, "user"):
-                            user = getattr(req.state, "user", "")
-                            break
-            except Exception:
-                pass
+            user = _extract_user_from_stack()
         if not user:
             user = "anonymous"
+        print(f"[analytics] logged LLM call for user={user}")
 
         provider = result.get("provider", "unknown")
         model = result.get("resolved_model") or model_hint or ""
@@ -59,6 +68,8 @@ def _log_tool(name: str, latency_ms: float, ok: bool, error: str = ""):
     try:
         from . import analytics_store as _as
         user, org = _as.get_current()
+        if not user:
+            user = _extract_user_from_stack() or "anonymous"
         _as.log_event(user, "tool",
                       org_id=org, tool_name=name,
                       latency_ms=latency_ms, ok=ok, error=error)

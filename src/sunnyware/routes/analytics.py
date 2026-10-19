@@ -64,3 +64,20 @@ async def clear_events(req: Request):
     if d: return d
     ok = _as.clear_events()
     return {"ok": ok}
+
+@router.get("/api/analytics/debug-context")
+async def debug_context(req: Request):
+    """Debug: returns what user the middleware extracted from this request."""
+    d = _admin_only(req)
+    if d: return d
+    from .. import analytics_store as _as
+    ctx_user, ctx_org = _as.get_current()
+    state_user = getattr(req.state, "analytics_user", None)
+    return {
+        "contextvar_user": ctx_user,
+        "contextvar_org": ctx_org,
+        "request_state_user": state_user,
+        "x_api_key_present": bool(req.headers.get("x-api-key")),
+        "authorization_present": bool(req.headers.get("authorization")),
+    }
+

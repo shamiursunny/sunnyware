@@ -678,6 +678,12 @@ async def _analytics_context_middleware(request, call_next):
                 except Exception:
                     pass
         _as.set_current(_user, _org)
+        # Part 214c: also store on request.state so it survives across async tasks
+        try:
+            request.state.analytics_user = _user
+            request.state.analytics_org = _org
+        except Exception:
+            pass
     except Exception:
         pass
     return await call_next(request)
