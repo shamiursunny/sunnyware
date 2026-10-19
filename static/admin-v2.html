@@ -105,7 +105,7 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
 </style>
 
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 </head>
 <body>
 
@@ -2508,9 +2508,16 @@ async function renderAnalytics() {
     <div id="user-detail-panel" style="margin-top:24px;"></div>
   `;
 
-  // Draw Chart
+  // Draw Chart (guard for missing Chart global)
   try {
+    if (typeof Chart === 'undefined') {
+      console.warn('[chart] Chart.js not loaded');
+      throw new Error('Chart.js not loaded');
+    }
     const chartRes = await api('/api/analytics/charts?days=7');
+    if (!chartRes || !Array.isArray(chartRes.data)) {
+      throw new Error('Invalid chart data shape');
+    }
     const labels = chartRes.data.map(d => d.date.slice(5));
     const tokens = chartRes.data.map(d => d.tokens);
     const chats = chartRes.data.map(d => d.chats);
@@ -2549,15 +2556,31 @@ async function renderAnalytics() {
         }
       }
     });
-  } catch(e) { console.error('Chart error:', e); }
+  } catch(e) {
+    console.error('[chart] Error:', e);
+    const canvas = document.getElementById('usageChart');
+    if (canvas && canvas.parentElement) {
+      const msg = document.createElement('p');
+      msg.style.color = 'var(--muted)';
+      msg.style.fontSize = '12px';
+      msg.textContent = 'Chart unavailable: ' + (e.message || 'unknown');
+      canvas.parentElement.appendChild(msg);
+    }
+  }
 }
 
 async function showUserDetail(email) {
   const panel = $('user-detail-panel');
   if (!panel) return;
   panel.innerHTML = '<p style="color:var(--muted)">Loading details...</p>';
-  const detail = await api('/api/analytics/user/' + encodeURIComponent(email) + '?days=30').catch(() => null);
-  if (!detail) { panel.innerHTML = '<p style="color:var(--danger)">Failed to load.</p>'; return; }
+  let detail;
+  try {
+    detail = await api('/api/analytics/user/' + encodeURIComponent(email) + '?days=30');
+  } catch(err) {
+    panel.innerHTML = '<p style="color:var(--danger)">API error: ' + (err.message || 'unknown') + '</p>';
+    return;
+  }
+  if (!detail) { panel.innerHTML = '<p style="color:var(--danger)">Failed to load: empty response.</p>'; return; }
   const eventsData = await api('/api/analytics/events?user=' + encodeURIComponent(email) + '&limit=100').catch(() => ({ events: [] }));
   const daily = detail.daily_usage || [];
   const evtList = eventsData.events || [];

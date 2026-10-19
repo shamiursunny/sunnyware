@@ -633,6 +633,9 @@ async def download_invoice_pdf(invoice_id: str, req: Request):
         if not inv:
             return JSONResponse({"error": "Invoice not found"}, status_code=404)
         pdf_bytes = _pdf.generate_invoice_pdf(inv)
+        # Ensure we have a bytes object (FastAPI Response does not accept bytearray)
+        if isinstance(pdf_bytes, bytearray):
+            pdf_bytes = bytes(pdf_bytes)
         return Response(
             content=pdf_bytes,
             media_type="application/pdf",
