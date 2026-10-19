@@ -979,18 +979,58 @@ if (_apiKey) {
   }
 }
 
-// Part 209: Load user plan & show upgrade options
+// Part 209b: Load user plan & show upgrade options (handles all cases)
 async function loadUserPlan() {
-  if (!_apiKey) return;
+  const planEl = document.getElementById('currentUserPlan');
+
+  function setPlan(text, clickable, onclick) {
+    if (!planEl) return;
+    planEl.textContent = text;
+    planEl.style.cursor = clickable ? 'pointer' : 'default';
+    planEl.onclick = onclick || null;
+    if (clickable) {
+      planEl.onclick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        if (onclick) onclick(e);
+      };
+    }
+  }
+
+  if (!_apiKey) {
+    setPlan('Not signed in', false);
+    return;
+  }
+
+  // Admin key: skip user flow
+  if (_apiKey === 'master-admin-key') {
+    setPlan('Admin · Full Access', true, () => {
+      alert('You are logged in as master admin.\n\nTo test the upgrade flow, log out and sign in with Google.');
+    });
+    return;
+  }
+
   try {
     const res = await fetch('/api/saas/me', {
       headers: { 'X-API-Key': _apiKey }
     });
-    if (!res.ok) return;
+    if (!res.ok) {
+      setPlan('Session expired — please log in again', true, () => {
+        if (confirm('Your session expired. Log out and sign in again?')) {
+          localStorage.clear();
+          location.href = '/ui';
+        }
+      });
+      return;
+    }
     const d = await res.json();
-    if (d.error) return;
+    if (d.error) {
+      setPlan('No subscription — click to view plans', true, () => openUpgradeModal());
+      window._upgradePlans = d.upgrade_plans || [];
+      window._currentPlanId = d.plan_id || 'free';
+      return;
+    }
 
-    const planEl = document.getElementById('currentUserPlan');
     if (planEl) {
       const priceText = d.price_monthly > 0 ? '$' + d.price_monthly + '/mo' : 'Free';
       const tokenText = d.token_limit_millions < 0 ? 'Unlimited' : d.token_limit_millions + 'M tokens';
@@ -1001,7 +1041,9 @@ async function loadUserPlan() {
     window._currentPlanId = d.plan_id;
 
     if (planEl) {
-      planEl.onclick = () => {
+      planEl.onclick = (e) => {
+        e.stopPropagation();
+        e.preventDefault();
         const modal = document.getElementById('upgradeModal');
         const list = document.getElementById('upgradePlansList');
         if (!modal || !list) return;
@@ -1299,6 +1341,8 @@ document.addEventListener('click', function(e) {
     window.location.href = '/ui';
   }
   if(e.target.closest('#userProfileBtn')){
+    // Skip if user clicked the plan text (it has its own handler)
+    if(e.target.closest('#currentUserPlan')) return;
     document.getElementById('loginModal').classList.remove('hidden');
   }
 
@@ -3482,6 +3526,7 @@ loadAll(); renderChatList(); renderMessages(); renderLibrary(); autoGrow();
 
 /* ==================== CROSS-DEVICE SYNC (Part 193j) ==================== */
 
+let _lastSessionsHash = '';
 async function syncSessionsFromServer(){
 
   try {
@@ -3619,9 +3664,13 @@ async function syncSessionsFromServer(){
       chats.sort((a, b) => new Date(b.updated || 0) - new Date(a.updated || 0));
 
       saveAll();
-
-      renderChatList($('#searchInput').value);
-
+      const _newHash = JSON.stringify(chats.map(c => c.id + ':' + (c.updated||'')));
+      if (_newHash !== _lastSessionsHash) {
+        _lastSessionsHash = _newHash;
+        renderChatList($('#searchInput').value);
+      } else {
+        console.log('[sync] no changes, skipped re-render');
+      }
       console.log('[sync] +' + added + ' added, ' + updated + ' updated');
 
     }
@@ -3634,9 +3683,16 @@ async function syncSessionsFromServer(){
 
 
 function handle401() {
-  console.warn('[auth] 401 Unauthorized. Clearing invalid key and reloading for login...');
+  const now = Date.now();
+  const last = parseInt(localStorage.getItem('_last401_reload') || '0');
+  if (now - last < 5000) {
+    console.warn('[auth] 401 loop detected — skipping reload');
+    return;
+  }
+  localStorage.setItem('_last401_reload', now.toString());
+  console.warn('[auth] 401 — clearing key and reloading');
   localStorage.removeItem('sunnyware_admin_key');
-  location.reload();
+  setTimeout(() => location.reload(), 200);
 }
 
 function showAuthBanner(){
