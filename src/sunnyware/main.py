@@ -36,6 +36,7 @@ from .routes import api_keys as api_keys_routes
 from .routes import webhooks as webhooks_routes
 from .routes import chat_audit as chat_audit_routes
 from .routes import scheduled_tasks as scheduled_tasks_routes
+from .routes import rag_admin as rag_admin_routes
 from .routes import analytics as analytics_routes
 from .routes import llm_dashboard as llm_dashboard_routes
 from .routes import agent as agent_routes
@@ -145,6 +146,7 @@ app.include_router(api_keys_routes.router)
 app.include_router(webhooks_routes.router)
 app.include_router(chat_audit_routes.router)
 app.include_router(scheduled_tasks_routes.router)
+app.include_router(rag_admin_routes.router)
 app.include_router(analytics_routes.router)
 app.include_router(llm_dashboard_routes.router)
 app.include_router(agent_routes.router)

@@ -160,6 +160,7 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
     <div class="nav-item" data-tab="webhooks">Webhooks</div>
     <div class="nav-item" data-tab="chat-audit">Chat Audit</div>
     <div class="nav-item" data-tab="scheduled-tasks">Scheduled Tasks</div>
+    <div class="nav-item" data-tab="rag-admin">RAG Management</div>
   </div>
 
   <div class="nav-group">
@@ -3487,6 +3488,167 @@ async function clearScheduledRuns() {
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       st.classList.add('active');
       renderScheduledTasks();
+    };
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
+  else hook();
+})();
+
+
+
+// Part 221c: RAG MANAGEMENT page
+async function renderRagAdmin() {
+  const [statsRes, docsRes] = await Promise.all([
+    api('/api/rag-admin/stats').catch(() => ({})),
+    api('/api/rag-admin/documents?limit=200').catch(() => ({ documents: [] }))
+  ]);
+  const stats = statsRes || {};
+  const docs = docsRes.documents || [];
+
+  const fmtBytes = (b) => {
+    if (!b) return '0 B';
+    if (b < 1024) return b + ' B';
+    if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+    return (b/1048576).toFixed(2) + ' MB';
+  };
+
+  $('content').innerHTML = `
+    <h2>RAG Management</h2>
+    <p style="color:var(--muted);margin-bottom:16px;">Upload documents, inspect chunks, and manage the retrieval corpus.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+      <div class="card"><div style="font-size:11px;color:var(--muted);">Total Documents</div><div style="font-size:22px;font-weight:700;">${stats.total_documents || 0}</div></div>
+      <div class="card"><div style="font-size:11px;color:var(--muted);">Total Chunks</div><div style="font-size:22px;font-weight:700;">${stats.total_chunks || 0}</div></div>
+      <div class="card"><div style="font-size:11px;color:var(--muted);">Total Size</div><div style="font-size:22px;font-weight:700;">${fmtBytes(stats.total_bytes || 0)}</div></div>
+      <div class="card"><div style="font-size:11px;color:var(--muted);">Unique Orgs</div><div style="font-size:22px;font-weight:700;">${stats.unique_orgs || 0}</div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:24px;">
+      <h3 style="margin-top:0;color:var(--accent);">Upload Document</h3>
+      <div class="form-row" style="display:grid;grid-template-columns:1fr;gap:12px;">
+        <div><label>File name</label><input id="rag-name" placeholder="company-handbook.md"></div>
+        <div><label>Org ID (optional)</label><input id="rag-org" placeholder="org_..."></div>
+        <div><label>Content</label><textarea id="rag-content" rows="8" placeholder="Paste text content, or click 'Upload File' below..."></textarea></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button onclick="uploadRagDoc()" style="width:200px;">Add Document</button>
+          <input type="file" id="rag-file-input" accept=".txt,.md,.csv,.json,.html" style="display:none;" onchange="uploadRagFile(event)">
+          <button class="ghost" onclick="document.getElementById('rag-file-input').click()">Upload File (.txt/.md/.csv)</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      <h3>Documents (${docs.length})</h3>
+      <button class="ghost small" onclick="renderRagAdmin()">Refresh</button>
+    </div>
+    <div id="rag-docs-container">
+      ${renderRagDocsTable(docs)}
+    </div>
+
+    <div id="rag-chunks-panel" style="margin-top:24px;"></div>
+  `;
+}
+
+function renderRagDocsTable(docs) {
+  if (docs.length === 0) {
+    return '<p style="color:var(--muted)">No documents yet. Upload one above.</p>';
+  }
+  return `
+    <table>
+      <thead><tr><th>Name</th><th>Org</th><th>Size</th><th>Chunks</th><th>Status</th><th>Uploaded</th><th></th></tr></thead>
+      <tbody>
+        ${docs.map(d => `
+          <tr>
+            <td><strong>${esc(d.name)}</strong><br><span style="font-size:10px;color:var(--muted);">${esc(d.mime)}</span></td>
+            <td><code style="font-size:10px">${esc(d.org_id || '-')}</code></td>
+            <td>${(d.size_bytes || 0).toLocaleString()} B</td>
+            <td><a href="#" onclick="showRagChunks('${esc(d.id)}', '${esc(d.name).replace(/\x27/g, '&#39;')}'); return false;">${d.chunk_count || 0} chunks</a></td>
+            <td><span class="tag ${d.status === 'chunked' ? 'ok' : 'bad'}">${esc(d.status)}</span></td>
+            <td style="font-size:11px;">${new Date(d.ts*1000).toLocaleString()}</td>
+            <td>
+              <button class="danger small" onclick="deleteRagDoc('${esc(d.id)}')">Delete</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+async function uploadRagDoc() {
+  const name = document.getElementById('rag-name').value.trim();
+  const org = document.getElementById('rag-org').value.trim();
+  const content = document.getElementById('rag-content').value;
+  if (!name) return toast('File name required', 'error');
+  if (!content || content.length < 10) return toast('Content too short (min 10 chars)', 'error');
+
+  try {
+    const res = await api('/api/rag-admin/documents', 'POST', {
+      name, org_id: org, content, mime: 'text/plain'
+    });
+    if (res.ok) {
+      toast('Document uploaded + chunked');
+      document.getElementById('rag-name').value = '';
+      document.getElementById('rag-content').value = '';
+      renderRagAdmin();
+    } else {
+      toast('Error: ' + (res.error || 'unknown'), 'error');
+    }
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+function uploadRagFile(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('rag-name').value = file.name;
+    document.getElementById('rag-content').value = e.target.result;
+    toast('File loaded — click "Add Document"');
+  };
+  reader.readAsText(file);
+}
+
+async function showRagChunks(docId, docName) {
+  const panel = document.getElementById('rag-chunks-panel');
+  if (!panel) return;
+  panel.innerHTML = '<p style="color:var(--muted)">Loading chunks...</p>';
+  const data = await api('/api/rag-admin/documents/' + encodeURIComponent(docId) + '/chunks?limit=500').catch(() => ({ chunks: [] }));
+  const chunks = data.chunks || [];
+
+  panel.innerHTML = `
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="margin:0;color:var(--accent);">Chunks — ${esc(docName)}</h3>
+        <button class="ghost small" onclick="document.getElementById('rag-chunks-panel').innerHTML=''">Close</button>
+      </div>
+      <p style="color:var(--muted);font-size:12px;margin-bottom:12px;">${chunks.length} chunks (split by paragraph, max 2000 chars each).</p>
+      ${chunks.length === 0 ? '<p style="color:var(--muted)">No chunks found.</p>' : chunks.map((c, i) => `
+        <div style="padding:10px;background:var(--bg);border-radius:6px;margin-bottom:8px;border-left:3px solid var(--accent);">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">Chunk #${c.index + 1} (${(c.text||'').length} chars)</div>
+          <div style="font-size:12px;white-space:pre-wrap;">${esc((c.text||'').slice(0, 500))}${(c.text||'').length > 500 ? '…' : ''}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+async function deleteRagDoc(docId) {
+  if (!confirm('Delete this document and all its chunks?')) return;
+  try {
+    await api('/api/rag-admin/documents/' + encodeURIComponent(docId), 'DELETE');
+    toast('Document deleted');
+    renderRagAdmin();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+(function () {
+  const hook = () => {
+    const rag = document.querySelector('.nav-item[data-tab="rag-admin"]');
+    if (rag) rag.onclick = () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      rag.classList.add('active');
+      renderRagAdmin();
     };
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);

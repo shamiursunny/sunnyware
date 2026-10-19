@@ -67,6 +67,8 @@ endpoints = [
     ("/api/chat-audit/messages", "messages"),
     ("/api/scheduled-tasks", "tasks"),
     ("/api/scheduled-tasks/runs", "runs"),
+    ("/api/rag-admin/stats", "total_documents"),
+    ("/api/rag-admin/documents", "documents"),
 ]
 for path, key in endpoints:
     status, body = http(path)
@@ -91,6 +93,7 @@ for marker, desc in [
     ("async function renderWebhooks", "renderWebhooks defined"),
     ("async function renderChatAudit", "renderChatAudit defined"),
     ("async function renderScheduledTasks", "renderScheduledTasks defined"),
+    ("async function renderRagAdmin", "renderRagAdmin defined"),
     ("async function downloadInvoicePdf", "downloadInvoicePdf defined"),
     ("async function saveOrch", "saveOrch defined"),
     ('data-tab="email"', "Email nav item"),
