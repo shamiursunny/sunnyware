@@ -115,6 +115,7 @@ button.ghost { background: rgba(255,255,255,0.05); color: var(--text); border: 1
     <div class="nav-item" data-tab="customers">Customers</div>
     <div class="nav-item" data-tab="plans">Plans</div>
     <div class="nav-item" data-tab="invoices">Invoices</div>
+    <div class="nav-item" data-tab="paddle-live">Paddle Live</div>
     <div class="nav-item" data-tab="accounting">Accounting</div>
     <div class="nav-item" data-tab="reports">Reports</div>
   </div>
@@ -257,6 +258,7 @@ function nav(tab) {
     customers: 'Customers',
     plans: 'Plans',
     invoices: 'Invoices',
+    'paddle-live': 'Paddle Live (Sandbox API)',
     accounting: 'Accounting',
     reports: 'Reports',
     coupons: 'Coupons',
@@ -278,6 +280,7 @@ function nav(tab) {
     organizations: renderOrganizations,
     users: renderUsers,
     'workos-users': renderWorkOSUsers,
+    'paddle-live': renderPaddleLive,
     approvals: renderApprovals,
     'hitl-config': renderHitlConfig,
     customers: renderCustomers,
@@ -385,6 +388,92 @@ async function renderDashboard() {
     </div>
   `;
 }
+
+// =============================================================
+// PADDLE LIVE (Part 211) - pulls from Paddle API, not local DB
+// =============================================================
+function _fmtIsoDate(iso) {
+  if (!iso) return '-';
+  try {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return iso;
+    return d.toLocaleDateString(undefined, {year:'numeric', month:'short', day:'numeric'});
+  } catch(e) { return iso; }
+}
+
+async function renderPaddleLive() {
+  $('content').innerHTML = '<p style="color:var(--muted);">Loading live data from Paddle API...</p>';
+  try {
+    const d = await api('/api/saas/paddle/live');
+    if (!d || d.ok === false) {
+      $('content').innerHTML = [
+        '<div class="card">',
+        '<p style="color:var(--danger);margin:0;"><strong>Paddle API error:</strong> ' + esc(d.error || 'unknown') + '</p>',
+        '<p style="color:var(--muted);font-size:12px;margin:8px 0 0 0;">Check that <code>PADDLE_API_KEY</code> is set and valid for the ' + esc(d.mode || 'sandbox') + ' environment.</p>',
+        '</div>',
+        '<div style="margin-top:16px;"><button onclick="renderPaddleLive()">Retry</button></div>'
+      ].join('');
+      return;
+    }
+
+    const modeBadge = d.mode === 'live'
+      ? '<strong style="color:var(--success);">Live</strong>'
+      : '<strong style="color:var(--warn);">Sandbox</strong>';
+
+    const subsHtml = (d.subscriptions || []).length
+      ? d.subscriptions.map(s => [
+          '<tr>',
+          '<td><code style="font-size:11px;">' + esc(s.id) + '</code></td>',
+          '<td>' + esc(s.customer_email) + '</td>',
+          '<td>' + esc(s.plan_name) + '</td>',
+          '<td><span style="color:' + (s.status === 'active' ? 'var(--success)' : 'var(--muted)') + ';">' + esc(s.status) + '</span></td>',
+          '<td class="n">$' + num(s.amount) + '</td>',
+          '<td>' + _fmtIsoDate(s.next_billed_at) + '</td>',
+          '</tr>'
+        ].join('')).join('')
+      : '<tr><td colspan="6" style="color:var(--muted);">No active subscriptions in Paddle. Create a real checkout to populate this.</td></tr>';
+
+    const upcomingHtml = (d.upcoming_payments || []).length
+      ? d.upcoming_payments.map(u => [
+          '<tr>',
+          '<td>' + _fmtIsoDate(u.date) + '</td>',
+          '<td>' + esc(u.customer_email) + '</td>',
+          '<td class="n">$' + num(u.amount) + '</td>',
+          '<td><code style="font-size:11px;">' + esc(u.subscription_id) + '</code></td>',
+          '</tr>'
+        ].join('')).join('')
+      : '<tr><td colspan="4" style="color:var(--muted);">No upcoming payments scheduled.</td></tr>';
+
+    $('content').innerHTML = [
+      '<div class="grid">',
+        '<div class="card"><div class="title">MRR (live)</div><div class="value">$' + num(d.mrr) + '</div></div>',
+        '<div class="card"><div class="title">ARR (live)</div><div class="value">$' + num(d.arr) + '</div></div>',
+        '<div class="card"><div class="title">Active Subs</div><div class="value">' + d.active_subscriptions + ' / ' + d.total_subscriptions + '</div></div>',
+        '<div class="card"><div class="title">Customers</div><div class="value">' + d.customer_count + '</div></div>',
+        '<div class="card"><div class="title">Mode</div><div class="value" style="font-size:15px;">' + modeBadge + '</div></div>',
+      '</div>',
+
+      '<h2>Live Subscriptions (from Paddle API)</h2>',
+      '<table>',
+        '<thead><tr><th>Subscription</th><th>Customer</th><th>Plan</th><th>Status</th><th class="n">Amount</th><th>Next Billed</th></tr></thead>',
+        '<tbody>' + subsHtml + '</tbody>',
+      '</table>',
+
+      '<h2>Upcoming Payments</h2>',
+      '<table>',
+        '<thead><tr><th>Date</th><th>Customer</th><th class="n">Amount</th><th>Subscription</th></tr></thead>',
+        '<tbody>' + upcomingHtml + '</tbody>',
+      '</table>',
+
+      '<div style="margin-top:20px;display:flex;gap:8px;"><button onclick="renderPaddleLive()">Refresh from Paddle</button></div>',
+
+      '<p style="margin-top:20px;font-size:12px;color:var(--muted);line-height:1.6;"><strong>Note:</strong> This page shows data pulled directly from the Paddle API - not our local database. If a customer was upgraded via the sandbox auto-approval flow, they will appear in the Organizations tab (upgraded locally) but <em>not</em> here (no real Paddle subscription). Once a real checkout completes, the customer will appear in both places.</p>'
+    ].join('');
+  } catch(e) {
+    $('content').innerHTML = '<div class="card"><p style="color:var(--danger);margin:0;"><strong>Error:</strong> ' + esc(e.message) + '</p></div>';
+  }
+}
+
 
 // ═════════════════════════════════════════════════════════════════
 // ORGANIZATIONS (existing)

@@ -484,3 +484,90 @@ async def admin_force_upgrade(req: Request):
     )
     print(f"[saas] Admin force-upgraded org {org_id} to {plan_id}")
     return {"ok": True, "org_id": org_id, "plan": plan_id}
+
+@router.get("/api/saas/paddle/live")
+async def paddle_live_dashboard(req: Request):
+    """Part 211: Live Paddle billing dashboard (pulls from Paddle API, not DB)."""
+    api_key = req.headers.get("X-API-Key", "")
+    if api_key != "master-admin-key":
+        return JSONResponse({"error": "unauthorized"}, status_code=401)
+
+    from .. import paddle_client as pc
+
+    if not pc.enabled():
+        return JSONResponse({"ok": False, "error": "Paddle not configured (missing PADDLE_API_KEY)"}, status_code=400)
+
+    # Fetch subscriptions and customers in parallel-ish (sequential to keep simple)
+    subs_res = await pc.list_subscriptions(status="active", limit=100)
+    if not subs_res.get("ok"):
+        return JSONResponse({"ok": False, "error": subs_res.get("error", "unknown")}, status_code=500)
+    raw_subs = subs_res.get("subscriptions", [])
+
+    cust_res = await pc.list_customers(limit=100)
+    cust_map = {}
+    if cust_res.get("ok"):
+        for c in cust_res.get("customers", []):
+            cust_map[c.get("id", "")] = c.get("email", "")
+
+    subscriptions = []
+    upcoming = []
+    total_mrr_cents = 0
+
+    for s in raw_subs:
+        cust_id = s.get("customer_id", "") or ""
+        email = cust_map.get(cust_id, cust_id or "—")
+        status = s.get("status", "")
+        next_billed = s.get("next_billed_at") or ""
+        created = s.get("created_at") or ""
+
+        amount_cents = 0
+        plan_name = ""
+        for item in (s.get("items") or []):
+            price = item.get("price") or {}
+            unit = (price.get("unit_price") or {})
+            try:
+                amount_cents += int(unit.get("amount", "0"))
+            except Exception:
+                pass
+            plan_name = price.get("description") or plan_name
+            if not plan_name:
+                pid = price.get("product_id", "")
+                if pid:
+                    plan_name = pid[:14]
+
+        if status == "active":
+            total_mrr_cents += amount_cents
+
+        subscriptions.append({
+            "id": s.get("id", ""),
+            "status": status,
+            "customer_id": cust_id,
+            "customer_email": email,
+            "plan_name": plan_name or "—",
+            "amount": amount_cents / 100.0,
+            "next_billed_at": next_billed,
+            "created_at": created,
+        })
+
+        if next_billed and status == "active":
+            upcoming.append({
+                "date": next_billed,
+                "customer_email": email,
+                "amount": amount_cents / 100.0,
+                "subscription_id": s.get("id", ""),
+            })
+
+    upcoming.sort(key=lambda x: x["date"])
+
+    return {
+        "ok": True,
+        "mode": pc._environment(),
+        "mrr": total_mrr_cents / 100.0,
+        "arr": (total_mrr_cents / 100.0) * 12,
+        "active_subscriptions": sum(1 for s in subscriptions if s["status"] == "active"),
+        "total_subscriptions": len(subscriptions),
+        "subscriptions": subscriptions,
+        "upcoming_payments": upcoming[:10],
+        "customer_count": len(cust_map),
+    }
+

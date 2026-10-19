@@ -242,3 +242,41 @@ async def create_price(product_id: str, amount_cents: int, interval: str = "mont
             return {"ok": True, "price_id": r.json().get("data", {}).get("id", "")}
     except Exception as e:
         return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+
+async def list_subscriptions(status: str = "active", limit: int = 50) -> dict:
+    """Part 211: List Paddle subscriptions (returns {ok, subscriptions[]})."""
+    if not enabled():
+        return {"ok": False, "error": "Paddle not configured"}
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=20.0) as cli:
+            r = await cli.get(
+                _base_url() + "/subscriptions",
+                params={"status": status, "per_page": limit},
+                headers={"Authorization": "Bearer " + _api_key()},
+            )
+            if r.status_code != 200:
+                return {"ok": False, "error": r.text[:300]}
+            return {"ok": True, "subscriptions": r.json().get("data", [])}
+    except Exception as e:
+        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+
+
+async def list_customers(limit: int = 50) -> dict:
+    """Part 211: List Paddle customers (returns {ok, customers[]})."""
+    if not enabled():
+        return {"ok": False, "error": "Paddle not configured"}
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=20.0) as cli:
+            r = await cli.get(
+                _base_url() + "/customers",
+                params={"per_page": limit},
+                headers={"Authorization": "Bearer " + _api_key()},
+            )
+            if r.status_code != 200:
+                return {"ok": False, "error": r.text[:300]}
+            return {"ok": True, "customers": r.json().get("data", [])}
+    except Exception as e:
+        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+
