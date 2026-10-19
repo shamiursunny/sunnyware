@@ -819,16 +819,17 @@ async function renderPlans() {
     <h2>Plans (${d.plans.length})</h2>
     ${d.plans.length === 0 ? '<p style="color:var(--muted)">No plans yet.</p>' : `
     <table>
-      <thead><tr><th>Name</th><th class="n">Price/mo</th><th class="n">AI Tokens</th><th class="n">Trial</th><th class="n">Annual Disc</th><th class="n">Annual Price</th><th></th></tr></thead>
+      <thead><tr><th>Name</th><th class="n">Price/mo</th><th class="n">AI Tokens</th><th class="n">Trial</th><th class="n">Annual Disc</th><th class="n">Annual Price</th><th>Paddle ID</th><th></th></tr></thead>
       <tbody>
         ${d.plans.map(p => `
           <tr>
             <td><input value="${esc(p.name)}" onchange="updatePlanData('${esc(p.id)}', 'name', this.value)" style="width:130px;padding:4px;font-size:12px"></td>
-            <td class="n"><input type="number" value="${p.price||0}" onchange="updatePlanData('${esc(p.id)}', 'price', parseFloat(this.value)||0)" style="width:90px;padding:4px;font-size:12px;text-align:right"></td>
-            <td class="n"><input type="number" value="${p.tokens||0}" onchange="updatePlanData('${esc(p.id)}', 'tokens', parseFloat(this.value)||0)" style="width:70px;padding:4px;font-size:12px;text-align:right"></td>
-            <td class="n"><input type="number" value="${p.trial||0}" onchange="updatePlanData('${esc(p.id)}', 'trial', parseFloat(this.value)||0)" style="width:70px;padding:4px;font-size:12px;text-align:right"></td>
-            <td class="n"><input type="number" value="${p.disc||0}" onchange="updatePlanData('${esc(p.id)}', 'disc', parseFloat(this.value)||0)" style="width:70px;padding:4px;font-size:12px;text-align:right"></td>
-            <td class="n">${money((p.price||0)*12*(1-(p.disc||0)/100))}</td>
+            <td class="n"><input type="number" value="${p.price_monthly||0}" onchange="updatePlanData('${esc(p.id)}', 'price_monthly', parseFloat(this.value)||0)" style="width:90px;padding:4px;font-size:12px;text-align:right"></td>
+            <td class="n"><input type="number" value="${p.token_limit_millions||0}" onchange="updatePlanData('${esc(p.id)}', 'token_limit_millions', parseFloat(this.value)||0)" style="width:70px;padding:4px;font-size:12px;text-align:right"></td>
+            <td class="n"><input type="number" value="${p.trial_days||0}" onchange="updatePlanData('${esc(p.id)}', 'trial_days', parseFloat(this.value)||0)" style="width:70px;padding:4px;font-size:12px;text-align:right"></td>
+            <td class="n"><input type="number" value="${p.annual_discount_pct||0}" onchange="updatePlanData('${esc(p.id)}', 'annual_discount_pct', parseFloat(this.value)||0)" style="width:70px;padding:4px;font-size:12px;text-align:right"></td>
+            <td class="n">${money((p.price_monthly||0)*12*(1-(p.annual_discount_pct||0)/100))}</td>
+            <td><code style="font-size:10px">${esc(p.paddle_price_id||'No Paddle ID')}</code></td>
             <td><button class="ghost small" onclick="deletePlan('${esc(p.id)}')">Delete</button></td>
           </tr>
         `).join('')}
@@ -848,10 +849,14 @@ async function addPlan() {
     trial: parseFloat($('plan-trial').value) || 0,
     disc: parseFloat($('plan-disc').value) || 0,
   };
-  await api('/api/acc/plans', 'POST', data);
-  toast('Plan added', 'success');
-  ACC_STATE = await api('/api/acc/state');
-  nav('plans');
+  try {
+    toast('Creating plan in Paddle...', 'info');
+    await api('/api/saas/plans', 'POST', data);
+    toast('Plan created with Paddle Price', 'success');
+    nav('plans');
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  }
 }
 
 async function updatePlanData(id, field, value) {

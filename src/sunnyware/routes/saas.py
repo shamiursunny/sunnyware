@@ -216,3 +216,73 @@ async def customer_portal(req: Request, org_id: str = ""):
             status_code=500,
         )
     return {"ok": True, "url": res["url"], "org_id": target["id"]}
+
+
+# Part 208: Create SaaS Plan (auto-create in Paddle)
+@router.post("/api/saas/plans")
+async def create_saas_plan(req: Request):
+    d = _admin(req)
+    if d: return d
+    body = await req.json()
+    name = body.get("name", "").strip()
+    price = float(body.get("price", 0))
+    tokens = float(body.get("tokens", 0))
+    trial = int(body.get("trial", 0))
+    disc = float(body.get("disc", 0))
+    
+    if not name:
+        return JSONResponse({"error": "Name required"}, status_code=400)
+
+    # Generate a plan_id from the name (e.g., "Starter Plan" -> "starter_plan")
+    import re
+    plan_id = re.sub(r'[^a-z0-9]+', '_', name.lower()).strip('_')
+    if not plan_id:
+        plan_id = "plan_" + str(int(time.time()))
+
+    from .. import saas_store as s
+    from .. import paddle_client as _paddle
+    import time
+
+    # 1. Create Paddle Product and Price
+    paddle_product_id = ""
+    paddle_price_id = ""
+    
+    # Only create Paddle product if price > 0
+    if price > 0 and _paddle.enabled():
+        prod_res = await _paddle.create_product(name, f"Sunnyware {name} Plan")
+        if prod_res.get("ok"):
+            paddle_product_id = prod_res["product_id"]
+            price_res = await _paddle.create_price(
+                product_id=paddle_product_id,
+                amount_cents=int(price * 100),
+                interval="month",
+                trial_days=trial
+            )
+            if price_res.get("ok"):
+                paddle_price_id = price_res["price_id"]
+
+    # 2. Save to SaaS Store
+    plan_data = {
+        "name": name,
+        "price_monthly": price,
+        "token_limit_millions": tokens,
+        "trial_days": trial,
+        "annual_discount_pct": disc,
+        "paddle_product_id": paddle_product_id,
+        "paddle_price_id": paddle_price_id,
+        "calls_per_day": -1 if price > 100 else 10000,
+        "max_api_keys": 5,
+        "features": ["All tools", "Priority support"],
+    }
+    
+    s.create_plan(plan_id, plan_data)
+    return {"ok": True, "plan_id": plan_id, "plan": plan_data}
+
+
+@router.delete("/api/saas/plans/{plan_id}")
+async def delete_saas_plan(plan_id: str, req: Request):
+    d = _admin(req)
+    if d: return d
+    from .. import saas_store as s
+    ok = s.delete_plan(plan_id)
+    return {"ok": ok}

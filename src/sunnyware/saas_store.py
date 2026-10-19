@@ -42,19 +42,22 @@ DEFAULT_PLANS = {
     "free": {
         "id": "free", "name": "Free", "price_monthly": 0,
         "calls_per_day": 100, "max_api_keys": 1,
-        "token_limit_millions": 1,
+        "token_limit_millions": 1, "trial_days": 0, "annual_discount_pct": 0,
+        "paddle_product_id": "", "paddle_price_id": "",
         "features": ["Basic tools", "Community support"], "created_at": 0,
     },
     "pro": {
         "id": "pro", "name": "Pro", "price_monthly": 49,
         "calls_per_day": 10000, "max_api_keys": 5,
-        "token_limit_millions": 20,
+        "token_limit_millions": 20, "trial_days": 0, "annual_discount_pct": 0,
+        "paddle_product_id": "", "paddle_price_id": "",
         "features": ["All tools", "Priority support", "HITL approvals"], "created_at": 0,
     },
     "enterprise": {
         "id": "enterprise", "name": "Enterprise", "price_monthly": 299,
         "calls_per_day": -1, "max_api_keys": -1,
-        "token_limit_millions": -1,
+        "token_limit_millions": -1, "trial_days": 0, "annual_discount_pct": 0,
+        "paddle_product_id": "", "paddle_price_id": "",
         "features": ["Unlimited", "SLA", "Dedicated support", "SSO"], "created_at": 0,
     },
 }
@@ -244,3 +247,25 @@ def migrate_orgs_paddle_field() -> int:
     if changed:
         _save("orgs.json", orgs)
     return changed
+
+
+def get_plan(plan_id: str) -> Optional[dict]:
+    return _seed_plans().get(plan_id)
+
+def create_plan(plan_id: str, data: dict) -> dict:
+    plans = _seed_plans()
+    if plan_id in plans:
+        return plans[plan_id] # Or raise
+    data["id"] = plan_id
+    data["created_at"] = time.time()
+    plans[plan_id] = data
+    _save("plans.json", plans)
+    return plans[plan_id]
+
+def delete_plan(plan_id: str) -> bool:
+    plans = _seed_plans()
+    if plan_id in plans:
+        del plans[plan_id]
+        _save("plans.json", plans)
+        return True
+    return False

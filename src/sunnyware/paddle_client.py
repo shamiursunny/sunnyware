@@ -42,6 +42,15 @@ def enabled() -> bool:
 
 
 def _price_id(plan_id: str) -> str:
+    """Look up the Paddle Price ID from the SaaS store dynamically."""
+    try:
+        from . import saas_store as _s
+        plan = _s.get_plan(plan_id)
+        if plan:
+            return plan.get("paddle_price_id", "")
+    except Exception:
+        pass
+    # Fallback to env vars for backward compatibility
     return {
         "pro": os.getenv("PADDLE_PRICE_PRO") or "",
         "enterprise": os.getenv("PADDLE_PRICE_ENTERPRISE") or "",
@@ -183,5 +192,52 @@ async def create_portal_session(customer_id: str, return_url: str = "") -> dict:
                 # Fallback — return full response so we can debug
                 return {"ok": False, "error": f"no portal URL in response: {str(data)[:200]}"}
             return {"ok": True, "url": overview}
+    except Exception as e:
+        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+
+
+async def create_product(name: str, description: str = "") -> dict:
+    """Create a Product in Paddle."""
+    if not enabled():
+        return {"ok": False, "error": "Paddle not configured"}
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=15.0) as cli:
+            r = await cli.post(
+                _base_url() + "/products",
+                json={"name": name, "description": description or name, "tax_category": "saas"},
+                headers={"Authorization": "Bearer " + _api_key(), "Content-Type": "application/json"},
+            )
+            if r.status_code not in (200, 201):
+                return {"ok": False, "error": r.text[:300]}
+            return {"ok": True, "product_id": r.json().get("data", {}).get("id", "")}
+    except Exception as e:
+        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+
+
+async def create_price(product_id: str, amount_cents: int, interval: str = "month", trial_days: int = 0) -> dict:
+    """Create a Price for a Product in Paddle."""
+    if not enabled():
+        return {"ok": False, "error": "Paddle not configured"}
+    try:
+        import httpx
+        body = {
+            "product_id": product_id,
+            "description": f"${amount_cents/100:.2f} / {interval}",
+            "unit_price": {"amount": str(amount_cents), "currency_code": "USD"},
+            "billing_cycle": {"interval": interval, "frequency": 1},
+        }
+        if trial_days > 0:
+            body["trial_period"] = {"interval": "day", "frequency": trial_days}
+            
+        async with httpx.AsyncClient(timeout=15.0) as cli:
+            r = await cli.post(
+                _base_url() + "/prices",
+                json=body,
+                headers={"Authorization": "Bearer " + _api_key(), "Content-Type": "application/json"},
+            )
+            if r.status_code not in (200, 201):
+                return {"ok": False, "error": r.text[:300]}
+            return {"ok": True, "price_id": r.json().get("data", {}).get("id", "")}
     except Exception as e:
         return {"ok": False, "error": f"{type(e).__name__}: {e}"}
