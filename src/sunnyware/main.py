@@ -716,3 +716,70 @@ try:
 except Exception as _ah_e:
     print(f"[startup] analytics_hooks failed: {_ah_e}")
 
+
+# ═══════════════════════════════════════════════════════════
+# Part 222b: Backend enforcement of 2FA on admin routes
+# ═══════════════════════════════════════════════════════════
+_2FA_WHITELIST = (
+    "/api/2fa/",
+    "/api/auth/login",
+    "/api/auth/logout",
+    "/api/saas/me",
+    "/api/saas/plans",
+    "/api/saas/upgrade",
+    "/api/saas/checkout",
+    "/api/saas/portal",
+    "/api/saas/cancel",
+    "/api/chat-audit/log",
+    "/ui",
+    "/admin",
+    "/static/",
+    "/api/health",
+    "/api/metrics",
+)
+
+
+@app.middleware("http")
+async def _twofa_gate_middleware(request, call_next):
+    try:
+        path = request.url.path
+        for prefix in _2FA_WHITELIST:
+            if path == prefix or path.startswith(prefix):
+                return await call_next(request)
+        
+        key = request.headers.get("x-api-key") or ""
+        if not key:
+            authz = request.headers.get("authorization", "")
+            if authz.lower().startswith("bearer "):
+                key = authz[7:].strip()
+        if not key:
+            return await call_next(request)
+        
+        from . import twofa_store as _tfs
+        user = ""
+        if key == "master-admin-key":
+            user = "admin"
+        else:
+            try:
+                import base64 as _b64
+                import json as _json
+                if "." in key and len(key) > 20:
+                    b64 = key.split(".")[0]
+                    padded = b64 + "=" * (-len(b64) % 4)
+                    payload = _json.loads(_b64.urlsafe_b64decode(padded))
+                    user = (payload.get("sub") or payload.get("email") or "").lower()
+            except Exception:
+                pass
+        
+        if user and _tfs.is_enabled(user):
+            sess = request.headers.get("x-2fa-session", "")
+            if not _tfs.verify_session(user, sess):
+                from fastapi.responses import JSONResponse
+                return JSONResponse(
+                    {"error": "2fa_required", "user": user, "detail": "2FA verification required"},
+                    status_code=428,
+                )
+    except Exception:
+        pass
+    return await call_next(request)
+
