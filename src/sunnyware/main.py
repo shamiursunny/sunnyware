@@ -654,12 +654,16 @@ async def _analytics_context_middleware(request, call_next):
         _user = ""
         _org = ""
         if _key and _key != "master-admin-key":
+            # Part 214: custom JWT format: base64(payload).hmac
             try:
-                import jwt as _jwt
-                import os as _os
-                _secret = _os.getenv("JWT_SECRET", "dev-secret-change-me")
-                _payload = _jwt.decode(_key, _secret, algorithms=["HS256"], options={"verify_signature": False})
-                _user = _payload.get("email") or _payload.get("sub") or ""
+                if "." in _key and len(_key) > 20:
+                    import base64 as _b64
+                    import json as _json
+                    b64 = _key.split(".")[0]
+                    padded = b64 + "=" * (-len(b64) % 4)
+                    payload_bytes = _b64.urlsafe_b64decode(padded)
+                    payload = _json.loads(payload_bytes)
+                    _user = payload.get("sub") or payload.get("email") or ""
             except Exception:
                 pass
             # Fallback: if key is an email format
