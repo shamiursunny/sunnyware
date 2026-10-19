@@ -958,7 +958,38 @@ if (_urlToken && _urlToken.length > 20) {
   console.log('[auth] Received WorkOS JWT, saved to localStorage');
 }
 
+// Part 206c: Parse JWT to show real user email in sidebar
+function _parseJwt(token) {
+  try {
+    const base64Url = token.split('.')[0];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    return JSON.parse(atob(base64));
+  } catch(e) { return null; }
+}
+
 let _apiKey = localStorage.getItem('sunnyware_admin_key') || '';
+let _userEmail = 'Not logged in';
+
+if (_apiKey) {
+  if (_apiKey === 'master-admin-key') {
+    _userEmail = 'Admin';
+  } else if (_apiKey.includes('.')) {
+    const payload = _parseJwt(_apiKey);
+    if (payload && payload.sub) _userEmail = payload.sub;
+  }
+}
+
+// Update sidebar UI when page loads
+document.addEventListener('DOMContentLoaded', () => {
+  const nameEl = document.getElementById('currentUserName');
+  if (nameEl) {
+    nameEl.textContent = _userEmail;
+    nameEl.style.fontSize = '12px'; // Smaller for long emails
+    nameEl.style.overflow = 'hidden';
+    nameEl.style.textOverflow = 'ellipsis';
+    nameEl.style.whiteSpace = 'nowrap';
+  }
+});
 if (!_apiKey) {
   // Part 196: Show modal instead of prompt
   window._needsLogin = true;
@@ -1115,20 +1146,7 @@ if (_billingBtn) {
   console.warn('[init] billingBtn NOT FOUND');
 }
 
-const _logoutBtn = document.getElementById('logoutBtn');
-if (_logoutBtn) {
-  _logoutBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    console.log('[logout] clicked');
-    if(!confirm('Clear your API key and log out? You will be asked to enter a new one.')) return;
-    localStorage.removeItem('sunnyware_admin_key');
-    location.reload();
-  });
-  console.log('[init] logoutBtn handler attached');
-} else {
-  console.warn('[init] logoutBtn NOT FOUND');
-}
+// Part 206d: Removed duplicate direct logout handler (document handler now handles it)
 
 
 
@@ -1156,13 +1174,17 @@ document.addEventListener('click', function(e) {
     })();
   }
   if(e.target.closest('#logoutBtn')){
-
+    e.preventDefault();
+    e.stopPropagation();
     if(!confirm('Clear your API key and log out? You will be asked to enter a new one.')) return;
-
+    
+    // Clear ALL auth and data keys to ensure a clean logout
     localStorage.removeItem('sunnyware_admin_key');
-
-    location.reload();
-
+    localStorage.removeItem('sunny_chats_v2');
+    localStorage.removeItem('sunny_files_v1');
+    
+    // Force a hard reload to /ui to reset the app
+    window.location.href = '/ui';
   }
   if(e.target.closest('#userProfileBtn')){
     document.getElementById('loginModal').classList.remove('hidden');
