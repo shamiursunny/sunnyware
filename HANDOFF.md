@@ -2336,3 +2336,10 @@ Config:
 
 ### Workflow (proven end-to-end)
   ./safe_deploy.sh "Part XXX: description"
+
+## Part 219c — Inline SVG Chart + Telemetry + Auto-Login (2026-10-19)
+- Replaced Chart.js CDN with inline SVG renderer (`_renderSimpleChart`) — no external deps, works on blocked networks
+- Telemetry (IP, UA, Device) now uses ContextVars — reliably propagates across async tasks
+- Auto-login event fired on first chat in 30 min session (Sessions counter now works)
+- Updated smoke test markers: `_renderSimpleChart` instead of `chart.js@3`
+- Deployment verified: LOCAL PASSED -> pushed `ad061d9` -> HF rebuilt in 30s -> REMOTE PASSED
