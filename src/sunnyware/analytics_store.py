@@ -222,3 +222,26 @@ def stats_overview(days: int = 30) -> dict:
 
 def clear_events() -> bool:
     return _save(EVENTS_FILE, {})
+
+def get_chart_data(days: int = 7) -> list:
+    """Aggregate daily tokens and chats across all users for charts."""
+    now = time.time()
+    start = now - days * 86400
+    events = list_events(since_ts=start, limit=200000)
+    by_day = {}
+    for e in events:
+        d = time.strftime("%Y-%m-%d", time.localtime(e.get("ts", 0)))
+        if d not in by_day:
+            by_day[d] = {"date": d, "tokens": 0, "chats": 0}
+        if e.get("type") == "chat":
+            by_day[d]["tokens"] += e.get("tokens", 0)
+            by_day[d]["chats"] += 1
+    result = []
+    for i in range(days):
+        day = time.strftime("%Y-%m-%d", time.localtime(now - i * 86400))
+        if day in by_day:
+            result.append(by_day[day])
+        else:
+            result.append({"date": day, "tokens": 0, "chats": 0})
+    return list(reversed(result))
+

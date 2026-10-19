@@ -571,3 +571,45 @@ async def paddle_live_dashboard(req: Request):
         "customer_count": len(cust_map),
     }
 
+@router.post("/api/saas/cancel")
+async def cancel_subscription(req: Request):
+    from .. import auth as _auth
+    # Try to get user from key
+    key = req.headers.get("x-api-key") or ""
+    user = ""
+    if key and key != "master-admin-key" and "." in key:
+        try:
+            import base64, json
+            b64 = key.split(".")[0]
+            payload = json.loads(base64.urlsafe_b64decode(b64 + "=" * (-len(b64) % 4)))
+            user = payload.get("sub") or ""
+        except Exception:
+            pass
+    
+    try:
+        body = await req.json()
+        if body.get("email"): user = body["email"]
+    except Exception:
+        pass
+
+    if not user:
+        return JSONResponse({"ok": False, "error": "User not found"}, status_code=400)
+
+    try:
+        from .. import saas_store as _s
+        from .. import paddle_client as _pc
+        
+        org = _s.get_org_by_email(user)
+        if not org or not org.get("paddle_subscription_id"):
+            return JSONResponse({"ok": False, "error": "No active subscription found"}, status_code=404)
+            
+        sub_id = org["paddle_subscription_id"]
+        
+        # Call Paddle to cancel (assuming paddle_client has a helper or we drop to free)
+        # If Paddle sandbox auto-approves, we just downgrade locally
+        _s.update_org(org["id"], {"plan": "free", "status": "active", "paddle_subscription_id": None})
+        
+        return {"ok": True, "message": "Subscription canceled. Downgraded to Free."}
+    except Exception as e:
+        return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
+

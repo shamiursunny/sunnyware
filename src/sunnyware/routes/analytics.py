@@ -80,3 +80,9 @@ async def debug_context(req: Request):
         "authorization_present": bool(req.headers.get("authorization")),
     }
 
+@router.get("/api/analytics/charts")
+async def get_charts(req: Request, days: int = 7):
+    d = _admin_only(req)
+    if d: return d
+    return {"data": _as.get_chart_data(days=days)}
+

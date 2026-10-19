@@ -71,8 +71,10 @@ def _log_llm(result: dict, model_hint: str = ""):
             tokens = int(result.get("total_tokens") or result.get("tokens", 0))
             
         if tokens == 0 and "content" in result:
-            # Estimate: ~4 chars per token
-            tokens = len(str(result.get("content", ""))) // 4
+            # Estimate: ~4 chars per token for prompt + completion
+            prompt_len = len(str(result.get("prompt", "")))
+            content_len = len(str(result.get("content", "")))
+            tokens = (prompt_len + content_len) // 4
 
             
         latency = float(result.get("latency_ms") or 0)

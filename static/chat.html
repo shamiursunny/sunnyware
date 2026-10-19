@@ -1239,6 +1239,14 @@ input,textarea{font-family:inherit}
       </svg>
       <span class="settings-item-label">Manage billing</span>
     </button>
+    <button class="settings-item danger" id="settingsCancelBtn" style="display:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="15" y1="9" x2="9" y2="15"/>
+        <line x1="9" y1="9" x2="15" y2="15"/>
+      </svg>
+      <span class="settings-item-label">Cancel Subscription</span>
+    </button>
   </div>
 
   <div class="settings-section">
@@ -1700,6 +1708,15 @@ function updateSettingsMenu() {
   if (badgeEl && window._planData) {
     badgeEl.textContent = window._planData.plan_name || 'Free';
   }
+  // Part 215: show/hide Cancel Subscription button based on plan
+  const cancelBtn = document.getElementById('settingsCancelBtn');
+  if (cancelBtn) {
+    if (window._planData && window._planData.plan_id !== 'free' && window._planData.plan_id !== 'enterprise') {
+      cancelBtn.style.display = 'flex';
+    } else {
+      cancelBtn.style.display = 'none';
+    }
+  }
   if (themeEl) {
     themeEl.textContent = (document.documentElement.dataset.theme === 'dark') ? 'Dark' : 'Light';
   }
@@ -1746,6 +1763,26 @@ document.getElementById('settingsUpgradeBtn')?.addEventListener('click', () => {
 });
 
 // Manage billing
+document.getElementById('settingsCancelBtn')?.addEventListener('click', async () => {
+  if (!confirm('Are you sure you want to cancel your subscription? You will be downgraded to the Free plan immediately.')) return;
+  closeSettings();
+  try {
+    const res = await fetch('/api/saas/cancel', {
+      method: 'POST',
+      headers: { 'X-API-Key': _apiKey || '' }
+    });
+    const data = await res.json();
+    if (data.ok) {
+      toast('Subscription canceled. Refreshing...');
+      setTimeout(() => window.location.reload(), 1200);
+    } else {
+      toast('Error: ' + (data.error || 'Unknown'), 'error');
+    }
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  }
+});
+
 document.getElementById('settingsBillingBtn')?.addEventListener('click', async () => {
   closeSettings();
   try {

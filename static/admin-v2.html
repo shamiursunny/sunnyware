@@ -104,6 +104,8 @@ input:checked + .toggle-slider { background-color: var(--accent); }
 input:checked + .toggle-slider:before { transform: translateX(18px); }
 </style>
 
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -2452,6 +2454,11 @@ async function renderAnalytics() {
       <div class="card"><div style="font-size:11px;color:var(--muted);text-transform:uppercase;">Errors</div><div style="font-size:22px;font-weight:700;">${overview.total_errors || 0}</div></div>
     </div>
 
+    <div class="card" style="margin-bottom:24px;">
+      <h3 style="margin-top:0;">Usage Overview (Last 7 Days)</h3>
+      <canvas id="usageChart" height="80"></canvas>
+    </div>
+
     <h3>Users (${userList.length})</h3>
     ${userList.length === 0 ? '<p style="color:var(--muted)">No activity yet. Chat or login to generate data.</p>' : `
     <table>
@@ -2499,6 +2506,49 @@ async function renderAnalytics() {
 
     <div id="user-detail-panel" style="margin-top:24px;"></div>
   `;
+
+  // Draw Chart
+  try {
+    const chartRes = await api('/api/analytics/charts?days=7');
+    const labels = chartRes.data.map(d => d.date.slice(5));
+    const tokens = chartRes.data.map(d => d.tokens);
+    const chats = chartRes.data.map(d => d.chats);
+    
+    const ctx = document.getElementById('usageChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'Tokens',
+            data: tokens,
+            borderColor: '#5b8def',
+            backgroundColor: 'rgba(91, 141, 239, 0.1)',
+            fill: true,
+            tension: 0.3,
+            yAxisID: 'y'
+          },
+          {
+            label: 'Chats',
+            data: chats,
+            borderColor: '#2ecc71',
+            backgroundColor: 'transparent',
+            tension: 0.3,
+            yAxisID: 'y1'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        interaction: { mode: 'index', intersect: false },
+        scales: {
+          y: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Tokens' } },
+          y1: { type: 'linear', display: true, position: 'right', grid: { drawOnChartArea: false }, title: { display: true, text: 'Chats' } }
+        }
+      }
+    });
+  } catch(e) { console.error('Chart error:', e); }
 }
 
 async function showUserDetail(email) {
