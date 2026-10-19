@@ -25,6 +25,8 @@ py_files = [
     "src/sunnyware/llm_dashboard_store.py",
     "src/sunnyware/email_store.py",
     "src/sunnyware/api_keys_store.py",
+    "src/sunnyware/chat_audit_store.py",
+    "src/sunnyware/scheduled_tasks_store.py",
     "src/sunnyware/webhooks_store.py",
     "src/sunnyware/team_store.py",
     "src/sunnyware/invoice_pdf.py",
@@ -33,6 +35,8 @@ py_files = [
     "src/sunnyware/routes/team.py",
     "src/sunnyware/routes/email.py",
     "src/sunnyware/routes/api_keys.py",
+    "src/sunnyware/routes/chat_audit.py",
+    "src/sunnyware/routes/scheduled_tasks.py",
     "src/sunnyware/routes/webhooks.py",
     "src/sunnyware/routes/agent.py",
     "src/sunnyware/routes/saas.py",
@@ -54,11 +58,13 @@ section(2, "Route registration in main.py")
 main = Path("src/sunnyware/main.py").read_text(encoding="utf-8")
 for imp in ["analytics as analytics_routes", "llm_dashboard as llm_dashboard_routes",
             "team as team_routes", "email as email_routes",
-            "api_keys as api_keys_routes", "webhooks as webhooks_routes"]:
+            "api_keys as api_keys_routes", "webhooks as webhooks_routes",
+            "chat_audit as chat_audit_routes", "scheduled_tasks as scheduled_tasks_routes"]:
     (pass_ if imp in main else fail)(f"import: {imp}")
 for inc in ["analytics_routes.router", "llm_dashboard_routes.router",
             "team_routes.router", "email_routes.router",
-            "api_keys_routes.router", "webhooks_routes.router"]:
+            "api_keys_routes.router", "webhooks_routes.router",
+            "chat_audit_routes.router", "scheduled_tasks_routes.router"]:
     (pass_ if f"include_router({inc})" in main else fail)(f"include_router({inc})")
 
 # 3. JS syntax
@@ -89,6 +95,8 @@ checks = [
     ("admin-v2.html has renderLlmDashboard", "async function renderLlmDashboard" in admin),
     ("admin-v2.html has renderEmail", "async function renderEmail" in admin),
     ("admin-v2.html has renderApiKeys", "async function renderApiKeys" in admin),
+    ("admin-v2.html has renderChatAudit", "async function renderChatAudit" in admin),
+    ("admin-v2.html has renderScheduledTasks", "async function renderScheduledTasks" in admin),
     ("admin-v2.html has renderWebhooks", "async function renderWebhooks" in admin),
     ("admin-v2.html has downloadInvoicePdf", "async function downloadInvoicePdf" in admin),
     ("admin-v2.html has saveOrch", "async function saveOrch" in admin),

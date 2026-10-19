@@ -63,6 +63,10 @@ endpoints = [
     ("/api/webhooks/endpoints", "endpoints"),
     ("/api/webhooks/deliveries", "deliveries"),
     ("/api/webhooks/events", "events"),
+    ("/api/chat-audit/stats", "total_messages"),
+    ("/api/chat-audit/messages", "messages"),
+    ("/api/scheduled-tasks", "tasks"),
+    ("/api/scheduled-tasks/runs", "runs"),
 ]
 for path, key in endpoints:
     status, body = http(path)
@@ -85,6 +89,8 @@ for marker, desc in [
     ("async function renderEmail", "renderEmail defined"),
     ("async function renderApiKeys", "renderApiKeys defined"),
     ("async function renderWebhooks", "renderWebhooks defined"),
+    ("async function renderChatAudit", "renderChatAudit defined"),
+    ("async function renderScheduledTasks", "renderScheduledTasks defined"),
     ("async function downloadInvoicePdf", "downloadInvoicePdf defined"),
     ("async function saveOrch", "saveOrch defined"),
     ('data-tab="email"', "Email nav item"),

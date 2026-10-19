@@ -158,6 +158,8 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
     <div class="nav-item" data-tab="email">Email</div>
     <div class="nav-item" data-tab="api-keys">API Keys</div>
     <div class="nav-item" data-tab="webhooks">Webhooks</div>
+    <div class="nav-item" data-tab="chat-audit">Chat Audit</div>
+    <div class="nav-item" data-tab="scheduled-tasks">Scheduled Tasks</div>
   </div>
 
   <div class="nav-group">
@@ -3224,6 +3226,267 @@ async function clearWebhookLogs() {
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       wh.classList.add('active');
       renderWebhooks();
+    };
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
+  else hook();
+})();
+
+
+
+// Part 221b: CHAT AUDIT page
+async function renderChatAudit() {
+  const [statsRes, msgsRes] = await Promise.all([
+    api('/api/chat-audit/stats').catch(() => ({})),
+    api('/api/chat-audit/messages?limit=100').catch(() => ({ messages: [] }))
+  ]);
+  const stats = statsRes || {};
+  const messages = msgsRes.messages || [];
+
+  $('content').innerHTML = `
+    <h2>Chat Audit</h2>
+    <p style="color:var(--muted);margin-bottom:16px;">Browse, search, and flag conversations for compliance review.</p>
+
+    <div class="stat-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+      <div class="card"><div style="font-size:11px;color:var(--muted);">Total Messages</div><div style="font-size:22px;font-weight:700;">${stats.total_messages || 0}</div></div>
+      <div class="card"><div style="font-size:11px;color:var(--muted);">Unique Users</div><div style="font-size:22px;font-weight:700;">${stats.unique_users || 0}</div></div>
+      <div class="card"><div style="font-size:11px;color:var(--muted);">Flagged</div><div style="font-size:22px;font-weight:700;color:${(stats.flagged_count||0)>0?'var(--danger)':'inherit'}">${stats.flagged_count || 0}</div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <h3 style="margin-top:0;">Search & Filter</h3>
+      <div class="form-row">
+        <div><label>User</label><input id="ca-user" placeholder="user@example.com"></div>
+        <div><label>Search content</label><input id="ca-search" placeholder="keyword"></div>
+        <div><label>Limit</label><input id="ca-limit" type="number" value="100" min="10" max="1000"></div>
+        <button onclick="renderChatAuditLoad()">Search</button>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="ghost small" onclick="loadFlaggedMessages()">Show Flagged Only</button>
+        <button class="ghost small" onclick="exportChatAudit(false)">Export CSV</button>
+        <button class="ghost small" onclick="exportChatAudit(true)">Export CSV (Redacted)</button>
+      </div>
+    </div>
+
+    <div id="ca-table-container">
+      ${renderChatAuditTable(messages)}
+    </div>
+  `;
+}
+
+function renderChatAuditTable(messages) {
+  if (messages.length === 0) {
+    return '<p style="color:var(--muted)">No messages to display.</p>';
+  }
+  return `
+    <table>
+      <thead><tr><th>Time</th><th>User</th><th>Role</th><th>Content</th><th></th></tr></thead>
+      <tbody>
+        ${messages.map(m => `
+          <tr id="msg-${esc(m.id)}">
+            <td style="white-space:nowrap;font-size:11px;">${new Date(m.ts*1000).toLocaleString()}</td>
+            <td style="font-size:11px;">${esc(m.user)}</td>
+            <td><span class="tag ${m.role === 'user' ? 'ok' : ''}">${esc(m.role)}</span></td>
+            <td style="max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;" title="${esc(m.content || '')}">${esc((m.content||'').slice(0,200))}</td>
+            <td><button class="danger small" onclick="flagChatMessage('${esc(m.id)}')">Flag</button></td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+}
+
+async function renderChatAuditLoad() {
+  const user = document.getElementById('ca-user').value.trim();
+  const search = document.getElementById('ca-search').value.trim();
+  const limit = parseInt(document.getElementById('ca-limit').value) || 100;
+  const qs = new URLSearchParams();
+  if (user) qs.set('user', user);
+  if (search) qs.set('search', search);
+  qs.set('limit', limit);
+  const data = await api('/api/chat-audit/messages?' + qs.toString()).catch(() => ({ messages: [] }));
+  document.getElementById('ca-table-container').innerHTML = renderChatAuditTable(data.messages || []);
+}
+
+async function loadFlaggedMessages() {
+  const data = await api('/api/chat-audit/flagged?limit=100').catch(() => ({ messages: [] }));
+  document.getElementById('ca-table-container').innerHTML = renderChatAuditTable(data.messages || []);
+}
+
+async function flagChatMessage(mid) {
+  const reason = prompt('Reason for flagging (optional):');
+  if (reason === null) return;
+  try {
+    await api('/api/chat-audit/messages/' + encodeURIComponent(mid) + '/flag', 'POST', { flagged: true, reason: reason });
+    toast('Message flagged');
+    const row = document.getElementById('msg-' + mid);
+    if (row) row.style.background = '#e74c3c11';
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+function exportChatAudit(redact) {
+  const user = document.getElementById('ca-user').value.trim();
+  const qs = new URLSearchParams();
+  if (user) qs.set('user', user);
+  if (redact) qs.set('redact', 'true');
+  const apiKey = localStorage.getItem('sunnyware_admin_key') || 'master-admin-key';
+  fetch('/api/chat-audit/export?' + qs.toString(), {
+    headers: { 'X-API-Key': apiKey }
+  })
+  .then(res => {
+    if (!res.ok) throw new Error('Export failed');
+    return res.blob();
+  })
+  .then(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'chat_audit.csv';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    toast('CSV downloaded');
+  })
+  .catch(e => toast('Error: ' + e.message, 'error'));
+}
+
+// Part 221b: SCHEDULED TASKS page
+async function renderScheduledTasks() {
+  const [tasksRes, runsRes] = await Promise.all([
+    api('/api/scheduled-tasks').catch(() => ({ tasks: [] })),
+    api('/api/scheduled-tasks/runs?limit=30').catch(() => ({ runs: [] }))
+  ]);
+  const tasks = tasksRes.tasks || [];
+  const runs = runsRes.runs || [];
+
+  $('content').innerHTML = `
+    <h2>Scheduled Tasks</h2>
+    <p style="color:var(--muted);margin-bottom:16px;">Prompts that run on a schedule (hourly, daily, weekly, monthly).</p>
+
+    <div class="card" style="margin-bottom:24px;">
+      <h3 style="margin-top:0;color:var(--accent);">Create Scheduled Task</h3>
+      <div class="form-row" style="display:grid;grid-template-columns:1fr;gap:12px;">
+        <div><label>Task Name</label><input id="st-name" placeholder="Daily report"></div>
+        <div><label>Prompt</label><textarea id="st-prompt" rows="4" placeholder="Generate a summary of yesterday's activity..."></textarea></div>
+        <div><label>Schedule</label>
+          <select id="st-schedule">
+            <option value="hourly">Hourly</option>
+            <option value="daily" selected>Daily</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="once">Once (1 min from now)</option>
+          </select>
+        </div>
+        <button onclick="createScheduledTask()" style="width:200px;">Create Task</button>
+      </div>
+    </div>
+
+    <h3>Tasks (${tasks.length})</h3>
+    ${tasks.length === 0 ? '<p style="color:var(--muted)">No tasks yet.</p>' : `
+    <table>
+      <thead><tr><th>Name</th><th>Schedule</th><th>Prompt</th><th>Runs</th><th>Last Run</th><th>Next Run</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        ${tasks.map(t => `
+          <tr>
+            <td><strong>${esc(t.name)}</strong></td>
+            <td><span class="tag">${esc(t.schedule)}</span></td>
+            <td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px;">${esc((t.prompt||'').slice(0,100))}</td>
+            <td>${t.run_count || 0}</td>
+            <td style="font-size:11px;">${t.last_run ? new Date(t.last_run*1000).toLocaleString() : '—'}</td>
+            <td style="font-size:11px;">${t.next_run ? new Date(t.next_run*1000).toLocaleString() : '—'}</td>
+            <td><span class="tag ${t.enabled ? 'ok' : 'bad'}">${t.enabled ? 'On' : 'Paused'}</span></td>
+            <td>
+              <button class="ghost small" onclick="testScheduledTask('${esc(t.id)}')">Test</button>
+              <button class="ghost small" onclick="toggleScheduledTask('${esc(t.id)}')">${t.enabled ? 'Pause' : 'Resume'}</button>
+              <button class="danger small" onclick="deleteScheduledTask('${esc(t.id)}')">Delete</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:32px;">
+      <h3 style="margin:0;">Recent Runs (${runs.length})</h3>
+      <button class="ghost small" onclick="clearScheduledRuns()">Clear Log</button>
+    </div>
+    ${runs.length === 0 ? '<p style="color:var(--muted)">No runs yet.</p>' : `
+    <table style="font-size:12px;">
+      <thead><tr><th>Time</th><th>Task</th><th>Status</th><th>Output / Error</th></tr></thead>
+      <tbody>
+        ${runs.map(r => `
+          <tr>
+            <td>${new Date(r.ts*1000).toLocaleString()}</td>
+            <td><code style="font-size:10px">${esc(r.task_id)}</code></td>
+            <td><span class="tag ${r.ok ? 'ok' : 'bad'}">${r.ok ? 'ok' : 'fail'}</span></td>
+            <td style="font-size:11px;max-width:400px;overflow:hidden;text-overflow:ellipsis;">${esc((r.output || r.error || '').slice(0,100))}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+  `;
+}
+
+async function createScheduledTask() {
+  const name = document.getElementById('st-name').value.trim();
+  const prompt = document.getElementById('st-prompt').value.trim();
+  const schedule = document.getElementById('st-schedule').value;
+  if (!name) return toast('Name required', 'error');
+  if (!prompt) return toast('Prompt required', 'error');
+  try {
+    const res = await api('/api/scheduled-tasks', 'POST', { name, prompt, schedule });
+    if (res.ok) { toast('Task created'); renderScheduledTasks(); }
+    else { toast('Error: ' + (res.error || 'unknown'), 'error'); }
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function testScheduledTask(tid) {
+  try {
+    const res = await api('/api/scheduled-tasks/' + encodeURIComponent(tid) + '/test-run', 'POST', {});
+    if (res.ok) { toast('Test run recorded'); setTimeout(() => renderScheduledTasks(), 1500); }
+    else { toast('Error: ' + (res.error || 'unknown'), 'error'); }
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function toggleScheduledTask(tid) {
+  try {
+    await api('/api/scheduled-tasks/' + encodeURIComponent(tid) + '/toggle', 'POST', {});
+    renderScheduledTasks();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function deleteScheduledTask(tid) {
+  if (!confirm('Delete this task?')) return;
+  try {
+    await api('/api/scheduled-tasks/' + encodeURIComponent(tid), 'DELETE');
+    toast('Deleted');
+    renderScheduledTasks();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function clearScheduledRuns() {
+  if (!confirm('Clear all run logs?')) return;
+  try {
+    await api('/api/scheduled-tasks/runs/clear', 'DELETE');
+    renderScheduledTasks();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+(function () {
+  const hook = () => {
+    const ca = document.querySelector('.nav-item[data-tab="chat-audit"]');
+    if (ca) ca.onclick = () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      ca.classList.add('active');
+      renderChatAudit();
+    };
+    const st = document.querySelector('.nav-item[data-tab="scheduled-tasks"]');
+    if (st) st.onclick = () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      st.classList.add('active');
+      renderScheduledTasks();
     };
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
