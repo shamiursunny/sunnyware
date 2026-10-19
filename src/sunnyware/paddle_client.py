@@ -111,3 +111,63 @@ def verify_webhook_signature(raw_body: bytes, signature_header: str) -> bool:
         return hmac.compare_digest(expected, h1)
     except Exception:
         return False
+
+
+async def create_customer(email: str, name: str = "") -> dict:
+    """Part 204: Create a Paddle customer. Returns {ok, customer_id}."""
+    if not enabled():
+        return {"ok": False, "error": "Paddle not configured"}
+    if not email:
+        return {"ok": False, "error": "email required"}
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=15.0) as cli:
+            r = await cli.post(
+                _base_url() + "/customers",
+                json={"email": email, "name": name or email.split("@")[0]},
+                headers={
+                    "Authorization": "Bearer " + _api_key(),
+                    "Content-Type": "application/json",
+                },
+            )
+            if r.status_code not in (200, 201):
+                return {"ok": False, "error": r.text[:300]}
+            data = r.json().get("data", {})
+            cid = data.get("id", "")
+            if not cid:
+                return {"ok": False, "error": "no customer id in response"}
+            return {"ok": True, "customer_id": cid}
+    except Exception as e:
+        return {"ok": False, "error": f"{type(e).__name__}: {e}"}
+
+
+async def create_portal_session(customer_id: str, return_url: str = "") -> dict:
+    """Part 204: Create a Paddle Customer Portal session. Returns {ok, url}."""
+    if not enabled():
+        return {"ok": False, "error": "Paddle not configured"}
+    if not customer_id:
+        return {"ok": False, "error": "customer_id required"}
+    try:
+        import httpx
+        async with httpx.AsyncClient(timeout=15.0) as cli:
+            body = {"customer_id": customer_id}
+            if return_url:
+                body["return_url"] = return_url
+            r = await cli.post(
+                _base_url() + "/customer-portal-sessions",
+                json=body,
+                headers={
+                    "Authorization": "Bearer " + _api_key(),
+                    "Content-Type": "application/json",
+                },
+            )
+            if r.status_code not in (200, 201):
+                return {"ok": False, "error": r.text[:300]}
+            data = r.json().get("data", {})
+            general = data.get("urls", {}).get("general", {})
+            overview = general.get("overview", "")
+            if not overview:
+                return {"ok": False, "error": "no portal URL in response"}
+            return {"ok": True, "url": overview}
+    except Exception as e:
+        return {"ok": False, "error": f"{type(e).__name__}: {e}"}

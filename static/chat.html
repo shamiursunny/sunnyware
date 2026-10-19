@@ -658,6 +658,10 @@ input,textarea{font-family:inherit}
 
       </button>
 
+      <button class="icon-btn" id="billingBtn" title="Manage Billing">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+      </button>
+
       <button class="icon-btn" id="logoutBtn" title="Change API Key">
 
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
@@ -1074,6 +1078,25 @@ $('#themeToggle').onclick=()=>applyTheme(document.documentElement.dataset.theme=
 
 document.addEventListener('click', function(e) {
 
+  if(e.target.closest('#billingBtn')){
+    // Part 204: Open Paddle Customer Portal
+    (async () => {
+      try {
+        const res = await fetch('/api/saas/portal', {
+          headers: { 'X-API-Key': _apiKey || '' }
+        });
+        const data = await res.json();
+        if (data.ok && data.url) {
+          toast('Opening Paddle Customer Portal...');
+          window.location.href = data.url;
+        } else {
+          toast(data.detail || data.error || 'Could not open billing portal', 'error');
+        }
+      } catch(err) {
+        toast('Billing portal error: ' + err.message, 'error');
+      }
+    })();
+  }
   if(e.target.closest('#logoutBtn')){
 
     if(!confirm('Clear your API key and log out? You will be asked to enter a new one.')) return;

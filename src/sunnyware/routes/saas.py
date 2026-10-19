@@ -139,3 +139,71 @@ async def usage_summary(req: Request):
             "tokens": tokens,
         })
     return {"orgs": out}
+
+
+# Part 204: Paddle Customer Portal
+@router.get("/api/saas/portal")
+async def customer_portal(req: Request, org_id: str = ""):
+    """Return a Paddle Customer Portal URL for the caller's org.
+    - admin: pass ?org_id=... to manage any org
+    - user:  JWT email is used to find their org via owner_email
+    """
+    from .. import paddle_client as _paddle
+    from .. import saas_store as _s
+
+    # 1. Resolve target org
+    target = None
+    if org_id:
+        # admin-only path
+        d = _admin(req)
+        if d: return d
+        target = _s.get_org(org_id)
+    else:
+        # user path — extract email from JWT
+        token = req.headers.get("x-api-key") or ""
+        if not token:
+            auth = req.headers.get("authorization") or ""
+            if auth.lower().startswith("bearer "):
+                token = auth[7:].strip()
+        email = None
+        if token and "." in token and len(token) > 20:
+            try:
+                from .auth import verify_jwt
+                email = verify_jwt(token)
+            except Exception:
+                pass
+        if email:
+            target = _s.get_org_by_email(email)
+
+    if not target:
+        return JSONResponse(
+            {"error": "no_org", "detail": "No organization found for this account. Subscribe first."},
+            status_code=404,
+        )
+
+    # 2. Ensure Paddle customer exists
+    cust_id = target.get("paddle_customer_id", "")
+    if not cust_id and target.get("owner_email"):
+        create = await _paddle.create_customer(
+            target["owner_email"], name=target.get("name", ""),
+        )
+        if create.get("ok"):
+            cust_id = create["customer_id"]
+            _s.update_org(target["id"], {"paddle_customer_id": cust_id})
+
+    if not cust_id:
+        return JSONResponse(
+            {"error": "no_customer",
+             "detail": "No Paddle customer yet. Complete a payment first."},
+            status_code=400,
+        )
+
+    # 3. Create portal session
+    return_url = "https://shamiur-sunnyware.hf.space/ui"
+    res = await _paddle.create_portal_session(cust_id, return_url=return_url)
+    if not res.get("ok"):
+        return JSONResponse(
+            {"error": "portal_failed", "detail": res.get("error", "unknown")},
+            status_code=500,
+        )
+    return {"ok": True, "url": res["url"], "org_id": target["id"]}

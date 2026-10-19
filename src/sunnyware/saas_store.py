@@ -90,7 +90,8 @@ def create_org(name: str, plan: str = "free", owner_email: str = "", workos_org_
     org = {
         "id": oid, "name": name, "plan": plan, "owner_email": owner_email,
         "workos_org_id": workos_org_id, "status": "active",
-        "stripe_customer_id": "", "created_at": time.time(),
+        "stripe_customer_id": "", "paddle_customer_id": "",
+        "created_at": time.time(),
     }
     orgs[oid] = org
     _save("orgs.json", orgs)
@@ -219,3 +220,27 @@ def get_or_create_for_workos(workos_org_id: str, owner_email: str = "") -> dict:
     # Not found -> Create new
     name = "Org " + workos_org_id[-8:] if len(workos_org_id) > 8 else "New Org"
     return create_org(name=name, plan="free", owner_email=owner_email, workos_org_id=workos_org_id)
+
+
+def get_org_by_email(email: str) -> Optional[dict]:
+    """Part 204: Find org by owner_email (for JWT-authenticated users)."""
+    if not email:
+        return None
+    email = email.strip().lower()
+    for org in _load("orgs.json", {}).values():
+        if (org.get("owner_email") or "").strip().lower() == email:
+            return org
+    return None
+
+
+def migrate_orgs_paddle_field() -> int:
+    """Part 204: Add paddle_customer_id='' to legacy orgs."""
+    orgs = _load("orgs.json", {})
+    changed = 0
+    for o in orgs.values():
+        if "paddle_customer_id" not in o:
+            o["paddle_customer_id"] = ""
+            changed += 1
+    if changed:
+        _save("orgs.json", orgs)
+    return changed

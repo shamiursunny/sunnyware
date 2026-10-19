@@ -53,7 +53,12 @@ async def paddle_webhook(request: Request):
             if org_id:
                 from .. import saas_store as s
                 # 1. Upgrade the plan
-                s.update_org(org_id, {"plan": plan_id, "status": "active"})
+                # Part 204: extract customer_id from Paddle transaction
+                _cust = data.get("customer_id", "") or data.get("customer", "")
+                if isinstance(_cust, dict): _cust = _cust.get("id", "")
+                _patch = {"plan": plan_id, "status": "active"}
+                if _cust: _patch["paddle_customer_id"] = _cust
+                s.update_org(org_id, _patch)
                 
                 # 2. Record the invoice
                 s.create_invoice(
