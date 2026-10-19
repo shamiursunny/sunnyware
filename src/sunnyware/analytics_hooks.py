@@ -97,10 +97,34 @@ def _log_llm(result: dict, model_hint: str = ""):
         latency = float(result.get("latency_ms") or 0)
         error = str(result.get("error") or "")[:500]
 
+        # Cost calculation
+        cfg = _lds.get_provider_config(provider)
+        cost_per_1k = float(cfg.get("cost_per_1k_cents", 0.0))
+        cost_cents = (tokens / 1000.0) * cost_per_1k if tokens else 0.0
+
+        # Telemetry from request state
+        ip, ua, device, loc = "", "", "", ""
+        try:
+            import inspect
+            for frame_info in inspect.stack():
+                frame = frame_info.frame
+                req = frame.f_locals.get("request") or frame.f_locals.get("req")
+                if req is not None:
+                    st = getattr(req, "state", None)
+                    if st:
+                        ip = getattr(st, "ip", "")
+                        ua = getattr(st, "ua", "")
+                        device = getattr(st, "device", "")
+                        loc = getattr(st, "location", "")
+                    break
+        except Exception:
+            pass
+
         _lds.log_llm_call(provider, model, ok, tokens, latency, error, user)
         _as.log_event(user, "chat",
                       org_id=org, provider=provider, model=model,
-                      tokens=tokens, latency_ms=latency, ok=ok, error=error)
+                      tokens=tokens, latency_ms=latency, ok=ok, error=error,
+                      cost_cents=cost_cents, ip=ip, ua=ua, device=device, location=loc)
     except Exception:
         pass
 

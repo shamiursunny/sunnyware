@@ -31,6 +31,7 @@ from .routes import sso as sso_routes
 from .routes import authkit as authkit_routes
 from .routes import workos_admin as workos_admin_routes
 from .routes import team as team_routes
+from .routes import email as email_routes
 from .routes import analytics as analytics_routes
 from .routes import llm_dashboard as llm_dashboard_routes
 from .routes import agent as agent_routes
@@ -136,6 +137,7 @@ app.include_router(sso_routes.router)
 app.include_router(authkit_routes.router)
 app.include_router(workos_admin_routes.router)
 app.include_router(team_routes.router)
+app.include_router(email_routes.router)
 app.include_router(analytics_routes.router)
 app.include_router(llm_dashboard_routes.router)
 app.include_router(agent_routes.router)

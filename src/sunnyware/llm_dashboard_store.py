@@ -56,6 +56,7 @@ DEFAULT_LIMITS = {
     "model_override": "",
     "max_tokens": 2048,
     "temperature": 0.7,
+    "cost_per_1k_cents": 0.0,  # e.g. 0.5 = $0.005 per 1k
 }
 
 

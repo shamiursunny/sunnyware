@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sunnyware - Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <style>
 :root {
   --bg: #0b0d12; --sidebar: #12161f; --panel: #12161f; --border: #232a38;
@@ -105,7 +106,7 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
 </style>
 
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+
 </head>
 <body>
 
@@ -155,6 +156,7 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
     <div class="nav-group-label">Monitoring</div>
     <div class="nav-item" data-tab="analytics">User Analytics</div>
     <div class="nav-item" data-tab="llm-dashboard">LLM Dashboard</div>
+    <div class="nav-item" data-tab="email">Email</div>
   </div>
 
   <div class="nav-group">
@@ -2469,9 +2471,9 @@ async function renderAnalytics() {
           <th>Status</th>
           <th>Today (Tok / Chats)</th>
           <th>Week (Tok / Chats)</th>
-          <th>Month (Tok / Chats)</th>
+          <th>Month (Tok / Chats)</th><th>Cost (Month)</th>
           <th>Last Login</th>
-          <th>Last Active</th>
+          <th>Devices / IPs</th><th>Last Active</th>
           <th>Total Active</th>
           <th></th>
         </tr>
@@ -2494,9 +2496,11 @@ async function renderAnalytics() {
             <td>${fmtNum(u.today.tokens)} tok / ${u.today.chats} c</td>
             <td>${fmtNum(u.week.tokens)} tok / ${u.week.chats} c</td>
             <td>${fmtNum(u.month.tokens)} tok / ${u.month.chats} c</td>
-            <td style="font-size:11px;">${fmtDate(u.last_login)}</td>
+            <td style="font-size:11px;">$${((u.month.cost_cents||0)/100).toFixed(4)}</td>
             <td style="font-size:11px;">${fmtAgo(u.last_active)}</td>
-            <td style="font-size:11px;">${fmtDuration(u.total_active_seconds)}</td>
+            <td style="font-size:11px;">
+              ${(u.unique_devices||[]).length} dev / ${(u.unique_ips||[]).length} IP
+            </td>
             <td><button class="ghost small" onclick="showUserDetail('${safeEmail}')">Details</button></td>
           </tr>
         `}).join('')}
@@ -2864,6 +2868,84 @@ async function downloadInvoicePdf(invoiceId) {
     toast('Error: ' + e.message, 'error');
   }
 }
+
+
+
+// ═══════════════════════════════════════════════════════════
+// Part 217: Email Dashboard
+// ═══════════════════════════════════════════════════════════
+async function renderEmail() {
+  const logsData = await api('/api/email/logs?limit=50').catch(() => ({ logs: [] }));
+  const logs = logsData.logs || [];
+
+  $('content').innerHTML = `
+    <h2>Email Campaigns</h2>
+    <p style="color:var(--muted);margin-bottom:16px;">Send promotional emails and view delivery logs.</p>
+
+    <div class="card" style="margin-bottom:24px;">
+      <h3 style="margin-top:0;color:var(--accent);">Send Email</h3>
+      <div class="form-row" style="display:grid;grid-template-columns:1fr;gap:12px;">
+        <div><label>To Email</label><input id="em-to" placeholder="customer@example.com"></div>
+        <div><label>Subject</label><input id="em-sub" placeholder="Big Discount - 50% off!"></div>
+        <div><label>HTML Body</label><textarea id="em-body" rows="6" placeholder="<h1>Hello!</h1><p>Check out our latest offer...</p>"></textarea></div>
+        <button onclick="sendPromoEmail()" style="width:200px;">Send Email</button>
+      </div>
+    </div>
+
+    <h3>Recent Email Logs (${logs.length})</h3>
+    ${logs.length === 0 ? '<p style="color:var(--muted)">No emails sent yet.</p>' : `
+    <table>
+      <thead><tr><th>Time</th><th>To</th><th>Subject</th><th>Status</th><th>Error</th></tr></thead>
+      <tbody>
+        ${logs.map(l => `
+          <tr>
+            <td>${new Date(l.ts*1000).toLocaleString()}</td>
+            <td>${esc(l.to)}</td>
+            <td>${esc(l.subject)}</td>
+            <td><span class="tag ${l.status === 'sent' ? 'ok' : 'bad'}">${esc(l.status)}</span></td>
+            <td style="font-size:11px;color:var(--danger)">${esc(l.error || '')}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+  `;
+}
+
+async function sendPromoEmail() {
+  const to = document.getElementById('em-to').value;
+  const sub = document.getElementById('em-sub').value;
+  const html = document.getElementById('em-body').value;
+  if (!to || !sub) return toast('To and Subject are required', 'error');
+
+  try {
+    toast('Sending...');
+    const res = await api('/api/email/send', 'POST', { to, subject: sub, html });
+    if (res.ok) {
+      toast('Email sent successfully!');
+      document.getElementById('em-to').value = '';
+      document.getElementById('em-sub').value = '';
+      document.getElementById('em-body').value = '';
+      renderEmail();
+    } else {
+      toast('Error: ' + (res.error || 'unknown'), 'error');
+    }
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// Hook Email nav item
+(function () {
+  const hook = () => {
+    const em = document.querySelector('.nav-item[data-tab="email"]');
+    if (em) em.onclick = () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      em.classList.add('active');
+      renderEmail();
+    };
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
+  else hook();
+})();
 
 </script>
 </body>

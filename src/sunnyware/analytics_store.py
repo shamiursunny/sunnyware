@@ -88,6 +88,11 @@ def log_event(user: str, event_type: str, **kwargs) -> dict:
         "error": (kwargs.get("error") or "")[:500],
         "tool_name": kwargs.get("tool_name", ""),
         "details": (kwargs.get("details") or "")[:500],
+        "cost_cents": float(kwargs.get("cost_cents", 0) or 0),
+        "ip": kwargs.get("ip", ""),
+        "ua": kwargs.get("ua", ""),
+        "device": kwargs.get("device", ""),
+        "location": kwargs.get("location", ""),
     }
     events[eid] = entry
     if len(events) > MAX_EVENTS:
@@ -123,6 +128,7 @@ def _agg(events: list) -> dict:
         "sessions": sum(1 for e in events if e.get("type") == "login"),
         "errors": sum(1 for e in events if not e.get("ok", True)),
         "active_seconds": _session_active_seconds(events),
+        "cost_cents": sum(e.get("cost_cents", 0) for e in events if e.get("type") == "chat"),
     }
 
 
@@ -156,6 +162,15 @@ def user_summary(email: str, days: int = 30) -> dict:
 
     total_sessions = sum(1 for e in events if e.get("type") == "login")
     total_active_seconds = _session_active_seconds(events)
+    
+    # Telemetry: unique devices, ips, locations
+    devices = set()
+    ips = set()
+    locations = set()
+    for e in events:
+        if e.get("device"): devices.add(e["device"])
+        if e.get("ip"): ips.add(e["ip"])
+        if e.get("location"): locations.add(e["location"])
 
     return {
         "user": email,
@@ -167,6 +182,9 @@ def user_summary(email: str, days: int = 30) -> dict:
         "last_logout": last_logout_ts,
         "total_sessions": total_sessions,
         "total_active_seconds": total_active_seconds,
+        "unique_devices": list(devices),
+        "unique_ips": list(ips),
+        "locations": list(locations),
     }
 
 
