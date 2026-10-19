@@ -1306,6 +1306,28 @@ if (!_deviceId) {
   _deviceId = 'dev_' + Math.random().toString(36).substring(2, 14);
   localStorage.setItem('sunnyware_device_id', _deviceId);
 }
+
+// Part 221d: log chat messages to audit trail
+async function _logChatMessage(role, content) {
+  try {
+    if (!content || !_apiKey) return;
+    const sessionId = localStorage.getItem('sunnyware_chat_session') || '';
+    await fetch('/api/chat-audit/log', {
+      method: 'POST',
+      headers: {
+        'X-API-Key': _apiKey,
+        'Content-Type': 'application/json',
+        'X-Device-ID': typeof _deviceId !== 'undefined' ? _deviceId : ''
+      },
+      body: JSON.stringify({ role, content, session_id: sessionId })
+    });
+  } catch (e) {
+    // Silent fail — logging shouldn't break chat
+    console.warn('[audit-log] failed:', e);
+  }
+}
+
+
 let _userEmail = 'Not logged in';
 
 if (_apiKey) {
@@ -2660,6 +2682,7 @@ function sendMessage(textOverride){
   if((!text&&pendingAttach.length===0)||isGenerating) return;
 
   if(!text&&!pendingAttach.length)return;
+  if(text) _logChatMessage('user', text);
 
   input.value=''; autoGrow(); sendBtn.disabled=true;
 
@@ -3071,6 +3094,9 @@ async function streamAI(chat, prompt) {
     if(actionsEl) actionsEl.style.visibility = 'visible';
 
     bindCodeCopy(textEl);
+
+    // Part 221d: log assistant response to audit trail
+    if(displayText) _logChatMessage('assistant', displayText);
 
 
 
