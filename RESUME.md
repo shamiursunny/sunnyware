@@ -1246,3 +1246,22 @@ me the exact git commands to commit + push both remotes."
 - Google Login works end-to-end.
 - Paddle Customer Portal correctly identifies the Google user (pulls their email/name).
 - Chat history is isolated per Google account.
+
+---
+
+# Part 207 Update (2026-10-19): WorkOS Admin Panel
+
+## Backend
+- **New** `src/sunnyware/routes/workos_admin.py`: 
+  - `GET /api/admin/workos/users` — fetches users from WorkOS User Management API.
+  - `GET /api/admin/workos/organizations` — fetches orgs from WorkOS.
+- **Updated** `src/sunnyware/main.py`: Registered `workos_admin_routes`.
+
+## Frontend (`static/admin-v2.html`)
+- **Sidebar**: Added "WorkOS Users" tab under Overview.
+- **UI**: Added `renderWorkOSUsers()` which displays a table of emails, names, IDs, and verification status.
+- **Integration**: Calls `/api/admin/workos/users` with the admin API key.
+
+## Verified
+- Live WorkOS API connection works (fetched real Google user: shamiur.sunny@gmail.com with correct first/last names).
+- Admin auth protects the endpoint (401 without key, 200 with key).
