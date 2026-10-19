@@ -55,4 +55,29 @@ async def auth_login(req: Request):
         return JSONResponse({"error": "Valid email required"}, status_code=400)
     
     token = _generate_jwt(email)
+
+    # Part 211: track login in team activity
+    try:
+        from .. import team_store as _team
+        _team.track_login(email)
+    except Exception:
+        pass
+
     return {"ok": True, "token": token, "email": email, "owner_key": f"user:{email}"}
+
+
+@router.post("/api/auth/logout")
+async def auth_logout(req: Request):
+    """Part 211: track logout activity (best-effort)."""
+    try:
+        body = await req.json()
+    except Exception:
+        body = {}
+    email = (body.get("email") or "").strip().lower()
+    if email:
+        try:
+            from .. import team_store as _team
+            _team.track_logout(email)
+        except Exception:
+            pass
+    return {"ok": True}

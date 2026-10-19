@@ -1924,47 +1924,160 @@ async function renderHealth() {
 
 // ==== TEAM ====
 async function renderTeam() {
-  const audit = await api('/api/acc/audit');
-  const roles = {
+  const [membersData, activityData] = await Promise.all([
+    api('/api/team/members').catch(() => ({ members: [] })),
+    api('/api/team/activity?limit=100').catch(() => ({ activity: [] }))
+  ]);
+  const members = membersData.members || [];
+  const activity = activityData.activity || [];
+
+  const fmtTs = (ts) => {
+    if (!ts) return '—';
+    const d = new Date(ts * 1000);
+    const diffMin = Math.floor((Date.now() - d) / 60000);
+    if (diffMin < 1) return 'Just now';
+    if (diffMin < 60) return diffMin + 'm ago';
+    const diffHr = Math.floor(diffMin / 60);
+    if (diffHr < 24) return diffHr + 'h ago';
+    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+  };
+
+  const roleOptions = ['Owner', 'Finance', 'Support', 'Viewer'];
+  const ROLE_DESC = {
     Owner: 'Full access to everything',
     Finance: 'Plans, Invoices, Accounting, Budget, Capital, Reports',
     Support: 'Customers, Access, Health, view-only sessions',
     Viewer: 'Read-only: Dashboard, Customers, Plans, Health, Alerts',
   };
+
+  const actionBadge = (action) => {
+    const colors = {
+      login: '#2ecc71', logout: '#7c5cff',
+      member_added: '#00d4ff', member_deleted: '#e74c3c',
+      role_changed: '#f39c12',
+    };
+    const c = colors[action] || '#666';
+    return '<span style="display:inline-block;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;background:' + c + '22;color:' + c + ';">' + esc(action) + '</span>';
+  };
+
   $('content').innerHTML = `
-    <h2>Team Roles</h2>
+    <h2>Team Members (${members.length})</h2>
+    <p style="color:var(--muted);margin-bottom:12px;">Manage who has access to this workspace.</p>
+    ${members.length === 0 ? '<p style="color:var(--muted)">No team members yet. Add the first one below.</p>' : `
     <table>
-      <thead><tr><th>Role</th><th>Access</th></tr></thead>
+      <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Last Login</th><th>Last Logout</th><th></th></tr></thead>
       <tbody>
-        ${Object.entries(roles).map(([r, desc]) => `
-          <tr><td><strong>${esc(r)}</strong></td><td>${esc(desc)}</td></tr>
-        `).join('')}
-      </tbody>
-    </table>
-    <h2>Audit Log (${audit.audit.length})</h2>
-    ${audit.audit.length === 0 ? '<p style="color:var(--muted)">No audit entries yet.</p>' : `
-    <table class="ledger">
-      <thead><tr><th>Time</th><th>User</th><th>Action</th></tr></thead>
-      <tbody>
-        ${audit.audit.slice().reverse().slice(0, 100).map(a => `
-          <tr>
-            <td>${esc(a.t)}</td>
-            <td>${esc(a.u)}</td>
-            <td>${esc(a.a)}</td>
+        ${members.map(m => `
+          <tr data-mid="${esc(m.id)}">
+            <td><strong>${esc(m.name || '—')}</strong></td>
+            <td>${esc(m.email)}</td>
+            <td>
+              <select onchange="changeMemberRole('${esc(m.id)}', this.value)" style="width:auto;padding:4px;font-size:12px">
+                ${roleOptions.map(r => '<option value="' + r + '"' + (r === m.role ? ' selected' : '') + '>' + r + '</option>').join('')}
+              </select>
+            </td>
+            <td><span class="tag ${m.status === 'active' ? 'ok' : ''}">${esc(m.status || 'active')}</span></td>
+            <td>${fmtTs(m.last_login)}</td>
+            <td>${fmtTs(m.last_logout)}</td>
+            <td><button class="ghost small" onclick="deleteTeamMember('${esc(m.id)}', '${esc(m.email)}')">Delete</button></td>
           </tr>
         `).join('')}
       </tbody>
     </table>
     `}
+
     <div class="card" style="margin-top:20px;">
-      <h3 style="margin-top:0;color:var(--accent);">Add Audit Entry</h3>
+      <h3 style="margin-top:0;color:var(--accent);">Add Team Member</h3>
       <div class="form-row">
-        <div><label>User</label><input id="audit-user" placeholder="admin"></div>
-        <div><label>Action</label><input id="audit-action" placeholder="What was done"></div>
-        <button onclick="logAudit()">Log</button>
+        <div><label>Name</label><input id="tm-name" placeholder="Jane Doe"></div>
+        <div><label>Email</label><input id="tm-email" type="email" placeholder="jane@company.com"></div>
+        <div><label>Role</label>
+          <select id="tm-role">
+            ${roleOptions.map(r => '<option value="' + r + '"' + (r === 'Viewer' ? ' selected' : '') + '>' + r + '</option>').join('')}
+          </select>
+        </div>
+        <button onclick="addTeamMember()">Add Member</button>
       </div>
     </div>
+
+    <h2 style="margin-top:32px;">Role Permissions</h2>
+    <table>
+      <thead><tr><th>Role</th><th>Access</th></tr></thead>
+      <tbody>
+        ${Object.entries(ROLE_DESC).map(([r, desc]) => `
+          <tr><td><strong>${esc(r)}</strong></td><td>${esc(desc)}</td></tr>
+        `).join('')}
+      </tbody>
+    </table>
+
+    <h2 style="margin-top:32px;">Activity Log (${activity.length})</h2>
+    <p style="color:var(--muted);margin-bottom:12px;">Logins, logouts, role changes, and member additions.</p>
+    ${activity.length === 0 ? '<p style="color:var(--muted)">No activity yet.</p>' : `
+    <table>
+      <thead><tr><th>Time</th><th>User</th><th>Action</th><th>Details</th></tr></thead>
+      <tbody>
+        ${activity.map(a => `
+          <tr>
+            <td>${fmtTs(a.ts)}</td>
+            <td>${esc(a.user)}</td>
+            <td>${actionBadge(a.action)}</td>
+            <td style="font-size:12px;color:var(--muted);">${esc(a.details || '')}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    <div style="margin-top:12px;">
+      <button class="ghost small" onclick="clearTeamActivity()">Clear Activity Log</button>
+    </div>
+    `}
   `;
+}
+
+async function addTeamMember() {
+  const name = (document.getElementById('tm-name')?.value || '').trim();
+  const email = (document.getElementById('tm-email')?.value || '').trim();
+  const role = (document.getElementById('tm-role')?.value || 'Viewer').trim();
+  if (!email || !email.includes('@')) return toast('Valid email required', 'error');
+  try {
+    await api('/api/team/members', 'POST', { name, email, role });
+    toast('Member added', 'success');
+    nav('team');
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+async function deleteTeamMember(memberId, email) {
+  if (!confirm('Remove ' + email + ' from the team?')) return;
+  try {
+    await api('/api/team/members/' + memberId, 'DELETE');
+    toast('Member removed', 'success');
+    nav('team');
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+async function changeMemberRole(memberId, newRole) {
+  try {
+    await api('/api/team/members/' + memberId, 'PATCH', { role: newRole });
+    toast('Role updated to ' + newRole, 'success');
+    nav('team');
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+    nav('team');
+  }
+}
+
+async function clearTeamActivity() {
+  if (!confirm('Clear the entire activity log? This cannot be undone.')) return;
+  try {
+    await api('/api/team/activity', 'DELETE');
+    toast('Activity log cleared', 'success');
+    nav('team');
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  }
 }
 
 async function logAudit() {

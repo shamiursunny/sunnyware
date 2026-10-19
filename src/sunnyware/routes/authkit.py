@@ -31,6 +31,13 @@ async def auth_callback(code: str = ""):
 
     email = result["email"]
 
+    # Part 211: track login in team activity
+    try:
+        from .. import team_store as _team
+        _team.track_login(email)
+    except Exception:
+        pass
+
     # 1. Ensure SaaS Org exists for this user (free tier default)
     from .. import saas_store as s
     org = s.get_org_by_email(email)
