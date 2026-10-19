@@ -120,16 +120,27 @@ def log_event(user: str, event_type: str, **kwargs) -> dict:
         for k, _ in items[:-MAX_EVENTS]:
             del events[k]
 
-    # Part 219: auto-login on first chat in 30 min session
+    # Part 219: auto-login on first chat in 30 min session (uses events file)
     if event_type == "chat" and user:
         try:
-            sessions = _load("session_state.json", {})
             now = time.time()
-            last = sessions.get(user.lower(), 0)
-            if now - last > 1800:
+            user_lower = user.lower().strip()
+            # Check if user has any chat/login event in the last 30 min (excluding current)
+            recent = False
+            for ev in events.values():
+                if ev.get("id") == eid:
+                    continue
+                if ev.get("user") != user_lower:
+                    continue
+                if ev.get("type") not in ("chat", "login", "tool"):
+                    continue
+                if (now - ev.get("ts", 0)) < 1800:
+                    recent = True
+                    break
+            if not recent:
                 lid = "e_" + secrets.token_hex(6)
                 events[lid] = {
-                    "id": lid, "ts": now, "user": user.lower().strip(),
+                    "id": lid, "ts": now, "user": user_lower,
                     "type": "login", "org_id": kwargs.get("org_id", ""),
                     "provider": "", "model": "", "tokens": 0,
                     "tokens_in": 0, "tokens_out": 0,
@@ -140,8 +151,6 @@ def log_event(user: str, event_type: str, **kwargs) -> dict:
                     "device": kwargs.get("device", ""),
                     "location": kwargs.get("location", ""),
                 }
-            sessions[user.lower()] = now
-            _save("session_state.json", sessions)
         except Exception:
             pass
 
@@ -179,7 +188,7 @@ def _agg(events: list) -> dict:
 
 
 def _session_active_seconds(events: list) -> int:
-    """Pair login/logout to estimate active time."""
+    """Pair login/logout; fallback to span between first and last event."""
     total = 0.0
     login_ts = None
     for e in sorted(events, key=lambda x: x.get("ts", 0)):
@@ -188,8 +197,16 @@ def _session_active_seconds(events: list) -> int:
         elif e.get("type") == "logout" and login_ts:
             total += e.get("ts", 0) - login_ts
             login_ts = None
-    if login_ts:  # still logged in
+    if login_ts:
         total += time.time() - login_ts
+
+    # Fallback: if no login/logout pairs, use span between first and last event
+    if total == 0 and len(events) >= 2:
+        sorted_events = sorted(events, key=lambda x: x.get("ts", 0))
+        span = sorted_events[-1].get("ts", 0) - sorted_events[0].get("ts", 0)
+        if span > 0:
+            total = span
+
     return int(total)
 
 
