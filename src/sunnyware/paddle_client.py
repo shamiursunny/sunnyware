@@ -10,7 +10,17 @@ from urllib.parse import urlencode
 
 
 def _api_key() -> str:
-    return (os.getenv("PADDLE_API_KEY") or "").strip()
+    """Part 204e: aggressively sanitize API key — strip quotes, Bearer prefix, newlines."""
+    raw = (os.getenv("PADDLE_API_KEY") or "").strip()
+    # Strip surrounding quotes (single or double)
+    if raw and raw[0] in ('"', "'"):
+        raw = raw.strip('"').strip("'")
+    # Strip accidental "Bearer " prefix
+    if raw.lower().startswith("bearer "):
+        raw = raw[7:].strip()
+    # Remove any internal newlines or CRs (from bad copy-paste)
+    raw = raw.replace("\n", "").replace("\r", "").replace("\t", "")
+    return raw.strip()
 
 
 def _webhook_secret() -> str:
