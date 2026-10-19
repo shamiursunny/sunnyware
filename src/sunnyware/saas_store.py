@@ -269,3 +269,13 @@ def delete_plan(plan_id: str) -> bool:
         _save("plans.json", plans)
         return True
     return False
+
+
+def get_org_by_paddle_customer(customer_id: str) -> Optional[dict]:
+    """Part 209g: find org by paddle_customer_id (webhook fallback lookup)."""
+    if not customer_id:
+        return None
+    for org in _load("orgs.json", {}).values():
+        if org.get("paddle_customer_id") == customer_id:
+            return org
+    return None

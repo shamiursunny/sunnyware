@@ -107,7 +107,8 @@ async def create_checkout_url(org_id: str, plan_id: str,
             # This means the price is $0 or trial-only and Paddle auto-completed it.
             # Redirect to /admin so the frontend can show "Payment successful".
             if "shamiur-sunnyware" in url or "_ptxn" in url:
-                return {"ok": True, "simulated": False, "auto_approved": True, "url": "/admin?checkout=success"}
+                # Part 209g: use caller's success_url (user flow → /ui, admin → /admin)
+                return {"ok": True, "simulated": False, "auto_approved": True, "url": success_url or "/ui?checkout=success"}
 
             return {"ok": True, "simulated": False, "url": url}
 

@@ -37,12 +37,33 @@ async def paddle_webhook(request: Request):
 
         elif event_type == "transaction.completed":
             data = event.get("data", {})
-            custom_data = data.get("custom_data", {})
+            # Part 209h: check multiple possible locations for custom_data
+            custom_data = (
+                data.get("custom_data", {})
+                or data.get("details", {}).get("custom_data", {})
+                or data.get("origin", {}).get("custom_data", {})
+                or {}
+            )
             org_id = custom_data.get("org_id", "")
             plan_id = custom_data.get("plan_id", "pro")
             txn_id = data.get("id", "unknown")
-            
-            # Extract the total amount (Paddle sends amounts in cents as a string)
+
+            _cust = data.get("customer_id", "") or data.get("customer", "")
+            if isinstance(_cust, dict): _cust = _cust.get("id", "")
+
+            # Fallback: look up by paddle_customer_id
+            if not org_id and _cust:
+                try:
+                    from .. import saas_store as s
+                    org = s.get_org_by_paddle_customer(_cust)
+                    if org:
+                        org_id = org["id"]
+                        print(f"[paddle] Resolved org {org_id} from customer {_cust}")
+                except Exception as e:
+                    print(f"[paddle] Fallback lookup failed: {e}")
+
+            print(f"[paddle] txn.completed: txn={txn_id}, org={org_id}, plan={plan_id}, cust={_cust}")
+
             totals = data.get("details", {}).get("totals", {})
             amount_str = totals.get("total", "0")
             try:
@@ -52,22 +73,18 @@ async def paddle_webhook(request: Request):
 
             if org_id:
                 from .. import saas_store as s
-                # 1. Upgrade the plan
-                # Part 204: extract customer_id from Paddle transaction
-                _cust = data.get("customer_id", "") or data.get("customer", "")
-                if isinstance(_cust, dict): _cust = _cust.get("id", "")
                 _patch = {"plan": plan_id, "status": "active"}
                 if _cust: _patch["paddle_customer_id"] = _cust
                 s.update_org(org_id, _patch)
-                
-                # 2. Record the invoice
                 s.create_invoice(
-                    org_id=org_id, 
-                    amount=amount, 
-                    description=f"Paddle Checkout (Txn: {txn_id})", 
+                    org_id=org_id,
+                    amount=amount,
+                    description=f"Paddle Checkout (Txn: {txn_id})",
                     status="paid"
                 )
-                print(f"[paddle] Transaction {txn_id} completed for org {org_id}. Recorded invoice for ${amount:.2f}")
+                print(f"[paddle] Upgraded org {org_id} to {plan_id}, invoice ${amount:.2f}")
+            else:
+                print(f"[paddle] WARNING: could not resolve org for txn {txn_id}")
 
         return {"received": True}
     except Exception as e:
