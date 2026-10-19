@@ -38,6 +38,13 @@ async def auth_callback(code: str = ""):
     except Exception:
         pass
 
+    # Part 212: analytics login event
+    try:
+        from .. import analytics_store as _as
+        _as.log_event(email, "login")
+    except Exception:
+        pass
+
     # 1. Ensure SaaS Org exists for this user (free tier default)
     from .. import saas_store as s
     org = s.get_org_by_email(email)

@@ -31,6 +31,8 @@ from .routes import sso as sso_routes
 from .routes import authkit as authkit_routes
 from .routes import workos_admin as workos_admin_routes
 from .routes import team as team_routes
+from .routes import analytics as analytics_routes
+from .routes import llm_dashboard as llm_dashboard_routes
 from .routes import agent as agent_routes
 from .routes import eval as eval_routes
 from .routes import mcp as mcp_routes
@@ -134,6 +136,8 @@ app.include_router(sso_routes.router)
 app.include_router(authkit_routes.router)
 app.include_router(workos_admin_routes.router)
 app.include_router(team_routes.router)
+app.include_router(analytics_routes.router)
+app.include_router(llm_dashboard_routes.router)
 app.include_router(agent_routes.router)
 app.include_router(tools_routes.router)
 app.include_router(sessions_routes.router)
@@ -634,3 +638,50 @@ try:
             pass
 except Exception:
     pass
+
+
+# ═══════════════════════════════════════════════════════════
+# Part 212: analytics context middleware (user tracking)
+# ═══════════════════════════════════════════════════════════
+@app.middleware("http")
+async def _analytics_context_middleware(request, call_next):
+    try:
+        from . import analytics_store as _as
+        _key = request.headers.get("x-api-key") or ""
+        _authz = request.headers.get("authorization", "")
+        if _authz.lower().startswith("bearer "):
+            _key = _authz[7:].strip()
+        _user = ""
+        _org = ""
+        if _key and _key != "master-admin-key":
+            try:
+                import jwt as _jwt
+                import os as _os
+                _secret = _os.getenv("JWT_SECRET", "dev-secret-change-me")
+                _payload = _jwt.decode(_key, _secret, algorithms=["HS256"])
+                _user = _payload.get("email") or _payload.get("sub") or ""
+            except Exception:
+                pass
+            if _user:
+                try:
+                    from . import saas_store as _s
+                    _o = _s.get_org_by_email(_user)
+                    if _o:
+                        _org = _o.get("id", "")
+                except Exception:
+                    pass
+        _as.set_current(_user, _org)
+    except Exception:
+        pass
+    return await call_next(request)
+
+# ═══════════════════════════════════════════════════════════
+# Part 212: install analytics hooks (monkey-patch LLM + tools)
+# ═══════════════════════════════════════════════════════════
+try:
+    from . import analytics_hooks as _ah
+    _ah_result = _ah.install()
+    print(f"[startup] analytics_hooks: {_ah_result}")
+except Exception as _ah_e:
+    print(f"[startup] analytics_hooks failed: {_ah_e}")
+

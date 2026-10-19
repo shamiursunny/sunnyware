@@ -63,6 +63,13 @@ async def auth_login(req: Request):
     except Exception:
         pass
 
+    # Part 212: analytics login event
+    try:
+        from .. import analytics_store as _as
+        _as.log_event(email, "login")
+    except Exception:
+        pass
+
     return {"ok": True, "token": token, "email": email, "owner_key": f"user:{email}"}
 
 
@@ -78,6 +85,13 @@ async def auth_logout(req: Request):
         try:
             from .. import team_store as _team
             _team.track_logout(email)
+        except Exception:
+            pass
+
+        # Part 212: analytics logout event
+        try:
+            from .. import analytics_store as _as
+            _as.log_event(email, "logout")
         except Exception:
             pass
     return {"ok": True}
