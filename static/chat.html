@@ -814,6 +814,31 @@ input,textarea{font-family:inherit}
     height: 18px;
   }
 }
+
+/* Part 210h: close button for settings menu */
+.settings-close-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: none;
+  border: none;
+  color: var(--text-tertiary);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+.settings-close-btn:hover {
+  background: var(--hover);
+  color: var(--text);
+}
+.settings-close-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
 </style>
 
 </head>
@@ -1147,7 +1172,10 @@ input,textarea{font-family:inherit}
 
 <!-- Part 196: Login Modal -->
 <div id="loginModal" class="hidden" style="position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;display:flex;align-items:center;justify-content:center;">
-  <div style="background:var(--bg-secondary);padding:30px;border-radius:12px;width:100%;max-width:400px;box-shadow:0 10px 30px rgba(0,0,0,0.5);border:1px solid var(--border);">
+  <div style="background:var(--bg-secondary);padding:30px;border-radius:12px;width:100%;max-width:400px;box-shadow:0 10px 30px rgba(0,0,0,0.5);border:1px solid var(--border);position:relative;">
+    <button id="loginModalClose" style="position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text-secondary);cursor:pointer;padding:4px;display:flex;align-items:center;justify-content:center;border-radius:6px;" title="Close">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
+    </button>
     <h2 style="margin-top:0;color:var(--text-primary);">Welcome to Sunnyware</h2>
     <p style="color:var(--text-secondary);font-size:14px;margin-bottom:20px;">Sign in to access your private workspace.</p>
     
@@ -1189,6 +1217,11 @@ input,textarea{font-family:inherit}
       <div class="settings-email" id="settingsEmail">-</div>
       <div class="settings-plan-line" id="settingsPlanLine">Loading...</div>
     </div>
+    <button class="settings-close-btn" id="settingsCloseBtn" title="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <path d="M18 6L6 18M6 6l12 12"/>
+      </svg>
+    </button>
   </div>
 
   <div class="settings-section">
@@ -1681,6 +1714,17 @@ if (_userPillBtn) {
 
 if (_settingsOverlay) _settingsOverlay.onclick = closeSettings;
 
+// Part 210h: close button handler
+// Part 210h: close button for login modal
+document.getElementById('loginModalClose')?.addEventListener('click', () => {
+  document.getElementById('loginModal').classList.add('hidden');
+});
+
+document.getElementById('settingsCloseBtn')?.addEventListener('click', () => {
+  closeSettings();
+});
+
+
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeSettings();
 });
@@ -1710,8 +1754,8 @@ document.getElementById('settingsBillingBtn')?.addEventListener('click', async (
     });
     const data = await res.json();
     if (data.ok && data.url) {
-      toast('Opening Paddle Customer Portal...');
-      window.location.href = data.url;
+      toast('Opening Paddle Customer Portal in new tab...');
+      window.open(data.url, '_blank', 'noopener');
     } else {
       toast(data.detail || data.error || 'Could not open billing portal', 'error');
     }
