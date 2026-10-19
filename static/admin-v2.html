@@ -156,6 +156,8 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
     <div class="nav-item" data-tab="analytics">User Analytics</div>
     <div class="nav-item" data-tab="llm-dashboard">LLM Dashboard</div>
     <div class="nav-item" data-tab="email">Email</div>
+    <div class="nav-item" data-tab="api-keys">API Keys</div>
+    <div class="nav-item" data-tab="webhooks">Webhooks</div>
   </div>
 
   <div class="nav-group">
@@ -2983,6 +2985,250 @@ function _renderSimpleChart(containerId, data) {
   svg += '</svg>';
   container.innerHTML = svg;
 }
+
+
+
+// Part 221a: API KEYS page
+async function renderApiKeys() {
+  const data = await api('/api/api-keys').catch(() => ({ keys: [] }));
+  const keys = data.keys || [];
+
+  $('content').innerHTML = `
+    <h2>API Keys</h2>
+    <p style="color:var(--muted);margin-bottom:16px;">Programmatic access keys. Raw key shown only once at creation.</p>
+
+    <div class="card" style="margin-bottom:24px;">
+      <h3 style="margin-top:0;color:var(--accent);">Create API Key</h3>
+      <div class="form-row">
+        <div><label>Name</label><input id="ak-name" placeholder="Production bot"></div>
+        <div><label>Org ID (optional)</label><input id="ak-org" placeholder="org_..."></div>
+        <div><label>User Email (optional)</label><input id="ak-user" placeholder="user@example.com"></div>
+        <div><label>Rate Limit / min</label><input id="ak-rate" type="number" value="60" min="1"></div>
+        <div><label>Scopes (comma)</label><input id="ak-scopes" value="read" placeholder="read,chat,admin"></div>
+        <button onclick="createApiKey()">Create Key</button>
+      </div>
+      <div id="ak-new-key" style="margin-top:16px;"></div>
+    </div>
+
+    <h3>Active Keys (${keys.length})</h3>
+    ${keys.length === 0 ? '<p style="color:var(--muted)">No API keys yet.</p>' : `
+    <table>
+      <thead><tr><th>Name</th><th>Prefix</th><th>Org</th><th>User</th><th>Scopes</th><th>Rate</th><th>Calls</th><th>Tokens</th><th>Last Used</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        ${keys.map(k => `
+          <tr>
+            <td><strong>${esc(k.name)}</strong></td>
+            <td><code style="font-size:11px">${esc(k.prefix)}…</code></td>
+            <td><code style="font-size:10px">${esc(k.org_id || '-')}</code></td>
+            <td style="font-size:11px;">${esc(k.user_email || '-')}</td>
+            <td style="font-size:11px;">${(k.scopes || []).join(', ')}</td>
+            <td>${k.rate_limit_per_min}/m</td>
+            <td>${k.calls || 0}</td>
+            <td>${k.tokens_used || 0}</td>
+            <td style="font-size:11px;">${k.last_used ? new Date(k.last_used*1000).toLocaleString() : '—'}</td>
+            <td><span class="tag ${k.revoked ? 'bad' : 'ok'}">${k.revoked ? 'Revoked' : 'Active'}</span></td>
+            <td>
+              ${k.revoked ? '' : `<button class="ghost small" onclick="revokeApiKey('${esc(k.id)}')">Revoke</button>`}
+              <button class="danger small" onclick="deleteApiKey('${esc(k.id)}')">Delete</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+  `;
+}
+
+async function createApiKey() {
+  const name = document.getElementById('ak-name').value.trim();
+  const org = document.getElementById('ak-org').value.trim();
+  const user = document.getElementById('ak-user').value.trim();
+  const rate = parseInt(document.getElementById('ak-rate').value) || 60;
+  const scopesRaw = document.getElementById('ak-scopes').value.trim();
+  const scopes = scopesRaw ? scopesRaw.split(',').map(s => s.trim()).filter(Boolean) : ['read'];
+  if (!name) return toast('Name required', 'error');
+
+  try {
+    const res = await api('/api/api-keys', 'POST', {
+      name, org_id: org, user_email: user, rate_limit_per_min: rate, scopes
+    });
+    if (res.ok && res.key) {
+      document.getElementById('ak-new-key').innerHTML = `
+        <div class="card" style="border-color:var(--success);background:#2ecc7111;">
+          <h4 style="margin-top:0;color:var(--success);">API Key Created — Copy Now (won't show again)</h4>
+          <div style="background:var(--bg);padding:12px;border-radius:6px;font-family:monospace;font-size:13px;word-break:break-all;user-select:all;">${esc(res.key.raw_key)}</div>
+          <p style="margin:8px 0 0;font-size:12px;color:var(--muted);">Use this as the <code>X-API-Key</code> header.</p>
+        </div>
+      `;
+      setTimeout(() => renderApiKeys(), 2000);
+    } else {
+      toast('Error: ' + (res.error || 'unknown'), 'error');
+    }
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function revokeApiKey(keyId) {
+  if (!confirm('Revoke this key? Existing integrations will stop working.')) return;
+  try {
+    await api('/api/api-keys/' + encodeURIComponent(keyId) + '/revoke', 'POST', {});
+    toast('Key revoked');
+    renderApiKeys();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function deleteApiKey(keyId) {
+  if (!confirm('Permanently delete this key?')) return;
+  try {
+    await api('/api/api-keys/' + encodeURIComponent(keyId), 'DELETE');
+    toast('Key deleted');
+    renderApiKeys();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// Part 221a: WEBHOOKS page
+async function renderWebhooks() {
+  const [epsData, eventsData, delivData] = await Promise.all([
+    api('/api/webhooks/endpoints').catch(() => ({ endpoints: [] })),
+    api('/api/webhooks/events').catch(() => ({ events: [] })),
+    api('/api/webhooks/deliveries?limit=30').catch(() => ({ deliveries: [] }))
+  ]);
+  const endpoints = epsData.endpoints || [];
+  const events = eventsData.events || [];
+  const deliveries = delivData.deliveries || [];
+
+  $('content').innerHTML = `
+    <h2>Webhooks</h2>
+    <p style="color:var(--muted);margin-bottom:16px;">Send HTTP POST payloads to Slack, Discord, or any URL when events happen.</p>
+
+    <div class="card" style="margin-bottom:24px;">
+      <h3 style="margin-top:0;color:var(--accent);">Add Endpoint</h3>
+      <div class="form-row" style="display:grid;grid-template-columns:1fr;gap:12px;">
+        <div><label>Webhook URL</label><input id="wh-url" placeholder="https://hooks.slack.com/services/..."></div>
+        <div><label>Name</label><input id="wh-name" placeholder="Slack #alerts"></div>
+        <div><label>Events (Ctrl/Cmd to multi-select)</label>
+          <select id="wh-events" multiple style="min-height:100px;">
+            ${events.map(ev => `<option value="${esc(ev)}">${esc(ev)}</option>`).join('')}
+          </select>
+        </div>
+        <div><label>Secret (optional)</label><input id="wh-secret" placeholder="my-secret-token"></div>
+        <button onclick="addWebhook()" style="width:200px;">Add Endpoint</button>
+      </div>
+    </div>
+
+    <h3>Endpoints (${endpoints.length})</h3>
+    ${endpoints.length === 0 ? '<p style="color:var(--muted)">No webhook endpoints yet.</p>' : `
+    <table>
+      <thead><tr><th>Name</th><th>URL</th><th>Events</th><th>Delivered</th><th>Failed</th><th>Last Fired</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        ${endpoints.map(e => `
+          <tr>
+            <td><strong>${esc(e.name)}</strong></td>
+            <td style="font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;">${esc(e.url)}</td>
+            <td style="font-size:11px;">${(e.events || []).join(', ')}</td>
+            <td><span style="color:var(--success)">${e.success_count || 0}</span></td>
+            <td><span style="color:var(--danger)">${e.fail_count || 0}</span></td>
+            <td style="font-size:11px;">${e.last_fired ? new Date(e.last_fired*1000).toLocaleString() : '—'}</td>
+            <td><span class="tag ${e.enabled ? 'ok' : 'bad'}">${e.enabled ? 'On' : 'Off'}</span></td>
+            <td>
+              <button class="ghost small" onclick="testWebhook('${esc(e.id)}')">Test</button>
+              <button class="ghost small" onclick="toggleWebhook('${esc(e.id)}')">${e.enabled ? 'Disable' : 'Enable'}</button>
+              <button class="danger small" onclick="deleteWebhook('${esc(e.id)}')">Delete</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:32px;">
+      <h3 style="margin:0;">Recent Deliveries (${deliveries.length})</h3>
+      <button class="ghost small" onclick="clearWebhookLogs()">Clear Log</button>
+    </div>
+    ${deliveries.length === 0 ? '<p style="color:var(--muted)">No deliveries yet.</p>' : `
+    <table style="font-size:12px;">
+      <thead><tr><th>Time</th><th>Endpoint</th><th>Event</th><th>Status</th><th>HTTP</th><th>Response</th></tr></thead>
+      <tbody>
+        ${deliveries.map(d => `
+          <tr>
+            <td>${new Date(d.ts*1000).toLocaleString()}</td>
+            <td><code style="font-size:10px">${esc(d.endpoint_id)}</code></td>
+            <td>${esc(d.event)}</td>
+            <td><span class="tag ${d.status === 'delivered' ? 'ok' : 'bad'}">${esc(d.status)}</span></td>
+            <td>${d.http_status || 0}</td>
+            <td style="font-size:10px;max-width:200px;overflow:hidden;text-overflow:ellipsis;">${esc((d.body||'').slice(0,80))}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+  `;
+}
+
+async function addWebhook() {
+  const url = document.getElementById('wh-url').value.trim();
+  const name = document.getElementById('wh-name').value.trim();
+  const secret = document.getElementById('wh-secret').value.trim();
+  const select = document.getElementById('wh-events');
+  const events = Array.from(select.selectedOptions).map(o => o.value);
+  if (!url) return toast('URL required', 'error');
+  if (events.length === 0) return toast('Select at least one event', 'error');
+  try {
+    const res = await api('/api/webhooks/endpoints', 'POST', { url, name, events, secret });
+    if (res.ok) { toast('Endpoint added'); renderWebhooks(); }
+    else { toast('Error: ' + (res.error || 'unknown'), 'error'); }
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function testWebhook(eid) {
+  try {
+    const res = await api('/api/webhooks/endpoints/' + encodeURIComponent(eid) + '/test', 'POST', {});
+    if (res.ok) { toast('Test fired — check deliveries in a few seconds'); setTimeout(() => renderWebhooks(), 2500); }
+    else { toast('Error: ' + (res.error || 'unknown'), 'error'); }
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function toggleWebhook(eid) {
+  try {
+    await api('/api/webhooks/endpoints/' + encodeURIComponent(eid) + '/toggle', 'POST', {});
+    renderWebhooks();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function deleteWebhook(eid) {
+  if (!confirm('Delete this endpoint?')) return;
+  try {
+    await api('/api/webhooks/endpoints/' + encodeURIComponent(eid), 'DELETE');
+    toast('Deleted');
+    renderWebhooks();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function clearWebhookLogs() {
+  if (!confirm('Clear all delivery logs?')) return;
+  try {
+    await api('/api/webhooks/deliveries', 'DELETE');
+    renderWebhooks();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+(function () {
+  const hook = () => {
+    const ak = document.querySelector('.nav-item[data-tab="api-keys"]');
+    if (ak) ak.onclick = () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      ak.classList.add('active');
+      renderApiKeys();
+    };
+    const wh = document.querySelector('.nav-item[data-tab="webhooks"]');
+    if (wh) wh.onclick = () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      wh.classList.add('active');
+      renderWebhooks();
+    };
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
+  else hook();
+})();
 
 </script>
 </body>

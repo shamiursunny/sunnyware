@@ -32,6 +32,8 @@ from .routes import authkit as authkit_routes
 from .routes import workos_admin as workos_admin_routes
 from .routes import team as team_routes
 from .routes import email as email_routes
+from .routes import api_keys as api_keys_routes
+from .routes import webhooks as webhooks_routes
 from .routes import analytics as analytics_routes
 from .routes import llm_dashboard as llm_dashboard_routes
 from .routes import agent as agent_routes
@@ -43,7 +45,6 @@ from .routes import tools as tools_routes
 from .routes import sessions as sessions_routes
 from .routes import memory_routes
 from .routes import rag as rag_routes
-from .routes import webhooks as webhooks_routes
 
 
 async def _preload_local_task():
@@ -138,6 +139,8 @@ app.include_router(authkit_routes.router)
 app.include_router(workos_admin_routes.router)
 app.include_router(team_routes.router)
 app.include_router(email_routes.router)
+app.include_router(api_keys_routes.router)
+app.include_router(webhooks_routes.router)
 app.include_router(analytics_routes.router)
 app.include_router(llm_dashboard_routes.router)
 app.include_router(agent_routes.router)
@@ -149,7 +152,6 @@ app.include_router(mcp_routes.router)
 app.include_router(auth_routes.router)
 app.include_router(schedule_routes.router)
 app.include_router(rag_routes.router)
-app.include_router(webhooks_routes.router)
 
 # Part 89: serve local static assets (marked.js etc.) - no CDN dependency
 from fastapi.staticfiles import StaticFiles as _StaticFiles

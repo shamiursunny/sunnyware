@@ -45,6 +45,13 @@ async def auth_callback(code: str = ""):
     except Exception:
         pass
 
+    # Part 221a: fire user.login webhook
+    try:
+        from .. import webhooks_store as _ws
+        _ws.fire_event("user.login", {"email": email})
+    except Exception:
+        pass
+
     # 1. Ensure SaaS Org exists for this user (free tier default)
     from .. import saas_store as s
     org = s.get_org_by_email(email)

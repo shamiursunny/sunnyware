@@ -59,6 +59,10 @@ endpoints = [
     ("/api/llm-dashboard/orchestrator", "disable_all"),
     ("/api/llm-dashboard/logs", "logs"),
     ("/api/email/logs", "logs"),
+    ("/api/api-keys", "keys"),
+    ("/api/webhooks/endpoints", "endpoints"),
+    ("/api/webhooks/deliveries", "deliveries"),
+    ("/api/webhooks/events", "events"),
 ]
 for path, key in endpoints:
     status, body = http(path)
@@ -79,6 +83,8 @@ for marker, desc in [
     ("async function renderAnalytics", "renderAnalytics defined"),
     ("async function renderLlmDashboard", "renderLlmDashboard defined"),
     ("async function renderEmail", "renderEmail defined"),
+    ("async function renderApiKeys", "renderApiKeys defined"),
+    ("async function renderWebhooks", "renderWebhooks defined"),
     ("async function downloadInvoicePdf", "downloadInvoicePdf defined"),
     ("async function saveOrch", "saveOrch defined"),
     ('data-tab="email"', "Email nav item"),

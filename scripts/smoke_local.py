@@ -24,12 +24,16 @@ py_files = [
     "src/sunnyware/analytics_hooks.py",
     "src/sunnyware/llm_dashboard_store.py",
     "src/sunnyware/email_store.py",
+    "src/sunnyware/api_keys_store.py",
+    "src/sunnyware/webhooks_store.py",
     "src/sunnyware/team_store.py",
     "src/sunnyware/invoice_pdf.py",
     "src/sunnyware/routes/analytics.py",
     "src/sunnyware/routes/llm_dashboard.py",
     "src/sunnyware/routes/team.py",
     "src/sunnyware/routes/email.py",
+    "src/sunnyware/routes/api_keys.py",
+    "src/sunnyware/routes/webhooks.py",
     "src/sunnyware/routes/agent.py",
     "src/sunnyware/routes/saas.py",
     "src/sunnyware/routes/auth.py",
@@ -49,10 +53,12 @@ if all_ok: pass_(f"All {len(py_files)} files compile")
 section(2, "Route registration in main.py")
 main = Path("src/sunnyware/main.py").read_text(encoding="utf-8")
 for imp in ["analytics as analytics_routes", "llm_dashboard as llm_dashboard_routes",
-            "team as team_routes", "email as email_routes"]:
+            "team as team_routes", "email as email_routes",
+            "api_keys as api_keys_routes", "webhooks as webhooks_routes"]:
     (pass_ if imp in main else fail)(f"import: {imp}")
 for inc in ["analytics_routes.router", "llm_dashboard_routes.router",
-            "team_routes.router", "email_routes.router"]:
+            "team_routes.router", "email_routes.router",
+            "api_keys_routes.router", "webhooks_routes.router"]:
     (pass_ if f"include_router({inc})" in main else fail)(f"include_router({inc})")
 
 # 3. JS syntax
@@ -82,6 +88,8 @@ checks = [
     ("admin-v2.html has renderAnalytics", "async function renderAnalytics" in admin),
     ("admin-v2.html has renderLlmDashboard", "async function renderLlmDashboard" in admin),
     ("admin-v2.html has renderEmail", "async function renderEmail" in admin),
+    ("admin-v2.html has renderApiKeys", "async function renderApiKeys" in admin),
+    ("admin-v2.html has renderWebhooks", "async function renderWebhooks" in admin),
     ("admin-v2.html has downloadInvoicePdf", "async function downloadInvoicePdf" in admin),
     ("admin-v2.html has saveOrch", "async function saveOrch" in admin),
     ("admin-v2.html has analytics nav", 'data-tab="analytics"' in admin),

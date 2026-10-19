@@ -118,7 +118,16 @@ def is_valid_key(key: str) -> bool:
     # 1. Env-configured keys (existing behavior)
     if key in load_keys():
         return True
-    # 2. SSO-issued keys (Part 175)
+    # 2. Custom user API keys (Part 221a)
+    try:
+        if key.startswith("sk_"):
+            from . import api_keys_store as _aks
+            if _aks.validate(key):
+                return True
+    except Exception:
+        pass
+
+    # 3. SSO-issued keys (Part 175)
     try:
         from . import user_store as _us
         return _us.role_for_api_key(key) is not None

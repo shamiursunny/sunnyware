@@ -609,6 +609,12 @@ async def cancel_subscription(req: Request):
         # If Paddle sandbox auto-approves, we just downgrade locally
         _s.update_org(org["id"], {"plan": "free", "status": "active", "paddle_subscription_id": None})
         
+        # Part 221a: fire plan.cancelled webhook
+        try:
+            from .. import webhooks_store as _ws
+            _ws.fire_event("plan.cancelled", {"email": user, "org_id": org["id"]})
+        except Exception:
+            pass
         return {"ok": True, "message": "Subscription canceled. Downgraded to Free."}
     except Exception as e:
         return JSONResponse({"ok": False, "error": str(e)}, status_code=500)
