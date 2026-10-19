@@ -597,6 +597,11 @@ input,textarea{font-family:inherit}
   50% { transform: scale(1.2); opacity: 0.7; }
   100% { transform: scale(1); opacity: 1; }
 }
+
+/* Part 205: ensure sidebar footer buttons are always clickable */
+.sidebar-footer { position: relative; z-index: 100; flex-shrink: 0 !important; }
+.sidebar-footer .icon-btn { position: relative !important; z-index: 101 !important; pointer-events: auto !important; }
+
 </style>
 
 </head>
@@ -1071,6 +1076,50 @@ function applyTheme(t){
 applyTheme(localStorage.getItem(LS_THEME)||'dark');
 
 $('#themeToggle').onclick=()=>applyTheme(document.documentElement.dataset.theme==='dark'?'light':'dark');
+
+// Part 205: direct onclick handlers for billing + logout (backup for document listener)
+const _billingBtn = document.getElementById('billingBtn');
+if (_billingBtn) {
+  _billingBtn.addEventListener('click', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('[billing] clicked');
+    try {
+      const res = await fetch('/api/saas/portal', {
+        headers: { 'X-API-Key': _apiKey || '' }
+      });
+      const data = await res.json();
+      console.log('[billing] response:', data);
+      if (data.ok && data.url) {
+        toast('Opening Paddle Customer Portal...');
+        window.location.href = data.url;
+      } else {
+        toast(data.detail || data.error || 'Could not open billing portal', 'error');
+      }
+    } catch(err) {
+      console.error('[billing] error:', err);
+      toast('Billing portal error: ' + err.message, 'error');
+    }
+  });
+  console.log('[init] billingBtn handler attached');
+} else {
+  console.warn('[init] billingBtn NOT FOUND');
+}
+
+const _logoutBtn = document.getElementById('logoutBtn');
+if (_logoutBtn) {
+  _logoutBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('[logout] clicked');
+    if(!confirm('Clear your API key and log out? You will be asked to enter a new one.')) return;
+    localStorage.removeItem('sunnyware_admin_key');
+    location.reload();
+  });
+  console.log('[init] logoutBtn handler attached');
+} else {
+  console.warn('[init] logoutBtn NOT FOUND');
+}
 
 
 
@@ -1882,6 +1931,16 @@ function sunnyParseSSE(text) {
 function autoGrow(){ input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,180)+'px'; }
 
 input.addEventListener('input',()=>{ sendBtn.disabled=!input.value.trim()||isGenerating; autoGrow(); });
+
+// Part 205: Enter key sends message (Shift+Enter for new line)
+input.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    if (input.value.trim() && !isGenerating && !sendBtn.disabled) {
+      sendMessage();
+    }
+  }
+});
 
 input.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage(); } });
 
@@ -3261,13 +3320,17 @@ function autoSaveAttachmentsFromMessage(text, chat) {
 loadAll(); renderChatList(); renderMessages(); renderLibrary(); autoGrow();
 
 (async () => {
-
   try { await loadRoles(); } catch(e) { console.warn('[init] roles failed:', e); }
-
   try { await loadServerSessions(); } catch(e) { console.warn('[init] sessions failed:', e); }
-
   try { renderChatList($('#searchInput').value); } catch(e) {}
-
+  // Part 205: Force re-render after all async loads settle
+  setTimeout(() => {
+    try {
+      const cnt = (typeof chats !== 'undefined' ? chats.length : 0);
+      console.log('[init] post-load re-render — chats:', cnt);
+      renderChatList($('#searchInput').value);
+    } catch(e) { console.warn('[init] re-render failed:', e); }
+  }, 300);
 })();
 
 
