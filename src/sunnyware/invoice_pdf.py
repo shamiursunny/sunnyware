@@ -23,7 +23,13 @@ def generate_invoice_pdf(invoice: dict) -> bytes:
     # Invoice Details
     pdf.set_font("helvetica", "B", 12)
     pdf.cell(100, 10, f"Invoice ID: {invoice.get('id', 'N/A')}", ln=False)
-    pdf.cell(90, 10, f"Date: {invoice.get('created_at', time.time())}", ln=True, align="R")
+    raw_ts = invoice.get('created_at') or time.time()
+    try:
+        import datetime
+        dt_str = datetime.datetime.fromtimestamp(float(raw_ts)).strftime("%b %d, %Y")
+    except Exception:
+        dt_str = str(raw_ts)
+    pdf.cell(90, 10, f"Date: {dt_str}", ln=True, align="R")
     
     pdf.set_font("helvetica", "", 12)
     pdf.cell(100, 10, f"Customer/Org: {invoice.get('org_id', 'N/A')}", ln=False)
