@@ -2279,3 +2279,37 @@ Config:
 - `pre_push_check.py`: ALL PASS, READY TO PUSH.
 - UI: Settings menu opens/closes via pill, X, outside click, Escape. Login modal closes via X. Billing opens in new tab. Plan text shows "Pro · $49/mo · 20M tokens" after force-upgrade.
 - Console: No errors, no flicker, chat works, history loads.
+
+## Part 211 — Full Team Management (2026-10-19)
+
+### Backend
+- `src/sunnyware/team_store.py` — JSON-backed store: members + activity
+- `src/sunnyware/routes/team.py` — REST API: GET/POST/PATCH/DELETE members, GET/DELETE activity
+- Auth hooks in `routes/auth.py` and `routes/authkit.py` — track_login / track_logout
+
+### Frontend
+- `static/admin-v2.html` — `renderTeam()` rewritten with:
+  - Members table (name, email, role dropdown, status, last login/logout, delete)
+  - Add member form
+  - Role permissions reference
+  - Activity log table (with colored badges)
+  - Clear activity log button
+
+### API Endpoints
+- `GET    /api/team/members`
+- `POST   /api/team/members`
+- `PATCH  /api/team/members/{id}`
+- `DELETE /api/team/members/{id}`
+- `GET    /api/team/activity?limit=200&user=&action=`
+- `DELETE /api/team/activity`
+- `POST   /api/auth/logout` (new — triggers track_logout)
+
+### Data Files
+- `/data/team_members.json`
+- `/data/team_activity.json`
+
+### Verified
+- Add, list, role change, delete all work ✅
+- Activity log shows member_added, member_deleted, login, logout ✅
+- Plan display fix confirmed in production ✅
+- Orgs remain healthy (no regression) ✅
