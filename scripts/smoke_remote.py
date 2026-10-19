@@ -73,6 +73,10 @@ endpoints = [
 ]
 for path, key in endpoints:
     status, body = http(path)
+    # Part 222b: accept both 200 (2FA off) and 428 (2FA on, gate enforces correctly)
+    if status == 428:
+        pass_(f"GET {path} -> 428 (2FA gate active)")
+        continue
     if status != 200:
         fail(f"GET {path} -> {status}"); continue
     if key is None:
