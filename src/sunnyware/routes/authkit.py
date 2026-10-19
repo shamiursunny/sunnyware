@@ -58,9 +58,17 @@ async def auth_callback(code: str = ""):
     if not org:
         org = s.create_org(name=email.split("@")[0], plan="free", owner_email=email)
 
-    # 2. Issue our JWT (uses existing Part 196 _generate_jwt)
+    # 2. Part 222: if 2FA is enabled, don't issue a full JWT yet.
     from .auth import _generate_jwt
-    token = _generate_jwt(email)
+    from .. import twofa_store as _tfs
 
-    # 3. Redirect back to UI with token
+    if _tfs.is_enabled(email):
+        pending_token = _generate_jwt(email)
+        return RedirectResponse(
+            url=f"/ui?2fa=required&pending={pending_token}",
+            status_code=302,
+        )
+
+    # 3. Normal flow — issue full JWT
+    token = _generate_jwt(email)
     return RedirectResponse(url=f"/ui?token={token}", status_code=302)

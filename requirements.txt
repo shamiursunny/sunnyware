@@ -36,3 +36,7 @@ solvency2-data>=0.5
 
 tiktoken>=0.7.0
 fpdf2>=2.7.9
+
+pyotp>=2.9.0
+qrcode>=7.4.2
+pillow>=10.0.0

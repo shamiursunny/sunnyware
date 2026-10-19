@@ -333,3 +333,43 @@ def extract_key_from_headers(headers: list) -> Optional[str]:
                 return val[7:].strip()
             return val
     return None
+
+def twofa_required_for(key: str) -> bool:
+    """Part 222: returns True if the given key belongs to a user with 2FA enabled."""
+    try:
+        from . import twofa_store as _tfs
+        if key == "master-admin-key":
+            return _tfs.is_enabled("admin")
+        import base64 as _b64
+        import json as _json
+        if key and "." in key and len(key) > 20:
+            b64 = key.split(".")[0]
+            padded = b64 + "=" * (-len(b64) % 4)
+            payload = _json.loads(_b64.urlsafe_b64decode(padded))
+            u = (payload.get("sub") or payload.get("email") or "").lower()
+            if u:
+                return _tfs.is_enabled(u)
+    except Exception:
+        pass
+    return False
+
+
+def twofa_session_valid(key: str, session_token: str) -> bool:
+    """Part 222: verify the X-2FA-Session header against the user behind `key`."""
+    try:
+        from . import twofa_store as _tfs
+        user = "admin" if key == "master-admin-key" else ""
+        if not user:
+            import base64 as _b64
+            import json as _json
+            if key and "." in key and len(key) > 20:
+                b64 = key.split(".")[0]
+                padded = b64 + "=" * (-len(b64) % 4)
+                payload = _json.loads(_b64.urlsafe_b64decode(padded))
+                user = (payload.get("sub") or payload.get("email") or "").lower()
+        if not user:
+            return False
+        return _tfs.verify_session(user, session_token)
+    except Exception:
+        return False
+
