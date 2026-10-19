@@ -3837,6 +3837,8 @@ let _pending2FAUser = '';
 
 function show2FAChallenge(user) {
   _pending2FAUser = user;
+  const loginSection = document.getElementById('login-section');
+  if (loginSection) loginSection.style.display = 'none';
   const modal = document.getElementById('2fa-challenge-modal');
   const err = document.getElementById('2fa-error');
   const inp = document.getElementById('2fa-code-input');
@@ -3864,11 +3866,15 @@ async function submit2FAChallenge() {
     return;
   }
   try {
+    const apiKeyForChallenge = localStorage.getItem('sunnyware_admin_key') || API_KEY || '';
     const res = await fetch('/api/2fa/verify-login', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': apiKeyForChallenge,
+      },
       body: JSON.stringify({
-        user: _pending2FAUser,
+        user: _pending2FAUser || 'admin',
         code,
         trust_device: trust,
         device_name: navigator.userAgent.slice(0, 80),
