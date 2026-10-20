@@ -1477,3 +1477,8 @@ cd /h/sunnyware
 5. **Prints DEPLOYMENT SUCCESSFUL** only if everything passes
 
 **Never push manually** - always use safe_deploy.sh.
+
+
+## Environment Variables
+
+- `SUNNYWARE_JWT_SECRET` — required in production; generate with `openssl rand -base64 48` and set in HF Space settings.

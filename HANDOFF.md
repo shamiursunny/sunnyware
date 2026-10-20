@@ -2423,3 +2423,11 @@ Config:
   - Background async worker processes retries at 1m, 5m, 30m, 2h.
   - Admin UI shows a "Pending Retries" table.
 - Deployment SHA: 1a2f8cd
+
+## Part 227 — Critical Security Fixes (2026-10-20) COMPLETED
+- `auth.py`: Hardcoded JWT secret replaced with env var `SUNNYWARE_JWT_SECRET` + secure random fallback.
+- `saas.py`: `cancel_subscription` now verifies JWT signature via `verify_jwt()` instead of manual decode.
+- `saas.py`: Replaced hardcoded `master-admin-key` checks in `force-upgrade` and `paddle-live` with `_admin(req)`.
+- `saas_store.py`: Invoice `amount_cents` now uses `round()` to prevent floating-point drift.
+- Deployment SHA: 634fd33
+- **Action required**: Set `SUNNYWARE_JWT_SECRET` in HF Space settings (DONE).

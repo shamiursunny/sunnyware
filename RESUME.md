@@ -38,7 +38,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 ## Current state (last session: 2026-10-20, Part 224)
 
-**Completed:** Parts 206 – 226 (all features below are live and verified).
+**Completed:** Parts 206 – 227 (all features below are live and verified).
 
 ### Auth & Security
 - **Sandboxed Python Execution** (multiprocessing timeouts, secure imports)
