@@ -72,6 +72,7 @@ endpoints = [
     ("/api/2fa/status", "enabled"),
     ("/api/backup/list", "files"),
     ("/api/impersonate/verify", "valid"),
+    ("/api/feature-flags", "flags"),
 ]
 for path, key in endpoints:
     status, body = http(path)
@@ -104,6 +105,7 @@ for marker, desc in [
     ("async function renderSecurity", "renderSecurity defined"),
     ("async function renderBackup", "renderBackup defined"),
     ("async function renderImpersonate", "renderImpersonate defined"),
+    ("async function renderFeatureFlags", "renderFeatureFlags defined"),
     ("async function downloadInvoicePdf", "downloadInvoicePdf defined"),
     ("async function saveOrch", "saveOrch defined"),
     ('data-tab="email"', "Email nav item"),

@@ -43,6 +43,8 @@ py_files = [
     "src/sunnyware/routes/backup.py",
     "src/sunnyware/impersonation_store.py",
     "src/sunnyware/routes/impersonation.py",
+    "src/sunnyware/feature_flags_store.py",
+    "src/sunnyware/routes/feature_flags.py",
     "src/sunnyware/routes/scheduled_tasks.py",
     "src/sunnyware/routes/webhooks.py",
     "src/sunnyware/routes/agent.py",
@@ -70,7 +72,8 @@ for imp in ["analytics as analytics_routes", "llm_dashboard as llm_dashboard_rou
             "rag_admin as rag_admin_routes",
             "twofa as twofa_routes",
             "backup as backup_routes",
-            "impersonation as impersonation_routes"]:
+            "impersonation as impersonation_routes",
+            "feature_flags as feature_flags_routes"]:
     (pass_ if imp in main else fail)(f"import: {imp}")
 for inc in ["analytics_routes.router", "llm_dashboard_routes.router",
             "team_routes.router", "email_routes.router",
@@ -79,7 +82,8 @@ for inc in ["analytics_routes.router", "llm_dashboard_routes.router",
             "rag_admin_routes.router",
             "twofa_routes.router",
             "backup_routes.router",
-            "impersonation_routes.router"]:
+            "impersonation_routes.router",
+            "feature_flags_routes.router"]:
     (pass_ if f"include_router({inc})" in main else fail)(f"include_router({inc})")
 
 # 3. JS syntax
@@ -118,6 +122,7 @@ checks = [
     ("admin-v2.html has renderSecurity", "async function renderSecurity" in admin),
     ("admin-v2.html has renderBackup", "async function renderBackup" in admin),
     ("admin-v2.html has renderImpersonate", "async function renderImpersonate" in admin),
+    ("admin-v2.html has renderFeatureFlags", "async function renderFeatureFlags" in admin),
     ("admin-v2.html has renderWebhooks", "async function renderWebhooks" in admin),
     ("admin-v2.html has downloadInvoicePdf", "async function downloadInvoicePdf" in admin),
     ("admin-v2.html has saveOrch", "async function saveOrch" in admin),

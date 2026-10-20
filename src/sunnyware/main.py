@@ -40,6 +40,7 @@ from .routes import rag_admin as rag_admin_routes
 from .routes import twofa as twofa_routes
 from .routes import backup as backup_routes
 from .routes import impersonation as impersonation_routes
+from .routes import feature_flags as feature_flags_routes
 from .routes import analytics as analytics_routes
 from .routes import llm_dashboard as llm_dashboard_routes
 from .routes import agent as agent_routes
@@ -153,6 +154,7 @@ app.include_router(rag_admin_routes.router)
 app.include_router(twofa_routes.router)
 app.include_router(backup_routes.router)
 app.include_router(impersonation_routes.router)
+app.include_router(feature_flags_routes.router)
 app.include_router(analytics_routes.router)
 app.include_router(llm_dashboard_routes.router)
 app.include_router(agent_routes.router)

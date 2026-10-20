@@ -169,6 +169,7 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
     <div class="nav-item" data-tab="settings">Settings</div>
     <div class="nav-item" data-tab="backup">Backup &amp; Restore</div>
     <div class="nav-item" data-tab="impersonate">Impersonate</div>
+    <div class="nav-item" data-tab="feature-flags">Feature Flags</div>
   </div>
 </div>
 
@@ -4161,6 +4162,143 @@ async function startImpersonation() {
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       el.classList.add('active');
       renderImpersonate();
+    };
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
+  else hook();
+})();
+
+
+
+// Part 224b: FEATURE FLAGS admin page
+async function renderFeatureFlags() {
+  const data = await api('/api/feature-flags').catch(() => ({ flags: [] }));
+  const flags = data.flags || [];
+
+  $('content').innerHTML = `
+    <h2>Feature Flags</h2>
+    <p style="color:var(--muted);margin-bottom:16px;">Control feature rollout by plan, org, percentage, or explicit override.</p>
+
+    <div class="card" style="margin-bottom:20px;">
+      <h3 style="margin-top:0;color:var(--accent);">Create New Flag</h3>
+      <div class="form-row">
+        <div><label>Flag ID</label><input id="ff-id" placeholder="new_feature_x"></div>
+        <div><label>Name</label><input id="ff-name" placeholder="New Feature X"></div>
+        <div><label>Description</label><input id="ff-desc" placeholder="What it does..."></div>
+        <button onclick="createFeatureFlag()">Create Flag</button>
+      </div>
+    </div>
+
+    <h3>Flags (${flags.length})</h3>
+    ${flags.length === 0 ? '<p style="color:var(--muted)">No flags yet.</p>' : `
+    <table>
+      <thead><tr><th>Flag</th><th>Description</th><th>Global %</th><th>Plans</th><th>Orgs</th><th></th></tr></thead>
+      <tbody>
+        ${flags.map(f => `
+          <tr>
+            <td><strong>${esc(f.id)}</strong><br><span style="font-size:10px;color:var(--muted);">${esc(f.name)}</span></td>
+            <td style="font-size:11px;max-width:250px;">${esc(f.description || '—')}</td>
+            <td>
+              <input type="number" value="${f.global_pct || 0}" min="0" max="100" style="width:60px;padding:4px;font-size:12px;" onblur="updateFlagField('${esc(f.id)}', 'global_pct', parseInt(this.value)||0)">
+            </td>
+            <td style="font-size:11px;">${(f.enabled_plans || []).join(', ') || '—'}</td>
+            <td style="font-size:11px;">${(f.enabled_orgs || []).length} orgs</td>
+            <td>
+              <button class="ghost small" onclick="editFlagPlans('${esc(f.id)}', '${esc(f.enabled_plans || [])}')">Plans</button>
+              <button class="danger small" onclick="deleteFeatureFlag('${esc(f.id)}')">Delete</button>
+            </td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+
+    <div class="card" style="margin-top:20px;">
+      <h3 style="margin-top:0;color:var(--accent);">Check Flag for User</h3>
+      <p style="color:var(--muted);font-size:12px;">Simulate evaluation for a specific user.</p>
+      <div class="form-row">
+        <div><label>User Email</label><input id="ff-check-user" placeholder="user@example.com"></div>
+        <button onclick="evaluateFlagsForUser()">Evaluate All Flags</button>
+      </div>
+      <div id="ff-eval-result" style="margin-top:16px;"></div>
+    </div>
+  `;
+}
+
+async function createFeatureFlag() {
+  const id = document.getElementById('ff-id').value.trim();
+  const name = document.getElementById('ff-name').value.trim();
+  const desc = document.getElementById('ff-desc').value.trim();
+  if (!id) return toast('Flag ID required', 'error');
+  try {
+    const res = await api('/api/feature-flags', 'POST', { id, name, description: desc });
+    if (res.ok) {
+      toast('Flag created');
+      renderFeatureFlags();
+    } else {
+      toast('Error: ' + (res.error || 'unknown'), 'error');
+    }
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function updateFlagField(flagId, field, value) {
+  try {
+    await api('/api/feature-flags/' + encodeURIComponent(flagId), 'PATCH', { [field]: value });
+    toast('Flag updated');
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function editFlagPlans(flagId, current) {
+  const str = prompt('Enter plans (comma-separated, e.g. pro,enterprise):', current.replace(/,/g, ','));
+  if (str === null) return;
+  const plans = str.split(',').map(s => s.trim()).filter(Boolean);
+  try {
+    await api('/api/feature-flags/' + encodeURIComponent(flagId), 'PATCH', { enabled_plans: plans });
+    toast('Plans updated');
+    renderFeatureFlags();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function deleteFeatureFlag(flagId) {
+  if (!confirm('Delete flag "' + flagId + '"?')) return;
+  try {
+    await api('/api/feature-flags/' + encodeURIComponent(flagId), 'DELETE');
+    toast('Flag deleted');
+    renderFeatureFlags();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function evaluateFlagsForUser() {
+  const user = document.getElementById('ff-check-user').value.trim().toLowerCase();
+  const result = document.getElementById('ff-eval-result');
+  if (!user) return toast('Enter a user email', 'error');
+  // Fetch directly from endpoint — needs API key
+  result.innerHTML = '<p style="color:var(--muted)">Loading...</p>';
+  try {
+    const res = await api('/api/feature-flags/evaluate');
+    const flags = res.flags || {};
+    result.innerHTML = `
+      <table style="font-size:12px;">
+        <thead><tr><th>Flag</th><th>Enabled</th></tr></thead>
+        <tbody>
+          ${Object.entries(flags).map(([k, v]) => `
+            <tr><td>${esc(k)}</td><td>${v ? '<span class="tag ok">ON</span>' : '<span class="tag bad">OFF</span>'}</td></tr>
+          `).join('')}
+        </tbody>
+      </table>
+      <p style="color:var(--muted);font-size:11px;margin-top:8px;">Note: evaluates for the current logged-in user, not the typed email. Admin user has all flags off by default.</p>
+    `;
+  } catch(e) { result.innerHTML = '<p style="color:var(--danger)">Error: ' + esc(e.message) + '</p>'; }
+}
+
+// Hook Feature Flags nav
+(function () {
+  const hook = () => {
+    const el = document.querySelector('.nav-item[data-tab="feature-flags"]');
+    if (el) el.onclick = () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      el.classList.add('active');
+      renderFeatureFlags();
     };
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
