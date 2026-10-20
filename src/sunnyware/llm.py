@@ -14,6 +14,7 @@ If LLM_PROVIDERS is unset, chat() uses the legacy single-provider config
 
 import asyncio
 import json
+import contextvars
 import os
 import re
 import time
@@ -571,12 +572,12 @@ async def chat(
     }
 
 
-_LAST_STREAM_PROVIDER = None
+_LAST_STREAM_PROVIDER_CTX = contextvars.ContextVar("_LAST_STREAM_PROVIDER", default=None)
 
 
 def get_last_stream_provider():
     """Return the provider name that served the most recent stream."""
-    return _LAST_STREAM_PROVIDER
+    return _LAST_STREAM_PROVIDER_CTX.get()
 
 
 async def stream_chat(
@@ -635,7 +636,7 @@ async def stream_chat(
                             p.mark_cooldown(60.0)
                         p.record_failure(last_err)
                         continue
-                    _LAST_STREAM_PROVIDER = p.name
+                    _LAST_STREAM_PROVIDER_CTX.set(p.name)
                     p.record_success()
                     async for raw_line in r.aiter_lines():
                         if not raw_line:

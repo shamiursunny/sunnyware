@@ -238,16 +238,13 @@ def _make_import():
 
         # Permanent ban — even library internals can't reach these
         base = (name or "").split(".")[0]
-        if base in ALWAYS_BANNED:
+        if is_user_code and base in ALWAYS_BANNED:
             raise ImportError("module '" + name + "' is permanently banned")
 
         # Detect caller type via __name__ in caller's globals dict.
         # Only block when we can POSITIVELY identify user-exec context.
         # Unknown/None globals (C extensions) are trusted.
-        caller = ""
-        if isinstance(globals, dict):
-            caller = globals.get("__name__", "") or ""
-        is_user_code = caller in ("__main__", "<data_eval>", "__data_eval__")
+        is_user_code = (globals is not None and globals.get("__sandbox__") is True)
 
         # User code path — apply whitelist
         if is_user_code:
@@ -310,7 +307,7 @@ def build_globals() -> dict:
     """Build the exec() namespace with preloaded popular libraries."""
     sb = safe_builtins()
     sb["__import__"] = _make_import()
-    g = {"__builtins__": sb}
+    g = {"__builtins__": sb, "__sandbox__": True}
 
     loaders = [
         ("np",            "numpy"),

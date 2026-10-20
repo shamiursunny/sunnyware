@@ -99,6 +99,18 @@ async def test_endpoint(eid: str, req: Request):
     return {"ok": True, "fired": fired, "note": "Check delivery log in a few seconds"}
 
 
+
+
+@router.get("/api/webhooks/retries")
+async def list_retries(req: Request):
+    d = _admin_only(req)
+    if d: return d
+    retries = _ws._load(_ws.RETRIES_FILE)
+    items = list(retries.values())
+    items.sort(key=lambda x: x.get("next_retry", 0))
+    return {"count": len(items), "retries": items}
+
+
 @router.get("/api/webhooks/deliveries")
 async def list_deliveries(req: Request, limit: int = 100):
     d = _admin_only(req)

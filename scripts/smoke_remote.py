@@ -63,6 +63,7 @@ endpoints = [
     ("/api/webhooks/endpoints", "endpoints"),
     ("/api/webhooks/deliveries", "deliveries"),
     ("/api/webhooks/events", "events"),
+    ("/api/webhooks/retries", "retries"),
     ("/api/chat-audit/stats", "total_messages"),
     ("/api/chat-audit/messages", "messages"),
     ("/api/scheduled-tasks", "tasks"),

@@ -3135,6 +3135,9 @@ async function renderWebhooks() {
   const events = eventsData.events || [];
   const deliveries = delivData.deliveries || [];
 
+  const retriesData = await api('/api/webhooks/retries').catch(() => ({ retries: [] }));
+  const retries = retriesData.retries || [];
+
   $('content').innerHTML = `
     <h2>Webhooks</h2>
     <p style="color:var(--muted);margin-bottom:16px;">Send HTTP POST payloads to Slack, Discord, or any URL when events happen.</p>
@@ -3180,7 +3183,24 @@ async function renderWebhooks() {
     `}
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:32px;">
-      <h3 style="margin:0;">Recent Deliveries (${deliveries.length})</h3>
+      <h3 style="margin:0;">Pending Retries (${retries.length})</h3>
+    ${retries.length === 0 ? '<p style="color:var(--muted)">No pending retries.</p>' : `
+    <table style="margin-bottom:20px;">
+      <thead><tr><th>Event</th><th>Endpoint</th><th>Attempt</th><th>Next Retry</th></tr></thead>
+      <tbody>
+        ${retries.map(r => `
+          <tr>
+            <td><span class="tag">${esc(r.event)}</span></td>
+            <td>${esc(r.endpoint.name)}</td>
+            <td>${r.attempt + 1} / 4</td>
+            <td>${new Date(r.next_retry * 1000).toLocaleTimeString()}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+
+    <h3 style="margin:0;margin-top:24px;">Recent Deliveries (${deliveries.length})</h3>
       <button class="ghost small" onclick="clearWebhookLogs()">Clear Log</button>
     </div>
     ${deliveries.length === 0 ? '<p style="color:var(--muted)">No deliveries yet.</p>' : `

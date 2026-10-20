@@ -17,9 +17,31 @@ adversarial sandbox.
 """
 
 import asyncio
+import multiprocessing as mp
 
 from . import _sandbox
 
+
+
+
+def _worker_proc(code, q):
+    try:
+        import sys
+        g = _sandbox.build_globals()
+        res = _sandbox.exec_code(code, g)
+        
+        # Add chart captures in the subprocess
+        chart = _sandbox.capture_chart(g.get("plt"))
+        if chart: res.update(chart)
+        try:
+            pl_cap = _sandbox.capture_plotly(g)
+            if pl_cap: res.update(pl_cap)
+        except Exception:
+            pass
+
+        q.put(res)
+    except Exception as e:
+        q.put({"ok": False, "error": str(e)})
 
 class PythonEvalTool:
     name = "python_eval"
@@ -72,29 +94,23 @@ class PythonEvalTool:
         except Exception:
             pass
 
-        g = _sandbox.build_globals()
         timeout = _sandbox.DEFAULT_TIMEOUT
-
+        ctx = mp.get_context("spawn")
+        q = ctx.Queue()
+        p = ctx.Process(target=_worker_proc, args=(code, q))
+        
+        p.start()
+        p.join(timeout)
+        
+        if p.is_alive():
+            p.terminate()
+            p.join()
+            return {"error": "execution timed out (" + str(timeout) + "s) and was killed"}
+            
         try:
-            result = await asyncio.wait_for(
-                asyncio.to_thread(_sandbox.exec_code, code, g),
-                timeout=timeout,
-            )
-        except asyncio.TimeoutError:
-            return {"error": "execution timed out (" + str(timeout) + "s)"}
-
-        # Capture any open matplotlib figure as base64 PNG
-        chart = _sandbox.capture_chart(g.get("plt"))
-        if chart:
-            result.update(chart)
-
-        # Part 123: also capture Plotly figures for interactive rendering
-        try:
-            pl_cap = _sandbox.capture_plotly(g)
-            if pl_cap:
-                result.update(pl_cap)
+            result = q.get_nowait()
         except Exception:
-            pass
+            return {"error": "process failed without output"}
 
         # Part 120: optional save-as-script (best-effort, never fatal)
         save_as = str(args.get("save_as", "")).strip()
