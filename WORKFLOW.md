@@ -1612,3 +1612,10 @@ cd /h/sunnyware
 - **XSS**: Markdown links in `chat.html` now block `javascript:` and `data:` URLs.
 - **Token Protection**: `MAX_ITERATIONS` reduced to 5 in `orchestrator.py`.
 - **Master Key**: Moved to `SUNNYWARE_MASTER_KEY` environment variable (defaults to `master-admin-key` if unset).
+
+
+## Storage Protection (Part 258/259)
+
+- Library uploads capped at 5MB per file.
+- Each user limited to 100 files total.
+- Master admin key can now be rotated via `SUNNYWARE_MASTER_KEY` environment variable.

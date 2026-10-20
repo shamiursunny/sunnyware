@@ -2540,3 +2540,9 @@ Config:
 - **orchestrator.py**: Reduced `MAX_ITERATIONS` from 10 to 5 to protect tokens.
 - **auth.py**: Moved hardcoded `master-admin-key` to `os.getenv("SUNNYWARE_MASTER_KEY")`.
 - Deployment SHA: 96412e4
+
+## Part 258 & 259 — Storage Protection & Key Rotation (2026-10-20) COMPLETED
+- **library.py**: Added 5MB file size limit and 100-file cap per user. Added UUID validation on delete.
+- **chat.html**: Added frontend check for 5MB limit.
+- **main.py, agent.py, analytics_hooks.py, auth.py**: Replaced hardcoded `master-admin-key` with `os.getenv("SUNNYWARE_MASTER_KEY")` in all files.
+- Deployment SHA: 8bd9039
