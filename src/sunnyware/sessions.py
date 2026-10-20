@@ -10,8 +10,20 @@ from . import tenant as tenant_ctx
 
 
 def _owner() -> str:
-    """Current tenant key. Empty string when auth is off (legacy shared)."""
-    return tenant_ctx.get_key()
+    """Current tenant key (stable per user). Empty string when auth is off."""
+    raw = tenant_ctx.get_key()
+    if not raw:
+        return ""
+    # If the key looks like a JWT, extract the email for a stable identifier
+    if "." in raw and len(raw) > 20:
+        try:
+            from .routes.auth import verify_jwt
+            email = verify_jwt(raw)
+            if email:
+                return f"user:{email}"
+        except Exception:
+            pass
+    return raw
 
 
 async def get_or_create(session_key: str, metadata: Optional[dict] = None) -> Optional[str]:
