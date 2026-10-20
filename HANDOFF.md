@@ -2474,3 +2474,10 @@ Config:
   - `PATCH /api/team/org-members/{email}/role`
 - All routes are now visible in `/docs` (OpenAPI spec).
 - Deployment SHA: 96b8245
+
+## Part 238 — Advanced Hardware Telemetry & Performance Profiling (2026-10-20) COMPLETED
+- **Backend**: Added `POST /api/telemetry/report` (public) to receive hardware profiles. Updated `analytics_store.py` with `update_hardware_profile()`.
+- **Frontend (Chat)**: Injects a script that collects CPU cores, GPU vendor/model (WebGL), RAM, network speed, screen resolution, OS, browser, and runs a synthetic benchmark.
+- **Frontend (Admin)**: Injected a "Device Hardware Profile" grid into the user details view, showing all specs + a color-coded Performance Score.
+- **Whitelist**: Added `/api/telemetry/report` to `_public_api` and `_2FA_WHITELIST`.
+- Deployment SHA: 0dd810f

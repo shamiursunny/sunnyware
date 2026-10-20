@@ -1533,3 +1533,11 @@ cd /h/sunnyware
   - `GET /api/team/org-members`
   - `DELETE /api/team/org-members/{email}`
   - `PATCH /api/team/org-members/{email}/role`
+
+
+## Hardware Telemetry
+
+- The chat UI silently collects hardware specs (CPU cores, GPU, RAM, network) and a synthetic benchmark score.
+- Data is sent to `POST /api/telemetry/report` and stored in `analytics_store`.
+- Visible in `/admin` → User Analytics → Details → Device Hardware Profile.
+- Use this to identify users with slow devices and optimize orchestration.
