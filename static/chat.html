@@ -2032,7 +2032,16 @@ function loadAll(){
 
   try{ chats=JSON.parse(localStorage.getItem(LS_CHATS))||[]; }catch(e){ chats=[]; }
 
-  try{ files=JSON.parse(localStorage.getItem(LS_FILES))||[]; }catch(e){ files=[]; }
+  // Load Library files from backend
+  fetch('/api/library/files').then(r=>r.json()).then(data=>{
+    if(data && data.files) {
+      files = data.files.map(f => ({
+        id: f.id, name: f.name, type: f.type, size: f.size, kind: f.kind,
+        date: f.created_at, mime: f.type, dataUrl: f.content, textContent: f.kind !== 'image' ? f.content : ''
+      }));
+      try { renderLibrary(); } catch(e) {}
+    }
+  }).catch(e=>console.error('Library load failed', e));
 
 
 
@@ -2506,9 +2515,7 @@ function msgEl(m){
             <button class="gen-img-btn" onclick="copyImageToClipboard(this.closest('.gen-img-container').querySelector('img').src)" title="Copy Image">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
             </button>
-            <button class="gen-img-btn" onclick="shareImage(this.closest('.gen-img-container').querySelector('img').src)" title="Share Link">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8m-4-6-4-4-4 4m4-4v13"/></svg>
-            </button>
+
           </div>
           <div style="margin-top:6px;font-size:11px;color:var(--text-tertiary);">${esc((img.prompt||'Generated image').slice(0,100))}</div>
         </div>`;
@@ -3155,17 +3162,14 @@ async function streamAI(chat, prompt) {
 
         if(exists) continue;
 
-        files.unshift({
-
+        const entry = {
           id: uid(), name: (img.prompt || 'image').slice(0, 40) + '.' + (img.format || 'jpeg'),
-
           type: 'image', kind: 'generated', size: Math.round((img.base64 || '').length * 0.75),
-
           date: new Date().toISOString(), url: img.url || '', dataUrl: url,
-
           mime: 'image/' + (img.format || 'jpeg')
-
-        });
+        };
+        files.unshift(entry);
+        fetch('/api/library/files', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...entry, content: url})});
 
       }
 
@@ -3245,7 +3249,10 @@ function addUploadedFiles(fileList){
 
     const entry={id:uid(), name:f.name, type:fileTypeOf(f.name), kind:'upload', size:f.size, date:new Date().toISOString(), mime:f.type||'application/octet-stream'};
 
-    const done=()=>{ files.unshift(entry); saveAll(); renderLibrary(); toast('Uploaded to Library'); };
+    const done=()=>{ 
+      files.unshift(entry); saveAll(); renderLibrary(); toast('Uploaded to Library'); 
+      fetch('/api/library/files', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...entry, content: entry.dataUrl || entry.textContent || ''})});
+    };
 
     if(f.size < 700*1024 && (entry.type==='image'||entry.type==='doc'||entry.type==='code')){
 
@@ -3323,10 +3330,11 @@ $('#deleteSelectedBtn').onclick=()=>{
 
   showConfirm(`Delete ${selected.size} file${selected.size>1?'s':''}?`,'Selected files will be permanently removed from your Library.','Delete',()=>{
 
+    selected.forEach(id => {
+      fetch('/api/library/files/' + id, {method:'DELETE'});
+    });
     files=files.filter(f=>!selected.has(f.id));
-
     chats.forEach(c=>c.messages.forEach(m=>{ if(m.genFileId&&selected.has(m.genFileId)) m.genFileDeleted=true; }));
-
     selected.clear(); saveAll(); renderLibrary(); renderMessages(); toast('Files deleted');
 
   });
