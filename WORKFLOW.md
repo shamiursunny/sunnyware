@@ -1482,3 +1482,9 @@ cd /h/sunnyware
 ## Environment Variables
 
 - `SUNNYWARE_JWT_SECRET` — required in production; generate with `openssl rand -base64 48` and set in HF Space settings.
+
+
+## Background Workers
+
+- Webhook Retry Engine (persistent retries with exponential backoff)
+- Scheduled Task Runner (polls every 60s, handles once/hourly/daily/weekly/monthly)

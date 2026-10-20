@@ -2431,3 +2431,10 @@ Config:
 - `saas_store.py`: Invoice `amount_cents` now uses `round()` to prevent floating-point drift.
 - Deployment SHA: 634fd33
 - **Action required**: Set `SUNNYWARE_JWT_SECRET` in HF Space settings (DONE).
+
+## Part 228 — Background Worker Audit & Fixes (2026-10-20) COMPLETED
+- `main.py`: Added `_start_scheduled_task_worker` async loop (runs every 60s).
+- `scheduled_tasks_store.py`: `_next_run_ts` now returns `None` for "once" schedule.
+- `scheduled_tasks_store.py`: Tasks auto-disable after a "once" run completes.
+- `routes/chat_audit.py`: Offloaded synchronous `log_message` to `asyncio.to_thread` to prevent blocking the event loop.
+- Deployment SHA: f808de2

@@ -38,7 +38,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 ## Current state (last session: 2026-10-20, Part 224)
 
-**Completed:** Parts 206 – 227 (all features below are live and verified).
+**Completed:** Parts 206 – 228 (all features below are live and verified).
 
 ### Auth & Security
 - **Sandboxed Python Execution** (multiprocessing timeouts, secure imports)
@@ -52,6 +52,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - Usage overage billing: $ per 1M overage tokens, plan-based caps, charge log
 
 ### Admin Dashboard (23 pages)
+- Automated **Scheduled Tasks** worker (runs every 60s)
 - Dashboard, Organizations, Users, Plans, Invoices, Accounting, Team
 - LLM Dashboard (kill switch, routing, model overrides, live logs)
 - User Analytics (tokens, cost, IPs, devices, online status, inline SVG charts)
@@ -65,6 +66,10 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 ### DevOps
 - ./safe_deploy.sh — one command: local smoke test (59 checks), git push to both remotes, poll HF until rebuilt, remote smoke test (31 endpoints + 20 HTML markers).
 - Never push broken code — the smoke test aborts on any failure.
+
+### Background Workers
+- Webhook Retry Engine (1m/5m/30m/2h backoff)
+- Scheduled Task Runner (60s polling loop)
 
 ### Webhook Reliability
 - Failed webhooks are persisted to a retry queue.
