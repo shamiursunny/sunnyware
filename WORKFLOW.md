@@ -1598,3 +1598,10 @@ cd /h/sunnyware
 
 - Generated images now have a hover overlay with Fullscreen, Copy, and Share buttons.
 - The frontend strips markdown image tags from the LLM's text to prevent duplicate rendering.
+
+
+## Cross-Device Library Sync
+
+- The Library now syncs across devices using the `library_files` table in Neon DB.
+- `routes/library.py` provides GET, POST, and DELETE endpoints for files.
+- The frontend now calls these APIs instead of relying on `localStorage`.

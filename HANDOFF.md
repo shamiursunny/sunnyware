@@ -2529,3 +2529,8 @@ Config:
 - **chat.html**: Fixed duplicate image rendering by stripping markdown image tags from LLM text.
 - **chat.html**: Added hover overlay with Fullscreen, Copy, and Share buttons for generated images.
 - Deployment SHA: 84adb25
+
+## Part 256 — Cross-Device Library Sync (2026-10-20) COMPLETED
+- **routes/library.py**: Created new API endpoints for listing, saving, and deleting library files. Uses a new `library_files` table in Neon DB.
+- **chat.html**: Removed the broken Share button, and replaced `localStorage` logic with API calls to sync uploads and generated images across devices.
+- Deployment SHA: 1dd6d6d
