@@ -132,3 +132,82 @@ async def accept_invite(token: str):
     # Redirect to UI with token
     from fastapi.responses import RedirectResponse
     return RedirectResponse(url=f"/admin?invite_token={jwt_token}&email={invite['email']}")
+
+
+# ── Part 237: Explicit Invite Endpoints (completing the API surface) ──
+
+@router.post("/api/team/invite")
+async def create_invite(req: Request):
+    """Send a magic link invite to an email without adding them as a member immediately."""
+    d = _admin_only(req)
+    if d: return d
+    try:
+        body = await req.json()
+        email = (body.get("email") or "").strip().lower()
+        role = (body.get("role") or "Viewer").strip()
+        name = (body.get("name") or "").strip()
+    except Exception:
+        return JSONResponse({"error": "invalid_json"}, status_code=400)
+
+    if not email or "@" not in email:
+        return JSONResponse({"error": "Valid email required"}, status_code=400)
+
+    from .. import invite_store as _inv
+    invite = _inv.create_invite(email, role)
+    base_url = "https://shamiur-sunnyware.hf.space"
+    accept_url = f"{base_url}/invite?token={invite['token']}"
+
+    return {"ok": True, "accept_url": accept_url, "invite": invite}
+
+
+@router.get("/api/team/invites")
+async def list_invites(req: Request):
+    """List all pending invites."""
+    d = _admin_only(req)
+    if d: return d
+    from .. import invite_store as _inv
+    # Reuse the existing store
+    invites = _inv._load()
+    return {"count": len(invites), "invites": list(invites.values())}
+
+
+@router.get("/api/team/org-members")
+async def list_org_members(req: Request, org_id: str = ""):
+    """List members filtered by org_id (or all if empty)."""
+    d = _admin_only(req)
+    if d: return d
+    members = _team.list_members()
+    if org_id:
+        members = [m for m in members if m.get("org_id") == org_id]
+    return {"count": len(members), "members": members}
+
+
+@router.delete("/api/team/org-members/{email}")
+async def remove_org_member_by_email(email: str, req: Request):
+    """Remove a member by email address."""
+    d = _admin_only(req)
+    if d: return d
+    member = _team.get_member_by_email(email)
+    if not member:
+        return JSONResponse({"error": "Member not found"}, status_code=404)
+    ok = _team.delete_member(member["id"])
+    return {"ok": ok}
+
+
+@router.patch("/api/team/org-members/{email}/role")
+async def update_org_member_role_by_email(email: str, req: Request):
+    """Update a member's role using their email address."""
+    d = _admin_only(req)
+    if d: return d
+    try:
+        body = await req.json()
+        role = (body.get("role") or "Viewer").strip()
+    except Exception:
+        return JSONResponse({"error": "invalid_json"}, status_code=400)
+        
+    member = _team.get_member_by_email(email)
+    if not member:
+        return JSONResponse({"error": "Member not found"}, status_code=404)
+        
+    updated = _team.update_member(member["id"], {"role": role})
+    return {"ok": True, "member": updated}
