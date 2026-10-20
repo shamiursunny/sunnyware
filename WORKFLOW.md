@@ -1541,3 +1541,9 @@ cd /h/sunnyware
 - Data is sent to `POST /api/telemetry/report` and stored in `analytics_store`.
 - Visible in `/admin` → User Analytics → Details → Device Hardware Profile.
 - Use this to identify users with slow devices and optimize orchestration.
+
+
+## Planner & RAG Reliability
+
+- **Planner**: Each sub-task has a 60s timeout. Synthesis prompt is truncated to 2000 chars per sub-task to avoid context overflow. `/api/agent/plan` has a 180s outer timeout. Exceptions in `asyncio.gather` are now caught per-task, so one failed sub-task won't crash the whole plan.
+- **RAG**: All document/chunk operations run via `asyncio.to_thread` so the event loop is never blocked.

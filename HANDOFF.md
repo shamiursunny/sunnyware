@@ -2481,3 +2481,9 @@ Config:
 - **Frontend (Admin)**: Injected a "Device Hardware Profile" grid into the user details view, showing all specs + a color-coded Performance Score.
 - **Whitelist**: Added `/api/telemetry/report` to `_public_api` and `_2FA_WHITELIST`.
 - Deployment SHA: 0dd810f
+
+## Part 239 — Planner & RAG Reliability Audit (2026-10-20) COMPLETED
+- **planner.py**: Deduped subtasks, added per-subtask 60s timeout, made `asyncio.gather` exception-safe, truncated answers to 2000 chars before synthesis.
+- **routes/rag_admin.py**: Offloaded all file I/O to `asyncio.to_thread` (7 calls) so uploads no longer freeze the server.
+- **routes/agent.py**: Added 180s outer timeout to `/api/agent/plan`.
+- Deployment SHA: f6d305e
