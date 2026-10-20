@@ -841,6 +841,15 @@ input,textarea{font-family:inherit}
 
 </style>
 
+
+<style>
+  .gen-img-container:hover .gen-img-actions { opacity: 1 !important; }
+  .gen-img-btn { background: rgba(0,0,0,0.6); border: none; border-radius: 4px; padding: 6px; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+  .gen-img-btn:hover { background: rgba(0,0,0,0.8); }
+  #fullscreen-img-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; }
+  #fullscreen-img-modal img { max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 4px; }
+  #fullscreen-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 30px; cursor: pointer; }
+</style>
 </head>
 
 <body>
@@ -2484,13 +2493,25 @@ function msgEl(m){
 
       <div class="msg-role">${isAI?esc($('#modelName').textContent):'You'}${editedTag}</div>
 
-      <div class="msg-bubble"><div class="msg-text">${mdLite(m.text)}${(m.toolImages||[]).map(img=>{
+      <div class="msg-bubble"><div class="msg-text">${mdLite((m.text||'').replace(/!\[.*?\]\(.*?\)/g, '').trim())}${(m.toolImages||[]).map(img=>{
 
         let src = (img.base64 && img.base64.length > 100) ? 'data:image/'+img.format+';base64,'+img.base64 : (img.url || '');
-
         if(!src) return '';
-
-        return '<div style="margin:12px 0;"><img src="'+src+'" alt="'+(img.prompt||'image')+'" style="max-width:100%;border-radius:8px;border:1px solid var(--border);" onerror="this.style.display=\'none\'" /><div style="margin-top:6px;font-size:11px;color:var(--text-tertiary);">'+esc((img.prompt||'Generated image').slice(0,100))+'</div></div>';
+        return `<div class="gen-img-container" style="position:relative; display:inline-block; margin:12px 0; max-width:100%;">
+          <img src="${src}" alt="${img.prompt||'image'}" style="max-width:100%;border-radius:8px;border:1px solid var(--border);" onerror="this.style.display='none'" />
+          <div class="gen-img-actions" style="position:absolute; top:8px; right:8px; display:flex; gap:6px; opacity:0; transition:opacity 0.2s;">
+            <button class="gen-img-btn" onclick="openFullscreenImage(this.closest('.gen-img-container').querySelector('img').src)" title="Fullscreen">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+            </button>
+            <button class="gen-img-btn" onclick="copyImageToClipboard(this.closest('.gen-img-container').querySelector('img').src)" title="Copy Image">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </button>
+            <button class="gen-img-btn" onclick="shareImage(this.closest('.gen-img-container').querySelector('img').src)" title="Share Link">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8m-4-6-4-4-4 4m4-4v13"/></svg>
+            </button>
+          </div>
+          <div style="margin-top:6px;font-size:11px;color:var(--text-tertiary);">${esc((img.prompt||'Generated image').slice(0,100))}</div>
+        </div>`;
 
       }).join('')}</div>${attachChipsEl(m.attachments)}${art}</div>
 
@@ -4453,6 +4474,51 @@ async function collectAndSendTelemetry() {
 setTimeout(collectAndSendTelemetry, 2000);
 
 
+</script>
+
+<script>
+// Part 255: Image Action Helpers
+function openFullscreenImage(src) {
+  let modal = document.getElementById('fullscreen-img-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'fullscreen-img-modal';
+    modal.innerHTML = '<button id="fullscreen-close" onclick="closeFullscreenImage()">&times;</button><img id="fullscreen-img" src="" />';
+    document.body.appendChild(modal);
+  }
+  document.getElementById('fullscreen-img').src = src;
+  modal.style.display = 'flex';
+}
+function closeFullscreenImage() {
+  const modal = document.getElementById('fullscreen-img-modal');
+  if (modal) modal.style.display = 'none';
+}
+
+async function copyImageToClipboard(src) {
+  try {
+    const response = await fetch(src);
+    const blob = await response.blob();
+    await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
+    if (typeof toast === 'function') toast('Image copied to clipboard!');
+  } catch (err) {
+    console.error('Failed to copy image: ', err);
+    navigator.clipboard.writeText(src);
+    if (typeof toast === 'function') toast('Image URL copied to clipboard!');
+  }
+}
+
+async function shareImage(src) {
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'Generated Image', url: src });
+    } catch (err) {
+      console.error('Error sharing:', err);
+    }
+  } else {
+    navigator.clipboard.writeText(src);
+    if (typeof toast === 'function') toast('Share link copied to clipboard!');
+  }
+}
 </script>
 </body>
 
