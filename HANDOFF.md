@@ -2412,3 +2412,14 @@ Config:
 - Store: `feedback_store.py` (rating 1-5, comment, page, user, timestamp)
 - Verified: curl test returned `{"ok": true, "id": "fb_..."}`, admin UI shows the entry
 - Deployment SHA: 63397fd
+
+## Part 226 — Audit Fixes & Webhook Retry Engine (2026-10-20) COMPLETED
+- **Audit Fixes**:
+  - `llm.py`: Replaced race-prone global `_LAST_STREAM_PROVIDER` with `contextvars`.
+  - `_sandbox.py`: Fixed `ImportError` for libraries needing `os`, secured spoofable `__name__` check with `__sandbox__` marker.
+  - `python_eval.py`: Switched from `asyncio.to_thread` (leaked hung threads) to `multiprocessing` with safe `.terminate()` on timeout.
+- **Feature**: Persistent Webhook Retry Engine.
+  - Failed deliveries are saved to `webhook_retries.json`.
+  - Background async worker processes retries at 1m, 5m, 30m, 2h.
+  - Admin UI shows a "Pending Retries" table.
+- Deployment SHA: 1a2f8cd

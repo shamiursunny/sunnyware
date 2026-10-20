@@ -38,9 +38,10 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 ## Current state (last session: 2026-10-20, Part 224)
 
-**Completed:** Parts 206 – 225 (all features below are live and verified).
+**Completed:** Parts 206 – 226 (all features below are live and verified).
 
 ### Auth & Security
+- **Sandboxed Python Execution** (multiprocessing timeouts, secure imports)
 - WorkOS SSO (Google login) + JWT
 - TOTP 2FA with QR code setup, 10 backup codes, trusted devices (30-day skip)
 - Backend enforcement: all admin endpoints return HTTP 428 without a valid X-2FA-Session header
@@ -55,7 +56,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - LLM Dashboard (kill switch, routing, model overrides, live logs)
 - User Analytics (tokens, cost, IPs, devices, online status, inline SVG charts)
 - Email (Resend), API Keys, Webhooks, Chat Audit, Scheduled Tasks
-- RAG Management, Security (2FA), Backup & Restore
+- RAG Management, Security (2FA), Backup & Restore, **Webhooks (with Retries)**
 - Impersonate User, Feature Flags, Overage Billing, Slack Bot, **Feedback**, Settings
 
 ### Integrations
@@ -64,6 +65,10 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 ### DevOps
 - ./safe_deploy.sh — one command: local smoke test (59 checks), git push to both remotes, poll HF until rebuilt, remote smoke test (31 endpoints + 20 HTML markers).
 - Never push broken code — the smoke test aborts on any failure.
+
+### Webhook Reliability
+- Failed webhooks are persisted to a retry queue.
+- Background worker retries at 1m, 5m, 30m, 2h before giving up.
 
 ### Live URLs
 - WebUI: https://shamiur-sunnyware.hf.space/ui
