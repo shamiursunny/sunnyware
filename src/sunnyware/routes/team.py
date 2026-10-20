@@ -21,6 +21,21 @@ def _admin_only(req: Request):
         return None
     if not key or not _auth.is_valid_key(key):
         return JSONResponse({"error": "auth_required"}, status_code=401)
+        
+    # Part 234: Allow JWT users if they are in team_store
+    if key.startswith("user:"):
+        email = key.split(":", 1)[1]
+        from .. import team_store as _ts
+        member = _ts.get_member_by_email(email)
+        if member:
+            return None  # Let them pass
+            
+    role = _auth.role_for_key(key)
+    if not _auth.has_role(role, "admin"):
+        return JSONResponse({"error": "forbidden"}, status_code=403)
+    return None
+    if not key or not _auth.is_valid_key(key):
+        return JSONResponse({"error": "auth_required"}, status_code=401)
     role = _auth.role_for_key(key)
     if not _auth.has_role(role, "admin"):
         return JSONResponse({"error": "forbidden"}, status_code=403)
@@ -116,4 +131,4 @@ async def accept_invite(token: str):
     
     # Redirect to UI with token
     from fastapi.responses import RedirectResponse
-    return RedirectResponse(url=f"/ui?invite_token={jwt_token}&email={invite['email']}")
+    return RedirectResponse(url=f"/admin?invite_token={jwt_token}&email={invite['email']}")

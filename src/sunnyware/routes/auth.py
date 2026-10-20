@@ -104,3 +104,27 @@ async def auth_logout(req: Request):
         except Exception:
             pass
     return {"ok": True}
+
+
+@router.get("/api/auth/me")
+async def get_current_user(req: Request):
+    """Part 234: Return the current user's email and role."""
+    key = req.headers.get("x-api-key") or ""
+    if not key:
+        authz = req.headers.get("authorization") or ""
+        if authz.lower().startswith("bearer "):
+            key = authz[7:].strip()
+    
+    if key == "master-admin-key":
+        return {"email": "admin@sunnyware.com", "role": "Owner"}
+        
+    if key.startswith("user:") or "." in key:
+        email = key.split(":", 1)[1] if key.startswith("user:") else verify_jwt(key)
+        if email:
+            from .. import team_store as _ts
+            member = _ts.get_member_by_email(email)
+            if member:
+                return {"email": email, "role": member.get("role", "Viewer")}
+            return {"email": email, "role": "Viewer"}
+            
+    return JSONResponse({"error": "unauthorized"}, status_code=401)

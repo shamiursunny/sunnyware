@@ -236,6 +236,17 @@ function _isOnline(lastActiveTs) {
 // CORE STATE
 // ═════════════════════════════════════════════════════════════════
 let API_KEY = localStorage.getItem('sunnyware_admin_key') || '';
+
+// Part 234: Auto-login via invite_token
+const urlParams = new URLSearchParams(window.location.search);
+const inviteToken = urlParams.get('invite_token');
+if (inviteToken) {
+  localStorage.setItem('sunnyware_admin_key', inviteToken);
+  API_KEY = inviteToken;
+  window.history.replaceState({}, document.title, "/admin");
+  setTimeout(() => window.location.reload(), 100);
+}
+
 let CURRENT_TAB = 'dashboard';
 let CACHE = {};  // { customers: [], plans: [], invoices: [], ledger: [], ... }
 let ACC_STATE = null;
@@ -4767,6 +4778,36 @@ async function regenerateApiKey(keyId) {
   } catch (e) {
     toast('Error: ' + e.message, 'error');
   }
+}
+
+
+async function applyRolePermissions() {
+  try {
+    const me = await api('/api/auth/me'); 
+    if (!me || me.role === 'Owner') return;
+    
+    const allowedTabs = {
+      'Finance': ['dashboard', 'plans', 'invoices', 'accounting', 'reports', 'customers', 'settings'],
+      'Support': ['dashboard', 'customers', 'access', 'health', 'chat-audit'],
+      'Viewer': ['dashboard', 'customers', 'plans', 'health', 'alerts'],
+    };
+    
+    const allowed = allowedTabs[me.role] || allowedTabs['Viewer'];
+    document.querySelectorAll('.nav-item').forEach(el => {
+      const tab = el.getAttribute('data-tab');
+      if (tab && !allowed.includes(tab) && tab !== 'dashboard') {
+        el.style.display = 'none';
+      }
+    });
+  } catch(e) { console.error('Failed to apply permissions', e); }
+}
+
+const _origRender = window.render;
+if (_origRender) {
+  window.render = async function() {
+    await _origRender();
+    await applyRolePermissions();
+  };
 }
 
 </script>
