@@ -2019,7 +2019,13 @@ async def status_summary():
             out[key] = {"__error__": f"{type(e).__name__}: {e}"}
 
     await _safe("health", readiness)
-    await _safe("budget", usage_budget)
+    # Part 253: Integrations status
+    import os
+    out["integrations"] = {
+        "workos": bool(os.getenv("WORKOS_API_KEY") and os.getenv("WORKOS_CLIENT_ID")),
+        "paddle": bool(os.getenv("PADDLE_API_KEY") and os.getenv("PADDLE_WEBHOOK_SECRET")),
+        "neon": bool(os.getenv("NEON_DATABASE_URL")),
+    }
     await _safe("golden", golden_latest)
     try:
         out["evals"] = await evals_trends(n=5)
