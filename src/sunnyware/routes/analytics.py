@@ -51,6 +51,8 @@ async def user_detail(email: str, req: Request, days: int = 30):
     # Part 238: Include hardware profile if available
     try:
         users = _as._load(_as.USERS_FILE, {})
+        if users is None:
+            users = {}
         summary["hardware"] = users.get(email.lower().strip(), {}).get("hardware", {})
     except Exception:
         summary["hardware"] = {}

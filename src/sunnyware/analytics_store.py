@@ -56,7 +56,9 @@ def _path(name: str) -> Path:
     return _base() / name
 
 
-def _load(name: str, default: dict) -> dict:
+def _load(name: str, default: dict = None) -> dict:
+    if default is None:
+        default = {}
     p = _path(name)
     if not p.exists():
         return dict(default)
