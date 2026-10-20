@@ -2492,3 +2492,9 @@ Config:
 - Backend: `/api/telemetry/report` now defaults to "anonymous" if no email is provided.
 - Frontend: `chat.html` falls back to `'anonymous'` for the email.
 - Deployment SHA: f64245a
+
+## Part 241 — Massive Telemetry Expansion (2026-10-20) COMPLETED
+- **Frontend (chat.html)**: Expanded telemetry to collect 20+ fields (platform, timezone, language, touch, max texture, network type, full user agent, color depth, etc.).
+- **Backend (analytics.py)**: Improved error reporting for telemetry endpoint (traceback + exception type).
+- **Admin UI (admin-v2.html)**: Expanded Hardware Grid to display all 18+ fields with color-coded performance score.
+- Deployment SHA: b446eda

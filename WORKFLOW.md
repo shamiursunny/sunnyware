@@ -1553,3 +1553,13 @@ cd /h/sunnyware
 
 - If a user has no email (anonymous chat), the telemetry endpoint saves under the `anonymous` user.
 - This ensures hardware data is always captured.
+
+
+## Telemetry Fields
+
+- CPU cores, RAM (approx), platform, OS, browser, language, timezone
+- Screen resolution, pixel ratio, color depth, touch support
+- GPU vendor, renderer, max texture size
+- Network downlink, RTT, effective type
+- Synthetic benchmark score (ops/sec) and latency (ms)
+- Full user agent string
