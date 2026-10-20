@@ -20,7 +20,16 @@ import hmac, hashlib, base64, json, time
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-_JWT_SECRET = "sunnyware-jwt-secret-2026"
+import os
+_JWT_SECRET = os.getenv("SUNNYWARE_JWT_SECRET")
+if not _JWT_SECRET:
+    import secrets
+    _JWT_SECRET = secrets.token_urlsafe(48)  # secure random fallback
+    import logging as _lg
+    _lg.getLogger(__name__).warning(
+        "SUNNYWARE_JWT_SECRET not set — using a random secret. "
+        "All JWTs will invalidate on restart. Set the env var in production."
+    )
 
 def _generate_jwt(email: str) -> str:
     payload = {"sub": email, "exp": time.time() + 86400 * 7}

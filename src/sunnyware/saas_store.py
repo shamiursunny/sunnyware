@@ -153,7 +153,7 @@ def create_invoice(org_id: str, amount: float, description: str = "", status: st
     iid = "inv_" + secrets.token_hex(6)
     now = time.time()
     inv = {
-        "id": iid, "org_id": org_id, "amount_cents": int(amount * 100),
+        "id": iid, "org_id": org_id, "amount_cents": int(round(amount * 100)),
         "currency": "usd", "description": description, "status": status, "created_at": now,
     }
     invs[iid] = inv

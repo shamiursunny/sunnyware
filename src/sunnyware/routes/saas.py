@@ -459,9 +459,8 @@ async def saas_upgrade(req: Request):
 @router.post("/api/saas/admin/force-upgrade")
 async def admin_force_upgrade(req: Request):
     """Part 210e: Force-upgrade an org to a given plan (admin only, for testing)."""
-    api_key = req.headers.get("X-API-Key", "")
-    if api_key != "master-admin-key":
-        return JSONResponse({"error": "unauthorized"}, status_code=401)
+    d = _admin(req)
+    if d: return d
 
     body = await req.json()
     org_id = body.get("org_id")
@@ -488,9 +487,8 @@ async def admin_force_upgrade(req: Request):
 @router.get("/api/saas/paddle/live")
 async def paddle_live_dashboard(req: Request):
     """Part 211: Live Paddle billing dashboard (pulls from Paddle API, not DB)."""
-    api_key = req.headers.get("X-API-Key", "")
-    if api_key != "master-admin-key":
-        return JSONResponse({"error": "unauthorized"}, status_code=401)
+    d = _admin(req)
+    if d: return d
 
     from .. import paddle_client as pc
 
@@ -579,10 +577,8 @@ async def cancel_subscription(req: Request):
     user = ""
     if key and key != "master-admin-key" and "." in key:
         try:
-            import base64, json
-            b64 = key.split(".")[0]
-            payload = json.loads(base64.urlsafe_b64decode(b64 + "=" * (-len(b64) % 4)))
-            user = payload.get("sub") or ""
+            from .auth import verify_jwt
+            user = verify_jwt(key) or ""
         except Exception:
             pass
     
