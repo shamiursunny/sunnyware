@@ -1488,3 +1488,11 @@ cd /h/sunnyware
 
 - Webhook Retry Engine (persistent retries with exponential backoff)
 - Scheduled Task Runner (polls every 60s, handles once/hourly/daily/weekly/monthly)
+
+
+## Rate Limiting
+
+- Sliding window (1 minute) per API key.
+- Configurable via the API Keys admin page (default 60 RPM).
+- Blocks with HTTP 429 and `Retry-After` header.
+- Admin (`master-admin-key`) and JWT users bypass rate limits.

@@ -2438,3 +2438,8 @@ Config:
 - `scheduled_tasks_store.py`: Tasks auto-disable after a "once" run completes.
 - `routes/chat_audit.py`: Offloaded synchronous `log_message` to `asyncio.to_thread` to prevent blocking the event loop.
 - Deployment SHA: f808de2
+
+## Part 229 & 230 — Rate Limiting & API Key Reveal (2026-10-20) COMPLETED
+- **Rate Limiting**: `rate_limiter.py` (sliding window), `main.py` middleware, `api_keys_store.py` update limit, editable in UI.
+- **API Key Reveal**: Added "Reveal" button to `/admin` -> API Keys table. Opens a modal with full key and "Copy to Clipboard".
+- Deployment SHA: f137f84
