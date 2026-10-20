@@ -2514,3 +2514,8 @@ Config:
 - **static/status.html**: Added a global fetch interceptor that injects `X-API-Key` and `X-2FA-Session` from `localStorage` into all same-origin API calls.
 - This fixes the `/status` page showing "2FA verification required" for all health cards.
 - Deployment SHA: cc1672d
+
+## Part 252 — Tools Page 2FA Fix (2026-10-20) COMPLETED
+- **static/tools.html**: Added a global fetch interceptor that injects `X-API-Key` and `X-2FA-Session` from `localStorage` into all same-origin API calls.
+- This fixes the `/tools` page showing "HTTP 428" for the tool health table.
+- Deployment SHA: 3a38da5

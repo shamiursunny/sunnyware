@@ -1580,3 +1580,9 @@ cd /h/sunnyware
 
 - `static/status.html` now injects `X-API-Key` and `X-2FA-Session` from `localStorage` into all fetch calls.
 - The `/status` page now loads real health data instead of showing 428 errors.
+
+
+## Tools Page 2FA
+
+- `static/tools.html` now injects `X-API-Key` and `X-2FA-Session` from `localStorage` into all fetch calls.
+- The `/tools` page now loads real health data instead of showing 428 errors.
