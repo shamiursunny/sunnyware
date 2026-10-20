@@ -6,7 +6,6 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from .. import team_store as _team
 from .. import invite_store as _inv
-from .. import email as _email
 
 router = APIRouter(tags=["team"])
 
@@ -61,16 +60,7 @@ async def add_member(req: Request):
     <p>If the button doesn't work, copy and paste this link:<br><code>{accept_url}</code></p>
     """
     
-    email_sent = False
-    try:
-        # Assumes email.py has a send_email function
-        if hasattr(_email, "send_email"):
-            await _email.send_email(to=email, subject="Invite to Sunnyware", html=html)
-            email_sent = True
-    except Exception as e:
-        print(f"[team] Failed to send email: {e}")
-
-    return {"ok": True, "member": member, "accept_url": accept_url, "email_sent": email_sent}
+    return {"ok": True, "member": member, "accept_url": accept_url, "email_sent": False}
 
 
 @router.patch("/api/team/members/{member_id}")
