@@ -2464,3 +2464,13 @@ Config:
 ## Part 236 — Add About & API Docs to Sidebar (2026-10-20) COMPLETED
 - Added "Resources" section at the bottom of the admin sidebar with links to `/about` and `/docs`.
 - Deployment SHA: ab07b77
+
+## Part 237 — Complete Team API Surface (2026-10-20) COMPLETED
+- Added 5 missing team routes to `team.py`:
+  - `POST /api/team/invite`
+  - `GET /api/team/invites`
+  - `GET /api/team/org-members`
+  - `DELETE /api/team/org-members/{email}`
+  - `PATCH /api/team/org-members/{email}/role`
+- All routes are now visible in `/docs` (OpenAPI spec).
+- Deployment SHA: 96b8245

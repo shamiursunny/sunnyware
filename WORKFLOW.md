@@ -1523,3 +1523,13 @@ cd /h/sunnyware
 ## Admin Sidebar
 
 - Includes quick links to `/about` and `/docs` under the **Resources** section.
+
+
+## Team Routes
+
+- All team routes are now documented in `/docs`:
+  - `POST /api/team/invite`
+  - `GET /api/team/invites`
+  - `GET /api/team/org-members`
+  - `DELETE /api/team/org-members/{email}`
+  - `PATCH /api/team/org-members/{email}/role`
