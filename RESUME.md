@@ -38,7 +38,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 ## Current state (last session: 2026-10-20, Part 224)
 
-**Completed:** Parts 206 – 224 (all features below are live and verified).
+**Completed:** Parts 206 – 225 (all features below are live and verified).
 
 ### Auth & Security
 - WorkOS SSO (Google login) + JWT
@@ -50,13 +50,13 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - Plans, invoices, PDF invoice export, cancel subscription flow
 - Usage overage billing: $ per 1M overage tokens, plan-based caps, charge log
 
-### Admin Dashboard (22 pages)
+### Admin Dashboard (23 pages)
 - Dashboard, Organizations, Users, Plans, Invoices, Accounting, Team
 - LLM Dashboard (kill switch, routing, model overrides, live logs)
 - User Analytics (tokens, cost, IPs, devices, online status, inline SVG charts)
 - Email (Resend), API Keys, Webhooks, Chat Audit, Scheduled Tasks
 - RAG Management, Security (2FA), Backup & Restore
-- Impersonate User, Feature Flags, Overage Billing, Slack Bot, Settings
+- Impersonate User, Feature Flags, Overage Billing, Slack Bot, **Feedback**, Settings
 
 ### Integrations
 - Slack Bot: /sunnyware <question> slash command with signature verification, activity log
