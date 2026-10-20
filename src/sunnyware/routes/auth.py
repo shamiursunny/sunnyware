@@ -42,7 +42,8 @@ def verify_jwt(token: str) -> str:
         b64, sig = token.split(".")
         expected_sig = hmac.new(_JWT_SECRET.encode(), b64.encode(), hashlib.sha256).hexdigest()
         if hmac.compare_digest(sig, expected_sig):
-            payload = json.loads(base64.urlsafe_b64decode(b64 + "==").decode())
+            padded = b64 + "=" * (-len(b64) % 4)
+            payload = json.loads(base64.urlsafe_b64decode(padded).decode())
             if payload.get("exp", 0) > time.time():
                 return payload.get("sub")
     except Exception:

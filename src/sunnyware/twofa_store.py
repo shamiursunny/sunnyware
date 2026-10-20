@@ -148,9 +148,31 @@ def verify_login(user: str, code: str) -> dict:
     cur = users.get(key)
     if not cur or not cur.get("enabled"):
         return {"ok": False, "error": "2FA not enabled for this user"}
+
+    # Part 260: Rate limit 2FA attempts (max 5 fails in 15 mins)
+    now = time.time()
+    fails = cur.get("fail_count", 0)
+    lockout = cur.get("lockout_until", 0)
+
+    if lockout > now:
+        mins_left = int((lockout - now) / 60)
+        return {"ok": False, "error": f"Too many failed attempts. Locked out for {mins_left} minutes."}
+
     totp = pyotp.TOTP(cur["secret"])
     if not totp.verify((code or "").strip(), valid_window=1):
+        fails += 1
+        cur["fail_count"] = fails
+        if fails >= 5:
+            cur["lockout_until"] = now + (15 * 60) # 15 min lockout
+        users[key] = cur
+        _save(USERS_FILE, users)
         return {"ok": False, "error": "Invalid code"}
+
+    # Reset fails on success
+    cur["fail_count"] = 0
+    cur["lockout_until"] = 0
+    users[key] = cur
+    _save(USERS_FILE, users)
     return _issue_session(key)
 
 
