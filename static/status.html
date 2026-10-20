@@ -141,7 +141,7 @@ var POLL_MS = 10000;
 var SUMMARY_URL = "/api/status/summary";
 var CARDS = [
   { id:"health",    title:"Health",         key:"health",    render:renderHealth },
-  { id:"budget",    title:"Budget",         key:"budget",    render:renderBudget },
+  { id:"integrations", title:"Integrations", key:"integrations", render:renderIntegrations },
   { id:"golden",    title:"Golden dataset", key:"golden",    render:renderGolden },
   { id:"evals",     title:"Evals",          key:"evals",     render:renderEvals },
   { id:"tools",     title:"Tools Health",   key:"tools_health", render:renderToolsHealth },
@@ -345,40 +345,29 @@ function renderHealth(d){
 
   return c;
 }
-function renderBudget(d){
+function renderIntegrations(d){
   var c = el("div");
-  var daily = (d && d.daily) || {};
-  var monthly = (d && d.monthly) || {};
-  if (!daily.enabled && !monthly.enabled){
-    c.appendChild(badge("dim", "DISABLED"));
-    c.appendChild(el("div", "muted", "SUNNYWARE_BUDGET_USD_* not set"));
+  if (!d){
+    c.appendChild(badge("dim", "NO DATA"));
     return c;
   }
-  c.appendChild(renderBudgetRow("Today", daily));
-  c.appendChild(el("div", "muted", " "));
-  c.appendChild(renderBudgetRow("Month", monthly));
-  if (d.alert_thresholds_pct){
-    c.appendChild(el("div", "muted",
-      "thresholds: " + d.alert_thresholds_pct.join(", ") + "%"));
-  }
+  var badgeRow = function(label, ok){
+    var row = el("div");
+    row.style.display = "flex";
+    row.style.justifyContent = "space-between";
+    row.style.marginBottom = "6px";
+    var l = el("span", null, label);
+    var b = el("span", null, ok ? "CONNECTED" : "MISSING");
+    b.style.color = ok ? "#4ade80" : "#f87171";
+    b.style.fontWeight = "600";
+    row.appendChild(l);
+    row.appendChild(b);
+    return row;
+  };
+  c.appendChild(badgeRow("WorkOS Auth", d.workos));
+  c.appendChild(badgeRow("Paddle Billing", d.paddle));
+  c.appendChild(badgeRow("Neon Database", d.neon));
   return c;
-}
-function renderBudgetRow(label, x){
-  var w = el("div");
-  var top = el("div");
-  top.appendChild(el("span", null, label + " - "));
-  top.appendChild(el("strong", null, fmtUsd(x.used_usd)));
-  top.appendChild(el("span", "muted",
-    " / " + fmtUsd(x.cap_usd) + "  (" + (x.pct || 0).toFixed(2) + "%)"));
-  w.appendChild(top);
-  var bar = el("div", "bar");
-  if ((x.pct || 0) >= 95) bar.classList.add("err");
-  else if ((x.pct || 0) >= 80) bar.classList.add("warn");
-  var fill = el("i");
-  fill.style.width = Math.min(100, Math.max(0, x.pct || 0)) + "%";
-  bar.appendChild(fill);
-  w.appendChild(bar);
-  return w;
 }
 function renderGolden(d){
   var c = el("div");
