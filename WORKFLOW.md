@@ -1496,3 +1496,9 @@ cd /h/sunnyware
 - Configurable via the API Keys admin page (default 60 RPM).
 - Blocks with HTTP 429 and `Retry-After` header.
 - Admin (`master-admin-key`) and JWT users bypass rate limits.
+
+
+## API Key Management
+
+- Keys are hashed at rest (secure).
+- Admins can regenerate a key at any time. The old key is invalidated instantly, and the new raw key is shown once via a modal.

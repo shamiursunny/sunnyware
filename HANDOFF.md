@@ -2443,3 +2443,8 @@ Config:
 - **Rate Limiting**: `rate_limiter.py` (sliding window), `main.py` middleware, `api_keys_store.py` update limit, editable in UI.
 - **API Key Reveal**: Added "Reveal" button to `/admin` -> API Keys table. Opens a modal with full key and "Copy to Clipboard".
 - Deployment SHA: f137f84
+
+## Part 231 & 232 — Team Invites & API Key Regenerate (2026-10-20) COMPLETED
+- **Team Invites**: `invite_store.py`, magic links, email delivery, UI on Team page, public `/invite` accept route.
+- **API Key Regenerate**: Replaced "Reveal" (impossible since hashed) with "Regenerate" button. `api_keys_store.regenerate_key()` generates a new `sk_...`, hashes it, updates the prefix, resets usage, and returns the raw key exactly once.
+- Deployment SHA: eafb808

@@ -38,11 +38,11 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 ## Current state (last session: 2026-10-20, Part 224)
 
-**Completed:** Parts 206 – 230 (all features below are live and verified).
+**Completed:** Parts 206 – 232 (all features below are live and verified).
 
 ### Auth & Security
 - Per-API-Key **Sliding Window Rate Limiting** (configurable RPM, HTTP 429 enforcement)
-- **API Key Reveal/Copy** button in admin UI
+- **API Key Regenerate** button (safe rotation of keys without revealing old ones)
 - **Sandboxed Python Execution** (multiprocessing timeouts, secure imports)
 - WorkOS SSO (Google login) + JWT
 - TOTP 2FA with QR code setup, 10 backup codes, trusted devices (30-day skip)
