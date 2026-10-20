@@ -2391,3 +2391,17 @@ Config:
 - All Part 221 + 222 features complete
 - safe_deploy.sh proven (47 local + 39 remote checks)
 - Next options: B (Impersonation), C (Backup), D (Feature Flags), E (Overage Billing), F (Slack Bot)
+
+## Part 223 — Backup & Restore (2026-10-20) COMPLETED
+- New route file: `routes/backup.py` with 4 endpoints (list, export, validate, restore)
+- ZIP export bundles all `.json` files from `/data`
+- Validate parses ZIP and shows what will be restored
+- Restore requires typing `RESTORE`, auto-snapshots current state to `backup_pre_restore_<ts>.zip`
+- All endpoints protected by 2FA (428 without session)
+- Deployment SHA: bde5d14
+- **Verified**: 49 local checks, 26 remote endpoints, 16 HTML markers all pass
+
+### Known small gaps for future polish
+- Pre-restore snapshots accumulate in `/data` — could add auto-cleanup of old snapshots
+- No scheduled/automatic backups yet (manual only)
+- File upload size limit is whatever FastAPI defaults to (could be tuned)
