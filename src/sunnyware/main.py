@@ -797,6 +797,7 @@ _2FA_WHITELIST = (
 
 @app.middleware("http")
 async def _twofa_gate_middleware(request, call_next):
+    key = ""  # Initialize to prevent UnboundLocalError
     try:
         path = request.url.path
         for prefix in _2FA_WHITELIST:
