@@ -1456,3 +1456,24 @@ Function-calling accountant: get_chart_of_accounts, get_ledger_history,
 create_draft_entry. Double-entry bookkeeping with draft approval workflow.
 Verified with revenue, owner draw, and expense transactions.
 Model: Groq openai/gpt-oss-20b.
+
+---
+
+## safe_deploy.sh - Current Deployment Workflow (Part 224+)
+
+Starting with Part 224, the canonical way to deploy is the `safe_deploy.sh` script:
+
+```bash
+cd /h/sunnyware
+./safe_deploy.sh "Part XXX: short description"
+```
+
+**What it does:**
+
+1. **Local smoke test** (`scripts/smoke_local.py`) - 59 checks
+2. **Git push** to both remotes (origin + hf)
+3. **Poll Hugging Face** until SHA matches (max 6 min)
+4. **Remote smoke test** (`scripts/smoke_remote.py`) - 31 endpoints + 20 HTML markers
+5. **Prints DEPLOYMENT SUCCESSFUL** only if everything passes
+
+**Never push manually** - always use safe_deploy.sh.

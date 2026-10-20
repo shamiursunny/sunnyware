@@ -36,29 +36,45 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-16, Part 140)
+## Current state (last session: 2026-10-20, Part 224)
 
-- Commit:  run `git log -1 --oneline` for current hash
+**Completed:** Parts 206 – 224 (all features below are live and verified).
 
-- Health:  /health/ready -> status ok, tools: 58
+### Auth & Security
+- WorkOS SSO (Google login) + JWT
+- TOTP 2FA with QR code setup, 10 backup codes, trusted devices (30-day skip)
+- Backend enforcement: all admin endpoints return HTTP 428 without a valid X-2FA-Session header
 
-- LLM:     multi-provider (groq, gemini, openrouter) with auto-failover
+### Billing
+- Paddle sandbox / live integration
+- Plans, invoices, PDF invoice export, cancel subscription flow
+- Usage overage billing: $ per 1M overage tokens, plan-based caps, charge log
 
-  - Groq:       openai/gpt-oss-120b      (primary, ~200ms)
+### Admin Dashboard (22 pages)
+- Dashboard, Organizations, Users, Plans, Invoices, Accounting, Team
+- LLM Dashboard (kill switch, routing, model overrides, live logs)
+- User Analytics (tokens, cost, IPs, devices, online status, inline SVG charts)
+- Email (Resend), API Keys, Webhooks, Chat Audit, Scheduled Tasks
+- RAG Management, Security (2FA), Backup & Restore
+- Impersonate User, Feature Flags, Overage Billing, Slack Bot, Settings
 
-  - Gemini:     gemini-2.5-flash        (backup, ~500ms)
+### Integrations
+- Slack Bot: /sunnyware <question> slash command with signature verification, activity log
 
-  - OpenRouter: liquid/lfm-2.5-2.6b:free (backup, ~700ms)
+### DevOps
+- ./safe_deploy.sh — one command: local smoke test (59 checks), git push to both remotes, poll HF until rebuilt, remote smoke test (31 endpoints + 20 HTML markers).
+- Never push broken code — the smoke test aborts on any failure.
 
-  - Auto-resolver: /api/models/resolve (self-heals when providers retire models)
+### Live URLs
+- WebUI: https://shamiur-sunnyware.hf.space/ui
+- Admin: https://shamiur-sunnyware.hf.space/admin
+- GitHub: https://github.com/shamiursunny/sunnyware
+- HF Space: https://huggingface.co/spaces/shamiur/sunnyware
 
-- Vector store: per-tenant FAISS in /data/vector_store/{org_id}/
-
-- Neon DB:    PostgreSQL, sessions + events + metrics + usage
-
-- WebUI header badge: `via <provider>` shows last-serving provider
-  (Part 139: response now also carries result.resolved_model so the
-   model name always matches the provider that actually served)
+### Known small gaps for future polish
+- Pre-restore snapshots accumulate in /data (could add auto-cleanup)
+- Slack bot signature verification should be enabled in production (currently off for testing)
+- No scheduled/automatic backups yet
 
 ## Sub-agents
 
