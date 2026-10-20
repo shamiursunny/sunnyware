@@ -115,7 +115,7 @@ async def report_telemetry(req: Request):
                     pass
                     
         if not email:
-            return {"ok": False, "error": "user not identified"}
+            email = "anonymous"  # Part 238b: allow anonymous telemetry
             
         from .. import analytics_store as _as
         _as.update_hardware_profile(email, profile)

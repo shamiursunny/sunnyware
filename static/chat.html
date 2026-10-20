@@ -4413,7 +4413,7 @@ async function collectAndSendTelemetry() {
       ts: Date.now()
     };
 
-    const email = localStorage.getItem('sunnyware_user_email') || '';
+    const email = localStorage.getItem('sunnyware_user_email') || 'anonymous';
     const apiKey = localStorage.getItem('sunnyware_admin_key') || '';
 
     await fetch('/api/telemetry/report', {
