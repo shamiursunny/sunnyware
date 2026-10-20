@@ -334,11 +334,13 @@ def extract_key_from_headers(headers: list) -> Optional[str]:
             return val
     return None
 
+MASTER_KEY = os.getenv("SUNNYWARE_MASTER_KEY", "master-admin-key")
+
 def twofa_required_for(key: str) -> bool:
     """Part 222: returns True if the given key belongs to a user with 2FA enabled."""
     try:
         from . import twofa_store as _tfs
-        if key == "master-admin-key":
+        if key == MASTER_KEY:
             return _tfs.is_enabled("admin")
         import base64 as _b64
         import json as _json
@@ -358,7 +360,7 @@ def twofa_session_valid(key: str, session_token: str) -> bool:
     """Part 222: verify the X-2FA-Session header against the user behind `key`."""
     try:
         from . import twofa_store as _tfs
-        user = "admin" if key == "master-admin-key" else ""
+        user = "admin" if key == MASTER_KEY else ""
         if not user:
             import base64 as _b64
             import json as _json

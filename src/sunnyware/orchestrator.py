@@ -17,7 +17,7 @@ from . import tools as tools_registry
 # least 3 iterations (delegate, sub-delegate, worker answer) before
 # returning; any retry blows past 3. Wall-clock timeout remains the
 # real guard (SUNNYWARE_AGENT_TIMEOUT; 600s for cfo/cdo roles).
-MAX_ITERATIONS = 10  # Part 88: lowered 7 -> 3 (was burning 6 LLM calls per message)
+MAX_ITERATIONS = 5  # Part 257: lowered 10 -> 5 (protect tokens from runaway loops)
 
 # Part 90: per-request token budget guard
 MAX_REQUEST_TOKENS = 15000

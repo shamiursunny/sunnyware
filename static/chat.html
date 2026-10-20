@@ -2402,7 +2402,10 @@ function mdLite(text){
 
   t=t.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,(m,txt,url)=>{
 
-    return '<a href="'+url+'" target="_blank" rel="noopener" style="color:var(--accent-color);text-decoration:underline;">'+txt+'</a>';
+    // Part 257: Sanitize URL to prevent XSS (block javascript: and data:)
+    const safeUrl = (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) ? url : '#';
+
+    return '<a href="'+safeUrl+'" target="_blank" rel="noopener" style="color:var(--accent-color);text-decoration:underline;">'+txt+'</a>';
 
   });
 
