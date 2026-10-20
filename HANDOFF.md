@@ -2519,3 +2519,8 @@ Config:
 - **static/tools.html**: Added a global fetch interceptor that injects `X-API-Key` and `X-2FA-Session` from `localStorage` into all same-origin API calls.
 - This fixes the `/tools` page showing "HTTP 428" for the tool health table.
 - Deployment SHA: 3a38da5
+
+## Part 253 — Status Page Integrations (2026-10-20) COMPLETED
+- **meta.py**: Replaced the `budget` aggregation with an `integrations` object that checks for WorkOS, Paddle, and Neon API keys.
+- **status.html**: Replaced the `renderBudget` function with `renderIntegrations` to display real-time SaaS integration connection statuses.
+- Deployment SHA: d049ed7

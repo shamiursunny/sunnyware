@@ -1586,3 +1586,9 @@ cd /h/sunnyware
 
 - `static/tools.html` now injects `X-API-Key` and `X-2FA-Session` from `localStorage` into all fetch calls.
 - The `/tools` page now loads real health data instead of showing 428 errors.
+
+
+## Status Page Integrations
+
+- The `/status` page now shows WorkOS, Paddle, and Neon DB connection statuses instead of the disabled budget card.
+- The backend `meta.py` checks `os.getenv` for the respective API keys to determine the integration status.
