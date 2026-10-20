@@ -42,6 +42,7 @@ from .routes import backup as backup_routes
 from .routes import impersonation as impersonation_routes
 from .routes import feature_flags as feature_flags_routes
 from .routes import overage as overage_routes
+from .routes import slack_bot as slack_bot_routes
 from .routes import analytics as analytics_routes
 from .routes import llm_dashboard as llm_dashboard_routes
 from .routes import agent as agent_routes
@@ -157,6 +158,7 @@ app.include_router(backup_routes.router)
 app.include_router(impersonation_routes.router)
 app.include_router(feature_flags_routes.router)
 app.include_router(overage_routes.router)
+app.include_router(slack_bot_routes.router)
 app.include_router(analytics_routes.router)
 app.include_router(llm_dashboard_routes.router)
 app.include_router(agent_routes.router)
@@ -744,6 +746,8 @@ _2FA_WHITELIST = (
     "/static/",
     "/api/health",
     "/api/metrics",
+    "/api/slack/events",
+    "/api/slack/commands",
 )
 
 

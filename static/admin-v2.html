@@ -171,6 +171,7 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
     <div class="nav-item" data-tab="backup">Backup &amp; Restore</div>
     <div class="nav-item" data-tab="impersonate">Impersonate</div>
     <div class="nav-item" data-tab="feature-flags">Feature Flags</div>
+    <div class="nav-item" data-tab="slack-bot">Slack Bot</div>
   </div>
 </div>
 
@@ -4423,6 +4424,145 @@ async function clearOverageCharges() {
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       el.classList.add('active');
       renderOverage();
+    };
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
+  else hook();
+})();
+
+
+
+// Part 224d: SLACK BOT admin page
+async function renderSlackBot() {
+  const config = await api('/api/slack/config').catch(() => ({}));
+  const activityData = await api('/api/slack/activity?limit=30').catch(() => ({ activity: [] }));
+  const activity = activityData.activity || [];
+
+  const statusColor = config.enabled ? 'var(--success)' : 'var(--muted)';
+  const statusText = config.enabled ? 'Enabled' : 'Disabled';
+
+  $('content').innerHTML = `
+    <h2>Slack Bot</h2>
+    <p style="color:var(--muted);margin-bottom:16px;">Let your team query Sunnyware from Slack using <code>/sunnyware &lt;question&gt;</code>.</p>
+
+    <div class="card" style="margin-bottom:20px;border-color:${config.enabled ? 'var(--success)' : 'var(--border)'};">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <h3 style="margin:0;color:${statusColor};">Status: ${statusText}</h3>
+          <p style="color:var(--muted);font-size:12px;margin:4px 0 0;">${config.has_signing_secret ? 'OK' : 'Missing'} Signing secret · ${config.has_bot_token ? 'OK' : 'Missing'} Bot token</p>
+        </div>
+        <label class="toggle-switch">
+          <input type="checkbox" ${config.enabled ? 'checked' : ''} onchange="toggleSlackBot(this.checked)">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <h3 style="margin-top:0;color:var(--accent);">Configuration</h3>
+      <div class="form-row" style="display:grid;grid-template-columns:1fr;gap:12px;">
+        <div><label>Signing Secret (from Slack Basic Information)</label>
+          <input id="slack-secret" value="${esc(config.signing_secret || '')}" placeholder="Enter signing secret">
+        </div>
+        <div><label>Bot User OAuth Token (starts with xoxb-)</label>
+          <input id="slack-token" value="${esc(config.bot_token || '')}" placeholder="xoxb-...">
+        </div>
+        <div><label>Bot Name</label>
+          <input id="slack-bot-name" value="${esc(config.bot_name || 'Sunnyware')}" placeholder="Sunnyware">
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="slack-verify" ${config.verify_signature ? 'checked' : ''} style="width:auto;">
+          <label for="slack-verify" style="margin:0;text-transform:none;letter-spacing:0;font-size:13px;color:var(--text);">
+            Verify Slack signature (recommended for production)
+          </label>
+        </div>
+        <button onclick="saveSlackConfig()" style="width:200px;">Save Configuration</button>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <h3 style="margin-top:0;color:var(--accent);">Setup Instructions</h3>
+      <ol style="margin:8px 0 0;padding-left:24px;font-size:13px;line-height:1.9;color:var(--text);">
+        <li>Go to <a href="https://api.slack.com/apps" target="_blank" style="color:var(--accent);">api.slack.com/apps</a> → Create New App → From scratch</li>
+        <li>Copy the <strong>Signing Secret</strong> from Basic Information → paste it above</li>
+        <li>Go to Slash Commands → Create New Command:
+          <ul style="margin:4px 0;padding-left:20px;">
+            <li>Command: <code>/sunnyware</code></li>
+            <li>Request URL: <code>https://shamiur-sunnyware.hf.space/api/slack/commands</code></li>
+            <li>Short description: Ask Sunnyware AI</li>
+          </ul>
+        </li>
+        <li>Go to OAuth &amp; Permissions → Install App to Workspace</li>
+        <li>Copy the <strong>Bot User OAuth Token</strong> (starts with xoxb-) → paste above</li>
+        <li>Toggle the bot <strong>Enabled</strong> at the top of this page</li>
+        <li>In Slack, type <code>/sunnyware What is 2+2?</code> and see the response</li>
+      </ol>
+      <p style="color:var(--muted);font-size:12px;margin-top:12px;">
+        <strong>Note:</strong> If you toggle off "Verify Slack signature", any HTTP client can hit the endpoint — only use this during initial testing.
+      </p>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:32px;">
+      <h3 style="margin:0;">Recent Activity (${activity.length})</h3>
+      <button class="ghost small" onclick="clearSlackActivity()">Clear Log</button>
+    </div>
+    ${activity.length === 0 ? '<p style="color:var(--muted)">No Slack activity yet.</p>' : `
+    <table>
+      <thead><tr><th>Time</th><th>User</th><th>Channel</th><th>Prompt</th><th>Response</th><th class="n">Latency</th><th>Status</th></tr></thead>
+      <tbody>
+        ${activity.map(a => `
+          <tr>
+            <td style="font-size:11px;">${new Date(a.ts*1000).toLocaleString()}</td>
+            <td style="font-size:11px;"><strong>@${esc(a.user)}</strong></td>
+            <td style="font-size:11px;">${esc(a.channel)}</td>
+            <td style="font-size:11px;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(a.prompt)}">${esc(a.prompt)}</td>
+            <td style="font-size:11px;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(a.response)}">${esc(a.response)}</td>
+            <td class="n" style="font-size:11px;">${a.latency_ms}ms</td>
+            <td>${a.ok ? '<span class="tag ok">ok</span>' : '<span class="tag bad">fail</span>'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+  `;
+}
+
+async function toggleSlackBot(enabled) {
+  try {
+    await api('/api/slack/config', 'PATCH', { enabled });
+    toast(enabled ? 'Slack bot enabled' : 'Slack bot disabled');
+    renderSlackBot();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function saveSlackConfig() {
+  const signing_secret = document.getElementById('slack-secret').value.trim();
+  const bot_token = document.getElementById('slack-token').value.trim();
+  const bot_name = document.getElementById('slack-bot-name').value.trim();
+  const verify_signature = document.getElementById('slack-verify').checked;
+  try {
+    await api('/api/slack/config', 'PATCH', { signing_secret, bot_token, bot_name, verify_signature });
+    toast('Configuration saved');
+    renderSlackBot();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function clearSlackActivity() {
+  if (!confirm('Clear all Slack activity records?')) return;
+  try {
+    await api('/api/slack/activity', 'DELETE');
+    toast('Activity cleared');
+    renderSlackBot();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+(function () {
+  const hook = () => {
+    const el = document.querySelector('.nav-item[data-tab="slack-bot"]');
+    if (el) el.onclick = () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      el.classList.add('active');
+      renderSlackBot();
     };
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
