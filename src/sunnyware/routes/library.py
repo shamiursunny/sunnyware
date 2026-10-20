@@ -60,11 +60,20 @@ async def save_file(req: Request):
     await _ensure_table()
     owner = _owner()
     body = await req.json()
+    content = body.get("content", "")
+    
+    # Part 258: Prevent DoS via massive base64 payloads (max 5MB)
+    if len(content) > 5 * 1024 * 1024:
+        return JSONResponse(
+            {"error": "File too large", "detail": "Max size is 5MB"}, 
+            status_code=413
+        )
+
     async with pool.acquire() as conn:
         row = await conn.fetchrow("""
             INSERT INTO library_files (owner_key, name, type, size, kind, content)
             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at
-        """, owner, body.get("name", "Untitled"), body.get("type", "file"), body.get("size", 0), body.get("kind", "upload"), body.get("content", ""))
+        """, owner, body.get("name", "Untitled"), body.get("type", "file"), body.get("size", 0), body.get("kind", "upload"), content)
         return {"id": str(row["id"]), "created_at": row["created_at"].isoformat()}
 
 @router.delete("/api/library/files/{file_id}")
@@ -73,6 +82,13 @@ async def delete_file(file_id: str):
     if not pool: return {"deleted": False}
     await _ensure_table()
     owner = _owner()
+    # Part 258: validate UUID before casting to prevent 500 errors
+    import uuid
+    try:
+        uuid.UUID(file_id)
+    except ValueError:
+        return JSONResponse({"error": "Invalid file ID"}, status_code=400)
+
     async with pool.acquire() as conn:
         res = await conn.execute("DELETE FROM library_files WHERE id = $1::uuid AND owner_key = $2", file_id, owner)
         return {"deleted": res.startswith("DELETE 1")}

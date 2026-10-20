@@ -3254,7 +3254,14 @@ function addUploadedFiles(fileList){
 
     const done=()=>{ 
       files.unshift(entry); saveAll(); renderLibrary(); toast('Uploaded to Library'); 
-      fetch('/api/library/files', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...entry, content: entry.dataUrl || entry.textContent || ''})});
+      const contentStr = entry.dataUrl || entry.textContent || '';
+      if (contentStr.length > 5 * 1024 * 1024) {
+        toast('File too large to sync (max 5MB). Saved locally only.');
+      } else {
+        fetch('/api/library/files', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...entry, content: contentStr})})
+          .then(res => { if(!res.ok) console.error('Sync failed:', res.status); })
+          .catch(e => console.error('Sync failed:', e));
+      }
     };
 
     if(f.size < 700*1024 && (entry.type==='image'||entry.type==='doc'||entry.type==='code')){
