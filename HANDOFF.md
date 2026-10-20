@@ -2405,3 +2405,10 @@ Config:
 - Pre-restore snapshots accumulate in `/data` — could add auto-cleanup of old snapshots
 - No scheduled/automatic backups yet (manual only)
 - File upload size limit is whatever FastAPI defaults to (could be tuned)
+
+## Part 225 — User Feedback Collection (2026-10-20) COMPLETED
+- Public endpoint `POST /api/feedback` (whitelisted from auth & 2FA)
+- Admin dashboard at `/admin` → Feedback with stats, distribution chart, and list
+- Store: `feedback_store.py` (rating 1-5, comment, page, user, timestamp)
+- Verified: curl test returned `{"ok": true, "id": "fb_..."}`, admin UI shows the entry
+- Deployment SHA: 63397fd
