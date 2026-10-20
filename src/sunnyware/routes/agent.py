@@ -233,13 +233,19 @@ def _check_quota(req: Request):
             return None
         org = _saas.get_org_for_api_key(key)
         if not org:
-            return None
+            # Part 224g: API keys without an org are not allowed to bypass quota
+            return JSONResponse(
+                {"error": "no_org", "detail": "API key not associated with an organization"},
+                status_code=403,
+            )
         org_id = org["id"]
         plan_id = org.get("plan", "free")
         plans = {pp["id"]: pp for pp in _saas.list_plans()}
         plan = plans.get(plan_id, {})
         # 1) Daily call quota
-        limit = plan.get("calls_per_day", 100)
+        limit = plan.get("calls_per_day")
+        if limit is None:
+            limit = 100
         check = _usage.check_quota(org_id, limit)
         if not check["allowed"]:
             return JSONResponse(
@@ -248,7 +254,9 @@ def _check_quota(req: Request):
                 status_code=429,
             )
         # 2) Monthly token quota
-        tok_limit_m = plan.get("token_limit_millions", -1)
+        tok_limit_m = plan.get("token_limit_millions")
+        if tok_limit_m is None:
+            tok_limit_m = -1
         tok_check = _usage.check_token_quota(org_id, tok_limit_m)
         if not tok_check["allowed"]:
             return JSONResponse(
@@ -446,6 +454,61 @@ async def run_agent_stream(req: Request):
     system = body.get("system")
     role = body.get("role")   # Part 112: role persona
 
+    # Part 224g: extract user_key and set HITL context (was missing)
+    _user_key = ""
+    _tok = req.headers.get("X-API-Key", "")
+    if not _tok:
+        _auth = req.headers.get("Authorization", "")
+        if _auth.startswith("Bearer "):
+            _tok = _auth[7:]
+    if _tok:
+        if "." in _tok and len(_tok) > 20:
+            try:
+                from .auth import verify_jwt
+                _email = verify_jwt(_tok)
+                if _email:
+                    _user_key = f"user:{_email}"
+            except Exception:
+                pass
+        if not _user_key:
+            _user_key = _tok
+    try:
+        from .. import hitl_config as _hc
+        _hc.current_user_key.set(_user_key)
+    except Exception:
+        pass
+
+    # Part 224g: inject role prompt addon
+    try:
+        from .. import roles as _roles
+        _addon = _roles.prompt_addon(role) or ""
+        if _addon:
+            system = (_addon + "\n\n" + (system or "")).strip()
+    except Exception:
+        pass
+
+    # Part 224g: process attachments (Files & Images)
+    attachments = body.get("attachments", [])
+    if attachments:
+        prompt += "\n\n"
+        for att in attachments:
+            name = att.get("name", "file")
+            att_type = att.get("type", "")
+            text_content = att.get("textContent", "")
+            data_url = att.get("dataUrl", "")
+
+            if att_type == "image" and data_url:
+                b64 = data_url.split(",", 1)[-1]
+                try:
+                    from .. import attachments as _att
+                    saved = _att.save_base64(b64, "jpeg")
+                    prompt += f"\n![{name}]({saved['url']})\n"
+                except Exception as e:
+                    from ..runtime import log
+                    log.warning(f"Failed to save attachment image: {e}")
+            elif text_content:
+                prompt += f"\n[Attached File: {name}]\n{text_content}\n"
+
     if not prompt:
         return JSONResponse({"error": "input required"}, status_code=400)
 
@@ -488,8 +551,11 @@ async def run_agent_stream(req: Request):
             async for chunk in llm_client.stream_chat(
                 prompt, model=model, system=system, history=history
             ):
-                full_text += chunk
-                yield f"data: {_json.dumps({'type': 'content', 'text': chunk})}\n\n"
+                # Part 224g: strip broken base64 markdown from client output
+                clean_chunk = _strip_broken_b64_md(chunk) or chunk
+                if clean_chunk:
+                    full_text += clean_chunk
+                    yield f"data: {_json.dumps({'type': 'content', 'text': clean_chunk})}\n\n"
             if session_uuid and full_text:
                 await memory_store.log_event(
                     session_uuid, "assistant_message",
@@ -504,8 +570,17 @@ async def run_agent_stream(req: Request):
                 _prov_name = _glp()
             except Exception:
                 _prov_name = None
-            yield f"data: {_json.dumps({'type': 'done', 'session_uuid': session_uuid, 'provider': _prov_name})}\n\n"
+            yield f"data: {_json.dumps({'type': 'done', 'session_uuid': session_uuid, 'provider': _prov_name, 'model': model or 'default'})}\n\n"
         except Exception as e:
+            # Part 224g: persist partial stream to memory on error
+            if session_uuid and full_text:
+                try:
+                    await memory_store.log_event(
+                        session_uuid, "assistant_message",
+                        {"content": _strip_broken_b64_md(full_text), "model": model or "default", "streaming": True, "error": str(e)},
+                    )
+                except Exception:
+                    pass
             err = _json.dumps({"type": "error", "error": f"{type(e).__name__}: {e}"})
             yield f"data: {err}\n\n"
 
