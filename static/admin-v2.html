@@ -640,7 +640,7 @@ async function renderUsers() {
   $('content').innerHTML = `
     <h2>SSO Users (${d.count || d.users.length})</h2>
     <table>
-      <thead><tr><th>Email</th><th>Role</th><th>Key Preview</th><th>Created</th><th></th></tr></thead>
+      <thead><tr><th>Email</th><th>Role</th><th>Key Preview</th><th>RPM Limit</th><th>Created</th><th></th></tr></thead>
       <tbody>
         ${d.users.map(u => `
           <tr>
@@ -3061,7 +3061,9 @@ async function renderApiKeys() {
             <td><code style="font-size:10px">${esc(k.org_id || '-')}</code></td>
             <td style="font-size:11px;">${esc(k.user_email || '-')}</td>
             <td style="font-size:11px;">${(k.scopes || []).join(', ')}</td>
-            <td>${k.rate_limit_per_min}/m</td>
+            <td>
+              <input type="number" value="${k.rate_limit_per_min || 60}" min="1" style="width:55px;padding:2px;font-size:11px;background:var(--bg);border:1px solid var(--border);color:var(--text);border-radius:4px;" onblur="updateKeyRate('${esc(k.id)}', this.value)"> /m
+            </td>
             <td>${k.calls || 0}</td>
             <td>${k.tokens_used || 0}</td>
             <td style="font-size:11px;">${k.last_used ? new Date(k.last_used*1000).toLocaleString() : '—'}</td>
@@ -3104,6 +3106,16 @@ async function createApiKey() {
       toast('Error: ' + (res.error || 'unknown'), 'error');
     }
   } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function updateKeyRate(keyId, value) {
+  const rpm = parseInt(value) || 60;
+  try {
+    await api('/api/api-keys/' + encodeURIComponent(keyId) + '/rpm', 'PATCH', { rpm_limit: rpm });
+    toast('Rate limit updated');
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  }
 }
 
 async function revokeApiKey(keyId) {

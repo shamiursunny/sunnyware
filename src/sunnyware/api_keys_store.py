@@ -63,6 +63,7 @@ def create_key(org_id: str, user_email: str, name: str, scopes: list, rate_limit
         "created_at": time.time(),
         "last_used": None,
         "revoked": False,
+        "rpm_limit": 60,  # Part 229: default 60 requests per minute
         "calls": 0,
         "tokens_used": 0,
     }
@@ -128,3 +129,22 @@ def record_tokens(key_id: str, tokens: int) -> None:
     if key_id in keys:
         keys[key_id]["tokens_used"] = int(keys[key_id].get("tokens_used", 0)) + int(tokens)
         _save(keys)
+
+
+def update_rpm_limit(key_id: str, rpm_limit: int) -> bool:
+    keys = _load(KEYS_FILE)
+    if key_id not in keys:
+        return False
+    keys[key_id]["rpm_limit"] = max(0, rpm_limit)
+    _save(KEYS_FILE, keys)
+    return True
+
+
+def update_rate_limit(key_id: str, rate_limit: int) -> bool:
+    """Alias for update_rpm_limit, uses the existing rate_limit_per_min field."""
+    keys = _load(KEYS_FILE)
+    if key_id not in keys:
+        return False
+    keys[key_id]["rate_limit_per_min"] = max(1, rate_limit)
+    _save(KEYS_FILE, keys)
+    return True

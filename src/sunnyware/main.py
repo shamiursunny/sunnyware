@@ -414,7 +414,37 @@ class _MetricsMiddleware:
                     except Exception:
                         pass
 
-                if not _auth.is_valid_key(key or "") and not (key and key.startswith("user:")):
+                # Part 229: Rate limiting per API key
+            if key and key != "master-admin-key" and not key.startswith("user:"):
+                try:
+                    from . import api_keys_store as _ks
+                    from . import rate_limiter as _rl
+                    # Find the key record to get the RPM limit
+                    keys = _ks._load(_ks.KEYS_FILE) if hasattr(_ks, "_load") else {}
+                    matched = next((k for k, v in keys.items() if v.get("key") == key and not v.get("revoked")), None)
+                    if matched:
+                        rpm = keys[matched].get("rate_limit_per_min", 60)
+                        rl_res = _rl.check_rate_limit(matched, rpm)
+                        if not rl_res["allowed"]:
+                            body = _json.dumps({
+                                "error": "rate_limit_exceeded",
+                                "detail": f"Limit of {rpm} requests/minute exceeded. Try again in {int(rl_res['reset'])}s."
+                            }).encode()
+                            await send({
+                                "type": "http.response.start",
+                                "status": 429,
+                                "headers": [
+                                    (b"content-type", b"application/json"),
+                                    (b"retry-after", str(int(rl_res["reset"])).encode()),
+                                    (b"x-request-id", req_id.encode("ascii")),
+                                ],
+                            })
+                            await send({"type": "http.response.body", "body": body})
+                            return
+                except Exception as e:
+                    print(f"[rate_limit] middleware error: {e}")
+
+            if not _auth.is_valid_key(key or "") and not (key and key.startswith("user:")):
                     body = _json.dumps({
                         "error": "unauthorized",
                         "detail": "valid X-API-Key or Authorization: Bearer <key> required",

@@ -68,3 +68,19 @@ async def delete_key(key_id: str, req: Request):
     if d: return d
     ok = _aks.delete_key(key_id)
     return {"ok": ok}
+
+
+@router.patch("/api/api-keys/{key_id}/rpm")
+async def update_key_rpm(key_id: str, req: Request):
+    d = _admin_only(req)
+    if d: return d
+    try:
+        body = await req.json()
+        rpm = int(body.get("rpm_limit", 60))
+    except Exception:
+        return JSONResponse({"error": "invalid_json"}, status_code=400)
+    from .. import api_keys_store as _ks
+    if not hasattr(_ks, "update_rpm_limit"):
+        return JSONResponse({"error": "not_supported"}, status_code=500)
+    ok = _ks.update_rate_limit(key_id, rpm) if hasattr(_ks, "update_rate_limit") else _ks.update_rpm_limit(key_id, rpm)
+    return {"ok": ok, "rate_limit_per_min": rpm}
