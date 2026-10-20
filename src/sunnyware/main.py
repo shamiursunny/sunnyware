@@ -379,6 +379,7 @@ class _MetricsMiddleware:
             from . import auth as _auth
             from . import tenant as _tenant
             _incoming_key = _auth.extract_key_from_headers(scope.get("headers") or []) or ""
+            key = _incoming_key  # safe initialization to prevent UnboundLocalError
             # Only use key as tenant if auth is enabled (else shared namespace)
             _tenant.set_key(_incoming_key if _auth.auth_enabled() else "")
             # Part 135: set the request role from the key's mapping (or default)
@@ -446,7 +447,7 @@ class _MetricsMiddleware:
                 except Exception as e:
                     print(f"[rate_limit] middleware error: {e}")
 
-            if not _auth.is_valid_key(key or "") and not (key and key.startswith("user:")):
+            if is_protected and _auth.auth_enabled() and not _auth.is_valid_key(key or "") and not (key and key.startswith("user:")):
                     body = _json.dumps({
                         "error": "unauthorized",
                         "detail": "valid X-API-Key or Authorization: Bearer <key> required",
