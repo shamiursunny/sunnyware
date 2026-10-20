@@ -167,6 +167,7 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
   <div class="nav-group">
     <div class="nav-group-label">Settings</div>
     <div class="nav-item" data-tab="settings">Settings</div>
+    <div class="nav-item" data-tab="backup">Backup &amp; Restore</div>
   </div>
 </div>
 
@@ -3931,6 +3932,182 @@ try { api = api_2fa; } catch(e) {}
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       sec.classList.add('active');
       renderSecurity();
+    };
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
+  else hook();
+})();
+
+
+
+// Part 223: BACKUP & RESTORE page
+async function renderBackup() {
+  const listData = await api('/api/backup/list').catch(() => ({ files: [] }));
+  const files = listData.files || [];
+  const totalBytes = files.reduce((s, f) => s + (f.size || 0), 0);
+  const fmtBytes = (b) => b >= 1048576 ? (b/1048576).toFixed(2)+' MB' : (b/1024).toFixed(1)+' KB';
+
+  $('content').innerHTML = `
+    <h2>Backup &amp; Restore</h2>
+    <p style="color:var(--muted);margin-bottom:16px;">Full snapshot of all data — download as ZIP, restore from a previous backup.</p>
+
+    <div class="card" style="margin-bottom:20px;border-color:var(--accent);">
+      <h3 style="margin-top:0;color:var(--accent);">Download Backup</h3>
+      <p style="color:var(--muted);font-size:13px;margin-bottom:12px;">
+        ${files.length} JSON files · ${fmtBytes(totalBytes)} total. Bundled into one ZIP.
+      </p>
+      <button onclick="downloadBackup()">Download Backup ZIP</button>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <h3 style="margin-top:0;">Restore from Backup</h3>
+      <p style="color:var(--muted);font-size:13px;">Upload a ZIP created by this tool. Only <code>.json</code> files at the root are restored.</p>
+      <p style="color:var(--warn);font-size:12px;background:#f39c1211;padding:8px;border-radius:6px;margin:12px 0;">
+        Warning: A pre-restore snapshot is created automatically in <code>/data</code>. If restore goes wrong, download it via FTP or use HF Space terminal.
+      </p>
+      <input type="file" id="backup-file" accept=".zip" style="margin-bottom:12px;">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="ghost" onclick="validateBackup()">Validate ZIP (no changes)</button>
+        <button class="danger" onclick="showRestoreConfirm()">Restore (requires typing RESTORE)</button>
+      </div>
+      <div id="backup-validate-result" style="margin-top:16px;"></div>
+      <div id="backup-restore-confirm" style="display:none;margin-top:16px;padding:12px;background:var(--bg);border-radius:6px;">
+        <label style="font-size:11px;color:var(--danger);">Type RESTORE to confirm:</label>
+        <input id="backup-confirm-input" placeholder="RESTORE" style="width:200px;margin-top:4px;">
+        <button class="danger" style="margin-left:8px;" onclick="doRestore()">Confirm Restore</button>
+        <button class="ghost" style="margin-left:8px;" onclick="document.getElementById('backup-restore-confirm').style.display='none'">Cancel</button>
+      </div>
+    </div>
+
+    <h3>Current Data Files (${files.length})</h3>
+    ${files.length === 0 ? '<p style="color:var(--muted)">No data files yet.</p>' : `
+    <table>
+      <thead><tr><th>File</th><th class="n">Size</th><th>Last Modified</th></tr></thead>
+      <tbody>
+        ${files.map(f => `
+          <tr>
+            <td><code>${esc(f.name)}</code></td>
+            <td class="n">${fmtBytes(f.size || 0)}</td>
+            <td style="font-size:11px;">${new Date(f.modified * 1000).toLocaleString()}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+  `;
+}
+
+function _backupHeaders() {
+  const h = { 'X-API-Key': localStorage.getItem('sunnyware_admin_key') || 'master-admin-key' };
+  const sess = localStorage.getItem('sunnyware_2fa_session');
+  if (sess) h['X-2FA-Session'] = sess;
+  return h;
+}
+
+function downloadBackup() {
+  fetch('/api/backup/export', { headers: _backupHeaders() })
+    .then(res => {
+      if (!res.ok) throw new Error('Export failed: HTTP ' + res.status);
+      return res.blob();
+    })
+    .then(blob => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'sunnyware_backup_' + new Date().toISOString().slice(0, 19).replace(/:/g, '-') + '.zip';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+      toast('Backup downloaded');
+    })
+    .catch(e => toast('Error: ' + e.message, 'error'));
+}
+
+async function validateBackup() {
+  const file = document.getElementById('backup-file').files[0];
+  if (!file) return toast('Choose a ZIP file first', 'error');
+  const result = document.getElementById('backup-validate-result');
+  result.innerHTML = '<p style="color:var(--muted);">Parsing ZIP...</p>';
+  const form = new FormData();
+  form.append('file', file);
+  try {
+    const res = await fetch('/api/backup/validate', {
+      method: 'POST',
+      headers: _backupHeaders(),
+      body: form,
+    });
+    const data = await res.json();
+    if (data.ok) {
+      const jsonCount = data.files.filter(f => f.is_json && f.is_safe).length;
+      result.innerHTML = `
+        <div class="card" style="border-color:var(--success);background:#2ecc7111;">
+          <strong style="color:var(--success);">Valid ZIP — ${data.count} files, ${(data.total_bytes/1024).toFixed(1)} KB</strong>
+          <p style="color:var(--muted);font-size:12px;margin:8px 0;">${jsonCount} safe .json files will be restored.</p>
+          <details style="margin-top:8px;">
+            <summary style="cursor:pointer;color:var(--accent);">Show all files</summary>
+            <ul style="margin:8px 0 0;padding-left:20px;font-size:12px;">
+              ${data.files.map(f => `
+                <li>
+                  <code>${esc(f.name)}</code> (${(f.size/1024).toFixed(1)} KB)
+                  ${f.is_json && f.is_safe ? '<span class="tag ok" style="margin-left:6px;">will restore</span>' : '<span class="tag bad" style="margin-left:6px;">skipped</span>'}
+                </li>
+              `).join('')}
+            </ul>
+          </details>
+        </div>
+      `;
+    } else {
+      result.innerHTML = `<p style="color:var(--danger);">Error: ${esc(data.error || 'unknown')}</p>`;
+    }
+  } catch (e) {
+    result.innerHTML = `<p style="color:var(--danger);">Error: ${esc(e.message)}</p>`;
+  }
+}
+
+function showRestoreConfirm() {
+  const file = document.getElementById('backup-file').files[0];
+  if (!file) return toast('Choose a ZIP file first', 'error');
+  document.getElementById('backup-restore-confirm').style.display = 'block';
+  document.getElementById('backup-confirm-input').focus();
+}
+
+async function doRestore() {
+  const file = document.getElementById('backup-file').files[0];
+  const confirmText = document.getElementById('backup-confirm-input').value.trim();
+  if (!file) return toast('Choose a ZIP file first', 'error');
+  if (confirmText !== 'RESTORE') return toast('Type RESTORE to confirm', 'error');
+  const form = new FormData();
+  form.append('file', file);
+  form.append('confirm', confirmText);
+  toast('Restoring...');
+  try {
+    const res = await fetch('/api/backup/restore', {
+      method: 'POST',
+      headers: _backupHeaders(),
+      body: form,
+    });
+    const data = await res.json();
+    if (data.ok) {
+      toast(`Restored ${data.count} files. Snapshot: ${data.snapshot}`);
+      document.getElementById('backup-restore-confirm').style.display = 'none';
+      setTimeout(() => renderBackup(), 1000);
+    } else {
+      toast('Error: ' + (data.error || 'unknown'), 'error');
+    }
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+// Hook Backup nav item
+(function () {
+  const hook = () => {
+    const el = document.querySelector('.nav-item[data-tab="backup"]');
+    if (el) el.onclick = () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      el.classList.add('active');
+      renderBackup();
     };
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
