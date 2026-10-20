@@ -69,17 +69,27 @@ def _clean_list(items) -> list:
     if not isinstance(items, list):
         return []
     out = []
+    seen = set()
     for item in items:
         s = str(item).strip()
-        if s:
+        if s and s.lower() not in seen:
+            seen.add(s.lower())
             out.append(s)
     return out[:MAX_SUBTASKS]
 
 
+SUBTASK_TIMEOUT = 60.0
+
 async def _run_one_subtask(st: str, session_uuid: Optional[str], model: Optional[str]) -> dict:
-    """Execute a single sub-task via orchestrator, normalize result."""
+    """Execute a single sub-task via orchestrator, normalize result. Timeout-protected."""
     try:
-        r = await orchestrator.run_agent(st, session_uuid=session_uuid, model=model)
+        r = await asyncio.wait_for(
+            orchestrator.run_agent(st, session_uuid=session_uuid, model=model),
+            timeout=SUBTASK_TIMEOUT,
+        )
+        if not isinstance(r, dict):
+            return {"subtask": st, "ok": False, "error": "non-dict orchestrator result",
+                    "answer": "", "steps_count": 0, "iterations": 0}
         if r.get("ok"):
             return {
                 "subtask": st,
@@ -167,21 +177,42 @@ async def plan_and_execute(
 
     # ── Step 2: Execute sub-tasks (parallel or sequential) ──
     if parallel and len(subtasks) > 1:
-        # asyncio.gather — run all subtasks concurrently
         gathered = await asyncio.gather(
             *[_run_one_subtask(st, session_uuid, model) for st in subtasks],
-            return_exceptions=False,
+            return_exceptions=True,
         )
-        results = list(gathered)
+        results = []
+        for i, r in enumerate(gathered):
+            if isinstance(r, Exception):
+                results.append({
+                    "subtask": subtasks[i],
+                    "ok": False,
+                    "error": f"{type(r).__name__}: {r}",
+                    "answer": "",
+                    "steps_count": 0,
+                    "iterations": 0,
+                })
+            elif isinstance(r, dict):
+                results.append(r)
+            else:
+                results.append({"subtask": subtasks[i], "ok": False, "error": "bad result type",
+                                "answer": "", "steps_count": 0, "iterations": 0})
     else:
         results = []
         for st in subtasks:
             results.append(await _run_one_subtask(st, session_uuid, model))
 
     # ── Step 3: Synthesize final answer ──
+    # Truncate each result to keep the synth prompt within model context.
+    MAX_ANSWER_CHARS = 2000
+    def _trunc(ans: str) -> str:
+        if len(ans) <= MAX_ANSWER_CHARS:
+            return ans
+        return ans[:MAX_ANSWER_CHARS] + "...[truncated]"
+
     results_text = "\n\n".join(
         f"Sub-task {i+1}: {r['subtask']}\n"
-        f"Result: {'OK — ' + r['answer'] if r['ok'] else 'FAILED — ' + r.get('error', '')}"
+        f"Result: {'OK — ' + _trunc(r['answer']) if r['ok'] else 'FAILED — ' + r.get('error', '')}"
         for i, r in enumerate(results)
     )
 

@@ -627,9 +627,18 @@ async def run_agent_plan(req: Request):
             {"content": task, "model": model or "default", "mode": "plan", "parallel": parallel},
         )
 
-    result = await planner.plan_and_execute(
-        task, session_uuid=session_uuid, model=model, parallel=parallel
-    )
+    try:
+        result = await asyncio.wait_for(
+            planner.plan_and_execute(
+                task, session_uuid=session_uuid, model=model, parallel=parallel
+            ),
+            timeout=180.0,
+        )
+    except asyncio.TimeoutError:
+        return JSONResponse(
+            {"error": "plan_timeout", "detail": "Planner exceeded 180s"},
+            status_code=504,
+        )
 
     if session_uuid:
         await memory_store.log_event(

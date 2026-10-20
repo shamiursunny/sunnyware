@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Part 221c: RAG admin routes."""
 
+import asyncio
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from .. import rag_admin_store as _rag
@@ -29,14 +30,14 @@ def _admin_only(req: Request):
 async def stats(req: Request):
     d = _admin_only(req)
     if d: return d
-    return _rag.stats()
+    return await asyncio.to_thread(_rag.stats)
 
 
 @router.get("/api/rag-admin/documents")
 async def list_docs(req: Request, org_id: str = "", limit: int = 200):
     d = _admin_only(req)
     if d: return d
-    docs = _rag.list_documents(org_id=org_id, limit=min(limit, 500))
+    docs = await asyncio.to_thread(_rag.list_documents, org_id, min(limit, 500))
     return {"count": len(docs), "documents": docs}
 
 
@@ -59,7 +60,7 @@ async def add_doc(req: Request):
         return JSONResponse({"error": "content required"}, status_code=400)
     if len(content) > 500_000:
         return JSONResponse({"error": "content too large (max 500KB)"}, status_code=400)
-    doc = _rag.add_document(org_id, user, name, content, mime)
+    doc = await asyncio.to_thread(_rag.add_document, org_id, user, name, content, mime)
     return {"ok": True, "document": doc}
 
 
@@ -67,14 +68,14 @@ async def add_doc(req: Request):
 async def delete_doc(doc_id: str, req: Request):
     d = _admin_only(req)
     if d: return d
-    return {"ok": _rag.delete_document(doc_id)}
+    return {"ok": await asyncio.to_thread(_rag.delete_document, doc_id)}
 
 
 @router.get("/api/rag-admin/documents/{doc_id}/chunks")
 async def get_chunks(doc_id: str, req: Request, search: str = "", limit: int = 500):
     d = _admin_only(req)
     if d: return d
-    chunks = _rag.list_chunks(doc_id=doc_id, search=search, limit=min(limit, 2000))
+    chunks = await asyncio.to_thread(_rag.list_chunks, doc_id, "", search, min(limit, 2000))
     return {"count": len(chunks), "chunks": chunks}
 
 
@@ -82,7 +83,7 @@ async def get_chunks(doc_id: str, req: Request, search: str = "", limit: int = 5
 async def search_chunks(req: Request, search: str = "", org_id: str = "", limit: int = 200):
     d = _admin_only(req)
     if d: return d
-    chunks = _rag.list_chunks(org_id=org_id, search=search, limit=min(limit, 2000))
+    chunks = await asyncio.to_thread(_rag.list_chunks, "", org_id, search, min(limit, 2000))
     return {"count": len(chunks), "chunks": chunks}
 
 
@@ -97,5 +98,5 @@ async def bulk_delete(req: Request):
     doc_ids = body.get("doc_ids") or []
     if not isinstance(doc_ids, list):
         return JSONResponse({"error": "doc_ids must be list"}, status_code=400)
-    count = _rag.bulk_delete(doc_ids)
+    count = await asyncio.to_thread(_rag.bulk_delete, doc_ids)
     return {"ok": True, "deleted": count}
