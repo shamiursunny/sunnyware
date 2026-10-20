@@ -2546,3 +2546,8 @@ Config:
 - **chat.html**: Added frontend check for 5MB limit.
 - **main.py, agent.py, analytics_hooks.py, auth.py**: Replaced hardcoded `master-admin-key` with `os.getenv("SUNNYWARE_MASTER_KEY")` in all files.
 - Deployment SHA: 8bd9039
+
+## Part 260 — Auth Security Fixes (2026-10-20) COMPLETED
+- **twofa_store.py**: Added brute-force protection to `verify_login`. Locks out user for 15 mins after 5 failed TOTP attempts.
+- **auth.py**: Fixed JWT decoding padding bug (`b64 + "=="` -> dynamic padding) to prevent random logouts.
+- Deployment SHA: 7e35004

@@ -1619,3 +1619,9 @@ cd /h/sunnyware
 - Library uploads capped at 5MB per file.
 - Each user limited to 100 files total.
 - Master admin key can now be rotated via `SUNNYWARE_MASTER_KEY` environment variable.
+
+
+## 2FA Brute-Force Protection (Part 260)
+
+- `verify_login` now tracks failed attempts. After 5 failures, the account is locked for 15 minutes.
+- The JWT decoding logic now uses dynamic padding (`"=" * (-len(b64) % 4)`) to prevent random logouts.
