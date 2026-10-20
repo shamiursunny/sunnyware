@@ -157,6 +157,31 @@
 </main>
 
 <script>
+// Part 252: Inject API key and 2FA session header into all fetch calls
+(function() {
+  const _origFetch = window.fetch;
+  window.fetch = function(url, options) {
+    if (!options) options = {};
+    if (!options.headers) options.headers = {};
+    
+    const isApiCall = (typeof url === 'string' && (url.startsWith('/') || url.startsWith(location.origin)));
+    if (isApiCall) {
+      const apiKey = localStorage.getItem('sunnyware_admin_key') || '';
+      const sess = localStorage.getItem('sunnyware_2fa_session') || '';
+      
+      if (options.headers instanceof Headers) {
+        if (apiKey) options.headers.set('X-API-Key', apiKey);
+        if (sess) options.headers.set('X-2FA-Session', sess);
+      } else {
+        if (apiKey) options.headers['X-API-Key'] = apiKey;
+        if (sess) options.headers['X-2FA-Session'] = sess;
+      }
+    }
+    return _origFetch(url, options);
+  };
+})();
+
+// Original tools page script
 // Part 192b: Global API Key Interceptor for Tools Dashboard
 let _apiKey = localStorage.getItem('sunnyware_admin_key') || '';
 if (!_apiKey) {
