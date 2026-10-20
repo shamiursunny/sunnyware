@@ -2509,3 +2509,8 @@ Config:
 - **Backend (`analytics.py`)**: Telemetry route now overrides `"anonymous"` with the email from the JWT, ensuring profiles are saved under the correct user.
 - Verified: `curl` with `X-API-Key: user:test@example.com` and `email: anonymous` returns `{"ok": true}` and saves under `test@example.com`. Console shows `[auth] Extracted email from JWT: shamiur.sunny@gmail.com` and `[Telemetry] Sent successfully`.
 - Deployment SHA: cd79eed
+
+## Part 251 — Status Page 2FA Fix (2026-10-20) COMPLETED
+- **static/status.html**: Added a global fetch interceptor that injects `X-API-Key` and `X-2FA-Session` from `localStorage` into all same-origin API calls.
+- This fixes the `/status` page showing "2FA verification required" for all health cards.
+- Deployment SHA: cc1672d

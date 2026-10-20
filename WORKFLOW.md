@@ -1574,3 +1574,9 @@ cd /h/sunnyware
 
 - On login (WorkOS JWT), the frontend saves the user's email to `localStorage`.
 - The telemetry endpoint reads the JWT and overrides `anonymous` with the real email, so hardware profiles are user-specific.
+
+
+## Status Page 2FA
+
+- `static/status.html` now injects `X-API-Key` and `X-2FA-Session` from `localStorage` into all fetch calls.
+- The `/status` page now loads real health data instead of showing 428 errors.
