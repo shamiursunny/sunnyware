@@ -106,13 +106,15 @@ async def report_telemetry(req: Request):
         profile = body.get("profile", {})
         email = body.get("email", "").strip().lower()
         
-        # If no email provided, try to get from JWT
-        if not email:
+        # Part 248: If email is empty OR "anonymous", try to get the real email from JWT
+        if not email or email == "anonymous":
             key = req.headers.get("x-api-key") or ""
             if key.startswith("user:") or ("." in key and len(key) > 20):
                 try:
                     from .auth import verify_jwt
-                    email = key.split(":", 1)[1] if key.startswith("user:") else verify_jwt(key)
+                    extracted = key.split(":", 1)[1] if key.startswith("user:") else verify_jwt(key)
+                    if extracted:
+                        email = extracted
                 except Exception:
                     pass
                     

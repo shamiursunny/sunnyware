@@ -1294,6 +1294,16 @@ const _urlParams = new URLSearchParams(window.location.search);
 const _urlToken = _urlParams.get('token');
 if (_urlToken && _urlToken.length > 20) {
   localStorage.setItem('sunnyware_admin_key', _urlToken);
+  // Part 248: Extract email from JWT and save it for telemetry
+  try {
+    const payload = _parseJwt(_urlToken);
+    if (payload && payload.sub) {
+      localStorage.setItem('sunnyware_user_email', payload.sub);
+      console.log('[auth] Extracted email from JWT:', payload.sub);
+    }
+  } catch (e) {
+    console.warn('[auth] Could not parse JWT for email:', e);
+  }
   window.history.replaceState({}, '', window.location.pathname);
   console.log('[auth] Received WorkOS JWT, saved to localStorage');
 }
