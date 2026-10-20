@@ -845,6 +845,14 @@ input,textarea{font-family:inherit}
 
 <body>
 
+<!-- Part 224a: Impersonation banner -->
+<div id="impersonation-banner" style="display:none;position:fixed;top:0;left:0;right:0;background:#e74c3c;color:#fff;padding:10px 16px;text-align:center;z-index:9999;font-weight:600;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.4);">
+  <span>You are impersonating <strong id="impersonation-target"></strong> — all actions are logged.</span>
+  <button onclick="stopImpersonation()" style="margin-left:16px;background:#fff;color:#e74c3c;border:none;border-radius:6px;padding:4px 12px;cursor:pointer;font-weight:600;font-size:12px;">Stop Impersonating</button>
+</div>
+
+
+
 <div class="app">
 
   <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -1300,6 +1308,9 @@ function _parseJwt(token) {
 }
 
 let _apiKey = localStorage.getItem('sunnyware_admin_key') || '';
+// Part 224a: if impersonating, use the impersonated user's JWT
+const _impJwt = localStorage.getItem('sunnyware_impersonation_jwt') || '';
+if (_impJwt) { _apiKey = _impJwt; }
 // Part 220: device ID for telemetry
 let _deviceId = localStorage.getItem('sunnyware_device_id');
 if (!_deviceId) {
@@ -4292,6 +4303,42 @@ streamAI = async function(chat, prompt) {
   setTimeout(() => syncSessionsFromServer(), 500);
 
 };
+
+
+
+// Part 224a: Show impersonation banner if active
+(function() {
+  const target = localStorage.getItem('sunnyware_impersonation_target');
+  if (target) {
+    const banner = document.getElementById('impersonation-banner');
+    const label = document.getElementById('impersonation-target');
+    if (banner && label) {
+      label.textContent = target;
+      banner.style.display = 'block';
+      document.body.style.paddingTop = '44px';
+    }
+  }
+})();
+
+async function stopImpersonation() {
+  const token = localStorage.getItem('sunnyware_impersonation_token');
+  if (token) {
+    try {
+      await fetch('/api/impersonate/stop', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-API-Key': localStorage.getItem('sunnyware_admin_key') || 'master-admin-key',
+        },
+        body: JSON.stringify({ token }),
+      });
+    } catch (e) { /* ignore */ }
+  }
+  localStorage.removeItem('sunnyware_impersonation_token');
+  localStorage.removeItem('sunnyware_impersonation_target');
+  localStorage.removeItem('sunnyware_impersonation_jwt');
+  window.location.href = '/admin';
+}
 
 </script>
 </body>

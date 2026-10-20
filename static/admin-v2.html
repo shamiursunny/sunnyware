@@ -168,6 +168,7 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
     <div class="nav-group-label">Settings</div>
     <div class="nav-item" data-tab="settings">Settings</div>
     <div class="nav-item" data-tab="backup">Backup &amp; Restore</div>
+    <div class="nav-item" data-tab="impersonate">Impersonate</div>
   </div>
 </div>
 
@@ -4108,6 +4109,58 @@ async function doRestore() {
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       el.classList.add('active');
       renderBackup();
+    };
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
+  else hook();
+})();
+
+
+
+// Part 224a: IMPERSONATION page
+async function renderImpersonate() {
+  $('content').innerHTML = `
+    <h2>Impersonate User</h2>
+    <p style="color:var(--muted);margin-bottom:16px;">Log in as another user to debug their experience. A red banner will appear on the chat page; click "Stop Impersonating" to return to admin.</p>
+
+    <div class="card" style="max-width:600px;">
+      <div class="form-row">
+        <div><label>User Email</label><input id="imp-target" placeholder="user@example.com"></div>
+        <div><label>Reason (optional)</label><input id="imp-reason" placeholder="Support ticket #123"></div>
+        <button onclick="startImpersonation()">Start Impersonating</button>
+      </div>
+    </div>
+  `;
+}
+
+async function startImpersonation() {
+  const target = document.getElementById('imp-target').value.trim().toLowerCase();
+  const reason = document.getElementById('imp-reason').value.trim();
+  if (!target) return toast('Enter a user email', 'error');
+  try {
+    const res = await api('/api/impersonate/start', 'POST', { target, reason });
+    if (res.ok) {
+      localStorage.setItem('sunnyware_impersonation_token', res.impersonation_token);
+      localStorage.setItem('sunnyware_impersonation_target', res.target);
+      localStorage.setItem('sunnyware_impersonation_jwt', res.user_jwt);
+      toast('Impersonation started — redirecting to chat');
+      setTimeout(() => window.location.href = '/ui', 800);
+    } else {
+      toast('Error: ' + (res.error || 'unknown'), 'error');
+    }
+  } catch (e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+// Hook Impersonate nav
+(function () {
+  const hook = () => {
+    const el = document.querySelector('.nav-item[data-tab="impersonate"]');
+    if (el) el.onclick = () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      el.classList.add('active');
+      renderImpersonate();
     };
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);

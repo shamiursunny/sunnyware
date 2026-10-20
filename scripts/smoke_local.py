@@ -41,6 +41,8 @@ py_files = [
     "src/sunnyware/routes/rag_admin.py",
     "src/sunnyware/routes/twofa.py",
     "src/sunnyware/routes/backup.py",
+    "src/sunnyware/impersonation_store.py",
+    "src/sunnyware/routes/impersonation.py",
     "src/sunnyware/routes/scheduled_tasks.py",
     "src/sunnyware/routes/webhooks.py",
     "src/sunnyware/routes/agent.py",
@@ -67,7 +69,8 @@ for imp in ["analytics as analytics_routes", "llm_dashboard as llm_dashboard_rou
             "chat_audit as chat_audit_routes", "scheduled_tasks as scheduled_tasks_routes",
             "rag_admin as rag_admin_routes",
             "twofa as twofa_routes",
-            "backup as backup_routes"]:
+            "backup as backup_routes",
+            "impersonation as impersonation_routes"]:
     (pass_ if imp in main else fail)(f"import: {imp}")
 for inc in ["analytics_routes.router", "llm_dashboard_routes.router",
             "team_routes.router", "email_routes.router",
@@ -75,7 +78,8 @@ for inc in ["analytics_routes.router", "llm_dashboard_routes.router",
             "chat_audit_routes.router", "scheduled_tasks_routes.router",
             "rag_admin_routes.router",
             "twofa_routes.router",
-            "backup_routes.router"]:
+            "backup_routes.router",
+            "impersonation_routes.router"]:
     (pass_ if f"include_router({inc})" in main else fail)(f"include_router({inc})")
 
 # 3. JS syntax
@@ -101,6 +105,8 @@ checks = [
     ("chat.html has user pill", 'id="userPillBtn"' in chat),
     ("chat.html has cancel button", 'id="settingsCancelBtn"' in chat),
     ("chat.html has applyTheme", "applyTheme" in chat),
+    ("chat.html has impersonation banner", "impersonation-banner" in chat),
+    ("chat.html has stopImpersonation function", "async function stopImpersonation" in chat),
     ("admin-v2.html has _renderSimpleChart", "function _renderSimpleChart" in admin),
     ("admin-v2.html has renderAnalytics", "async function renderAnalytics" in admin),
     ("admin-v2.html has renderLlmDashboard", "async function renderLlmDashboard" in admin),
@@ -111,6 +117,7 @@ checks = [
     ("admin-v2.html has renderRagAdmin", "async function renderRagAdmin" in admin),
     ("admin-v2.html has renderSecurity", "async function renderSecurity" in admin),
     ("admin-v2.html has renderBackup", "async function renderBackup" in admin),
+    ("admin-v2.html has renderImpersonate", "async function renderImpersonate" in admin),
     ("admin-v2.html has renderWebhooks", "async function renderWebhooks" in admin),
     ("admin-v2.html has downloadInvoicePdf", "async function downloadInvoicePdf" in admin),
     ("admin-v2.html has saveOrch", "async function saveOrch" in admin),
