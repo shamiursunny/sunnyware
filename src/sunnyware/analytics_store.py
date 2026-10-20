@@ -332,7 +332,7 @@ def update_hardware_profile(email: str, profile: dict) -> bool:
     """Part 238: Store advanced hardware and performance data."""
     if not email:
         return False
-    users = _load(USERS_FILE)
+    users = _load(USERS_FILE, {})
     email = email.lower().strip()
     if email not in users:
         users[email] = {}
