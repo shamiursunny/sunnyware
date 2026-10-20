@@ -397,6 +397,7 @@ class _MetricsMiddleware:
                 "/api/slack/commands",
                 "/api/feedback",
                 "/invite",
+                "/api/telemetry/report"
             )
             # Attachments are served publicly for <img> tags (random IDs, unguessable)
             is_attachment = path.startswith("/api/attachments/")

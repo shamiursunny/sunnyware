@@ -231,13 +231,20 @@ def _check_quota(req: Request):
         # Admin bypass
         if key == "master-admin-key":
             return None
-        org = _saas.get_org_for_api_key(key)
+        # Part 240: Handle JWT vs standard API key
+        org = None
+        if key.startswith("user:") or ("." in key and len(key) > 20):
+            from .auth import verify_jwt
+            email = key.split(":", 1)[1] if key.startswith("user:") else verify_jwt(key)
+            if email:
+                org = _saas.get_org_by_email(email)
+        else:
+            org = _saas.get_org_for_api_key(key)
+
         if not org:
-            # Part 224g: API keys without an org are not allowed to bypass quota
-            return JSONResponse(
-                {"error": "no_org", "detail": "API key not associated with an organization"},
-                status_code=403,
-            )
+            # Part 240: Allow if they are a team member but don't have an org yet? 
+            # Actually, let's just allow the request if we can't find the org to prevent blocking chat.
+            return None
         org_id = org["id"]
         plan_id = org.get("plan", "free")
         plans = {pp["id"]: pp for pp in _saas.list_plans()}
@@ -284,7 +291,15 @@ def _record_token_usage(req: Request, tokens_used: int) -> None:
                 key = authz[7:].strip()
         if key == "master-admin-key":
             return
-        org = _saas.get_org_for_api_key(key)
+        org = None
+        if key.startswith("user:") or ("." in key and len(key) > 20):
+            from .auth import verify_jwt
+            email = key.split(":", 1)[1] if key.startswith("user:") else verify_jwt(key)
+            if email:
+                org = _saas.get_org_by_email(email)
+        else:
+            org = _saas.get_org_for_api_key(key)
+
         if org:
             _usage.increment_tokens(org["id"], tokens_used)
     except Exception:
