@@ -2524,3 +2524,8 @@ Config:
 - **meta.py**: Replaced the `budget` aggregation with an `integrations` object that checks for WorkOS, Paddle, and Neon API keys.
 - **status.html**: Replaced the `renderBudget` function with `renderIntegrations` to display real-time SaaS integration connection statuses.
 - Deployment SHA: d049ed7
+
+## Part 254 & 255 — Image Rendering & Action Buttons (2026-10-20) COMPLETED
+- **chat.html**: Fixed duplicate image rendering by stripping markdown image tags from LLM text.
+- **chat.html**: Added hover overlay with Fullscreen, Copy, and Share buttons for generated images.
+- Deployment SHA: 84adb25

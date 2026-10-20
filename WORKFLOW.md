@@ -1592,3 +1592,9 @@ cd /h/sunnyware
 
 - The `/status` page now shows WorkOS, Paddle, and Neon DB connection statuses instead of the disabled budget card.
 - The backend `meta.py` checks `os.getenv` for the respective API keys to determine the integration status.
+
+
+## Image Action Buttons
+
+- Generated images now have a hover overlay with Fullscreen, Copy, and Share buttons.
+- The frontend strips markdown image tags from the LLM's text to prevent duplicate rendering.
