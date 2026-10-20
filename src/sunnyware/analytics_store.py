@@ -81,6 +81,7 @@ def _save(name: str, data: dict) -> bool:
 
 
 EVENTS_FILE = "analytics_events.json"
+HARDWARE_FILE = "hardware_profiles.json"
 MAX_EVENTS = 50000
 
 
@@ -334,9 +335,9 @@ def update_hardware_profile(email: str, profile: dict) -> bool:
     """Part 238: Store advanced hardware and performance data."""
     if not email:
         return False
-    users = _load(USERS_FILE, {})
+    users = _load(HARDWARE_FILE, {})
     email = email.lower().strip()
     if email not in users:
         users[email] = {}
     users[email]["hardware"] = profile
-    return _save(USERS_FILE, users)
+    return _save(HARDWARE_FILE, users)
