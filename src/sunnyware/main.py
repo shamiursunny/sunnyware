@@ -416,8 +416,8 @@ class _MetricsMiddleware:
                     except Exception:
                         pass
 
-                # Part 229: Rate limiting per API key
-            if key and key != "master-admin-key" and not key.startswith("user:"):
+                # Part 229: Rate limiting per API key (use _incoming_key to avoid UnboundLocalError)
+            if _incoming_key and _incoming_key != "master-admin-key" and not _incoming_key.startswith("user:"):
                 try:
                     from . import api_keys_store as _ks
                     from . import rate_limiter as _rl
@@ -798,6 +798,7 @@ _2FA_WHITELIST = (
 @app.middleware("http")
 async def _twofa_gate_middleware(request, call_next):
     key = ""  # Initialize to prevent UnboundLocalError
+    _incoming_key = ""  # Initialize to prevent UnboundLocalError
     try:
         path = request.url.path
         for prefix in _2FA_WHITELIST:

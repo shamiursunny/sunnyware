@@ -134,4 +134,5 @@ async def report_telemetry(req: Request):
     except Exception as e:
         import traceback
         traceback.print_exc()
-        return JSONResponse({"error": str(e), "type": type(e).__name__}, status_code=400)
+        # Return 200 so the frontend doesn't spam errors, but log it
+        return JSONResponse({"ok": False, "error": str(e), "type": type(e).__name__}, status_code=200)
