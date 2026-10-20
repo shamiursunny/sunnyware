@@ -2498,3 +2498,8 @@ Config:
 - **Backend (analytics.py)**: Improved error reporting for telemetry endpoint (traceback + exception type).
 - **Admin UI (admin-v2.html)**: Expanded Hardware Grid to display all 18+ fields with color-coded performance score.
 - Deployment SHA: b446eda
+
+## Part 242b & 243 — Telemetry and Auth Middleware Fixes (2026-10-20) COMPLETED
+- **Telemetry**: Fixed `NameError: USERS_FILE not defined` by creating `HARDWARE_FILE` constant and updating `update_hardware_profile` and the route in `analytics.py`.
+- **Auth Middleware**: Fixed `UnboundLocalError: local variable 'key' referenced before assignment` by initializing `key = ""` at the start of the middleware try block.
+- Deployment SHA: ec4bd83 (Part 242b) / 3538ef4 (Part 243)

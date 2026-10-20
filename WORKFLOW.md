@@ -1557,6 +1557,11 @@ cd /h/sunnyware
 
 ## Telemetry Fields
 
+- Stored in `hardware_profiles.json` under `_data`.
+- Key constant: `HARDWARE_FILE` in `analytics_store.py`.
+- API route: `POST /api/telemetry/report` (public).
+- Admin view: `/admin` → User Analytics → Details → Device Hardware Profile.
+
 - CPU cores, RAM (approx), platform, OS, browser, language, timezone
 - Screen resolution, pixel ratio, color depth, touch support
 - GPU vendor, renderer, max texture size
