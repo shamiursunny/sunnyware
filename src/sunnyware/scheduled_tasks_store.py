@@ -92,8 +92,10 @@ def toggle_task(tid: str) -> bool:
     return True
 
 
-def _next_run_ts(schedule: str) -> float:
+def _next_run_ts(schedule: str) -> Optional[float]:
     now = time.time()
+    if schedule == "once":
+        return None
     if schedule == "hourly":
         return now + 3600
     if schedule == "daily":

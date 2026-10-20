@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Part 221b: Chat audit routes."""
 
+import asyncio
 import csv
 import io
 import time
@@ -92,7 +93,10 @@ async def log_chat_message(req: Request):
     if role not in ("user", "assistant", "system"):
         return JSONResponse({"error": "invalid role"}, status_code=400)
     
-    entry = _cas.log_message(user, role, content, org_id=org, session_id=session_id)
+    # Part 228: offload sync file I/O to a thread to avoid blocking the event loop
+    entry = await asyncio.to_thread(
+        _cas.log_message, user, role, content, org_id=org, session_id=session_id
+    )
     return {"ok": True, "id": entry["id"]}
 
 
