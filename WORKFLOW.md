@@ -1568,3 +1568,9 @@ cd /h/sunnyware
 - Network downlink, RTT, effective type
 - Synthetic benchmark score (ops/sec) and latency (ms)
 - Full user agent string
+
+
+## Telemetry for Real Users
+
+- On login (WorkOS JWT), the frontend saves the user's email to `localStorage`.
+- The telemetry endpoint reads the JWT and overrides `anonymous` with the real email, so hardware profiles are user-specific.

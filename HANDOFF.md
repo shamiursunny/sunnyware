@@ -2503,3 +2503,9 @@ Config:
 - **Telemetry**: Fixed `NameError: USERS_FILE not defined` by creating `HARDWARE_FILE` constant and updating `update_hardware_profile` and the route in `analytics.py`.
 - **Auth Middleware**: Fixed `UnboundLocalError: local variable 'key' referenced before assignment` by initializing `key = ""` at the start of the middleware try block.
 - Deployment SHA: ec4bd83 (Part 242b) / 3538ef4 (Part 243)
+
+## Part 248 — Telemetry for Real Users (2026-10-20) COMPLETED
+- **Frontend (`chat.html`)**: When WorkOS JWT is received, the email is extracted and saved to `localStorage` for telemetry.
+- **Backend (`analytics.py`)**: Telemetry route now overrides `"anonymous"` with the email from the JWT, ensuring profiles are saved under the correct user.
+- Verified: `curl` with `X-API-Key: user:test@example.com` and `email: anonymous` returns `{"ok": true}` and saves under `test@example.com`. Console shows `[auth] Extracted email from JWT: shamiur.sunny@gmail.com` and `[Telemetry] Sent successfully`.
+- Deployment SHA: cd79eed
