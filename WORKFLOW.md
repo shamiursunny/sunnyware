@@ -1547,3 +1547,9 @@ cd /h/sunnyware
 
 - **Planner**: Each sub-task has a 60s timeout. Synthesis prompt is truncated to 2000 chars per sub-task to avoid context overflow. `/api/agent/plan` has a 180s outer timeout. Exceptions in `asyncio.gather` are now caught per-task, so one failed sub-task won't crash the whole plan.
 - **RAG**: All document/chunk operations run via `asyncio.to_thread` so the event loop is never blocked.
+
+
+## Anonymous Telemetry
+
+- If a user has no email (anonymous chat), the telemetry endpoint saves under the `anonymous` user.
+- This ensures hardware data is always captured.

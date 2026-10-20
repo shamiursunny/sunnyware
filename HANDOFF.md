@@ -2487,3 +2487,8 @@ Config:
 - **routes/rag_admin.py**: Offloaded all file I/O to `asyncio.to_thread` (7 calls) so uploads no longer freeze the server.
 - **routes/agent.py**: Added 180s outer timeout to `/api/agent/plan`.
 - Deployment SHA: f6d305e
+
+## Part 238b — Anonymous Hardware Telemetry (2026-10-20) COMPLETED
+- Backend: `/api/telemetry/report` now defaults to "anonymous" if no email is provided.
+- Frontend: `chat.html` falls back to `'anonymous'` for the email.
+- Deployment SHA: f64245a

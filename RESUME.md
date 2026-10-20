@@ -38,7 +38,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 ## Current state (last session: 2026-10-20, Part 224)
 
-**Completed:** Parts 206 – 239 (all features below are live and verified).
+**Completed:** Parts 206 – 239b (all features below are live and verified).
 
 ### Auth & Security
 - Per-API-Key **Sliding Window Rate Limiting** (configurable RPM, HTTP 429 enforcement)
@@ -49,6 +49,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - Complete OpenAPI spec (all team routes documented)
 - **Advanced Hardware Telemetry** (CPU, GPU, RAM, Network, Synthetic Performance Score per user)
 - **Hardened planner** (timeouts, dedupe, context truncation, exception safety)
+- **Anonymous hardware telemetry** (works without email)
 - **Non-blocking RAG routes** (all file I/O offloaded to threads)
 - **Sandboxed Python Execution** (multiprocessing timeouts, secure imports)
 - WorkOS SSO (Google login) + JWT
