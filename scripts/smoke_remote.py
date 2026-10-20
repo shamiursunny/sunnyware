@@ -76,6 +76,7 @@ endpoints = [
     ("/api/overage/config", "config"),
     ("/api/overage/overview", "orgs"),
     ("/api/slack/config", "enabled"),
+    ("/api/admin/feedback", "entries"),
 ]
 for path, key in endpoints:
     status, body = http(path)
@@ -111,6 +112,7 @@ for marker, desc in [
     ("async function renderFeatureFlags", "renderFeatureFlags defined"),
     ("async function renderOverage", "renderOverage defined"),
     ("async function renderSlackBot", "renderSlackBot defined"),
+    ("async function renderFeedback", "renderFeedback defined"),
     ("async function downloadInvoicePdf", "downloadInvoicePdf defined"),
     ("async function saveOrch", "saveOrch defined"),
     ('data-tab="email"', "Email nav item"),

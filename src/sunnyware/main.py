@@ -43,6 +43,7 @@ from .routes import impersonation as impersonation_routes
 from .routes import feature_flags as feature_flags_routes
 from .routes import overage as overage_routes
 from .routes import slack_bot as slack_bot_routes
+from .routes import feedback as feedback_routes
 from .routes import analytics as analytics_routes
 from .routes import llm_dashboard as llm_dashboard_routes
 from .routes import agent as agent_routes
@@ -159,6 +160,7 @@ app.include_router(impersonation_routes.router)
 app.include_router(feature_flags_routes.router)
 app.include_router(overage_routes.router)
 app.include_router(slack_bot_routes.router)
+app.include_router(feedback_routes.router)
 app.include_router(analytics_routes.router)
 app.include_router(llm_dashboard_routes.router)
 app.include_router(agent_routes.router)
@@ -393,6 +395,7 @@ class _MetricsMiddleware:
                 "/api/paddle/webhook",
                 "/api/slack/events",
                 "/api/slack/commands",
+                "/api/feedback",
             )
             # Attachments are served publicly for <img> tags (random IDs, unguessable)
             is_attachment = path.startswith("/api/attachments/")
@@ -755,6 +758,7 @@ _2FA_WHITELIST = (
     "/api/metrics",
     "/api/slack/events",
     "/api/slack/commands",
+    "/api/feedback",
 )
 
 

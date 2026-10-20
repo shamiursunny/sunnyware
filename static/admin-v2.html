@@ -172,6 +172,7 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
     <div class="nav-item" data-tab="impersonate">Impersonate</div>
     <div class="nav-item" data-tab="feature-flags">Feature Flags</div>
     <div class="nav-item" data-tab="slack-bot">Slack Bot</div>
+    <div class="nav-item" data-tab="feedback">Feedback</div>
   </div>
 </div>
 
@@ -4563,6 +4564,107 @@ async function clearSlackActivity() {
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       el.classList.add('active');
       renderSlackBot();
+    };
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
+  else hook();
+})();
+
+
+
+// Part 225: USER FEEDBACK page
+async function renderFeedback() {
+  const data = await api('/api/admin/feedback?limit=200').catch(() => ({ entries: [], stats: {} }));
+  const entries = data.entries || [];
+  const stats = data.stats || { count: 0, avg_rating: 0, ratings: {} };
+
+  const fmtStars = (n) => '★'.repeat(n) + '☆'.repeat(5 - n);
+  const fmtTime = (ts) => new Date(ts * 1000).toLocaleString();
+  const bar = (count) => {
+    const max = Math.max(...Object.values(stats.ratings || {}), 1);
+    return Math.round((count / max) * 100);
+  };
+
+  $('content').innerHTML = `
+    <h2>User Feedback</h2>
+    <p style="color:var(--muted);margin-bottom:16px;">Collect and review user ratings and comments. Public endpoint: <code>POST /api/feedback</code></p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:20px;">
+      <div class="card">
+        <div style="font-size:11px;color:var(--muted);">Total Feedback</div>
+        <div style="font-size:28px;font-weight:700;">${stats.count || 0}</div>
+      </div>
+      <div class="card">
+        <div style="font-size:11px;color:var(--muted);">Average Rating</div>
+        <div style="font-size:28px;font-weight:700;color:${(stats.avg_rating || 0) >= 4 ? 'var(--success)' : (stats.avg_rating || 0) >= 3 ? 'var(--warn)' : 'var(--danger)'};">
+          ${(stats.avg_rating || 0).toFixed(1)} <span style="font-size:14px;">★</span>
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Rating Distribution</div>
+        ${[5,4,3,2,1].map(r => `
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+            <span style="width:40px;font-size:10px;">${r}★</span>
+            <div style="flex:1;background:var(--bg);border-radius:3px;height:6px;">
+              <div style="width:${bar((stats.ratings || {})[r] || 0)}%;background:var(--accent);height:100%;border-radius:3px;"></div>
+            </div>
+            <span style="width:25px;text-align:right;font-size:10px;color:var(--muted);">${(stats.ratings || {})[r] || 0}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <h3 style="margin:0;">Recent Feedback (${entries.length})</h3>
+      <button class="danger small" onclick="clearFeedback()">Clear All</button>
+    </div>
+
+    ${entries.length === 0 ? `
+      <div class="card" style="text-align:center;padding:40px;">
+        <p style="color:var(--muted);">No feedback yet.</p>
+        <p style="color:var(--muted);font-size:12px;margin-top:8px;">
+          Users can submit feedback via <code>POST /api/feedback</code> with
+          <code>{"rating": 5, "comment": "Love it!"}</code>
+        </p>
+      </div>
+    ` : `
+    <table>
+      <thead><tr><th>Time</th><th>User</th><th>Rating</th><th>Comment</th><th>Page</th></tr></thead>
+      <tbody>
+        ${entries.map(e => `
+          <tr>
+            <td style="font-size:11px;color:var(--muted);">${fmtTime(e.ts)}</td>
+            <td style="font-size:11px;">${e.user ? esc(e.user) : '<span style="color:var(--muted);">anonymous</span>'}</td>
+            <td style="font-size:14px;color:${e.rating >= 4 ? 'var(--success)' : e.rating >= 3 ? 'var(--warn)' : 'var(--danger)'};">
+              ${fmtStars(e.rating)}
+            </td>
+            <td style="font-size:12px;max-width:400px;">${esc(e.comment) || '<span style="color:var(--muted);">—</span>'}</td>
+            <td style="font-size:11px;color:var(--muted);">${esc(e.page) || '—'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+  `;
+}
+
+async function clearFeedback() {
+  if (!confirm('Clear ALL user feedback? This cannot be undone.')) return;
+  try {
+    await api('/api/admin/feedback', 'DELETE');
+    toast('Feedback cleared');
+    renderFeedback();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// Hook Feedback nav
+(function () {
+  const hook = () => {
+    const el = document.querySelector('.nav-item[data-tab="feedback"]');
+    if (el) el.onclick = () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      el.classList.add('active');
+      renderFeedback();
     };
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
