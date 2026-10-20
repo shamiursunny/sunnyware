@@ -2448,3 +2448,10 @@ Config:
 - **Team Invites**: `invite_store.py`, magic links, email delivery, UI on Team page, public `/invite` accept route.
 - **API Key Regenerate**: Replaced "Reveal" (impossible since hashed) with "Regenerate" button. `api_keys_store.regenerate_key()` generates a new `sk_...`, hashes it, updates the prefix, resets usage, and returns the raw key exactly once.
 - Deployment SHA: eafb808
+
+## Part 233 & 233b — Team Magic Link Invites (2026-10-20) COMPLETED
+- **Invite Store**: `invite_store.py` with `create_invite`, `get_invite`, `delete_invite`.
+- **Backend**: `routes/team.py` now creates an invite on `add_member` and returns the magic link. Accept route `/invite` generates a JWT and redirects to `/ui`.
+- **Frontend**: `addTeamMember()` now shows a modal with the magic link and a copy button.
+- **Fix 233b**: Removed broken `from .. import email as _email` import that crashed the HF Space.
+- Deployment SHA: b897404

@@ -1502,3 +1502,11 @@ cd /h/sunnyware
 
 - Keys are hashed at rest (secure).
 - Admins can regenerate a key at any time. The old key is invalidated instantly, and the new raw key is shown once via a modal.
+
+
+## Team Invites
+
+- Admin adds member via Team page.
+- Backend generates a magic link and returns it to the UI.
+- User opens link → gets JWT → auto-logged into `/ui`.
+- (Email sending is stubbed; users copy the link manually.)
