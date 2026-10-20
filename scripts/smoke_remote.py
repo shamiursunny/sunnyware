@@ -73,6 +73,8 @@ endpoints = [
     ("/api/backup/list", "files"),
     ("/api/impersonate/verify", "valid"),
     ("/api/feature-flags", "flags"),
+    ("/api/overage/config", "config"),
+    ("/api/overage/overview", "orgs"),
 ]
 for path, key in endpoints:
     status, body = http(path)
@@ -106,6 +108,7 @@ for marker, desc in [
     ("async function renderBackup", "renderBackup defined"),
     ("async function renderImpersonate", "renderImpersonate defined"),
     ("async function renderFeatureFlags", "renderFeatureFlags defined"),
+    ("async function renderOverage", "renderOverage defined"),
     ("async function downloadInvoicePdf", "downloadInvoicePdf defined"),
     ("async function saveOrch", "saveOrch defined"),
     ('data-tab="email"', "Email nav item"),

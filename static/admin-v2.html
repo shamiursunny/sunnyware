@@ -128,6 +128,7 @@ input:checked + .toggle-slider:before { transform: translateX(18px); }
     <div class="nav-item" data-tab="plans">Plans</div>
     <div class="nav-item" data-tab="invoices">Invoices</div>
     <div class="nav-item" data-tab="paddle-live">Paddle Live</div>
+    <div class="nav-item" data-tab="overage">Overage Billing</div>
     <div class="nav-item" data-tab="accounting">Accounting</div>
     <div class="nav-item" data-tab="reports">Reports</div>
   </div>
@@ -4299,6 +4300,129 @@ async function evaluateFlagsForUser() {
       document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
       el.classList.add('active');
       renderFeatureFlags();
+    };
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
+  else hook();
+})();
+
+
+
+// Part 224c: OVERAGE BILLING page
+async function renderOverage() {
+  const [configData, overviewData, chargesData] = await Promise.all([
+    api('/api/overage/config').catch(() => ({ config: {}, caps: {} })),
+    api('/api/overage/overview').catch(() => ({ orgs: [] })),
+    api('/api/overage/charges?limit=50').catch(() => ({ charges: [] }))
+  ]);
+  const config = configData.config || {};
+  const caps = configData.caps || {};
+  const orgs = overviewData.orgs || [];
+  const charges = chargesData.charges || [];
+
+  const fmtNum = (n) => n >= 1000000 ? (n/1000000).toFixed(2)+'M' : n >= 1000 ? (n/1000).toFixed(1)+'K' : String(n || 0);
+  const fmtMoney = (n) => '$' + (Number(n) || 0).toFixed(2);
+
+  const totalOverages = orgs.filter(o => o.overage_cost > 0).length;
+  const orgsWithHardCap = orgs.filter(o => o.hard_cap && !o.can_continue).length;
+
+  $('content').innerHTML = `
+    <h2>Overage Billing</h2>
+    <p style="color:var(--muted);margin-bottom:16px;">Charge customers automatically when they exceed plan token limits.</p>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;">
+      <div class="card"><div style="font-size:11px;color:var(--muted);">Orgs Over Limit</div><div style="font-size:22px;font-weight:700;color:${totalOverages > 0 ? 'var(--warn)' : 'inherit'};">${totalOverages}</div></div>
+      <div class="card"><div style="font-size:11px;color:var(--muted);">Total Overage Tokens</div><div style="font-size:22px;font-weight:700;">${fmtNum(overviewData.total_overage_tokens || 0)}</div></div>
+      <div class="card"><div style="font-size:11px;color:var(--muted);">Total Overage Cost</div><div style="font-size:22px;font-weight:700;color:var(--accent);">${fmtMoney(overviewData.total_overage_cost || 0)}</div></div>
+      <div class="card"><div style="font-size:11px;color:var(--muted);">Hard-Cap Orgs (Blocked)</div><div style="font-size:22px;font-weight:700;color:${orgsWithHardCap > 0 ? 'var(--danger)' : 'inherit'};">${orgsWithHardCap}</div></div>
+    </div>
+
+    <div class="card" style="margin-bottom:20px;">
+      <h3 style="margin-top:0;color:var(--accent);">Configuration</h3>
+      <div class="form-row">
+        <div><label>Rate per 1M tokens ($)</label><input id="ovg-rate" type="number" step="0.01" min="0" value="${config.rate_per_million || 0.50}" onblur="updateOverageConfig()"></div>
+        <div><label>Enabled</label>
+          <select id="ovg-enabled" onchange="updateOverageConfig()">
+            <option value="true" ${config.enabled !== false ? 'selected' : ''}>Yes — enforce overage</option>
+            <option value="false" ${config.enabled === false ? 'selected' : ''}>No — ignore overage</option>
+          </select>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:8px;">
+        <strong>Plan caps:</strong> Free: hard cap (blocked) · Pro: soft cap 50M overage · Enterprise: unlimited
+      </div>
+    </div>
+
+    <h3>Organizations (${orgs.length})</h3>
+    ${orgs.length === 0 ? '<p style="color:var(--muted)">No organizations yet.</p>' : `
+    <table>
+      <thead><tr><th>Org</th><th>Plan</th><th class="n">Tokens Used</th><th class="n">Limit</th><th class="n">Overage</th><th class="n">Cost</th><th>Status</th></tr></thead>
+      <tbody>
+        ${orgs.map(o => `
+          <tr>
+            <td><strong>${esc(o.org_name || o.org_id)}</strong><br><span style="font-size:10px;color:var(--muted);">${esc(o.owner_email || '')}</span></td>
+            <td><span class="tag">${esc(o.plan || 'free')}</span></td>
+            <td class="n">${fmtNum(o.tokens_used)}</td>
+            <td class="n">${o.token_limit > 0 ? fmtNum(o.token_limit) : (o.token_limit < 0 ? '∞' : '—')}</td>
+            <td class="n" style="color:${o.overage_tokens > 0 ? 'var(--warn)' : 'inherit'};">${fmtNum(o.overage_tokens)}</td>
+            <td class="n" style="color:${o.overage_cost > 0 ? 'var(--accent)' : 'inherit'};">${fmtMoney(o.overage_cost)}</td>
+            <td>${o.can_continue ? '<span class="tag ok">Active</span>' : '<span class="tag bad">Blocked</span>'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:32px;">
+      <h3 style="margin:0;">Recent Overage Charges (${charges.length})</h3>
+      <button class="ghost small" onclick="clearOverageCharges()">Clear Log</button>
+    </div>
+    ${charges.length === 0 ? '<p style="color:var(--muted)">No charges recorded yet.</p>' : `
+    <table>
+      <thead><tr><th>Time</th><th>Org</th><th>Plan</th><th class="n">Tokens</th><th class="n">Amount</th><th>Note</th></tr></thead>
+      <tbody>
+        ${charges.map(c => `
+          <tr>
+            <td style="font-size:11px;">${new Date(c.ts*1000).toLocaleString()}</td>
+            <td><code style="font-size:10px">${esc(c.org_id)}</code></td>
+            <td><span class="tag">${esc(c.plan || '—')}</span></td>
+            <td class="n">${fmtNum(c.tokens)}</td>
+            <td class="n" style="color:var(--accent);font-weight:600;">${fmtMoney(c.amount)}</td>
+            <td style="font-size:11px;color:var(--muted);">${esc(c.note || '')}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    `}
+  `;
+}
+
+async function updateOverageConfig() {
+  const rate = parseFloat(document.getElementById('ovg-rate').value) || 0;
+  const enabled = document.getElementById('ovg-enabled').value === 'true';
+  try {
+    await api('/api/overage/config', 'PATCH', { rate_per_million: rate, enabled });
+    toast('Config updated');
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+async function clearOverageCharges() {
+  if (!confirm('Clear all overage charge records? This is for logging only, does not affect billing.')) return;
+  try {
+    await api('/api/overage/charges', 'DELETE');
+    toast('Charges cleared');
+    renderOverage();
+  } catch(e) { toast('Error: ' + e.message, 'error'); }
+}
+
+// Hook Overage nav
+(function () {
+  const hook = () => {
+    const el = document.querySelector('.nav-item[data-tab="overage"]');
+    if (el) el.onclick = () => {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      el.classList.add('active');
+      renderOverage();
     };
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', hook);
