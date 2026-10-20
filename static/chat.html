@@ -4340,6 +4340,99 @@ async function stopImpersonation() {
   window.location.href = '/admin';
 }
 
+
+
+// Part 238: Advanced Hardware Telemetry & Benchmark
+async function collectAndSendTelemetry() {
+  try {
+    // 1. Basic Hardware info
+    const cpuCores = navigator.hardwareConcurrency || 'Unknown';
+    const ramGB = navigator.deviceMemory || 'Unknown';
+    const screenRes = `${window.screen.width}x${window.screen.height}`;
+    const pixelRatio = window.devicePixelRatio || 1;
+    const touch = navigator.maxTouchPoints > 0;
+    
+    // 2. GPU Info via WebGL
+    let gpuVendor = 'Unknown', gpuRenderer = 'Unknown';
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (gl) {
+        const debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+        if (debugInfo) {
+          gpuVendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+          gpuRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+        }
+      }
+    } catch(e) {}
+
+    // 3. Network Info
+    const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const downlink = conn ? conn.downlink : 'Unknown';
+    const rtt = conn ? conn.rtt : 'Unknown';
+    
+    // 4. OS & Browser Parsing
+    const ua = navigator.userAgent;
+    let os = 'Unknown';
+    if (ua.indexOf('Win') !== -1) os = 'Windows';
+    else if (ua.indexOf('Mac') !== -1) os = 'macOS';
+    else if (ua.indexOf('Linux') !== -1) os = 'Linux';
+    else if (ua.indexOf('Android') !== -1) os = 'Android';
+    else if (ua.indexOf('like Mac') !== -1) os = 'iOS';
+    
+    let browser = 'Unknown';
+    if (ua.indexOf('Firefox') > -1) browser = 'Firefox';
+    else if (ua.indexOf('Edg') > -1) browser = 'Edge';
+    else if (ua.indexOf('Chrome') > -1) browser = 'Chrome';
+    else if (ua.indexOf('Safari') > -1) browser = 'Safari';
+
+    // 5. Synthetic Performance Benchmark (Calculates hashes in memory)
+    const start = performance.now();
+    let ops = 0;
+    for (let i = 0; i < 500000; i++) {
+        ops += Math.sqrt(i) * Math.sin(i);
+    }
+    const end = performance.now();
+    const score = Math.round(500000 / (end - start) * 1000); // Higher is better
+    const benchmarkMs = Math.round(end - start);
+
+    const profile = {
+      cpuCores: cpuCores,
+      ramGB: ramGB,
+      screenRes: screenRes,
+      pixelRatio: pixelRatio,
+      touch: touch,
+      gpuVendor: gpuVendor,
+      gpuRenderer: gpuRenderer,
+      downlink: downlink,
+      rtt: rtt,
+      os: os,
+      browser: browser,
+      benchmarkScore: score,
+      benchmarkMs: benchmarkMs,
+      ts: Date.now()
+    };
+
+    const email = localStorage.getItem('sunnyware_user_email') || '';
+    const apiKey = localStorage.getItem('sunnyware_admin_key') || '';
+
+    await fetch('/api/telemetry/report', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': apiKey
+      },
+      body: JSON.stringify({ profile, email })
+    });
+    console.log('[Telemetry] Sent successfully');
+  } catch (e) {
+    console.error('[Telemetry] Failed', e);
+  }
+}
+
+// Run 2 seconds after the page loads so it doesn't block the UI
+setTimeout(collectAndSendTelemetry, 2000);
+
 </script>
 </body>
 

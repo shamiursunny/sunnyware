@@ -47,6 +47,14 @@ async def user_detail(email: str, req: Request, days: int = 30):
     summary = _as.user_summary(email, days=days)
     daily = _as.daily_usage(email, days=min(days, 30))
     summary["daily_usage"] = daily
+    
+    # Part 238: Include hardware profile if available
+    try:
+        users = _as._load(_as.USERS_FILE, {})
+        summary["hardware"] = users.get(email.lower().strip(), {}).get("hardware", {})
+    except Exception:
+        summary["hardware"] = {}
+        
     return summary
 
 
@@ -86,3 +94,31 @@ async def get_charts(req: Request, days: int = 7):
     if d: return d
     return {"data": _as.get_chart_data(days=days)}
 
+
+
+@router.post("/api/telemetry/report")
+async def report_telemetry(req: Request):
+    """Part 238: Receive hardware and performance data from the client."""
+    try:
+        body = await req.json()
+        profile = body.get("profile", {})
+        email = body.get("email", "").strip().lower()
+        
+        # If no email provided, try to get from JWT
+        if not email:
+            key = req.headers.get("x-api-key") or ""
+            if key.startswith("user:") or ("." in key and len(key) > 20):
+                try:
+                    from .auth import verify_jwt
+                    email = key.split(":", 1)[1] if key.startswith("user:") else verify_jwt(key)
+                except Exception:
+                    pass
+                    
+        if not email:
+            return {"ok": False, "error": "user not identified"}
+            
+        from .. import analytics_store as _as
+        _as.update_hardware_profile(email, profile)
+        return {"ok": True}
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=400)

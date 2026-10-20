@@ -326,3 +326,15 @@ def get_chart_data(days: int = 7) -> list:
             result.append({"date": day, "tokens": 0, "chats": 0})
     return list(reversed(result))
 
+
+
+def update_hardware_profile(email: str, profile: dict) -> bool:
+    """Part 238: Store advanced hardware and performance data."""
+    if not email:
+        return False
+    users = _load(USERS_FILE, {})
+    email = email.lower().strip()
+    if email not in users:
+        users[email] = {}
+    users[email]["hardware"] = profile
+    return _save(USERS_FILE, users)

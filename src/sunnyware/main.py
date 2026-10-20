@@ -790,6 +790,7 @@ _2FA_WHITELIST = (
     "/api/slack/events",
     "/api/slack/commands",
     "/api/feedback",
+    "/api/telemetry/report",
 )
 
 
