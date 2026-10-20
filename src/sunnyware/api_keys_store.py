@@ -148,3 +148,24 @@ def update_rate_limit(key_id: str, rate_limit: int) -> bool:
     keys[key_id]["rate_limit_per_min"] = max(1, rate_limit)
     _save(KEYS_FILE, keys)
     return True
+
+
+def regenerate_key(key_id: str) -> dict:
+    """Generate a new raw key, update the hash, and return the raw key once."""
+    keys = _load()
+    if key_id not in keys:
+        return None
+    
+    raw = "sk_" + secrets.token_urlsafe(32)
+    keys[key_id]["hash"] = _hash(raw)
+    keys[key_id]["prefix"] = raw[:11]
+    keys[key_id]["revoked"] = False  # Un-revoke if it was revoked
+    keys[key_id]["last_used"] = None  # Reset usage stats
+    keys[key_id]["calls"] = 0
+    keys[key_id]["tokens_used"] = 0
+    _save(keys)
+    
+    # Return the safe dict (without hash) plus the raw key
+    safe = {kk: vv for kk, vv in keys[key_id].items() if kk != "hash"}
+    safe["raw_key"] = raw
+    return safe

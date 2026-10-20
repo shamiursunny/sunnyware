@@ -3059,7 +3059,7 @@ async function renderApiKeys() {
             <td><strong>${esc(k.name)}</strong></td>
             <td>
               <code style="font-size:11px">${esc(k.prefix)}…</code>
-              <button class="ghost small" style="margin-left:6px;padding:2px 6px;" onclick="revealApiKey('${esc(k.id)}')">Reveal</button>
+              <button class="ghost small" style="margin-left:6px;padding:2px 6px;" onclick="regenerateApiKey('${esc(k.id)}')">Regenerate</button>
             </td>
             <td><code style="font-size:10px">${esc(k.org_id || '-')}</code></td>
             <td style="font-size:11px;">${esc(k.user_email || '-')}</td>
@@ -4707,34 +4707,44 @@ async function clearFeedback() {
 })();
 
 
-async function revealApiKey(keyId) {
+
+
+async function regenerateApiKey(keyId) {
+  if (!confirm('Are you sure you want to regenerate this key? The old key will stop working immediately.')) return;
+  
   try {
-    // Fetch the latest keys to ensure we have the raw key
-    const data = await api('/api/api-keys');
-    const keyObj = data.keys.find(k => k.id === keyId);
+    const res = await api('/api/api-keys/' + encodeURIComponent(keyId) + '/regenerate', 'POST');
     
-    if (!keyObj || !keyObj.key) {
-      return toast('Key not found or raw key is unavailable', 'error');
+    if (!res.ok || !res.key || !res.key.raw_key) {
+      return toast('Failed to regenerate key', 'error');
     }
 
-    // Create a temporary modal to show the key
+    const rawKey = res.key.raw_key;
+    const keyName = res.key.name;
+
+    // Show the new key in a modal
     const modal = document.createElement('div');
     modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:10000;';
     modal.innerHTML = `
       <div class="card" style="max-width:500px;width:90%;position:relative;">
         <button style="position:absolute;top:10px;right:10px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;" onclick="this.closest('div').parentElement.remove()">&times;</button>
-        <h3 style="margin-top:0;color:var(--accent);">API Key: ${esc(keyObj.name)}</h3>
+        <h3 style="margin-top:0;color:var(--accent);">New API Key: ${esc(keyName)}</h3>
+        <p style="color:var(--warn);font-size:12px;margin-bottom:12px;">Copy this key now. It will not be shown again.</p>
         <div style="background:var(--bg);padding:12px;border-radius:6px;font-family:monospace;font-size:13px;word-break:break-all;user-select:all;margin-bottom:16px;">
-          ${esc(keyObj.key)}
+          ${esc(rawKey)}
         </div>
         <div style="display:flex;gap:8px;">
-          <button onclick="navigator.clipboard.writeText('${esc(keyObj.key)}').then(() => toast('Copied to clipboard!'))" style="flex:1;">Copy to Clipboard</button>
+          <button onclick="navigator.clipboard.writeText('${esc(rawKey)}').then(() => toast('Copied to clipboard!'))" style="flex:1;">Copy to Clipboard</button>
           <button class="ghost" onclick="this.closest('div').parentElement.parentElement.remove()" style="flex:1;">Close</button>
         </div>
       </div>
     `;
     document.body.appendChild(modal);
-  } catch(e) {
+    
+    // Refresh the table to show the new prefix
+    renderApiKeys();
+    
+  } catch (e) {
     toast('Error: ' + e.message, 'error');
   }
 }

@@ -84,3 +84,14 @@ async def update_key_rpm(key_id: str, req: Request):
         return JSONResponse({"error": "not_supported"}, status_code=500)
     ok = _ks.update_rate_limit(key_id, rpm) if hasattr(_ks, "update_rate_limit") else _ks.update_rpm_limit(key_id, rpm)
     return {"ok": ok, "rate_limit_per_min": rpm}
+
+
+@router.post("/api/api-keys/{key_id}/regenerate")
+async def regenerate_key(key_id: str, req: Request):
+    d = _admin_only(req)
+    if d: return d
+    from .. import api_keys_store as _aks
+    res = _aks.regenerate_key(key_id)
+    if not res:
+        return JSONResponse({"error": "not found"}, status_code=404)
+    return {"ok": True, "key": res}
