@@ -1605,3 +1605,10 @@ cd /h/sunnyware
 - The Library now syncs across devices using the `library_files` table in Neon DB.
 - `routes/library.py` provides GET, POST, and DELETE endpoints for files.
 - The frontend now calls these APIs instead of relying on `localStorage`.
+
+
+## Security Audit Fixes (Part 257)
+
+- **XSS**: Markdown links in `chat.html` now block `javascript:` and `data:` URLs.
+- **Token Protection**: `MAX_ITERATIONS` reduced to 5 in `orchestrator.py`.
+- **Master Key**: Moved to `SUNNYWARE_MASTER_KEY` environment variable (defaults to `master-admin-key` if unset).

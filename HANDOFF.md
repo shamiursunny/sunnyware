@@ -2534,3 +2534,9 @@ Config:
 - **routes/library.py**: Created new API endpoints for listing, saving, and deleting library files. Uses a new `library_files` table in Neon DB.
 - **chat.html**: Removed the broken Share button, and replaced `localStorage` logic with API calls to sync uploads and generated images across devices.
 - Deployment SHA: 1dd6d6d
+
+## Part 257 — Security Audit Fixes (2026-10-20) COMPLETED
+- **chat.html**: Fixed XSS in `mdLite` by sanitizing link URLs.
+- **orchestrator.py**: Reduced `MAX_ITERATIONS` from 10 to 5 to protect tokens.
+- **auth.py**: Moved hardcoded `master-admin-key` to `os.getenv("SUNNYWARE_MASTER_KEY")`.
+- Deployment SHA: 96412e4
