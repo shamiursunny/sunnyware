@@ -32,12 +32,11 @@ def _set_analytics_user_from_request(req: Request) -> None:
                     key = authz[7:].strip()
             if key and key != "master-admin-key" and "." in key and len(key) > 20:
                 try:
-                    import base64 as _b64
-                    import json as _json
-                    b64 = key.split(".")[0]
-                    padded = b64 + "=" * (-len(b64) % 4)
-                    payload = _json.loads(_b64.urlsafe_b64decode(padded))
-                    user = payload.get("sub") or payload.get("email") or ""
+                    # Part 224f: verify JWT signature before trusting the claims
+                    from sunnyware.routes.auth import verify_jwt
+                    _verified_email = verify_jwt(key)
+                    if _verified_email:
+                        user = _verified_email
                 except Exception:
                     pass
         org = ""
@@ -194,11 +193,16 @@ async def _auditor_verdict_with_retry(role, content):
                 "The canonical_label MUST be exactly one of: "
                 + _required_labels
             )
-            retry_result = await _orc.run_agent(
-                retry_prompt,
-                session_uuid=None,
-                model=None,
-                system=None,
+            # Part 224f: 30s timeout + role=general to prevent recursion
+            retry_result = await asyncio.wait_for(
+                _orc.run_agent(
+                    retry_prompt,
+                    session_uuid=None,
+                    model=None,
+                    system=None,
+                    role="general",
+                ),
+                timeout=30.0,
             )
             retry_text = (retry_result or {}).get("answer", "") or ""
             parsed2 = _roles.extract_auditor_json(retry_text)
@@ -368,6 +372,11 @@ async def run_agent(req: Request):
     # Part 203: record token usage for quota tracking
     _record_token_usage(req, agent_result.get("tokens_used", 0))
 
+    # Part 224f: compute auditor verdict ONCE (was called twice -> double LLM cost)
+    _auditor_verdict = None
+    if agent_result.get("ok") and (role or "").strip().lower() == "auditor":
+        _auditor_verdict = await _auditor_verdict_with_retry(role, agent_result.get("answer", ""))
+
     if session_uuid:
         if agent_result.get("ok"):
             await memory_store.log_event(
@@ -377,7 +386,7 @@ async def run_agent(req: Request):
                     "steps_count": len(agent_result.get("steps", [])),
                     "iterations": agent_result.get("iterations", 0),
                     "model": (agent_result.get("resolved_model") or model or (state["config"].llm_model if state["config"] else "unknown")),
-                    "auditor_verdict": await _auditor_verdict_with_retry(role, agent_result.get("answer", "")),
+                    "auditor_verdict": _auditor_verdict,
                     "attachments": agent_result.get("attachments") or [],
                 },
             )
@@ -403,7 +412,7 @@ async def run_agent(req: Request):
         "result": {
             "content": agent_result.get("answer", ""),
             "model": (agent_result.get("resolved_model") or (state["config"].llm_model if state["config"] else "unknown")),
-            "auditor_verdict": await _auditor_verdict_with_retry(role, agent_result.get("answer", "")),
+            "auditor_verdict": _auditor_verdict,
             "steps": agent_result.get("steps", []),
             "iterations": agent_result.get("iterations", 1),
             "provider": agent_result.get("provider"),
@@ -422,6 +431,9 @@ async def run_agent(req: Request):
 @router.post("/api/agent/run/stream")
 async def run_agent_stream(req: Request):
     _set_analytics_user_from_request(req)
+    # Part 224f: quota check was missing on streaming endpoint (billing bypass)
+    _deny = _check_quota(req)
+    if _deny: return _deny
     if not state["ready"]:
         return JSONResponse({"error": "server not ready"}, status_code=503)
 
@@ -483,6 +495,10 @@ async def run_agent_stream(req: Request):
                     session_uuid, "assistant_message",
                     {"content": _strip_broken_b64_md(full_text), "model": model or "default", "streaming": True, "attachments": []},
                 )
+            # Part 224f: record token usage for streaming (estimate: 4 chars ≈ 1 token)
+            if full_text:
+                _est_tokens = max(1, len(full_text) // 4)
+                _record_token_usage(req, _est_tokens)
             try:
                 from ..llm import get_last_stream_provider as _glp
                 _prov_name = _glp()
@@ -507,6 +523,9 @@ async def run_agent_stream(req: Request):
 @router.post("/api/agent/plan")
 async def run_agent_plan(req: Request):
     _set_analytics_user_from_request(req)
+    # Part 224f: quota check was missing on planning endpoint (billing bypass)
+    _deny = _check_quota(req)
+    if _deny: return _deny
     if not state["ready"]:
         return JSONResponse({"error": "server not ready"}, status_code=503)
 
