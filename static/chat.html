@@ -4342,18 +4342,27 @@ async function stopImpersonation() {
 
 
 
-// Part 238: Advanced Hardware Telemetry & Benchmark
+
+// Part 238c: Ultimate Hardware Telemetry & Benchmark
 async function collectAndSendTelemetry() {
   try {
-    // 1. Basic Hardware info
+    // 1. Hardware info
     const cpuCores = navigator.hardwareConcurrency || 'Unknown';
     const ramGB = navigator.deviceMemory || 'Unknown';
+    const platform = navigator.platform || 'Unknown';
+    const userAgent = navigator.userAgent;
+    const language = navigator.language || 'Unknown';
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Unknown';
+    const cookieEnabled = navigator.cookieEnabled;
+    
+    // 2. Screen info
     const screenRes = `${window.screen.width}x${window.screen.height}`;
     const pixelRatio = window.devicePixelRatio || 1;
+    const colorDepth = window.screen.colorDepth || 0;
     const touch = navigator.maxTouchPoints > 0;
     
-    // 2. GPU Info via WebGL
-    let gpuVendor = 'Unknown', gpuRenderer = 'Unknown';
+    // 3. GPU & WebGL Info
+    let gpuVendor = 'Unknown', gpuRenderer = 'Unknown', maxTexture = 'Unknown';
     try {
       const canvas = document.createElement('canvas');
       const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
@@ -4363,15 +4372,17 @@ async function collectAndSendTelemetry() {
           gpuVendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
           gpuRenderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
         }
+        maxTexture = gl.getParameter(gl.MAX_TEXTURE_SIZE);
       }
     } catch(e) {}
 
-    // 3. Network Info
+    // 4. Network Info
     const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
     const downlink = conn ? conn.downlink : 'Unknown';
     const rtt = conn ? conn.rtt : 'Unknown';
+    const netType = conn ? conn.effectiveType : 'Unknown';
     
-    // 4. OS & Browser Parsing
+    // 5. OS & Browser Parsing
     const ua = navigator.userAgent;
     let os = 'Unknown';
     if (ua.indexOf('Win') !== -1) os = 'Windows';
@@ -4386,7 +4397,7 @@ async function collectAndSendTelemetry() {
     else if (ua.indexOf('Chrome') > -1) browser = 'Chrome';
     else if (ua.indexOf('Safari') > -1) browser = 'Safari';
 
-    // 5. Synthetic Performance Benchmark (Calculates hashes in memory)
+    // 6. Synthetic Performance Benchmark (Calculates hashes in memory)
     const start = performance.now();
     let ops = 0;
     for (let i = 0; i < 500000; i++) {
@@ -4397,26 +4408,18 @@ async function collectAndSendTelemetry() {
     const benchmarkMs = Math.round(end - start);
 
     const profile = {
-      cpuCores: cpuCores,
-      ramGB: ramGB,
-      screenRes: screenRes,
-      pixelRatio: pixelRatio,
-      touch: touch,
-      gpuVendor: gpuVendor,
-      gpuRenderer: gpuRenderer,
-      downlink: downlink,
-      rtt: rtt,
-      os: os,
-      browser: browser,
-      benchmarkScore: score,
-      benchmarkMs: benchmarkMs,
+      cpuCores, ramGB, platform, userAgent, language, timezone, cookieEnabled,
+      screenRes, pixelRatio, colorDepth, touch,
+      gpuVendor, gpuRenderer, maxTexture,
+      downlink, rtt, netType,
+      os, browser, benchmarkScore: score, benchmarkMs,
       ts: Date.now()
     };
 
     const email = localStorage.getItem('sunnyware_user_email') || 'anonymous';
     const apiKey = localStorage.getItem('sunnyware_admin_key') || '';
 
-    await fetch('/api/telemetry/report', {
+    const res = await fetch('/api/telemetry/report', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -4424,14 +4427,21 @@ async function collectAndSendTelemetry() {
       },
       body: JSON.stringify({ profile, email })
     });
-    console.log('[Telemetry] Sent successfully');
+    
+    if (res.ok) {
+      console.log('[Telemetry] Sent successfully');
+    } else {
+      const err = await res.json().catch(() => ({}));
+      console.error('[Telemetry] Failed:', err);
+    }
   } catch (e) {
-    console.error('[Telemetry] Failed', e);
+    console.error('[Telemetry] Script error', e);
   }
 }
 
 // Run 2 seconds after the page loads so it doesn't block the UI
 setTimeout(collectAndSendTelemetry, 2000);
+
 
 </script>
 </body>

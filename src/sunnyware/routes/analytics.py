@@ -98,7 +98,7 @@ async def get_charts(req: Request, days: int = 7):
 
 @router.post("/api/telemetry/report")
 async def report_telemetry(req: Request):
-    """Part 238: Receive hardware and performance data from the client."""
+    """Part 238c: Receive expanded hardware and performance data."""
     try:
         body = await req.json()
         profile = body.get("profile", {})
@@ -115,10 +115,21 @@ async def report_telemetry(req: Request):
                     pass
                     
         if not email:
-            email = "anonymous"  # Part 238b: allow anonymous telemetry
+            email = "anonymous"
             
         from .. import analytics_store as _as
-        _as.update_hardware_profile(email, profile)
-        return {"ok": True}
+        
+        # Check if the function exists and handle signature safely
+        if hasattr(_as, "update_hardware_profile"):
+            # Ensure we handle any internal exceptions
+            success = _as.update_hardware_profile(email, profile)
+            if not success:
+                return JSONResponse({"error": "failed to save profile"}, status_code=500)
+            return {"ok": True}
+        else:
+            return JSONResponse({"error": "telemetry not supported"}, status_code=501)
+            
     except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=400)
+        import traceback
+        traceback.print_exc()
+        return JSONResponse({"error": str(e), "type": type(e).__name__}, status_code=400)

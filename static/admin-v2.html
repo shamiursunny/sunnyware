@@ -2665,18 +2665,26 @@ async function showUserDetail(email) {
       ${detail.hardware ? `
       <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:20px;background:var(--bg);padding:16px;border-radius:8px;border:1px solid var(--border);">
         <div><span style="font-size:11px;color:var(--muted);">OS / Browser</span><br><strong>${esc(detail.hardware.os)} / ${esc(detail.hardware.browser)}</strong></div>
+        <div><span style="font-size:11px;color:var(--muted);">Platform</span><br><strong>${esc(detail.hardware.platform)}</strong></div>
         <div><span style="font-size:11px;color:var(--muted);">CPU Cores</span><br><strong>${esc(detail.hardware.cpuCores)}</strong></div>
         <div><span style="font-size:11px;color:var(--muted);">RAM (Approx)</span><br><strong>${esc(detail.hardware.ramGB)} GB</strong></div>
+        <div><span style="font-size:11px;color:var(--muted);">Timezone</span><br><strong>${esc(detail.hardware.timezone)}</strong></div>
+        <div><span style="font-size:11px;color:var(--muted);">Language</span><br><strong>${esc(detail.hardware.language)}</strong></div>
+        <div><span style="font-size:11px;color:var(--muted);">Screen</span><br><strong>${esc(detail.hardware.screenRes)} @ ${esc(detail.hardware.pixelRatio)}x (${esc(detail.hardware.colorDepth)}-bit)</strong></div>
+        <div><span style="font-size:11px;color:var(--muted);">Touch Support</span><br><strong>${detail.hardware.touch ? 'Yes' : 'No'}</strong></div>
         <div><span style="font-size:11px;color:var(--muted);">GPU Vendor</span><br><strong>${esc(detail.hardware.gpuVendor)}</strong></div>
         <div><span style="font-size:11px;color:var(--muted);">GPU Model</span><br><strong>${esc(detail.hardware.gpuRenderer)}</strong></div>
-        <div><span style="font-size:11px;color:var(--muted);">Screen</span><br><strong>${esc(detail.hardware.screenRes)} @ ${esc(detail.hardware.pixelRatio)}x</strong></div>
-        <div><span style="font-size:11px;color:var(--muted);">Network</span><br><strong>${esc(detail.hardware.downlink)} Mbps / ${esc(detail.hardware.rtt)} ms</strong></div>
+        <div><span style="font-size:11px;color:var(--muted);">Max Texture</span><br><strong>${esc(detail.hardware.maxTexture)}</strong></div>
+        <div><span style="font-size:11px;color:var(--muted);">Network</span><br><strong>${esc(detail.hardware.downlink)} Mbps / ${esc(detail.hardware.rtt)} ms (${esc(detail.hardware.netType)})</strong></div>
         <div style="grid-column:1/-1;border-top:1px solid var(--border);padding-top:12px;margin-top:4px;">
           <span style="font-size:11px;color:var(--muted);">Synthetic Performance Score (Higher is Better)</span><br>
           <strong style="font-size:20px;color:${(detail.hardware.benchmarkScore || 0) < 1000 ? 'var(--danger)' : (detail.hardware.benchmarkScore || 0) < 5000 ? 'var(--warn)' : 'var(--success)'};">
             ${esc(detail.hardware.benchmarkScore)} ops/sec
           </strong>
           <span style="font-size:11px;color:var(--muted);"> (${esc(detail.hardware.benchmarkMs)} ms)</span>
+        </div>
+        <div style="grid-column:1/-1;font-size:10px;color:var(--muted);margin-top:8px;">
+          <strong>User Agent:</strong> ${esc(detail.hardware.userAgent)}
         </div>
       </div>
       ` : '<p style="color:var(--muted);font-size:12px;margin-bottom:20px;">No hardware data collected yet. (User needs to open the chat after Part 238 deploy).</p>'}
