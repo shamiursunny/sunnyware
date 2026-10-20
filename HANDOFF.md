@@ -2460,3 +2460,7 @@ Config:
 - **Part 234**: Added `/api/auth/me` endpoint, fixed 2FA gate to skip JWT users, added auto-login via invite link, implemented role-based tab hiding.
 - **Part 235**: Added `/api/auth/admin-login` for email-based login. Replaced the old master-key-only login form with a beautiful email/Google login form. Kept master key fallback.
 - Deployment SHA: d455020 (Part 235b) / c23b67a (Part 234) / b897404 (Part 233b)
+
+## Part 236 — Add About & API Docs to Sidebar (2026-10-20) COMPLETED
+- Added "Resources" section at the bottom of the admin sidebar with links to `/about` and `/docs`.
+- Deployment SHA: ab07b77

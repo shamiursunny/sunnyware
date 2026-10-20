@@ -1518,3 +1518,8 @@ cd /h/sunnyware
 - Backend verifies membership and issues a JWT (no 2FA required for team members).
 - Role-based tabs are hidden automatically based on the user's role (Viewer, Finance, Support).
 - Admin can still use the master key fallback (requires 2FA).
+
+
+## Admin Sidebar
+
+- Includes quick links to `/about` and `/docs` under the **Resources** section.
