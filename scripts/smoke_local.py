@@ -31,6 +31,7 @@ py_files = [
     "src/sunnyware/scheduled_tasks_store.py",
     "src/sunnyware/webhooks_store.py",
     "src/sunnyware/team_store.py",
+    "src/sunnyware/invite_store.py",
     "src/sunnyware/invoice_pdf.py",
     "src/sunnyware/routes/analytics.py",
     "src/sunnyware/routes/llm_dashboard.py",

@@ -2130,10 +2130,30 @@ async function addTeamMember() {
   const email = (document.getElementById('tm-email')?.value || '').trim();
   const role = (document.getElementById('tm-role')?.value || 'Viewer').trim();
   if (!email || !email.includes('@')) return toast('Valid email required', 'error');
+  
   try {
-    await api('/api/team/members', 'POST', { name, email, role });
-    toast('Member added', 'success');
-    nav('team');
+    const res = await api('/api/team/members', 'POST', { name, email, role });
+    if (res.ok) {
+      const modal = document.createElement('div');
+      modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.8);display:flex;align-items:center;justify-content:center;z-index:10000;';
+      modal.innerHTML = `
+        <div class="card" style="max-width:500px;width:90%;position:relative;">
+          <button style="position:absolute;top:10px;right:10px;background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;" onclick="this.closest('div').parentElement.remove()">&times;</button>
+          <h3 style="margin-top:0;color:var(--success);">Member Added Successfully</h3>
+          <p style="font-size:13px;">${res.email_sent ? 'An email with the invite link has been sent.' : 'Email could not be sent, please copy the link manually.'}</p>
+          <div style="background:var(--bg);padding:12px;border-radius:6px;font-family:monospace;font-size:12px;word-break:break-all;user-select:all;margin:16px 0;">
+            ${esc(res.accept_url)}
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button onclick="navigator.clipboard.writeText('${esc(res.accept_url)}').then(() => toast('Copied!'))" style="flex:1;">Copy Link</button>
+            <button class="ghost" onclick="this.closest('div').parentElement.parentElement.remove(); nav('team');" style="flex:1;">Close</button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    } else {
+      toast('Error: ' + (res.error || 'unknown'), 'error');
+    }
   } catch(e) {
     toast('Error: ' + e.message, 'error');
   }

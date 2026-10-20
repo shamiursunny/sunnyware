@@ -5,6 +5,8 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from .. import team_store as _team
+from .. import invite_store as _inv
+from .. import email as _email
 
 router = APIRouter(tags=["team"])
 
@@ -46,7 +48,29 @@ async def add_member(req: Request):
     if _team.get_member_by_email(email):
         return JSONResponse({"error": "Member with this email already exists"}, status_code=400)
     member = _team.add_member(email, name, role, added_by="admin")
-    return {"ok": True, "member": member}
+
+    # Part 233: Generate magic link and send email
+    invite = _inv.create_invite(email, role)
+    base_url = "https://shamiur-sunnyware.hf.space"
+    accept_url = f"{base_url}/invite?token={invite['token']}"
+    
+    html = f"""
+    <h2>You've been invited to Sunnyware</h2>
+    <p>You have been invited to join the team as a <strong>{role}</strong>.</p>
+    <p><a href="{accept_url}" style="display:inline-block;background:#3b82f6;color:#fff;padding:10px 20px;text-decoration:none;border-radius:6px;">Join Team</a></p>
+    <p>If the button doesn't work, copy and paste this link:<br><code>{accept_url}</code></p>
+    """
+    
+    email_sent = False
+    try:
+        # Assumes email.py has a send_email function
+        if hasattr(_email, "send_email"):
+            await _email.send_email(to=email, subject="Invite to Sunnyware", html=html)
+            email_sent = True
+    except Exception as e:
+        print(f"[team] Failed to send email: {e}")
+
+    return {"ok": True, "member": member, "accept_url": accept_url, "email_sent": email_sent}
 
 
 @router.patch("/api/team/members/{member_id}")
@@ -86,3 +110,20 @@ async def clear_activity(req: Request):
     if d: return d
     ok = _team.clear_activity()
     return {"ok": ok}
+
+
+@router.get("/invite")
+async def accept_invite(token: str):
+    invite = _inv.get_invite(token)
+    if not invite:
+        return JSONResponse({"error": "invalid_or_expired"}, status_code=400)
+    
+    from ..routes.auth import _generate_jwt
+    jwt_token = _generate_jwt(invite["email"])
+    
+    # Mark invite as used
+    _inv.delete_invite(token)
+    
+    # Redirect to UI with token
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url=f"/ui?invite_token={jwt_token}&email={invite['email']}")
