@@ -1510,3 +1510,11 @@ cd /h/sunnyware
 - Backend generates a magic link and returns it to the UI.
 - User opens link → gets JWT → auto-logged into `/ui`.
 - (Email sending is stubbed; users copy the link manually.)
+
+
+## Team Login
+
+- Team members log in via `/admin` with their email (must be added in Team page).
+- Backend verifies membership and issues a JWT (no 2FA required for team members).
+- Role-based tabs are hidden automatically based on the user's role (Viewer, Finance, Support).
+- Admin can still use the master key fallback (requires 2FA).

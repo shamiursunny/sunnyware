@@ -2455,3 +2455,8 @@ Config:
 - **Frontend**: `addTeamMember()` now shows a modal with the magic link and a copy button.
 - **Fix 233b**: Removed broken `from .. import email as _email` import that crashed the HF Space.
 - Deployment SHA: b897404
+
+## Part 234 & 235 — Team Login RBAC & Email/Google Login (2026-10-20) COMPLETED
+- **Part 234**: Added `/api/auth/me` endpoint, fixed 2FA gate to skip JWT users, added auto-login via invite link, implemented role-based tab hiding.
+- **Part 235**: Added `/api/auth/admin-login` for email-based login. Replaced the old master-key-only login form with a beautiful email/Google login form. Kept master key fallback.
+- Deployment SHA: d455020 (Part 235b) / c23b67a (Part 234) / b897404 (Part 233b)
