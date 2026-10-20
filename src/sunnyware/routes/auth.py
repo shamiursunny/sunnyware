@@ -128,3 +128,32 @@ async def get_current_user(req: Request):
             return {"email": email, "role": "Viewer"}
             
     return JSONResponse({"error": "unauthorized"}, status_code=401)
+
+
+@router.post("/api/auth/admin-login")
+async def admin_login(req: Request):
+    """Part 235: Allow team members to login to the Admin panel using their email."""
+    try:
+        body = await req.json()
+    except Exception:
+        return JSONResponse({"error": "invalid_json"}, status_code=400)
+
+    email = (body.get("email") or "").strip().lower()
+    if not email or "@" not in email:
+        return JSONResponse({"error": "Valid email required"}, status_code=400)
+
+    # 1. Check if user is a team member
+    from .. import team_store as _ts
+    member = _ts.get_member_by_email(email)
+    if member:
+        token = _generate_jwt(email)
+        return {"ok": True, "token": token, "email": email, "role": member.get("role", "Viewer")}
+
+    # 2. Check if user is the org owner
+    from .. import saas_store as _s
+    org = _s.get_org_by_email(email)
+    if org:
+        token = _generate_jwt(email)
+        return {"ok": True, "token": token, "email": email, "role": "Owner"}
+
+    return JSONResponse({"error": "Email not found in team"}, status_code=404)
