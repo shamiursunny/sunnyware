@@ -57,8 +57,8 @@ async def auth_login(req: Request):
         return JSONResponse({"error": "Email or admin key required"}, status_code=400)
     
     # Allow master admin login
-    if email in ("admin", "master-admin-key", "admin@sunnyware.com"):
-        return {"ok": True, "token": "master-admin-key", "email": "admin@sunnyware.com", "owner_key": "master-admin-key"}
+    if email in ("admin", os.getenv("SUNNYWARE_MASTER_KEY", "master-admin-key"), "admin@sunnyware.com"):
+        return {"ok": True, "token": os.getenv("SUNNYWARE_MASTER_KEY", "master-admin-key"), "email": "admin@sunnyware.com", "owner_key": os.getenv("SUNNYWARE_MASTER_KEY", "master-admin-key")}
 
     if "@" not in email:
         return JSONResponse({"error": "Valid email required"}, status_code=400)
@@ -115,7 +115,7 @@ async def get_current_user(req: Request):
         if authz.lower().startswith("bearer "):
             key = authz[7:].strip()
     
-    if key == "master-admin-key":
+    if key == os.getenv("SUNNYWARE_MASTER_KEY", "master-admin-key"):
         return {"email": "admin@sunnyware.com", "role": "Owner"}
         
     if key.startswith("user:") or "." in key:

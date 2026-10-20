@@ -420,7 +420,7 @@ class _MetricsMiddleware:
                         pass
 
                 # Part 229: Rate limiting per API key (use _incoming_key to avoid UnboundLocalError)
-            if _incoming_key and _incoming_key != "master-admin-key" and not _incoming_key.startswith("user:"):
+            if _incoming_key and _incoming_key != os.getenv("SUNNYWARE_MASTER_KEY", "master-admin-key") and not _incoming_key.startswith("user:"):
                 try:
                     from . import api_keys_store as _ks
                     from . import rate_limiter as _rl
@@ -720,7 +720,7 @@ async def _analytics_context_middleware(request, call_next):
             _key = _authz[7:].strip()
         _user = ""
         _org = ""
-        if _key and _key != "master-admin-key":
+        if _key and _key != os.getenv("SUNNYWARE_MASTER_KEY", "master-admin-key"):
             # Part 214: custom JWT format: base64(payload).hmac
             try:
                 if "." in _key and len(_key) > 20:
@@ -818,7 +818,7 @@ async def _twofa_gate_middleware(request, call_next):
         
         from . import twofa_store as _tfs
         user = ""
-        if key == "master-admin-key":
+        if key == os.getenv("SUNNYWARE_MASTER_KEY", "master-admin-key"):
             user = "admin"
         else:
             try:

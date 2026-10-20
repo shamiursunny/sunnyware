@@ -1,3 +1,4 @@
+import os
 # SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
 # SPDX-License-Identifier: AGPL-3.0-only
 """Part 212: Monkey-patch LLM + tool calls to log analytics."""
@@ -47,7 +48,7 @@ def _extract_user_from_stack():
                     authz = headers.get("authorization", "")
                     if authz.lower().startswith("bearer "):
                         key = authz[7:].strip()
-                if key and key != "master-admin-key" and "." in key and len(key) > 20:
+                if key and key != os.getenv("SUNNYWARE_MASTER_KEY", "master-admin-key") and "." in key and len(key) > 20:
                     try:
                         b64 = key.split(".")[0]
                         padded = b64 + "=" * (-len(b64) % 4)

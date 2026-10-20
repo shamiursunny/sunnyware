@@ -69,7 +69,15 @@ async def save_file(req: Request):
             status_code=413
         )
 
+    # Part 259: Limit to 100 files per user to prevent storage abuse
     async with pool.acquire() as conn:
+        count = await conn.fetchval("SELECT COUNT(*) FROM library_files WHERE owner_key = $1", owner)
+        if count >= 100:
+            return JSONResponse(
+                {"error": "File limit reached", "detail": "Max 100 files per user. Delete some files first."},
+                status_code=429,
+            )
+
         row = await conn.fetchrow("""
             INSERT INTO library_files (owner_key, name, type, size, kind, content)
             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at

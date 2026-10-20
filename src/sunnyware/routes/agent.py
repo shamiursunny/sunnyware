@@ -30,7 +30,7 @@ def _set_analytics_user_from_request(req: Request) -> None:
                 authz = req.headers.get("authorization", "")
                 if authz.lower().startswith("bearer "):
                     key = authz[7:].strip()
-            if key and key != "master-admin-key" and "." in key and len(key) > 20:
+            if key and key != os.getenv("SUNNYWARE_MASTER_KEY", "master-admin-key") and "." in key and len(key) > 20:
                 try:
                     # Part 224f: verify JWT signature before trusting the claims
                     from sunnyware.routes.auth import verify_jwt
@@ -229,7 +229,7 @@ def _check_quota(req: Request):
             if authz.lower().startswith("bearer "):
                 key = authz[7:].strip()
         # Admin bypass
-        if key == "master-admin-key":
+        if key == os.getenv("SUNNYWARE_MASTER_KEY", "master-admin-key"):
             return None
         # Part 240: Handle JWT vs standard API key
         org = None
@@ -289,7 +289,7 @@ def _record_token_usage(req: Request, tokens_used: int) -> None:
             authz = req.headers.get("authorization") or ""
             if authz.lower().startswith("bearer "):
                 key = authz[7:].strip()
-        if key == "master-admin-key":
+        if key == os.getenv("SUNNYWARE_MASTER_KEY", "master-admin-key"):
             return
         org = None
         if key.startswith("user:") or ("." in key and len(key) > 20):
