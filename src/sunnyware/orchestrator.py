@@ -804,8 +804,8 @@ async def _run_agent_body(
                             }
                     except Exception as _je:
                         pass  # Tool failed — fall through to normal loop
-    except Exception:
-        pass  # Jarvis disabled / model not loaded — fall through
+    except Exception as _je_outer:
+        print(f"[jarvis] Outer exception: {_je_outer}")
 
     for iteration in range(MAX_ITERATIONS):
         result = await llm_client.chat(
