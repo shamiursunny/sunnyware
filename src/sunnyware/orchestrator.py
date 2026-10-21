@@ -757,7 +757,6 @@ async def _run_agent_body(
         if _jarvis_result:
             _tool_name = _jarvis_result.get("tool")
             _tool_args = _jarvis_result.get("args", {})
-            # Respect role tool restrictions
             if _allowed_set is None or _tool_name in _allowed_set:
                 from .tools import get_tool
                 _tool_obj = get_tool(_tool_name)
@@ -773,33 +772,40 @@ async def _run_agent_body(
                             "result": _tool_result,
                         })
                         _final_prompt = (
-                            "User asked: " + prompt + "\n\n"
-                            + "Tool `" + _tool_name + "` was called and returned: "
-                            + json.dumps(_tool_result) + "\n\n"
-                            + "Write a concise final answer based on this result."
+                            "Question: " + prompt + "\n"
+                            + "Tool result: " + json.dumps(_tool_result) + "\n\n"
+                            + "Answer the question directly and concisely."
                         )
-                        _final_res = await llm_client.chat(prompt=_final_prompt, model=model, system="You are Sunnyware. Answer based on the tool result. Be concise.", history=None, tools=None)
-                        if _final_res.get("ok"):
-                            steps.append({
-                                "iteration": 1,
-                                "tool": _tool_name,
-                                "args": _tool_args,
-                                "result": _tool_result,
-                                "protocol": "jarvis",
-                            })
-                            return {
-                                "ok": True,
-                                "content": (_final_res.get("content") or "").strip(),
-                                "steps": steps,
-                                "iterations": 2,
-                                "provider": _final_res.get("provider"),
-                                "resolved_model": _final_res.get("resolved_model"),
-                                "attachments": _attachments,
-                            }
+                        _final_res = await llm_client.chat(
+                            prompt=_final_prompt,
+                            model=model,
+                            system=None,
+                            history=None,
+                            tools=None,
+                        )
+                        _ans = (_final_res.get("content") or "").strip() if _final_res.get("ok") else ""
+                        if not _ans:
+                            _ans = "Result: " + json.dumps(_tool_result)
+                        steps.append({
+                            "iteration": 1,
+                            "tool": _tool_name,
+                            "args": _tool_args,
+                            "result": _tool_result,
+                            "protocol": "jarvis",
+                        })
+                        return {
+                            "ok": True,
+                            "content": _ans,
+                            "steps": steps,
+                            "iterations": 2,
+                            "provider": _final_res.get("provider") if _final_res else "none",
+                            "resolved_model": _final_res.get("resolved_model") if _final_res else "none",
+                            "attachments": _attachments,
+                        }
                     except Exception as _je:
-                        pass  # Tool failed — fall through to normal loop
-    except Exception as _je_outer:
-        print(f"[jarvis] Outer exception: {_je_outer}")
+                        pass  # Tool failed - fall through to normal loop
+    except Exception:
+        pass  # Jarvis disabled / model not loaded - fall through
 
     for iteration in range(MAX_ITERATIONS):
         result = await llm_client.chat(
