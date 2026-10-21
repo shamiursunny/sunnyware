@@ -144,7 +144,7 @@ def load_providers(reload: bool = False) -> List[Provider]:
                 pass
         # Part 152: Pollinations free tier rejects requests with
         # OpenAI-style tool schemas. Treat as tools-unsupported.
-        supports_tools = (name.lower() != "pollinations")
+        supports_tools = True
         out.append(Provider(
             name=name,
             base_url=base_url.rstrip("/"),
