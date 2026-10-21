@@ -38,7 +38,7 @@ def _load_sync():
         _LOAD_ERROR = "S3_BUCKET_NAME or LOCAL_MODEL_PATH not set"
         raise RuntimeError(_LOAD_ERROR)
 
-    cache_dir = "/tmp/models"
+    cache_dir = "/data/models"  # Part 285: Persistent mount, survives restarts
     os.makedirs(cache_dir, exist_ok=True)
     local_path = os.path.join(cache_dir, os.path.basename(key))
     _DOWNLOADED_PATH = local_path
