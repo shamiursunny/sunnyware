@@ -99,6 +99,12 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
     content = result.get("content", "").strip()
     print(f"[jarvis] Local model response: {content[:500]}", flush=True)
 
+    # Part 295: Strip <think> blocks before parsing (they may contain incomplete JSON)
+    import re
+    if "</think>" in content:
+        content = content.split("</think>")[-1].strip()
+        print(f"[jarvis] Stripped think block, parsing: {content[:200]}", flush=True)
+
     # --- Robust JSON parsing strategies ---
 
     # 1. Try direct JSON parse of the whole content
