@@ -88,7 +88,7 @@ def _load_sync():
         _MODEL = Llama(
             model_path=local_path,
             n_ctx=int(os.getenv("LOCAL_MODEL_CTX", "4096")),
-            n_threads=int(os.getenv("LOCAL_MODEL_THREADS", "2")),
+            n_threads=int(os.getenv("LOCAL_MODEL_THREADS", "4")),  # Part 294: Use 4 threads for faster CPU inference
             n_batch=256,
             use_mlock=False,
             verbose=False,

@@ -151,6 +151,13 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
 async def jarvis_route(prompt: str) -> Optional[Dict]:
     """Full Jarvis pipeline: retrieve relevant tools, select one with the local model."""
     print(f"[jarvis] ROUTE CALLED with prompt: {prompt[:50]}", flush=True)
+    
+    # Part 294: Bypass Jarvis for short greetings and simple chat
+    p_lower = prompt.lower().strip()
+    if len(p_lower) < 15 and any(p_lower.startswith(g) for g in ["hi", "hello", "hey", "who are you", "what's up"]):
+        print("[jarvis] Skipping tool routing for greeting/simple chat", flush=True)
+        return None
+
     relevant_tools = await find_relevant_tools(prompt, top_k=3)
     if not relevant_tools:
         return None
