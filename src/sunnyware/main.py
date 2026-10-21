@@ -74,10 +74,12 @@ async def lifespan(app):
         from . import local_llm_s3 as _jarvis_local
         if _jarvis_local.is_enabled():
             import asyncio as _aio
-            asyncio.create_task(_jarvis_local.preload())
-            print("[jarvis] Background preload started")
+            _aio.create_task(_jarvis_local.preload())
+            print("[jarvis] Background preload started", flush=True)
+        else:
+            print("[jarvis] Preload skipped: local LLM disabled or S3_BUCKET_NAME missing", flush=True)
     except Exception as _e:
-        print(f"[jarvis] Preload failed: {_e}")
+        print(f"[jarvis] Preload failed: {_e}", flush=True)
     init_state()
     # Part 26: ensure scheduler running inside the live event loop
     try:
