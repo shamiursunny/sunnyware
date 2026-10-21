@@ -6,11 +6,11 @@
 class EmailSendTool:
     name = "email_send"
     description = (
-        "Send an email via configured Gmail SMTP. Supports multiple to/cc/"
-        "bcc recipients, optional HTML body, and workspace file "
-        "attachments (PDF/CSV/TXT/MD/XLSX/PNG/JPG/JSON, max 2MB total). "
+        "Send an email via the configured Resend API. Supports multiple to/cc/bcc "
+        "recipients, optional HTML body, and workspace file "
+        "attachments (PDF/CSV/TXT/MD/XLSX/PNG/JPG/JSON, max 2MB total). "  
         "All sends are logged to Neon. Use for reports, alerts, "
-        "notifications. Requires SUNNYWARE_SMTP_* env vars on the server."
+        "notifications. Requires RESEND_API_KEY and a verified RESEND_FROM domain." 
     )
     parameters = {
         "to": {"type": "array", "required": True,

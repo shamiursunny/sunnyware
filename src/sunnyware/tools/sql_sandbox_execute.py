@@ -22,8 +22,21 @@ class SqlSandboxExecuteTool:
 
     async def run(self, args: dict) -> dict:
         from .. import sql_sandbox as _ss
-        return await _ss.execute(
-            name=args.get("name", ""),
-            sql=args.get("sql", ""),
-            params=args.get("params"),
-        )
+        name = args.get("name", "")
+        sql = args.get("sql", "")
+        params = args.get("params")
+        
+        # First attempt
+        res = await _ss.execute(name=name, sql=sql, params=params)
+        
+        # Part 306: Auto-create sandbox if it doesn't exist
+        if res.get("error") and "sandbox not found" in str(res["error"]).lower():
+            print(f"[sql_sandbox_execute] Sandbox '{name}' not found. Auto-creating...", flush=True)
+            create_res = await _ss.create(name, "")
+            if create_res.get("ok"):
+                print(f"[sql_sandbox_execute] Auto-created sandbox '{name}'. Retrying query...", flush=True)
+                res = await _ss.execute(name=name, sql=sql, params=params)
+            else:
+                print(f"[sql_sandbox_execute] Auto-create failed: {create_res}", flush=True)
+        
+        return res

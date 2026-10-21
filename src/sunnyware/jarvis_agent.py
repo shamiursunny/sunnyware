@@ -20,9 +20,33 @@ def _get_embedder():
     global _embedder
     if _embedder is None:
         try:
+            import os
             from sentence_transformers import SentenceTransformer
             print("[jarvis] Loading embedding model...", flush=True)
-            _embedder = SentenceTransformer('all-MiniLM-L6-v2', device='cpu')
+            
+            # Part 304: Use persistent cache in /data/hub
+            cache_dir = "/data/hub"
+            os.makedirs(cache_dir, exist_ok=True)
+            
+            model_name = 'all-MiniLM-L6-v2'
+            model_folder = os.path.join(cache_dir, 'models--sentence-transformers--all-MiniLM-L6-v2')
+            
+            if os.path.exists(model_folder):
+                print(f"[jarvis] Found embedder cache in {cache_dir}, loading offline", flush=True)
+                _embedder = SentenceTransformer(
+                    model_name,
+                    device='cpu',
+                    cache_folder=cache_dir,
+                    local_files_only=True
+                )
+            else:
+                print(f"[jarvis] Embedder not in cache, downloading to {cache_dir}...", flush=True)
+                _embedder = SentenceTransformer(
+                    model_name,
+                    device='cpu',
+                    cache_folder=cache_dir
+                )
+            print("[jarvis] Embedder loaded successfully", flush=True)
         except Exception as e:
             print(f"[jarvis] Embedder load failed: {e}", flush=True)
             _embedder = "failed"
