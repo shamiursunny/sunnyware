@@ -1598,31 +1598,23 @@ if (!_apiKey) {
 const _originalFetch = window.fetch;
 
 window.fetch = function(url, options) {
-
   if (!options) options = {};
-
   if (!options.headers) options.headers = {};
-
+  
   if (typeof url === 'string' && url.startsWith('/api')) {
-
+    const _2fa = localStorage.getItem('sunnyware_2fa_session') || '';
+    
     if (options.headers instanceof Headers) {
-
       options.headers.set('X-API-Key', _apiKey);
-
       if (typeof _deviceId !== 'undefined' && _deviceId) options.headers.set('X-Device-ID', _deviceId);
-
+      if (_2fa) options.headers.set('X-2FA-Session', _2fa);
     } else {
-
       options.headers['X-API-Key'] = _apiKey;
-
       if (typeof _deviceId !== 'undefined' && _deviceId) options.headers['X-Device-ID'] = _deviceId;
-
+      if (_2fa) options.headers['X-2FA-Session'] = _2fa;
     }
-
   }
-
   return _originalFetch(url, options);
-
 };
 
 
