@@ -7,6 +7,7 @@ os.environ["GRADIO_SSR_MODE"] = "false"
 os.environ["GRADIO_ANALYTICS_ENABLED"] = "false"
 
 import sys
+import time
 from pathlib import Path
 
 try:
@@ -32,3 +33,6 @@ if __name__ == "__main__":
         share=False,
         prevent_thread_lock=True,
     )
+    print("Server launched in background. Blocking main thread to keep HF Space alive.")
+    while True:
+        time.sleep(1)
