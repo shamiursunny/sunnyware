@@ -418,7 +418,7 @@ async def chat(
                 pass
             r = await _local_llm.chat(
                 prompt=prompt, model=p.model, system=system,
-                history=history, tools=tools, timeout=min(timeout, 20.0),  # Part 268: Cap HTTP timeout to prevent long hangs
+                history=history, tools=tools, timeout=min(timeout, 5.0),  # Part 268: Cap HTTP timeout to prevent long hangs
             )
             if r.get("ok") and _is_empty_response(r):
                 # Part 101: empty response from local model — try next
