@@ -2978,6 +2978,11 @@ async function streamAI(chat, prompt) {
 
 
 
+        } else if(type === 'content') {
+          if(firstContent) { textEl.replaceChildren(); firstContent = false; }
+          accumulatedText += ev.text || '';
+          sunnyRenderStreaming(textEl, aiMsg, accumulatedText);
+
         } else if(type === 'tool_result') {
 
           const name = ev.name || ev.tool || 'tool';
