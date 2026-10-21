@@ -2566,3 +2566,7 @@ Config:
 - **tools/__init__.py**: Registered `SearchLibraryTool`.
 - This enables the AI to read PDFs, text files, and code files you upload directly from the chat.
 - Deployment SHA: 1b832a8
+
+## Part 266 — Mobile UX Sidebar Fix (2026-10-21) COMPLETED
+- **chat.html**: Added `closeSidebar()` to `selectChat()` and `newChat()` so the mobile sidebar closes automatically when navigating.
+- Deployment SHA: f58a674

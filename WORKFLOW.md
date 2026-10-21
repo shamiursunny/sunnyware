@@ -1638,3 +1638,8 @@ cd /h/sunnyware
 - Added `search_library.py` tool that queries the `library_files` table using SQL `ILIKE` search.
 - Scoped by the current user's `owner_key` to ensure users only search their own files.
 - Registered in `tools/__init__.py` so the Orchestrator can invoke it.
+
+
+## Mobile UX Polish (Part 266)
+
+- `chat.html`: `selectChat()` and `newChat()` now call `closeSidebar()` on screens ≤900px to prevent the sidebar from blocking the chat view.
