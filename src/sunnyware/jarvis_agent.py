@@ -10,7 +10,7 @@ import os
 import asyncio
 
 from typing import List, Dict, Any, Optional
-from . import local_llm
+from . import local_llm_s3 as local_llm
 from .tools import _TOOLS, get_tool, list_tools
 
 # Lazy load embedding model
