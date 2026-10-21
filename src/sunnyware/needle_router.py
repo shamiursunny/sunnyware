@@ -1,9 +1,6 @@
 # src/sunnyware/needle_router.py
 import os
-import logging
 import needle
-
-logger = logging.getLogger(__name__)
 
 # Disable telemetry to keep logs clean
 os.environ["NEEDLE_TELEMETRY"] = "0"
@@ -44,7 +41,7 @@ async def try_needle_route(prompt: str):
     try:
         response = agent.complete(text=prompt, max_new_tokens=128)
         print(f"[needle] Raw response: {response}", flush=True)
-        log.info(f"[needle] Raw response: {response}")
+        
         calls = response.get("function_calls", [])
         confidence = response.get("confidence", 0.0)
 
