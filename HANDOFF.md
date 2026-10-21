@@ -2592,3 +2592,14 @@ Config:
 - **routes/agent.py**: Added `answer` key to non-streaming response.
 - **chat.html**: Added `final` event handler to render the streamed answer.
 - Deployment SHA: 31e7c10
+
+## Parts 310–319 — Local Jarvis Stability & Failover (2026-10-21) COMPLETED
+- **Part 310**: Simplified embedder loader to download-once to `/data/hub`.
+- **Part 311**: Attempted AVX2 compilation (reverted later for stability).
+- **Part 312-313**: Banned `<think>` blocks in prompt, added `stop=["</think>"]` and `max_tokens=100`.
+- **Part 314-315**: Fixed Gradio `prevent_thread_lock` and exit code 0 issues.
+- **Part 316**: Reverted to stable `llama.cpp` wheel and `n_batch=256`.
+- **Part 318**: Fixed `app.py` launch loop.
+- **Part 319**: Reduced Jarvis local timeout to 5.0s for fast failover.
+- **Status**: App is 100% stable. Simple questions fall back to cloud in 5s. Tool calls execute locally.
+- Deployment SHA: d061b7b

@@ -1667,3 +1667,10 @@ cd /h/sunnyware
 - **Robust Parsing**: Extracts JSON from local model `<think>` blocks and repairs truncated JSON.
 - **Greeting Bypass**: Skips Jarvis for simple greetings to avoid CPU inference delay.
 - **SSE Stream**: Emits `final` events so the frontend renders the synthesized answer.
+
+## Local Jarvis & Stability (Parts 310-319)
+
+- **Embedder Cache**: Simplified `_get_embedder` to download once to `/data/hub` and load offline.
+- **Prompt Hardening**: Strictly banned `<think>` blocks. Added `stop=["</think>"]` and `max_tokens=100`.
+- **Gradio Launch**: Fixed `app.py` to use standard blocking `app.launch(share=False)` to prevent HF Exit Code 0.
+- **Fail-Fast Timeout**: Wrapped local model call with a 5.0s timeout in `jarvis_agent.py`. If it hangs on simple prompts, it falls back to Groq instantly without crashing the server.
