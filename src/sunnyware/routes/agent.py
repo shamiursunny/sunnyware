@@ -247,30 +247,40 @@ def _check_quota(req: Request):
             return None
         org_id = org["id"]
         plan_id = org.get("plan", "free")
-        plans = {pp["id"]: pp for pp in _saas.list_plans()}
-        plan = plans.get(plan_id, {})
+
+        # Part 262: Optimize plan lookup
+        plan = _saas.get_plan(plan_id) or {}
+
         # 1) Daily call quota
         limit = plan.get("calls_per_day")
         if limit is None:
             limit = 100
-        check = _usage.check_quota(org_id, limit)
-        if not check["allowed"]:
-            return JSONResponse(
-                {"error": "quota_exceeded",
-                 "detail": f"Daily limit of {limit} calls reached. Please upgrade your plan."},
-                status_code=429,
-            )
+
+        # Part 262: Bypass DB check if unlimited (-1)
+        if limit >= 0:
+            check = _usage.check_quota(org_id, limit)
+            if not check["allowed"]:
+                return JSONResponse(
+                    {"error": "quota_exceeded",
+                     "detail": f"Daily limit of {limit} calls reached. Please upgrade your plan."},
+                    status_code=429,
+                )
+
         # 2) Monthly token quota
         tok_limit_m = plan.get("token_limit_millions")
         if tok_limit_m is None:
             tok_limit_m = -1
-        tok_check = _usage.check_token_quota(org_id, tok_limit_m)
-        if not tok_check["allowed"]:
-            return JSONResponse(
-                {"error": "token_quota_exceeded",
-                 "detail": f"Monthly token limit reached ({tok_check['used']:,} / {tok_check['limit']:,} tokens). Please upgrade your plan."},
-                status_code=429,
-            )
+
+        # Part 262: Bypass DB check if unlimited (-1)
+        if tok_limit_m >= 0:
+            tok_check = _usage.check_token_quota(org_id, tok_limit_m)
+            if not tok_check["allowed"]:
+                return JSONResponse(
+                    {"error": "token_quota_exceeded",
+                     "detail": f"Monthly token limit reached ({tok_check['used']:,} / {tok_check['limit']:,} tokens). Please upgrade your plan."},
+                    status_code=429,
+                )
+
         _usage.increment(org_id)
     except Exception:
         pass
