@@ -17,7 +17,7 @@ from . import tools as tools_registry
 # least 3 iterations (delegate, sub-delegate, worker answer) before
 # returning; any retry blows past 3. Wall-clock timeout remains the
 # real guard (SUNNYWARE_AGENT_TIMEOUT; 600s for cfo/cdo roles).
-MAX_ITERATIONS = 5  # Part 257: lowered 10 -> 5 (protect tokens from runaway loops)
+MAX_ITERATIONS = 3  # Part 257: lowered 10 -> 5 (protect tokens from runaway loops)
 
 # Part 90: per-request token budget guard
 MAX_REQUEST_TOKENS = 15000
@@ -885,7 +885,8 @@ async def _run_agent_body(
                         "tool_call_id": call.get("id", ""),
                         "content": json.dumps(_truncate_tool_result(tool_result)),
                     })
-            if _dup_streak >= 2 and steps:
+            # Part 271: Force final answer after 2 tool calls to prevent loops
+            if (len(steps) >= 2 or _dup_streak >= 2) and steps:
                 last = steps[-1]
                 return {
                     "ok": True,
@@ -894,7 +895,7 @@ async def _run_agent_body(
                     "iterations": iteration + 1,
                     "provider": _last_provider,
                     "resolved_model": _last_model,
-                "attachments": _attachments,
+                    "attachments": _attachments,
                 }
             continue
 
@@ -942,7 +943,8 @@ async def _run_agent_body(
             })
             messages.append({"role": "assistant", "content": content})
             messages.append({"role": "user", "content": feedback})
-            if _dup_streak >= 2:
+            # Part 271: Force final answer after 2 tool calls to prevent loops
+            if len(steps) >= 2 or _dup_streak >= 2:
                 return {
                     "ok": True,
                     "content": "Result: " + json.dumps(_truncate_tool_result(tool_result)),
