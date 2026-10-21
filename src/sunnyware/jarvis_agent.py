@@ -98,13 +98,15 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
         system=system_prompt,
         history=None,
         tools=None,  # We pass tools via the system prompt for better control
-        timeout=15.0
+        timeout=45.0
     )
 
     if not result.get("ok"):
+        print(f"[jarvis] Local model failed: {result.get('error')}", flush=True)
         return None
 
     content = result.get("content", "").strip()
+    print(f"[jarvis] Local model response: {content[:200]}", flush=True)
     print(f"[jarvis] Local model response: {content[:200]}")
     # Extract JSON from the response (the model might wrap it in markdown)
     try:
