@@ -22,7 +22,7 @@ def _get_embedder():
         try:
             print("[jarvis] Loading embedding model...")
             from sentence_transformers import SentenceTransformer
-            _embedder = SentenceTransformer('all-MiniLM-L6-v2')
+            _embedder = SentenceTransformer('all-MiniLM-L6-v2', device='cpu')
         except Exception as e:
             print(f"[jarvis] Embedder load failed: {e}")
             _embedder = "failed"
