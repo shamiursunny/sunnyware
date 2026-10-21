@@ -127,7 +127,7 @@ def load_providers(reload: bool = False) -> List[Provider]:
         # Part 99: max prompt tokens — env override, else default
         max_pt = _default_max_pt.get(name, 0)
         env_pt = (os.getenv(f"{prefix}_MAX_PROMPT_TOKENS") or "").strip()
-        if env_pt:
+        if env_pt and name != "groq":  # Part 272: Ignore stale limit for Groq
             try:
                 max_pt = int(env_pt)
             except ValueError:

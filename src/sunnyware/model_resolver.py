@@ -18,7 +18,7 @@ from typing import Optional
 import httpx
 
 
-SUCCESS_TTL = 3600.0   # 1 hour
+SUCCESS_TTL = 86400.0  # 24 hours   # 1 hour
 FAILURE_TTL = 300.0    # 5 min (retry sooner on transient failures)
 
 
@@ -35,21 +35,16 @@ PREFERENCES = {
         "ministral-3b-latest",
     ],
     "gemini": [
-        "gemini-3.8-flash",
-        "gemini-3.7-flash",
-        "gemini-3.6-flash",
-        "gemini-3.5-flash",
-        "gemini-flash-latest",
-        "gemini-2.5-flash",
+        "gemini-1.5-flash",
+        "gemini-1.5-pro",
         "gemini-2.0-flash",
+        "gemini-2.5-flash",
     ],
     "openrouter": [
+        "minimax/minimax-m3.1-flash:free",
+        "google/gemini-flash-1.5:free",
+        "meta-llama/llama-3.1-8b-instruct",
         "nvidia/nemotron-3-super-120b-a12b:free",
-        "thinkingmachines/inkling:free",
-        "cohere/north-mini-code:free",
-        "liquid/lfm-2.5-2.6b:free",
-        "google/gemma-4-31b-it:free",
-        "google/gemma-4-26b-a4b-it:free",
     ],
     "pollinations": [
         "openai",
@@ -91,7 +86,7 @@ def _strip_prefix(mid):
 async def _fetch_models(base_url, api_key):
     """GET {base_url}/models. Returns list of ids or None on failure."""
     try:
-        async with httpx.AsyncClient(timeout=6.0) as client:
+        async with httpx.AsyncClient(timeout=2.0) as client:
             r = await client.get(
                 base_url.rstrip("/") + "/models",
                 headers={"Authorization": "Bearer " + (api_key or "")},
