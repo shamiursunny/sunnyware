@@ -8,6 +8,8 @@ Uses sentence-transformers for tool retrieval and llama-cpp-python for local too
 import json
 import os
 import asyncio
+import logging
+logger = logging.getLogger(__name__)
 from typing import List, Dict, Any, Optional
 from . import local_llm
 from .tools import _TOOLS, get_tool, list_tools
@@ -21,7 +23,8 @@ def _get_embedder():
         try:
             from sentence_transformers import SentenceTransformer
             _embedder = SentenceTransformer('all-MiniLM-L6-v2')
-        except Exception:
+        except Exception as e:
+            logger.error(f"[jarvis] Embedder load failed: {e}")
             _embedder = "failed"
     return _embedder if _embedder != "failed" else None
 
@@ -43,6 +46,7 @@ async def find_relevant_tools(prompt: str, top_k: int = 3) -> List[Dict]:
         })
 
     if not tool_descriptions:
+        logger.warning("[jarvis] No tools available for RAG")
         return []
 
     # Embed prompt and tool descriptions
@@ -63,6 +67,7 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
     Returns a dict like {"tool": "calculator", "args": {"expression": "2+2"}} or None.
     """
     if not local_llm.is_enabled():
+        logger.warning("[jarvis] Local LLM is disabled or missing path")
         return None
 
     # Construct a concise prompt
@@ -91,6 +96,7 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
         return None
 
     content = result.get("content", "").strip()
+    logger.info(f"[jarvis] Local model response: {content[:200]}")
     # Extract JSON from the response (the model might wrap it in markdown)
     try:
         # Find the first { and last }
@@ -101,8 +107,8 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
             parsed = json.loads(json_str)
             if "tool" in parsed and "args" in parsed:
                 return parsed
-    except Exception:
-        pass
+    except Exception as e:
+        logger.error(f"[jarvis] JSON parse failed: {e}")
     return None
 
 async def jarvis_route(prompt: str) -> Optional[Dict]:
@@ -117,4 +123,8 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
 
     # Step 2: Local LLM selects the tool
     selected = await select_tool_via_local_llm(prompt, relevant_tools)
+    if selected:
+        logger.info(f"[jarvis] Selected tool: {selected.get('tool')}")
+    else:
+        logger.warning("[jarvis] Local model did not select a tool")
     return selected
