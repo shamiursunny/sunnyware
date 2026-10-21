@@ -2603,3 +2603,10 @@ Config:
 - **Part 319**: Reduced Jarvis local timeout to 5.0s for fast failover.
 - **Status**: App is 100% stable. Simple questions fall back to cloud in 5s. Tool calls execute locally.
 - Deployment SHA: d061b7b
+
+## Parts 320–329 — Needle 3 Integration (2026-10-21) COMPLETED
+- **Part 320-321**: Integrated Needle 3 as a fast first-stage router.
+- **Part 322-324**: Fixed missing `log` variable, indentation errors, and parsing logic.
+- **Part 325-329**: Configured persistent caching (`XDG_CACHE_HOME=/data/.cache`), ensuring the 35MB `needle3.cact` is downloaded exactly once.
+- **Result**: Needle 3 now runs locally from disk using memory-mapped (`mmap`) loading, inferring at **~860 tokens/sec**. It successfully routes tools locally and saves cloud tokens.
+- Deployment SHA: f3f5b68
