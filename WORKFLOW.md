@@ -1625,3 +1625,9 @@ cd /h/sunnyware
 
 - `verify_login` now tracks failed attempts. After 5 failures, the account is locked for 15 minutes.
 - The JWT decoding logic now uses dynamic padding (`"=" * (-len(b64) % 4)`) to prevent random logouts.
+
+
+## Chat UI 2FA & Titles (Part 263/264)
+
+- **2FA Header**: `chat.html` fetch interceptor injects `X-2FA-Session` to fix the 428 error when logged in as Admin.
+- **Chat Titles**: `agent.py` saves the first 50 chars of the prompt to `metadata.title` so chat names persist across devices.

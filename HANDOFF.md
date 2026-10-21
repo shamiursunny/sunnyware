@@ -2551,3 +2551,12 @@ Config:
 - **twofa_store.py**: Added brute-force protection to `verify_login`. Locks out user for 15 mins after 5 failed TOTP attempts.
 - **auth.py**: Fixed JWT decoding padding bug (`b64 + "=="` -> dynamic padding) to prevent random logouts.
 - Deployment SHA: 7e35004
+
+## Part 263 — Chat UI 2FA Fix (2026-10-21) COMPLETED
+- **chat.html**: Updated global `window.fetch` interceptor to inject `X-2FA-Session` header for all `/api/*` requests. Fixes the `HTTP 428 2fa_required` error that was blocking chat, session history, and library loading for admin users.
+- Deployment SHA: 5c719f3
+
+## Part 264 — Cross-Device Chat Titles (2026-10-21) COMPLETED
+- **agent.py**: Updated all `get_or_create` calls to pass `metadata={"title": prompt[:50]}` so the first message is saved as the chat title.
+- This fixes the issue where chats loaded from the backend on a new device would only show "Chat sunny-..." instead of the actual title.
+- Deployment SHA: 9191de1
