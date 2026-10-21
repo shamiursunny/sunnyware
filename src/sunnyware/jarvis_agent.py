@@ -115,7 +115,7 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
         system=system_prompt,
         history=None,
         tools=None,
-        timeout=45.0
+        timeout=5.0
     )
 
     if not result.get("ok"):
