@@ -107,6 +107,24 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
 
     # --- Robust JSON parsing strategies ---
 
+    # 0. Repair truncated JSON by adding closing braces
+    import re as _re
+    _repaired = content.strip()
+    # Count braces to see if we're missing any
+    for _ in range(3):  # Try up to 3 closing braces
+        try:
+            _parsed = json.loads(_repaired)
+            if isinstance(_parsed, dict) and "tool" in _parsed and "args" in _parsed:
+                print(f"[jarvis] Parsed JSON after repairing (added {'}' * _} closing braces)", flush=True)
+                return _parsed
+        except Exception:
+            pass
+        if _repaired.endswith("}"):
+            # Already ends with }, try adding another
+            _repaired = _repaired + "}"
+        else:
+            _repaired = _repaired + "}"
+
     # 1. Try direct JSON parse of the whole content
     try:
         parsed = json.loads(content)
