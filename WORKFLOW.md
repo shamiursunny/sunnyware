@@ -1631,3 +1631,10 @@ cd /h/sunnyware
 
 - **2FA Header**: `chat.html` fetch interceptor injects `X-2FA-Session` to fix the 428 error when logged in as Admin.
 - **Chat Titles**: `agent.py` saves the first 50 chars of the prompt to `metadata.title` so chat names persist across devices.
+
+
+## Library Search Tool (Part 265)
+
+- Added `search_library.py` tool that queries the `library_files` table using SQL `ILIKE` search.
+- Scoped by the current user's `owner_key` to ensure users only search their own files.
+- Registered in `tools/__init__.py` so the Orchestrator can invoke it.

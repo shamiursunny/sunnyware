@@ -2560,3 +2560,9 @@ Config:
 - **agent.py**: Updated all `get_or_create` calls to pass `metadata={"title": prompt[:50]}` so the first message is saved as the chat title.
 - This fixes the issue where chats loaded from the backend on a new device would only show "Chat sunny-..." instead of the actual title.
 - Deployment SHA: 9191de1
+
+## Part 265 — Library Search Tool (2026-10-21) COMPLETED
+- **tools/search_library.py**: Created a new tool that lets the AI search the user's uploaded Library files using SQL `ILIKE` queries on filenames and content.
+- **tools/__init__.py**: Registered `SearchLibraryTool`.
+- This enables the AI to read PDFs, text files, and code files you upload directly from the chat.
+- Deployment SHA: 1b832a8
