@@ -30,7 +30,7 @@ def _load_sync():
     from botocore.config import Config
 
     bucket = os.getenv("S3_BUCKET_NAME", "")
-    key = os.getenv("LOCAL_MODEL_PATH", "").lstrip("/")
+    key = os.path.basename(os.getenv("LOCAL_MODEL_PATH", ""))
     if not bucket or not key:
         _LOAD_ERROR = "S3_BUCKET_NAME or LOCAL_MODEL_PATH not set"
         raise RuntimeError(_LOAD_ERROR)
