@@ -34,10 +34,13 @@ def _get_embedder():
     if _embedder is None:
         try:
             import os
+            # Part 309: Force offline mode to prevent HF Hub checks
+            os.environ["HF_HUB_OFFLINE"] = "1"
+            os.environ["TRANSFORMERS_OFFLINE"] = "1"
+            
             from sentence_transformers import SentenceTransformer
             print("[jarvis] Loading embedding model...", flush=True)
             
-            # Part 304: Use persistent cache in /data/hub
             cache_dir = "/data/hub"
             os.makedirs(cache_dir, exist_ok=True)
             
@@ -46,19 +49,35 @@ def _get_embedder():
             
             if os.path.exists(model_folder):
                 print(f"[jarvis] Found embedder cache in {cache_dir}, loading offline", flush=True)
-                _embedder = SentenceTransformer(
-                    model_name,
-                    device='cpu',
-                    cache_folder=cache_dir,
-                    local_files_only=True
-                )
+                # Try loading from the snapshot directory directly
+                import glob
+                snapshots = glob.glob(os.path.join(model_folder, 'snapshots', '*'))
+                if snapshots:
+                    snapshot_path = snapshots[0]
+                    print(f"[jarvis] Loading from snapshot: {snapshot_path}", flush=True)
+                    _embedder = SentenceTransformer(snapshot_path, device='cpu')
+                else:
+                    print("[jarvis] No snapshot found, trying cache_folder", flush=True)
+                    _embedder = SentenceTransformer(
+                        model_name,
+                        device='cpu',
+                        cache_folder=cache_dir,
+                        local_files_only=True
+                    )
             else:
                 print(f"[jarvis] Embedder not in cache, downloading to {cache_dir}...", flush=True)
+                # Temporarily disable offline mode for the download
+                os.environ.pop("HF_HUB_OFFLINE", None)
+                os.environ.pop("TRANSFORMERS_OFFLINE", None)
                 _embedder = SentenceTransformer(
                     model_name,
                     device='cpu',
                     cache_folder=cache_dir
                 )
+                # Re-enable offline mode after download
+                os.environ["HF_HUB_OFFLINE"] = "1"
+                os.environ["TRANSFORMERS_OFFLINE"] = "1"
+            
             print("[jarvis] Embedder loaded successfully", flush=True)
         except Exception as e:
             print(f"[jarvis] Embedder load failed: {e}", flush=True)
