@@ -1649,3 +1649,11 @@ cd /h/sunnyware
 
 - `analytics_store.py`: Added `MODEL_PRICING` map and auto-calculation of `cost_cents` for chat events.
 - `admin-v2.html`: Added `_renderBarChart` and a Top Token Users bar chart to the User Analytics page.
+
+
+## Performance & Routing (Parts 270-273)
+
+- **Token Limits**: Increased Groq limit to 128k so it isn't skipped.
+- **Model Resolver**: Capped at 2s timeout and 24h cache to prevent 90s hangs.
+- **Tool Loop**: Forced final answer after 2 tool calls in `orchestrator.py`.
+- **LLM Timeout**: Reduced from 20s to 5s for faster failover.

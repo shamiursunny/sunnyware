@@ -2575,3 +2575,11 @@ Config:
 - **analytics_store.py**: Added `MODEL_PRICING` map and auto-calculation of `cost_cents` based on model + token count.
 - **admin-v2.html**: Added `_renderBarChart` and a "Top Token Users (Last 30 Days)" chart to the User Analytics page.
 - Deployment SHA: 4ec27ab
+
+## Parts 269–273 — Performance, Routing, and Loop Fixes (2026-10-21) COMPLETED
+- **Part 269**: Enabled tool calling for Pollinations.
+- **Part 270**: Increased Groq token limit to 128,000 to prevent skipping.
+- **Part 271**: Added a hard limit in `orchestrator.py` to force a final answer after 2 tool calls.
+- **Part 272**: Optimized `model_resolver.py` (2s timeout, 24h cache) to prevent 90s hangs.
+- **Part 273**: Reduced LLM HTTP timeout from 20s to 5s for faster failover.
+- Deployment SHA: fc83622
