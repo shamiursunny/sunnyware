@@ -1,10 +1,12 @@
 # src/sunnyware/needle_router.py
 import os
-import needle
 
-# Disable telemetry to keep logs clean
+# CRITICAL: Set HOME to /data BEFORE importing needle
+# This forces cactus-needle to cache the 35MB model in persistent storage
+os.environ["HOME"] = "/data"
 os.environ["NEEDLE_TELEMETRY"] = "0"
-os.environ["HF_HOME"] = "/data/hf_home"
+
+import needle
 
 @needle.tool
 def calculator(expression: str):
