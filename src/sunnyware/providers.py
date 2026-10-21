@@ -105,7 +105,7 @@ def load_providers(reload: bool = False) -> List[Provider]:
     # These are conservative defaults based on each provider's documented
     # or observed input limits. Override with {PREFIX}_MAX_PROMPT_TOKENS.
     _default_max_pt = {
-        "groq": 7500,          # 8k hard limit; leave 500-token headroom
+        "groq": 128000,          # Llama 3.3 70B supports 128k context
         "gemini": 1000000,     # 1M context
         "openrouter": 32000,   # varies by model; safe default
         "pollinations": 32000,
