@@ -21,6 +21,7 @@ def _get_embedder():
     global _embedder
     if _embedder is None:
         try:
+            logger.info("[jarvis] Loading embedding model...")
             from sentence_transformers import SentenceTransformer
             _embedder = SentenceTransformer('all-MiniLM-L6-v2')
         except Exception as e:
@@ -29,8 +30,10 @@ def _get_embedder():
     return _embedder if _embedder != "failed" else None
 
 async def find_relevant_tools(prompt: str, top_k: int = 3) -> List[Dict]:
+    logger.info("[jarvis] find_relevant_tools called")
     """Retrieve the most relevant tool schemas using embedding similarity."""
     embedder = _get_embedder()
+    logger.info(f"[jarvis] Embedder status: {'OK' if embedder else 'FAILED'}")
     if not embedder:
         return []
 
@@ -45,6 +48,7 @@ async def find_relevant_tools(prompt: str, top_k: int = 3) -> List[Dict]:
             "parameters": tool.parameters
         })
 
+    logger.info(f"[jarvis] Found {len(tool_descriptions)} tools for RAG")
     if not tool_descriptions:
         logger.warning("[jarvis] No tools available for RAG")
         return []
@@ -66,6 +70,7 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
     Use the local GGUF model to select a tool and extract arguments.
     Returns a dict like {"tool": "calculator", "args": {"expression": "2+2"}} or None.
     """
+    logger.info(f"[jarvis] Local LLM enabled: {local_llm.is_enabled()}")
     if not local_llm.is_enabled():
         logger.warning("[jarvis] Local LLM is disabled or missing path")
         return None
@@ -112,6 +117,7 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
     return None
 
 async def jarvis_route(prompt: str) -> Optional[Dict]:
+    logger.info(f"[jarvis] ROUTE CALLED with prompt: {prompt[:50]}")
     """
     Full Jarvis pipeline: retrieve relevant tools, select one with the local model.
     Returns {"tool": ..., "args": ...} or None.
