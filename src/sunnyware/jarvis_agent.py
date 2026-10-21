@@ -73,6 +73,11 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
     if not local_llm.is_enabled():
         print("[jarvis] Local LLM is disabled or missing path")
         return None
+    
+    # Part 281: If model is still downloading in the background, skip Jarvis
+    if hasattr(local_llm, 'is_loaded') and not local_llm.is_loaded():
+        print("[jarvis] Model not yet loaded (downloading in background) — falling back to cloud")
+        return None
 
     # Construct a concise prompt
     tool_json = json.dumps(tools, indent=2)

@@ -15,6 +15,9 @@ _MODEL = None
 _LOAD_ERROR: str = ""
 _DOWNLOADED_PATH: str = ""
 
+def is_loaded() -> bool:
+    return _MODEL is not None
+
 def _enabled() -> bool:
     return (os.getenv("LOCAL_MODEL_ENABLED", "0") or "0").strip() in ("1", "true", "yes")
 
@@ -54,7 +57,9 @@ def _load_sync():
                 response_checksum_validation="when_required",
             ),
         )
-        s3.download_file(bucket, key, local_path)
+        from botocore.config import Config as _BotoConfig
+        _dl_cfg = _BotoConfig(read_timeout=300, connect_timeout=30)
+        s3.download_file(bucket, key, local_path, Config=_dl_cfg)
         print(f"[jarvis] Download complete: {local_path}")
     else:
         print(f"[jarvis] Model already cached at {local_path}")

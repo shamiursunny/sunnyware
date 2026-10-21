@@ -70,6 +70,14 @@ async def _preload_local_task():
 
 @asynccontextmanager
 async def lifespan(app):
+    try:
+        from . import local_llm_s3 as _jarvis_local
+        if _jarvis_local.is_enabled():
+            import asyncio as _aio
+            asyncio.create_task(_jarvis_local.preload())
+            print("[jarvis] Background preload started")
+    except Exception as _e:
+        print(f"[jarvis] Preload failed: {_e}")
     init_state()
     # Part 26: ensure scheduler running inside the live event loop
     try:
