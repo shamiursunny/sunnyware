@@ -748,6 +748,65 @@ async def _run_agent_body(
     def _record_call(tool_name, args, result):
         _seen_calls.setdefault(tool_name, []).append((args, result))
 
+    # Part 274: Try local Jarvis routing before cloud LLM
+    # This replaces the expensive cloud tool-calling loop with a fast,
+    # token-efficient local model + RAG retrieval.
+    try:
+        from . import jarvis_agent as _jarvis
+        _jarvis_result = await _jarvis.jarvis_route(prompt)
+        if _jarvis_result:
+            _tool_name = _jarvis_result.get("tool")
+            _tool_args = _jarvis_result.get("args", {})
+            # Respect role tool restrictions
+            if _allowed_set is None or _tool_name in _allowed_set:
+                from .tools import get_tool
+                _tool_obj = get_tool(_tool_name)
+                if _tool_obj:
+                    try:
+                        _tool_result = await _tool_obj.run(_tool_args)
+                        await _emit(on_event, {
+                            "type": "tool_call", "tool": _tool_name,
+                            "args": _tool_args, "protocol": "jarvis",
+                        })
+                        await _emit(on_event, {
+                            "type": "tool_result", "tool": _tool_name,
+                            "result": _tool_result,
+                        })
+                        _final_prompt = (
+                            "User asked: " + prompt + "\n\n"
+                            + "Tool `" + _tool_name + "` was called and returned: "
+                            + json.dumps(_tool_result) + "\n\n"
+                            + "Write a concise final answer based on this result."
+                        )
+                        _final_res = await llm_client.chat(
+                            prompt=_final_prompt,
+                            model=model,
+                            system=system_prompt,
+                            history=history,
+                            tools=None,
+                        )
+                        if _final_res.get("ok"):
+                            steps.append({
+                                "iteration": 1,
+                                "tool": _tool_name,
+                                "args": _tool_args,
+                                "result": _tool_result,
+                                "protocol": "jarvis",
+                            })
+                            return {
+                                "ok": True,
+                                "content": (_final_res.get("content") or "").strip(),
+                                "steps": steps,
+                                "iterations": 2,
+                                "provider": _final_res.get("provider"),
+                                "resolved_model": _final_res.get("resolved_model"),
+                                "attachments": _attachments,
+                            }
+                    except Exception as _je:
+                        pass  # Tool failed — fall through to normal loop
+    except Exception:
+        pass  # Jarvis disabled / model not loaded — fall through
+
     for iteration in range(MAX_ITERATIONS):
         result = await llm_client.chat(
             prompt if iteration == 0 else "Continue.",
