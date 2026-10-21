@@ -9,6 +9,7 @@ from .write_file import WriteFileTool
 from .calculator import CalculatorTool
 from .web_fetch import WebFetchTool
 from .memory_search import MemorySearchTool
+from .search_library import SearchLibraryTool
 from .web_search import WebSearchTool
 from .weather import WeatherTool
 from .date_calc import DateCalcTool
@@ -93,6 +94,7 @@ _TOOLS = {
     ReadFileTool.name: ReadFileTool(),
     WriteFileTool.name: WriteFileTool(),
     CalculatorTool.name: CalculatorTool(),
+    SearchLibraryTool.name: SearchLibraryTool(),
     WebFetchTool.name: WebFetchTool(),
     MemorySearchTool.name: MemorySearchTool(),
     WebSearchTool.name: WebSearchTool(),
