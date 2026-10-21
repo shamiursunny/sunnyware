@@ -38,14 +38,22 @@ def _load_sync():
         _LOAD_ERROR = "S3_BUCKET_NAME or LOCAL_MODEL_PATH not set"
         raise RuntimeError(_LOAD_ERROR)
 
-    cache_dir = "/data/models"  # Part 285: Persistent mount, survives restarts
-    os.makedirs(cache_dir, exist_ok=True)
-    local_path = os.path.join(cache_dir, os.path.basename(key))
-    _DOWNLOADED_PATH = local_path
+    # Part 288: First, check if the model is already mounted at /models (read-only)
+    mounted_path = os.path.join("/models", os.path.basename(key))
+    if os.path.exists(mounted_path):
+        print(f"[jarvis] Found model at mounted path: {mounted_path} — skipping download", flush=True)
+        local_path = mounted_path
+        _DOWNLOADED_PATH = local_path
+    else:
+        # Fallback: download to /data/models if not mounted
+        cache_dir = "/data/models"
+        os.makedirs(cache_dir, exist_ok=True)
+        local_path = os.path.join(cache_dir, os.path.basename(key))
+        _DOWNLOADED_PATH = local_path
 
-    if not os.path.exists(local_path):
-        print(f"[jarvis] Downloading {key} from s3://{bucket} to {local_path} ...")
-        s3 = boto3.client(
+        if not os.path.exists(local_path) or os.path.getsize(local_path) < 1000000000:
+            print(f"[jarvis] Downloading {key} from s3://{bucket} to {local_path} ...", flush=True)
+            s3 = boto3.client(
             "s3",
             endpoint_url=os.getenv("S3_ENDPOINT_URL", "https://s3.hf.co/shamiur"),
             aws_access_key_id=os.getenv("S3_ACCESS_KEY_ID"),
