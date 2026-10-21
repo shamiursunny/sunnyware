@@ -796,6 +796,7 @@ async def _run_agent_body(
                         return {
                             "ok": True,
                             "content": _ans,
+                            "answer": _ans,
                             "steps": steps,
                             "iterations": 2,
                             "provider": _final_res.get("provider") if _final_res else "none",
