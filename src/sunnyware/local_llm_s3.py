@@ -39,8 +39,16 @@ def _load_sync():
         raise RuntimeError(_LOAD_ERROR)
 
     # 1. Check if the model is already mounted at /models (read-only)
-    mounted_path = os.path.join("/models", key)
-    if os.path.exists(mounted_path):
+    # Use os.walk to find the file anywhere inside the mount (robust against subfolders)
+    import os as _os
+    mounted_path = None
+    if _os.path.exists("/models"):
+        for root, dirs, files in _os.walk("/models"):
+            if key in files:
+                mounted_path = _os.path.join(root, key)
+                break
+    
+    if mounted_path:
         print(f"[jarvis] Found model at mounted path: {mounted_path} — skipping download", flush=True)
         local_path = mounted_path
         _DOWNLOADED_PATH = local_path
