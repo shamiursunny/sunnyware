@@ -28,9 +28,9 @@ def _get_needle_agent():
                 tools=[calculator, current_time],
                 generation=3,
             )
-            logger.info("[needle] Agent initialized successfully")
+            log.info("[needle] Agent initialized successfully")
         except Exception as e:
-            logger.error(f"[needle] Failed to initialize agent: {e}")
+            log.error(f"[needle] Failed to initialize agent: {e}")
             _needle_agent = "failed"
     return _needle_agent if _needle_agent != "failed" else None
 
@@ -42,19 +42,20 @@ async def try_needle_route(prompt: str):
 
     try:
         response = agent.complete(text=prompt, max_new_tokens=128)
+        log.info(f"[needle] Raw response: {response}")
         calls = response.get("function_calls", [])
         confidence = response.get("confidence", 0.0)
 
         if calls and confidence > 0.5:
             call = calls[0]
-            logger.info(f"[needle] Selected tool: {call['name']} (confidence={confidence:.2f})")
+            log.info(f"[needle] Selected tool: {call['name']} (confidence={confidence:.2f})")
             return {
                 "tool": call["name"],
                 "args": call.get("arguments", {}),
             }
         else:
-            logger.info(f"[needle] No confident tool call (calls={len(calls)}, confidence={confidence:.2f})")
+            log.info(f"[needle] No confident tool call (calls={len(calls)}, confidence={confidence:.2f})")
             return None
     except Exception as e:
-        logger.warning(f"[needle] Routing error: {e}")
+        log.warning(f"[needle] Routing error: {e}")
         return None
