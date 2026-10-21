@@ -110,6 +110,28 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
         f"Available tools:\n{tool_json}"
     )
 
+    # --- Stage 1: Try Needle 3 (fast, local) ---
+
+
+    from .needle_router import try_needle_route
+
+
+    needle_result = await try_needle_route(prompt)
+
+
+    if needle_result:
+
+
+        return needle_result
+
+
+
+    # --- Stage 2: Fallback to MiniCPM5-2B ---
+
+
+    logger.info("[jarvis] Needle 3 declined or failed. Falling back to MiniCPM5-2B.")
+
+
     result = await local_llm.chat(
         prompt=prompt,
         system=system_prompt,
