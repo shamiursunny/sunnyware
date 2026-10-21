@@ -327,6 +327,25 @@ except Exception:
 
 
 # FALLBACK: init state at import time (HF Spaces skips lifespan)
+
+# Part 284: Start Jarvis preload for HF Spaces (lifespan is skipped)
+try:
+    from . import local_llm_s3 as _jarvis_local
+    if _jarvis_local.is_enabled():
+        import threading as _threading
+        import asyncio as _aio
+        def _run_preload():
+            try:
+                _aio.run(_jarvis_local.preload())
+            except Exception as _e:
+                print(f"[jarvis] Preload thread error: {_e}", flush=True)
+        _threading.Thread(target=_run_preload, daemon=True).start()
+        print("[jarvis] Preload thread started (fallback path)", flush=True)
+    else:
+        print("[jarvis] Preload skipped: LLM disabled or S3_BUCKET_NAME missing", flush=True)
+except Exception as _e:
+    print(f"[jarvis] Preload failed: {_e}", flush=True)
+
 init_state()
 
 
