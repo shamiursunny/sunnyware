@@ -30,9 +30,5 @@ if __name__ == "__main__":
         server_name="0.0.0.0",
         server_port=int(os.getenv("PORT", "7860")),
         show_error=True,
-        share=False,
-        prevent_thread_lock=True,
+        share=False
     )
-    print("Server launched in background. Blocking main thread to keep HF Space alive.")
-    while True:
-        time.sleep(1)
