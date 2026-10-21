@@ -444,6 +444,7 @@ async def run_agent(req: Request):
     return {
         "result": {
             "content": agent_result.get("answer", ""),
+            "answer": agent_result.get("answer", ""),
             "model": (agent_result.get("resolved_model") or (state["config"].llm_model if state["config"] else "unknown")),
             "auditor_verdict": _auditor_verdict,
             "steps": agent_result.get("steps", []),

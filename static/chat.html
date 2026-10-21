@@ -3048,6 +3048,12 @@ async function streamAI(chat, prompt) {
           if(ev.error) throw new Error(ev.error);
 
           sunnyRenderStreaming(textEl, aiMsg, accumulatedText);
+        } else if(type === 'final') {
+          if(ev.answer) {
+            accumulatedText = ev.answer;
+            sunnyRenderStreaming(textEl, aiMsg, accumulatedText);
+          }
+
 
 
 

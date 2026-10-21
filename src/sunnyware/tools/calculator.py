@@ -6,6 +6,8 @@ import ast
 import operator
 
 
+import math
+
 _ALLOWED_BINOPS = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
@@ -14,6 +16,17 @@ _ALLOWED_BINOPS = {
     ast.Mod: operator.mod,
     ast.Pow: operator.pow,
     ast.FloorDiv: operator.floordiv,
+}
+
+_ALLOWED_FUNCS = {
+    "sqrt": math.sqrt,
+    "sin": math.sin,
+    "cos": math.cos,
+    "tan": math.tan,
+    "log": math.log,
+    "log10": math.log10,
+    "exp": math.exp,
+    "abs": abs,
 }
 
 _ALLOWED_UNARYOPS = {
@@ -39,6 +52,13 @@ def _eval(node):
         if op is None:
             raise ValueError(f"unsupported unary operator: {type(node.op).__name__}")
         return op(_eval(node.operand))
+    if isinstance(node, ast.Call):
+        func_name = getattr(node.func, "id", None)
+        func = _ALLOWED_FUNCS.get(func_name)
+        if func is None:
+            raise ValueError(f"unsupported function: {func_name}")
+        args = [_eval(arg) for arg in node.args]
+        return func(*args)
     raise ValueError(f"unsupported node: {type(node).__name__}")
 
 
