@@ -3,6 +3,15 @@
 """Part 212: User analytics event log (chat, tool, session)."""
 
 import contextvars
+
+# Part 267: Approximate cost per 1K tokens (USD) for popular models
+MODEL_PRICING = {
+    "groq": 0.0005,
+    "gemini": 0.0001,
+    "openrouter": 0.0001,
+    "pollinations": 0.0,
+    "default": 0.0001,
+}
 import json
 import os
 import secrets
@@ -117,6 +126,13 @@ def log_event(user: str, event_type: str, **kwargs) -> dict:
         "device": kwargs.get("device", ""),
         "location": kwargs.get("location", ""),
     }
+    # Part 267: auto-calculate cost for chat events
+    if entry["type"] == "chat" and entry["cost_cents"] == 0 and entry["tokens"] > 0:
+        model = entry.get("model", "").lower()
+        rate = MODEL_PRICING.get(model.split("/")[0], MODEL_PRICING["default"])
+        cost_usd = (entry["tokens"] / 1000) * rate
+        entry["cost_cents"] = cost_usd * 100
+
     events[eid] = entry
     if len(events) > MAX_EVENTS:
         items = sorted(events.items(), key=lambda kv: kv[1].get("ts", 0))
