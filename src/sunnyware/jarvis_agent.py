@@ -11,6 +11,19 @@ import asyncio
 import re
 from typing import List, Dict, Any, Optional
 from . import local_llm_s3 as local_llm
+
+# Part 307: Simplify array types to strings for the local model
+def _simplify_schema(params):
+    if not params:
+        return {}
+    new_params = {}
+    for k, v in params.items():
+        new_v = dict(v)
+        if new_v.get("type") == "array":
+            new_v["type"] = "string"
+            new_v["description"] = new_v.get("description", "") + " (comma-separated list of values)"
+        new_params[k] = new_v
+    return new_params
 from .tools import _TOOLS, get_tool, list_tools
 
 # Lazy load embedding model
@@ -68,7 +81,7 @@ async def find_relevant_tools(prompt: str, top_k: int = 3) -> List[Dict]:
         tool_objects.append({
             "name": name,
             "description": tool.description,
-            "parameters": tool.parameters
+            "parameters": _simplify_schema(tool.parameters)
         })
 
     print(f"[jarvis] Found {len(tool_descriptions)} tools for RAG", flush=True)

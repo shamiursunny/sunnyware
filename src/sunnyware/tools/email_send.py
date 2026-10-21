@@ -31,12 +31,27 @@ class EmailSendTool:
 
     async def run(self, args: dict) -> dict:
         from .. import email_send as _em
+        
+        # Part 307: Normalize array arguments (local model may send strings)
+        def _norm_list(v):
+            if not v:
+                return []
+            if isinstance(v, str):
+                return [e.strip() for e in v.split(",") if e.strip()]
+            if isinstance(v, list):
+                return [str(e).strip() for e in v if str(e).strip()]
+            return []
+        
+        to = _norm_list(args.get("to"))
+        cc = _norm_list(args.get("cc"))
+        bcc = _norm_list(args.get("bcc"))
+        
         return await _em.send_email(
-            to=args.get("to"),
+            to=to,
             subject=args.get("subject", ""),
             body=args.get("body", ""),
             html=bool(args.get("html", False)),
-            cc=args.get("cc"),
-            bcc=args.get("bcc"),
+            cc=cc,
+            bcc=bcc,
             attachments=args.get("attachments"),
         )
