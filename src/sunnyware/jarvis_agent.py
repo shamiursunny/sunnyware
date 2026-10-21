@@ -105,6 +105,7 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
     tool_json = json.dumps(tools, indent=2)
     system_prompt = (
         "You are a tool router. Given a user request and a list of tools, select the best tool and provide the arguments.\n"
+        "CRITICAL: You MUST NOT output <think> blocks. Start your response IMMEDIATELY with {.\n"
         "Output ONLY a JSON object with keys 'tool' and 'args'. Do not add any explanation.\n"
         f"Available tools:\n{tool_json}"
     )
