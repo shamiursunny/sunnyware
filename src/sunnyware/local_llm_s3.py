@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """
 S3-backed local LLM loader.
-Downloads GGUF from HF S3 bucket to a local cache, then loads with llama-cpp-python.
+Checks the /models mount first, then falls back to downloading from S3.
 """
 
 import asyncio
@@ -38,39 +38,37 @@ def _load_sync():
         _LOAD_ERROR = "S3_BUCKET_NAME or LOCAL_MODEL_PATH not set"
         raise RuntimeError(_LOAD_ERROR)
 
-    # Part 288: First, check if the model is already mounted at /models (read-only)
-    mounted_path = os.path.join("/models", os.path.basename(key))
+    # 1. Check if the model is already mounted at /models (read-only)
+    mounted_path = os.path.join("/models", key)
     if os.path.exists(mounted_path):
         print(f"[jarvis] Found model at mounted path: {mounted_path} — skipping download", flush=True)
         local_path = mounted_path
         _DOWNLOADED_PATH = local_path
     else:
-        # Fallback: download to /data/models if not mounted
+        # 2. Fallback: download to /data/models if not mounted
         cache_dir = "/data/models"
         os.makedirs(cache_dir, exist_ok=True)
-        local_path = os.path.join(cache_dir, os.path.basename(key))
+        local_path = os.path.join(cache_dir, key)
         _DOWNLOADED_PATH = local_path
 
         if not os.path.exists(local_path) or os.path.getsize(local_path) < 1000000000:
             print(f"[jarvis] Downloading {key} from s3://{bucket} to {local_path} ...", flush=True)
             s3 = boto3.client(
-            "s3",
-            endpoint_url=os.getenv("S3_ENDPOINT_URL", "https://s3.hf.co/shamiur"),
-            aws_access_key_id=os.getenv("S3_ACCESS_KEY_ID"),
-            aws_secret_access_key=os.getenv("S3_SECRET_ACCESS_KEY"),
-            config=Config(
-                region_name="us-east-1",
-                s3={"addressing_style": "path"},
-                request_checksum_calculation="when_required",
-                response_checksum_validation="when_required",
-            ),
-        )
-        from botocore.config import Config as _BotoConfig
-        _dl_cfg = _BotoConfig(read_timeout=300, connect_timeout=30)
-        s3.download_file(bucket, key, local_path, Config=_dl_cfg)
-        print(f"[jarvis] Download complete: {local_path}")
-    else:
-        print(f"[jarvis] Model already cached at {local_path}")
+                "s3",
+                endpoint_url=os.getenv("S3_ENDPOINT_URL", "https://s3.hf.co/shamiur"),
+                aws_access_key_id=os.getenv("S3_ACCESS_KEY_ID"),
+                aws_secret_access_key=os.getenv("S3_SECRET_ACCESS_KEY"),
+                config=Config(
+                    region_name="us-east-1",
+                    s3={"addressing_style": "path"},
+                    request_checksum_calculation="when_required",
+                    response_checksum_validation="when_required",
+                ),
+            )
+            s3.download_file(bucket, key, local_path)
+            print(f"[jarvis] Download complete: {local_path} ({os.path.getsize(local_path) / 1024 / 1024 / 1024:.2f} GB)", flush=True)
+        else:
+            print(f"[jarvis] Model already cached at {local_path}", flush=True)
 
     try:
         from llama_cpp import Llama
