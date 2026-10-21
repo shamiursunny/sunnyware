@@ -1643,3 +1643,9 @@ cd /h/sunnyware
 ## Mobile UX Polish (Part 266)
 
 - `chat.html`: `selectChat()` and `newChat()` now call `closeSidebar()` on screens ≤900px to prevent the sidebar from blocking the chat view.
+
+
+## Admin Token Analytics (Part 267)
+
+- `analytics_store.py`: Added `MODEL_PRICING` map and auto-calculation of `cost_cents` for chat events.
+- `admin-v2.html`: Added `_renderBarChart` and a Top Token Users bar chart to the User Analytics page.

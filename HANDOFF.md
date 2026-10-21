@@ -2570,3 +2570,8 @@ Config:
 ## Part 266 — Mobile UX Sidebar Fix (2026-10-21) COMPLETED
 - **chat.html**: Added `closeSidebar()` to `selectChat()` and `newChat()` so the mobile sidebar closes automatically when navigating.
 - Deployment SHA: f58a674
+
+## Part 267 — Admin Token Analytics (2026-10-21) COMPLETED
+- **analytics_store.py**: Added `MODEL_PRICING` map and auto-calculation of `cost_cents` based on model + token count.
+- **admin-v2.html**: Added `_renderBarChart` and a "Top Token Users (Last 30 Days)" chart to the User Analytics page.
+- Deployment SHA: 4ec27ab
