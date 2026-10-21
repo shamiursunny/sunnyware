@@ -1,10 +1,14 @@
 # src/sunnyware/needle_router.py
 import os
 
-# CRITICAL: Set HOME to /data BEFORE importing needle
-# This forces cactus-needle to cache the 35MB model in persistent storage
+# CRITICAL: Set XDG_CACHE_HOME to force cactus-needle to use persistent storage
+# cactus-needle uses appdirs which reads XDG_CACHE_HOME on Linux
+os.environ["XDG_CACHE_HOME"] = "/data/.cache"
 os.environ["HOME"] = "/data"
 os.environ["NEEDLE_TELEMETRY"] = "0"
+
+# Ensure the directories exist and are writable
+os.makedirs("/data/.cache", exist_ok=True)
 
 import needle
 
