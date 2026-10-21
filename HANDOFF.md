@@ -2583,3 +2583,12 @@ Config:
 - **Part 272**: Optimized `model_resolver.py` (2s timeout, 24h cache) to prevent 90s hangs.
 - **Part 273**: Reduced LLM HTTP timeout from 20s to 5s for faster failover.
 - Deployment SHA: fc83622
+
+## Parts 274–303 — Local Jarvis Agent (2026-10-21) COMPLETED
+- **jarvis_agent.py**: Created to use embedding RAG and local GGUF models for tool selection.
+- **local_llm_s3.py**: Created to load the model from `/models` mount or download to `/data/models`.
+- **orchestrator.py**: Intercepts tool calls with Jarvis before the cloud LLM, and uses a minimal synthesis prompt to avoid HTTP 413 errors.
+- **calculator.py**: Added support for `sqrt()`, `sin()`, `cos()`, `log()`, etc.
+- **routes/agent.py**: Added `answer` key to non-streaming response.
+- **chat.html**: Added `final` event handler to render the streamed answer.
+- Deployment SHA: 31e7c10

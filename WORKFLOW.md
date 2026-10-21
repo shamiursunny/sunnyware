@@ -1657,3 +1657,13 @@ cd /h/sunnyware
 - **Model Resolver**: Capped at 2s timeout and 24h cache to prevent 90s hangs.
 - **Tool Loop**: Forced final answer after 2 tool calls in `orchestrator.py`.
 - **LLM Timeout**: Reduced from 20s to 5s for faster failover.
+
+
+## Local Jarvis Agent (Parts 274-303)
+
+- **Jarvis Agent**: Uses `sentence-transformers` for RAG tool retrieval and a local `MiniCPM5-2B-Q4_K_M.gguf` model to select tools.
+- **Zero Download**: Reads directly from the `/models` read-only mount if available, falling back to S3 download to `/data/models`.
+- **Token Savings**: Bypasses sending 8,700+ tokens of tool schemas to the cloud LLM. Uses a minimal synthesis prompt for the final answer.
+- **Robust Parsing**: Extracts JSON from local model `<think>` blocks and repairs truncated JSON.
+- **Greeting Bypass**: Skips Jarvis for simple greetings to avoid CPU inference delay.
+- **SSE Stream**: Emits `final` events so the frontend renders the synthesized answer.
