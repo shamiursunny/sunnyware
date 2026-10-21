@@ -778,13 +778,7 @@ async def _run_agent_body(
                             + json.dumps(_tool_result) + "\n\n"
                             + "Write a concise final answer based on this result."
                         )
-                        _final_res = await llm_client.chat(
-                            prompt=_final_prompt,
-                            model=model,
-                            system=system_prompt,
-                            history=history,
-                            tools=None,
-                        )
+                        _final_res = await llm_client.chat(prompt=_final_prompt, model=model, system="You are Sunnyware. Answer based on the tool result. Be concise.", history=None, tools=None)
                         if _final_res.get("ok"):
                             steps.append({
                                 "iteration": 1,
