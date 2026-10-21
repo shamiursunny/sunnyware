@@ -349,7 +349,7 @@ async def run_agent(req: Request):
     except Exception:
         pass
 
-    session_uuid = await sessions_store.get_or_create(session_id)
+    session_uuid = await sessions_store.get_or_create(session_id, metadata={"title": (prompt or "New Chat")[:50]})
     # Part 113A: persist role on the session (best-effort, never fatal)
     if session_uuid and role:
         try:
@@ -542,7 +542,7 @@ async def run_agent_stream(req: Request):
     if _g_deny is not None:
         return _g_deny
 
-    session_uuid = await sessions_store.get_or_create(session_id)
+    session_uuid = await sessions_store.get_or_create(session_id, metadata={"title": (prompt or "New Chat")[:50]})
     # Part 113A: persist role on the session (best-effort, never fatal)
     if session_uuid and role:
         try:
@@ -645,7 +645,7 @@ async def run_agent_plan(req: Request):
     if _g_deny is not None:
         return _g_deny
 
-    session_uuid = await sessions_store.get_or_create(session_id)
+    session_uuid = await sessions_store.get_or_create(session_id, metadata={"title": (prompt or "New Chat")[:50]})
     if session_uuid:
         await memory_store.log_event(
             session_uuid, "user_message",
@@ -777,7 +777,7 @@ async def agent_stream(req: Request):
     if _g_deny is not None:
         return _g_deny
 
-    session_uuid = await _sessions.get_or_create(session_id)
+    session_uuid = await _sessions.get_or_create(session_id, metadata={"title": (prompt or "New Chat")[:50]})
 
     # Part 113A: persist role on session (best-effort, never fatal)
     if session_uuid and role:
