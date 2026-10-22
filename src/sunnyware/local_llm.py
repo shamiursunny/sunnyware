@@ -80,6 +80,38 @@ async def _ensure_loaded():
     return await asyncio.to_thread(_load_sync)
 
 
+
+_qwen_model = None
+
+def _get_qwen_model():
+    global _qwen_model
+    if _qwen_model is not None:
+        return _qwen_model
+    try:
+        import os
+        from huggingface_hub import hf_hub_download
+        from llama_cpp import Llama
+        print("[local_llm] Downloading/Loading Qwen 0.5B for chat...", flush=True)
+        model_dir = "/data/models"
+        os.makedirs(model_dir, exist_ok=True)
+        model_path = f"{model_dir}/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+        
+        if not os.path.exists(model_path):
+            print("[local_llm] Qwen not found in /data/models. Downloading...", flush=True)
+            downloaded_path = hf_hub_download(
+                repo_id="Qwen/Qwen2.5-0.5B-Instruct-GGUF",
+                filename="qwen2.5-0.5b-instruct-q4_k_m.gguf",
+                cache_dir="/data/hf_cache"
+            )
+            os.system(f"cp {downloaded_path} {model_path}")
+            
+        _qwen_model = Llama(model_path=model_path, n_ctx=2048, n_threads=2, verbose=False)
+        print("[local_llm] Qwen 0.5B loaded successfully.", flush=True)
+        return _qwen_model
+    except Exception as e:
+        print(f"[local_llm] Failed to load Qwen: {e}", flush=True)
+        return None
+
 async def chat(
     prompt: str,
     model: Optional[str] = None,
@@ -121,16 +153,23 @@ async def chat(
             }
 
         def _run():
+            use_qwen = not tools or len(tools) == 0
+            active_model = _get_qwen_model() if use_qwen else llama
+            if active_model is None:
+                print("[local_llm] Qwen failed, falling back to MiniCPM", flush=True)
+                active_model = llama
+            
+            print(f"[local_llm] Generating with {'Qwen 0.5B' if use_qwen else 'MiniCPM'}", flush=True)
             kwargs = {
                 "messages": messages,
-                "temperature": 0.1,
+                "temperature": 0.1 if use_qwen else 0.2,
                 "stream": False,
-                "max_tokens": 128,
+                "max_tokens": 256 if use_qwen else 512,
             }
             if tools:
                 kwargs["tools"] = tools
                 kwargs["tool_choice"] = "auto"
-            return llama.create_chat_completion(**kwargs)
+            return active_model.create_chat_completion(**kwargs)
 
         try:
             resp = await asyncio.wait_for(
