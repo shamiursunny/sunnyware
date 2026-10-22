@@ -110,20 +110,7 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
         f"Available tools:\n{tool_json}"
     )
 
-    # --- Stage 1: Try Needle 3 (fast, local) ---
-
-
-    from .needle_router import try_needle_route
-
-
-    needle_result = await try_needle_route(prompt)
-
-
-    if needle_result:
-
-
-        return needle_result
-
+    
 
 
     # --- Stage 2: Fallback to MiniCPM5-2B ---
@@ -229,6 +216,23 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
     if len(p_lower) < 15 and any(p_lower.startswith(g) for g in ["hi", "hello", "hey", "who are you", "what's up"]):
         print("[jarvis] Skipping tool routing for greeting/simple chat", flush=True)
         return None
+
+    # --- Stage 1: Try Needle 3 (fast, local) ---
+    from .needle_router import try_needle_route
+
+    # Extract all 83 tool schemas from the _TOOLS registry
+    all_tool_schemas = []
+    for name, tool in _TOOLS.items():
+        if isinstance(tool, dict):
+            all_tool_schemas.append(tool)
+        elif hasattr(tool, "schema"):
+            all_tool_schemas.append(tool.schema)
+        elif hasattr(tool, "to_dict"):
+            all_tool_schemas.append(tool.to_dict())
+
+    needle_result = await try_needle_route(prompt, all_tool_schemas)
+    if needle_result:
+        return needle_result
 
     relevant_tools = await find_relevant_tools(prompt, top_k=3)
     if not relevant_tools:
