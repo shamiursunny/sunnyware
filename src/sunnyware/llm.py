@@ -350,11 +350,14 @@ async def chat(
         if _llm.is_enabled():
             try:
                 # Give it time to think and generate tools
+                # Part 379: Truncate history and tools for local CPU inference
+                _local_history = history[-4:] if history else []
+                _local_tools = tools if (tools and len(tools) <= 15) else []
                 local_res = await _llm.chat(
                     prompt=prompt,
                     system=system,
-                    history=history,
-                    tools=tools,
+                    history=_local_history,
+                    tools=_local_tools,
                     timeout=120.0
                 )
                 if local_res.get("ok") and (local_res.get("content") or local_res.get("tool_calls")):
