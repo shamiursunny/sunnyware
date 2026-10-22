@@ -120,7 +120,7 @@ def load_providers(reload: bool = False) -> List[Provider]:
         # For groq, prefer LLM_* variables (same as CFO Agent)
         if name == "groq":
             base_url = (os.getenv("LLM_BASE_URL") or os.getenv("GROQ_BASE_URL") or "").strip()
-            api_key = (os.getenv("LLM_API_KEY") or os.getenv("GROQ_API_KEY") or "").strip()
+            api_key = (os.getenv("LLM_API_KEY") or os.getenv("CFO_LLM_API_KEY") or os.getenv("GROQ_API_KEY") or "").strip()
             model = (os.getenv("LLM_MODEL") or os.getenv("GROQ_MODEL") or "").strip()
         else:
             base_url = (os.getenv(f"{prefix}_BASE_URL") or "").strip()

@@ -37,7 +37,7 @@ def _legacy_base_url() -> str:
 
 
 def _legacy_api_key() -> str:
-    return os.getenv("LLM_API_KEY", DEFAULT_API_KEY)
+    return os.getenv("LLM_API_KEY") or os.getenv("CFO_LLM_API_KEY") or DEFAULT_API_KEY
 
 
 def _legacy_model() -> str:
