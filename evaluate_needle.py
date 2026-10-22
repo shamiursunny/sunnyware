@@ -34,7 +34,7 @@ async def evaluate():
             total_cases += 1
 
             # STEP 1: Run RAG shortlist (exactly like production)
-            shortlist = await find_relevant_tools(prompt, top_k=12)
+            shortlist = await find_relevant_tools(prompt, top_k=20)
             shortlist_names = [t.get("name") for t in shortlist] if shortlist else []
             
             # Check if expected tool is even in the shortlist

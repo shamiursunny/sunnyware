@@ -5,9 +5,7 @@
 
 class SqlSandboxExecuteTool:
     name = "sql_sandbox_execute"
-    description = (
-        "Run SQL in a sandbox. Use $1..$n placeholders for params. "
-        "SELECT/WITH return rows (max 5000). DDL/DML return a status "
+    description = "Run SQL in an isolated sandbox database. Triggers: run SQL, execute query, SELECT from sandbox. Input: sandbox name and SQL query. Returns query results.". DDL/DML return a status "
         "string. Search path is forced to the sandbox; main tables and "
         "cross-schema reads are blocked. 10s statement timeout."
     )

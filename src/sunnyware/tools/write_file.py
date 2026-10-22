@@ -34,7 +34,7 @@ def _safe_path(rel: str) -> Path:
 
 class WriteFileTool:
     name = "write_file"
-    description = "Write text content to a file in the workspace (creates dirs if needed)."
+    description = "Write text content to a new file in the workspace. Triggers: write file, save to file, create file. Input: filepath and content. Returns confirmation."
     parameters = {
         "path": {
             "type": "string",

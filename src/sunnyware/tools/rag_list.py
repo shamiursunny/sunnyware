@@ -5,12 +5,7 @@
 
 class RagListTool:
     name = "rag_list"
-    description = (
-        "List all documents currently uploaded to the RAG store, with "
-        "page-level source names and chunk counts. Use this FIRST when the "
-        "user references 'my documents', 'the uploaded file', 'the PDF', etc., "
-        "to confirm what is actually available before searching."
-    )
+    description = "List all documents in the RAG knowledge store. Triggers: list RAG documents, show knowledge base, what documents. Returns list of document names."
     parameters = {}  # no arguments
 
     async def run(self, args: dict) -> dict:

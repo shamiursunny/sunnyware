@@ -45,9 +45,7 @@ def _worker_proc(code, q):
 
 class PythonEvalTool:
     name = "python_eval"
-    description = (
-        "Execute Python code for data work (pandas, numpy, scipy, sklearn, "
-        "matplotlib, duckdb, openpyxl preloaded). Set result=... to return "
+    description = "Run Python code safely in a sandbox. Triggers: run python, execute code, use python, calculate with python. Input: code string. Returns printed output.". Set result=... to return "
         "a value. Use ws_path('file.csv') for workspace files."
     )
 

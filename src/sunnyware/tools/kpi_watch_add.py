@@ -5,12 +5,7 @@
 
 class KpiWatchAddTool:
     name = "kpi_watch_add"
-    description = (
-        "Register or update a KPI watch. The system will periodically run "
-        "your check_prompt, extract a number from the answer, and compare it "
-        "to a threshold. Breaches are logged to Neon for later retrieval. "
-        "Comparisons: lt, gt, le, ge, eq, ne. Use for 'alert me when X < Y'."
-    )
+    description = "Add a KPI to monitor (e.g., website traffic). Triggers: add KPI, watch metric, monitor number. Input: KPI name. Returns confirmation."
     parameters = {
         "kpi_name": {"type": "string", "required": True,
                      "description": "Short unique name (e.g. 'daily_burn_rate')"},

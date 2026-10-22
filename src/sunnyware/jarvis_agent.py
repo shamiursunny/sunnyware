@@ -218,7 +218,7 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
         return None
 
     # STEP 1: Pre-Filter (RAG) - Get the Top 12 most relevant tools
-    shortlist = await find_relevant_tools(prompt, top_k=12)
+    shortlist = await find_relevant_tools(prompt, top_k=20)
     if not shortlist:
         return None
     print(f"[jarvis] Shortlist contains {len(shortlist)} tools", flush=True)

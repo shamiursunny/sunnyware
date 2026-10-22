@@ -137,8 +137,7 @@ class _HtmlToMd(HTMLParser):
 
 class HtmlToTextTool:
     name = "html_to_text"
-    description = (
-        "Convert HTML (or fetch-and-convert a URL) into clean, readable "
+    description = "Strip HTML tags to extract plain text. Triggers: HTML to text, strip HTML, extract text from HTML. Input: HTML string. Returns plain text." into clean, readable "
         "markdown-style text. Preserves headings, paragraphs, lists, links, "
         "code blocks. Better than web_fetch for articles because structure "
         "is kept. Provide either raw 'html' string or a 'url' to fetch."

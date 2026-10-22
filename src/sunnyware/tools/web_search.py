@@ -24,10 +24,7 @@ def _sync_search(query: str, max_results: int) -> list:
 
 class WebSearchTool:
     name = "web_search"
-    description = (
-        "Search the web for current information. Returns top results with "
-        "title, URL, and snippet. Use for facts, news, current events."
-    )
+    description = "Search the internet for current information, news, or facts. Triggers: search web, find information, look up, google, latest news. Input: search query. Returns top results with title, URL, and snippet."
     parameters = {
         "query": {
             "type": "string",

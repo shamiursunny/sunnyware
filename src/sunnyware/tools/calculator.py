@@ -64,7 +64,7 @@ def _eval(node):
 
 class CalculatorTool:
     name = "calculator"
-    description = "Evaluate a math expression safely (+, -, *, /, %, **, //). Returns the numeric result."
+    description = "Evaluate any math expression safely (+, -, *, /, %, **, //, sqrt, sin, cos). Triggers: calculate, compute, math, divide, multiply, add, subtract, square root, what is 100 divided by 8. Returns the numeric result."
     parameters = {
         "expression": {
             "type": "string",

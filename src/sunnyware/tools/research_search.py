@@ -19,9 +19,7 @@ _SOURCES = ("edgar", "fred", "govcon")
 
 class ResearchSearchTool:
     name = "research_search"
-    description = (
-        "Unified research search across external data sources (no API "
-        "key required for any source, no LLM calls). Runs the query "
+    description = "Do deep research on a topic across sources. Triggers: research, investigate topic, deep search. Input: query. Returns research summary with citations.". Runs the query "
         "against SEC EDGAR filings, FRED economic series, and "
         "USAspending federal recipients in parallel, then merges results "
         "with source labels. Use for cross-domain research: 'insurance "

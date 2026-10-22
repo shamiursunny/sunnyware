@@ -5,10 +5,7 @@
 
 class SqlSandboxListTool:
     name = "sql_sandbox_list"
-    description = (
-        "List all SQL sandboxes with their tables and row counts. "
-        "Use to see what's already loaded before running queries."
-    )
+    description = "List all SQL sandboxes. Triggers: list SQL sandboxes, show databases, what sandboxes. Returns sandbox names."
     parameters = {}
 
     async def run(self, args: dict) -> dict:

@@ -73,10 +73,7 @@ def _coerce_cell(v):
 
 class ExcelWriteTool:
     name = "excel_write"
-    description = (
-        "Write an .xlsx workbook with real formatting: multiple sheets, "
-        "bold headers, freeze panes, column widths, number formats "
-        "(money/percent/int/date), formulas, and colored cells. "
+    description = "Write data to an Excel .xlsx file. Triggers: write Excel, save to Excel, create spreadsheet. Input: filepath and data array. Returns confirmation.", formulas, and colored cells. "
         "Each sheet: {name, headers:[...], rows:[[...],...], "
         "column_widths?[n], number_formats?{col_idx: 'money'}, "
         "freeze?true, tab_color?}. Cells may be a value or "
