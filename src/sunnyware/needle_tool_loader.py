@@ -19,11 +19,18 @@ def load_needle_tools(schema_list: list[dict]) -> list:
         tools.append(fn)
     return tools
 
+
 def build_schema_from_tool(tool):
     """
-    Constructs a JSON schema dictionary from a tool object with
-    name, description, and parameters attributes.
+    Constructs a JSON schema dictionary from a tool object OR returns a dict as-is.
+    Handles both cases:
+      - tool is already a dict (returned by find_relevant_tools)
+      - tool is a Tool object with .name, .description, .parameters
     """
+    if isinstance(tool, dict):
+        # Already in schema format - return as-is
+        return tool
+    # Tool object with attributes
     return {
         "name": tool.name,
         "description": tool.description,
