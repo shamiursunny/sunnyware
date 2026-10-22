@@ -129,7 +129,7 @@ async def chat(
                 "messages": messages,
                 "temperature": 0.1,
                 "stream": False,
-                "max_tokens": 512,
+                "max_tokens": 4096,
                 "top_p": 0.95,
                 "repeat_penalty": 1.0, # Force JSON output instantly
             }

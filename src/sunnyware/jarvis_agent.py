@@ -119,7 +119,7 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
         system=system_prompt,
         history=None,
         tools=None,
-        timeout=120.0
+        timeout=300.0
     )
 
     print(f"[jarvis] DEBUG Result: ok={result.get('ok')} content_len={len(result.get('content') or '')} error={result.get('error')}", flush=True)

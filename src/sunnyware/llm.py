@@ -365,7 +365,7 @@ async def chat(
             try:
                 # Give it time to think and generate tools
                 # Part 379: Truncate history and tools for local CPU inference
-                _local_history = history[-4:] if history else []
+                _local_history = history  # Full history, no limit
                 _local_tools = tools if (tools and len(tools) <= 15) else []
                 # Part 396: Shared Memory Check
                 _last_tool = read_memory("last_tool_execution")
@@ -379,7 +379,7 @@ async def chat(
                     system=_local_system,
                     history=_local_history,
                     tools=_local_tools,
-                    timeout=120.0  # 60s is enough for Qwen to finish
+                    timeout=300.0  # 60s is enough for Qwen to finish
                 )
                 if local_res.get("ok") and (local_res.get("content") or local_res.get("tool_calls")):
                     # Check if the content is just empty reasoning
