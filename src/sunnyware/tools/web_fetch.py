@@ -24,7 +24,7 @@ def _strip_html(html: str) -> str:
 
 class WebFetchTool:
     name = "web_fetch"
-    description = "Download raw HTML from a URL."
+    description = "Fetch a URL (http/https) and return a text summary. HTML is stripped to plain text."
     parameters = {
         "url": {
             "type": "string",

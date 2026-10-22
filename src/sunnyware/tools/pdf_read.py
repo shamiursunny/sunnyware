@@ -23,7 +23,13 @@ def _workspace_root() -> Path:
 
 class PdfReadTool:
     name = "pdf_read"
-    description = "PDF document reader for .pdf files only."
+    description = (
+        "Read a PDF file from the workspace and extract its text. Returns "
+        "each page separately with char offsets. Optionally extract tables "
+        "(if the PDF has them). Use for invoices, contracts, reports, "
+        "whitepapers — any PDF the user uploaded but doesn't need RAG "
+        "indexing for. For semantic search across many PDFs, use rag_search."
+    )
     parameters = {
         "file": {
             "type": "string",

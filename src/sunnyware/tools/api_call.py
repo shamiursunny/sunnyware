@@ -78,7 +78,12 @@ def _check_url(url: str) -> Optional[str]:
 
 class ApiCallTool:
     name = "api_call"
-    description = "HTTP client for REST API endpoints."
+    description = (
+        "Make an HTTP request to a public REST API. Supports GET, POST, PUT, "
+        "PATCH, DELETE, HEAD. Pass optional headers and a JSON body. Private "
+        "and internal hosts are blocked (SSRF guard). If SUNNYWARE_API_ALLOWLIST "
+        "is set, only those domains are reachable. Response body capped at 200 KB."
+    )
     parameters = {
         "url": {
             "type": "string",

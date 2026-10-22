@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 class CurrentTimeTool:
     name = "current_time"
-    description = "Clock reader for a timezone."
+    description = "Get the current date and time in UTC."
     parameters = {}  # no args
 
     async def run(self, args: dict) -> dict:

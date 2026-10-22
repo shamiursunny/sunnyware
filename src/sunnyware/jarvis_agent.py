@@ -208,7 +208,7 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
     return None
 
 async def jarvis_route(prompt: str) -> Optional[Dict]:
-    """Full Jarvis pipeline: retrieve relevant tools, select one with the local model."""
+    """Full Jarvis pipeline: keyword match -> RAG -> Needle 3 -> MiniCPM."""
     print(f"[jarvis] ROUTE CALLED with prompt: {prompt[:50]}", flush=True)
     
     # Bypass for greetings
@@ -216,6 +216,43 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
     if len(p_lower) < 15 and any(p_lower.startswith(g) for g in ["hi", "hello", "hey", "who are you", "what's up"]):
         print("[jarvis] Skipping tool routing for greeting/simple chat", flush=True)
         return None
+
+    # STAGE 0: Deterministic keyword router (100% accurate, 0ms)
+    try:
+        from .keyword_router import keyword_route
+        kw_result = keyword_route(prompt)
+        if kw_result:
+            print(f"[keyword] Matched: {kw_result['tool']}", flush=True)
+            return kw_result
+    except Exception as e:
+        print(f"[keyword] Error: {e}", flush=True)
+
+    # STAGE 1: RAG shortlist
+    shortlist = await find_relevant_tools(prompt, top_k=20)
+    if not shortlist:
+        return None
+    print(f"[jarvis] Shortlist contains {len(shortlist)} tools", flush=True)
+
+    # STAGE 2: Needle 3 on the shortlist
+    try:
+        from .needle_router import try_needle_route
+        from .needle_tool_loader import build_schema_from_tool
+        shortlist_schemas = [build_schema_from_tool(tool) for tool in shortlist]
+        needle_result = await try_needle_route(prompt, shortlist_schemas)
+        if needle_result:
+            return needle_result
+    except Exception as e:
+        print(f"[jarvis] Needle skipped: {e}", flush=True)
+
+    # STAGE 3: Fallback to MiniCPM5-2B
+    print("[jarvis] Falling back to MiniCPM5-2B.", flush=True)
+    selected = await select_tool_via_local_llm(prompt, shortlist)
+    if selected:
+        print(f"[jarvis] Selected tool: {selected.get('tool')}", flush=True)
+        return selected
+        
+    print("[jarvis] Local model did not select a tool", flush=True)
+    return None
 
     # STEP 1: Pre-Filter (RAG) - Get the Top 12 most relevant tools
     shortlist = await find_relevant_tools(prompt, top_k=20)

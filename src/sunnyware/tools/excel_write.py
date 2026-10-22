@@ -73,7 +73,16 @@ def _coerce_cell(v):
 
 class ExcelWriteTool:
     name = "excel_write"
-    description = "Excel spreadsheet writer for .xlsx files."
+    description = (
+        "Write an .xlsx workbook with real formatting: multiple sheets, "
+        "bold headers, freeze panes, column widths, number formats "
+        "(money/percent/int/date), formulas, and colored cells. "
+        "Each sheet: {name, headers:[...], rows:[[...],...], "
+        "column_widths?[n], number_formats?{col_idx: 'money'}, "
+        "freeze?true, tab_color?}. Cells may be a value or "
+        "{\"formula\": \"=SUM(B2:B10)\"}. Use for board packs, variance "
+        "tables, financial models."
+    )
     parameters = {
         "filename": {
             "type": "string",
