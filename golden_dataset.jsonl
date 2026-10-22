@@ -1,0 +1,63 @@
+{"prompt": "Hi there, how are you?", "expected_tool": null, "expected_args": {}}
+{"prompt": "What's the capital of France?", "expected_tool": null, "expected_args": {}}
+{"prompt": "Tell me a joke.", "expected_tool": null, "expected_args": {}}
+{"prompt": "Can you explain quantum computing?", "expected_tool": null, "expected_args": {}}
+{"prompt": "Who wrote the book '1984'?", "expected_tool": null, "expected_args": {}}
+{"prompt": "What's the weather like on Mars?", "expected_tool": null, "expected_args": {}}
+{"prompt": "I'm feeling happy today.", "expected_tool": null, "expected_args": {}}
+{"prompt": "Give me a recipe for pasta.", "expected_tool": null, "expected_args": {}}
+{"prompt": "Translate 'hello' to Spanish.", "expected_tool": null, "expected_args": {}}
+{"prompt": "What is the meaning of life?", "expected_tool": null, "expected_args": {}}
+{"prompt": "What is the square root of 529?", "expected_tool": "calculator", "expected_args": {"expression": "sqrt(529)"}}
+{"prompt": "Calculate 25 * 4 for me.", "expected_tool": "calculator", "expected_args": {"expression": "25 * 4"}}
+{"prompt": "What is 100 divided by 8?", "expected_tool": "calculator", "expected_args": {"expression": "100 / 8"}}
+{"prompt": "Compute 2 to the power of 10.", "expected_tool": "calculator", "expected_args": {"expression": "2**10"}}
+{"prompt": "What time is it right now?", "expected_tool": "current_time", "expected_args": {}}
+{"prompt": "What is the current time in Tokyo?", "expected_tool": "current_time", "expected_args": {"timezone": "Tokyo"}}
+{"prompt": "Tell me the time in London.", "expected_tool": "current_time", "expected_args": {"timezone": "London"}}
+{"prompt": "Please read the contents of my notes.txt file.", "expected_tool": "read_file", "expected_args": {"filepath": "notes.txt"}}
+{"prompt": "Write 'hello world' to a file named greeting.txt", "expected_tool": "write_file", "expected_args": {"filepath": "greeting.txt", "content": "hello world"}}
+{"prompt": "What files are in my workspace directory?", "expected_tool": "list_files", "expected_args": {"directory": "/workspace"}}
+{"prompt": "Show me the files in the current folder.", "expected_tool": "list_files", "expected_args": {}}
+{"prompt": "Search the web for the latest AI news.", "expected_tool": "web_search", "expected_args": {"query": "latest AI news"}}
+{"prompt": "Find information about the James Webb telescope.", "expected_tool": "web_search", "expected_args": {"query": "James Webb telescope"}}
+{"prompt": "Fetch the content from https://example.com", "expected_tool": "web_fetch", "expected_args": {"url": "https://example.com"}}
+{"prompt": "Get the metadata for https://github.com", "expected_tool": "url_metadata", "expected_args": {"url": "https://github.com"}}
+{"prompt": "Use Python to calculate the first 10 fibonacci numbers.", "expected_tool": "python_eval", "expected_args": {"code": "def fib(n):\n    a, b = 0, 1\n    for _ in range(n):\n        yield a\n        a, b = b, a + b\n\nprint(list(fib(10)))"}}
+{"prompt": "Run this Python code: print('Hello, World!')", "expected_tool": "python_eval", "expected_args": {"code": "print('Hello, World!')"}}
+{"prompt": "Query the data.csv file for all rows where the city is 'London'.", "expected_tool": "csv_query", "expected_args": {"filepath": "data.csv", "query": "SELECT * FROM data WHERE city = 'London'"}}
+{"prompt": "Use csv_query to select all from sales.csv.", "expected_tool": "csv_query", "expected_args": {"filepath": "sales.csv", "query": "SELECT *"}}
+{"prompt": "What's the weather in London?", "expected_tool": "weather", "expected_args": {"city": "London"}}
+{"prompt": "Tell me the weather forecast for Tokyo.", "expected_tool": "weather", "expected_args": {"city": "Tokyo"}}
+{"prompt": "Search my memory for information about the 'Project Phoenix' initiative.", "expected_tool": "memory_search", "expected_args": {"query": "Project Phoenix"}}
+{"prompt": "Find documents in my library related to 'financial reports'.", "expected_tool": "search_library", "expected_args": {"query": "financial reports"}}
+{"prompt": "Search the RAG database for 'AI safety'.", "expected_tool": "rag_search", "expected_args": {"query": "AI safety"}}
+{"prompt": "List all documents in my RAG store.", "expected_tool": "rag_list", "expected_args": {}}
+{"prompt": "Is my email configured?", "expected_tool": "email_configured", "expected_args": {}}
+{"prompt": "Show me the last 3 emails I sent.", "expected_tool": "email_list_sent", "expected_args": {"limit": 3}}
+{"prompt": "Create a new SQL sandbox named 'test_db'.", "expected_tool": "sql_sandbox_create", "expected_args": {"name": "test_db"}}
+{"prompt": "List all my SQL sandboxes.", "expected_tool": "sql_sandbox_list", "expected_args": {}}
+{"prompt": "Run 'SELECT 1' in the 'test_db' sandbox.", "expected_tool": "sql_sandbox_execute", "expected_args": {"name": "test_db", "query": "SELECT 1"}}
+{"prompt": "Create a webhook named 'test_hook' pointing to https://mysite.com/hook.", "expected_tool": "webhook_add", "expected_args": {"name": "test_hook", "url": "https://mysite.com/hook"}}
+{"prompt": "List all my webhooks.", "expected_tool": "webhook_list", "expected_args": {}}
+{"prompt": "Schedule a task named 'daily_report' to run every 24 hours.", "expected_tool": "schedule_add", "expected_args": {"name": "daily_report", "interval_hours": 24}}
+{"prompt": "Show me my scheduled tasks.", "expected_tool": "schedule_list", "expected_args": {}}
+{"prompt": "Create a bar chart from the data [1, 2, 3, 4, 5].", "expected_tool": "chart_from_data", "expected_args": {"data": [1, 2, 3, 4, 5], "chart_type": "bar"}}
+{"prompt": "Forecast the next value in the time series [10, 12, 11, 15, 14, 18].", "expected_tool": "forecast_arima", "expected_args": {"data": [10, 12, 11, 15, 14, 18]}}
+{"prompt": "Calculate financial metrics for the prices [100, 102, 101, 105].", "expected_tool": "financial_metrics", "expected_args": {"data": [100, 102, 101, 105]}}
+{"prompt": "Narrate this table: [[1, 2], [3, 4]].", "expected_tool": "narrate_table", "expected_args": {"table": [[1, 2], [3, 4]]}}
+{"prompt": "Run a data quality report on the dataset [[1, 2], [3, null]].", "expected_tool": "data_quality_report", "expected_args": {"data": [[1, 2], [3, null]]}}
+{"prompt": "Research the topic of 'AI safety'.", "expected_tool": "research_search", "expected_args": {"query": "AI safety"}}
+{"prompt": "Compare the two documents 'A' and 'B'.", "expected_tool": "document_diff", "expected_args": {"doc_a": "A", "doc_b": "B"}}
+{"prompt": "Convert the HTML '<b>Hello</b>' to plain text.", "expected_tool": "html_to_text", "expected_args": {"html": "<b>Hello</b>"}}
+{"prompt": "Find citations for 'AI safety'.", "expected_tool": "citation_lookup", "expected_args": {"query": "AI safety"}}
+{"prompt": "Read the contents of the file 'report.pdf'.", "expected_tool": "pdf_read", "expected_args": {"filepath": "report.pdf"}}
+{"prompt": "Create a PDF report with the title 'Summary' and content 'Hello'.", "expected_tool": "pdf_report", "expected_args": {"title": "Summary", "content": "Hello"}}
+{"prompt": "Write the data [1, 2, 3] to an Excel file named 'data.xlsx'.", "expected_tool": "excel_write", "expected_args": {"filepath": "data.xlsx", "data": [1, 2, 3]}}
+{"prompt": "Read the contents of 'data.xlsx'.", "expected_tool": "excel_read", "expected_args": {"filepath": "data.xlsx"}}
+{"prompt": "Make a GET request to https://api.github.com.", "expected_tool": "api_call", "expected_args": {"url": "https://api.github.com", "method": "GET"}}
+{"prompt": "Add a KPI watch for 'website_traffic'.", "expected_tool": "kpi_watch_add", "expected_args": {"name": "website_traffic"}}
+{"prompt": "List all my KPI watches.", "expected_tool": "kpi_watch_list", "expected_args": {}}
+{"prompt": "Please echo 'hello'.", "expected_tool": "echo", "expected_args": {"text": "hello"}}
+{"prompt": "Set HITL to require confirmation for the 'calculator' tool.", "expected_tool": "hitl_config_update", "expected_args": {"tool_name": "calculator", "require_confirmation": true}}
+{"prompt": "Recall our last 3 messages.", "expected_tool": "recall_history", "expected_args": {"count": 3}}
