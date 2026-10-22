@@ -913,3 +913,24 @@ async def debug_env_dump():
         "LLM_PROVIDERS": _os.getenv("LLM_PROVIDERS", "<unset>"),
     }
 
+
+
+@app.get("/debug_test_83_tools")
+async def debug_test_83_tools():
+    from .tools import _TOOLS
+    from .needle_tool_loader import build_schema_from_tool
+    from . import local_llm
+    all_schemas = [build_schema_from_tool(tool) for tool in _TOOLS.values()]
+    res = await local_llm.chat(
+        prompt="Use Python to calculate the first 10 fibonacci numbers.",
+        system="You are a helpful assistant.",
+        history=[],
+        tools=all_schemas,
+        timeout=300.0
+    )
+    return {
+        "ok": res.get("ok"),
+        "error": res.get("error"),
+        "tool_calls": res.get("tool_calls"),
+        "content": str(res.get("content"))[:500]
+    }
