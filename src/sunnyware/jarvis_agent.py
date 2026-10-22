@@ -228,7 +228,7 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
         print(f"[keyword] Error: {e}", flush=True)
 
     # STAGE 1: RAG shortlist
-    shortlist = await find_relevant_tools(prompt, top_k=20)
+    shortlist = await find_relevant_tools(prompt, top_k=15)
     if not shortlist:
         return None
     print(f"[jarvis] Shortlist contains {len(shortlist)} tools", flush=True)
@@ -255,7 +255,7 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
     return None
 
     # STEP 1: Pre-Filter (RAG) - Get the Top 12 most relevant tools
-    shortlist = await find_relevant_tools(prompt, top_k=20)
+    shortlist = await find_relevant_tools(prompt, top_k=15)
     if not shortlist:
         return None
     print(f"[jarvis] Shortlist contains {len(shortlist)} tools", flush=True)

@@ -6,10 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from sunnyware.tools import _TOOLS
-from sunnyware.needle_tool_loader import build_schema_from_tool
-from sunnyware.needle_router import try_needle_route
-from sunnyware.jarvis_agent import find_relevant_tools
+from sunnyware.jarvis_agent import jarvis_route
 
 async def evaluate():
     dataset_path = Path("golden_dataset.jsonl")
@@ -23,7 +20,6 @@ async def evaluate():
     arg_scores = []
     total_cases = 0
     failures = []
-    rag_misses = 0
 
     with open(dataset_path, "r", encoding="utf-8") as f:
         for line in f:
@@ -33,21 +29,13 @@ async def evaluate():
             expected_args = entry.get("expected_args", {})
             total_cases += 1
 
-            # STEP 1: Run RAG shortlist (exactly like production)
-            shortlist = await find_relevant_tools(prompt, top_k=20)
-            shortlist_names = [t.get("name") for t in shortlist] if shortlist else []
-            
-            # Check if expected tool is even in the shortlist
-            rag_includes_expected = expected_tool in shortlist_names if expected_tool else True
-            if expected_tool and not rag_includes_expected:
-                rag_misses += 1
-                print(f"[RAG_MISS] {expected_tool} not in shortlist: {shortlist_names}", flush=True)
+            # Call the FULL production pipeline (keyword -> RAG -> Needle -> MiniCPM)
+            try:
+                result = await jarvis_route(prompt)
+            except Exception as e:
+                result = None
+                print(f"[EVAL ERROR] {e}", flush=True)
 
-            # STEP 2: Run Needle 3 on the shortlist
-            result = None
-            if shortlist:
-                result = await try_needle_route(prompt, shortlist)
-            
             actual_tool = result.get("tool") if result else None
             actual_args = result.get("args", {}) if result else {}
 
@@ -63,7 +51,6 @@ async def evaluate():
                         "expected": "NO CALL",
                         "actual_tool": actual_tool,
                         "actual_args": actual_args,
-                        "reason": "False positive"
                     })
                     print(f"[FAIL] NO-CALL: {prompt[:50]} -> {actual_tool}", flush=True)
                 continue
@@ -85,9 +72,6 @@ async def evaluate():
                     "expected_args": expected_args,
                     "actual_tool": actual_tool,
                     "actual_args": actual_args,
-                    "shortlist": shortlist_names,
-                    "rag_includes_expected": rag_includes_expected,
-                    "reason": f"Wrong tool (got {actual_tool})"
                 })
                 arg_scores.append(0.0)
                 print(f"[FAIL] {expected_tool}: {prompt[:50]} -> {actual_tool}", flush=True)
@@ -98,25 +82,18 @@ async def evaluate():
     avg_arg_f1 = sum(arg_scores) / len(arg_scores) if arg_scores else 0
 
     print("\n" + "="*60, flush=True)
-    print(" EVALUATION RESULTS", flush=True)
+    print(" EVALUATION RESULTS (FULL PIPELINE)", flush=True)
     print("="*60, flush=True)
     print(f"Total Cases: {total_cases}", flush=True)
     print(f"Tool Selection Accuracy: {tool_accuracy:.2%} ({tool_selection_correct}/{tool_cases_total})", flush=True)
     print(f"Argument F1 Score: {avg_arg_f1:.2%}", flush=True)
     print(f"No-Call Accuracy: {no_call_accuracy:.2%} ({no_call_correct}/{no_call_total})", flush=True)
-    print(f"RAG Misses: {rag_misses} (expected tool not in shortlist)", flush=True)
     print("="*60, flush=True)
-
-    if failures:
-        print(f"\n--- FAILURES ({len(failures)}) ---", flush=True)
-        for f in failures:
-            print(json.dumps(f), flush=True)
 
     return {
         "total": total_cases,
         "tool_accuracy": tool_accuracy,
         "arg_f1": avg_arg_f1,
         "no_call_accuracy": no_call_accuracy,
-        "rag_misses": rag_misses,
-        "failures": failures
+        "failures": failures,
     }
