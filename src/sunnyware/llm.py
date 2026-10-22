@@ -361,13 +361,12 @@ async def chat(
                 
                 # Truncate massive system prompt for CPU speed
                 _local_system = (system[:200] if system else "You are a helpful assistant.")
-                print(f"[llm.chat] Local prompt size: {len(prompt)} chars, system size: {len(_local_system)} chars", flush=True)
                 local_res = await _llm.chat(
                     prompt=prompt,
                     system=_local_system,
                     history=_local_history,
                     tools=_local_tools,
-                    timeout=60.0  # 60s is enough for Qwen to finish
+                    timeout=30.0  # 60s is enough for Qwen to finish
                 )
                 if local_res.get("ok") and (local_res.get("content") or local_res.get("tool_calls")):
                     # Check if the content is just empty reasoning
