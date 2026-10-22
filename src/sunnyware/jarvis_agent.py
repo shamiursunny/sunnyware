@@ -208,7 +208,7 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
     
     # Bypass for greetings
     p_lower = prompt.lower().strip()
-    if len(p_lower) < 15 and any(p_lower.startswith(g) for g in ["hi", "hello", "hey", "who are you", "what's up"]):
+    if len(p_lower) < 20 and any(p_lower.startswith(g) for g in ["hi", "hello", "hey", "who are you", "what's up", "how are you"]):
         print("[jarvis] Skipping tool routing for greeting/simple chat", flush=True)
         return None
 

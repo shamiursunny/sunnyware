@@ -342,6 +342,30 @@ async def chat(
     timeout: float = 90.0,
     _retry_depth: int = 0,
 ) -> dict:
+
+    # Part 376: MiniCPM is the primary model. Cloud is fallback.
+    _priority = (os.getenv("LLM_PROVIDERS") or "").split(",")
+    if "local" in [n.strip().lower() for n in _priority]:
+        from . import local_llm as _llm
+        if _llm.is_enabled():
+            try:
+                # Give it time to think and generate tools
+                local_res = await _llm.chat(
+                    prompt=prompt,
+                    system=system,
+                    history=history,
+                    tools=tools,
+                    timeout=120.0
+                )
+                if local_res.get("ok") and (local_res.get("content") or local_res.get("tool_calls")):
+                    # Check if the content is just empty reasoning
+                    content = local_res.get("content", "").strip()
+                    if content or local_res.get("tool_calls"):
+                        return local_res
+                # If we get here, local failed or returned empty. Fall through to cloud.
+                print(f"[llm.chat] Local model failed/empty, falling back to cloud: {local_res.get('error')}", flush=True)
+            except Exception as e:
+                print(f"[llm.chat] Local model exception, falling back to cloud: {e}", flush=True)
     """Route across providers. Falls through on rate-limits / errors.
 
     Legacy single-provider behavior preserved when only one provider is
