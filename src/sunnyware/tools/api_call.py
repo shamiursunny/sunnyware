@@ -78,9 +78,7 @@ def _check_url(url: str) -> Optional[str]:
 
 class ApiCallTool:
     name = "api_call"
-    description = "Make an HTTP GET/POST/PUT/DELETE request to any URL. Triggers: API call, HTTP request, GET request, POST to URL, fetch API. Input: url and method. Returns response body and status.". If SUNNYWARE_API_ALLOWLIST "
-        "is set, only those domains are reachable. Response body capped at 200 KB."
-    )
+    description = "Make an HTTP GET/POST/PUT/DELETE request to any URL. Triggers: API call, HTTP request, GET request, POST to URL, fetch API. Input: url and method. Returns response body and status."
     parameters = {
         "url": {
             "type": "string",

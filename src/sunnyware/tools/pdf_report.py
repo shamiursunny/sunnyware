@@ -127,12 +127,7 @@ def _chart_page(title: str, b64_png: str, caption: str = ""):
 
 class PdfReportTool:
     name = "pdf_report"
-    description = "Create a PDF report with a title and body. Triggers: create PDF, make PDF report, generate PDF. Input: title and content. Returns PDF path.", type='table' "
-        "(title + headers + rows), or type='chart' (title + image_base64 "
-        "from chart_from_data + optional caption). Saves to workspace and "
-        "returns the file path plus a base64 preview of page 1. "
-        "Use for board decks, monthly reports, variance summaries."
-    )
+    description = "Create a PDF report with a title and body. Triggers: create PDF, make PDF report, generate PDF. Input: title and content. Returns PDF path."
     parameters = {
         "filename": {
             "type": "string",

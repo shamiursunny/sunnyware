@@ -19,12 +19,7 @@ _SOURCES = ("edgar", "fred", "govcon")
 
 class ResearchSearchTool:
     name = "research_search"
-    description = "Do deep research on a topic across sources. Triggers: research, investigate topic, deep search. Input: query. Returns research summary with citations.". Runs the query "
-        "against SEC EDGAR filings, FRED economic series, and "
-        "USAspending federal recipients in parallel, then merges results "
-        "with source labels. Use for cross-domain research: 'insurance "
-        "complaints', 'premiums', 'AIG', 'IBR' etc."
-    )
+    description = "Do deep research on a topic across sources. Triggers: research, investigate topic, deep search. Input: query. Returns research summary with citations."
     parameters = {
         "query": {
             "type": "string",

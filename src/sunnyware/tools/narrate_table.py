@@ -167,11 +167,7 @@ def build_narrative(rows, title="Dataset"):
 
 class NarrateTableTool:
     name = "narrate_table"
-    description = "Convert a 2D table into a natural-language narrative. Triggers: narrate table, explain table, describe data. Input: 2D table. Returns prose description.". Pure Python statistics — no LLM, deterministic. "
-        "Summarizes numeric columns (sum/avg/min/max/trend) and categorical "
-        "columns (unique count, top values). Use after python_eval to turn "
-        "a computed table into a client-ready paragraph."
-    )
+    description = "Convert a 2D table into a natural-language narrative. Triggers: narrate table, explain table, describe data. Input: 2D table. Returns prose description."
     parameters = {
         "rows": {
             "type": "string",

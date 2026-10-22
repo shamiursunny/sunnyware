@@ -30,8 +30,7 @@ def _workspace_root() -> Path:
 
 class CsvQueryTool:
     name = "csv_query"
-    description = "Query a CSV file using SQL SELECT. Triggers: CSV, spreadsheet, query data, select from csv. Input: filepath (e.g., data.csv) and SQL query. Returns matching rows."."
-    )
+    description = "Query a CSV file using SQL SELECT. Triggers: CSV, spreadsheet, query data, select from csv. Input: filepath (e.g., data.csv) and SQL query. Returns matching rows."
     parameters = {
         "file": {
             "type": "string",

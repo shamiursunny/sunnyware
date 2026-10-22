@@ -96,10 +96,7 @@ def _coerce_num(v):
 
 class ChartFromDataTool:
     name = "chart_from_data"
-    description = "Create a bar/line/pie chart from a numeric array. Triggers: create chart, make bar chart, plot data, visualize numbers. Input: data array and chart type. Returns chart URL." OR 'file' (a CSV / TSV / JSON file in the workspace). "
-        "The result includes base64 PNG bytes that render inline in the chat. "
-        "Use this whenever the user asks to visualize, plot, or chart data."
-    )
+    description = "Create a bar/line/pie chart from a numeric array. Triggers: create chart, make bar chart, plot data, visualize numbers. Input: data array and chart type. Returns chart URL."
     parameters = {
         "data": {
             "type": "array",

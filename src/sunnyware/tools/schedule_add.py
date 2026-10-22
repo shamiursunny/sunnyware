@@ -5,8 +5,7 @@
 
 class ScheduleAddTool:
     name = "schedule_add"
-    description = "Schedule a recurring task at a fixed interval. Triggers: schedule task, run every, set reminder, recurring job. Input: name and interval hours. Returns schedule ID."."
-    )
+    description = "Schedule a recurring task at a fixed interval. Triggers: schedule task, run every, set reminder, recurring job. Input: name and interval hours. Returns schedule ID."
     parameters = {
         "name": {"type": "string", "required": True,
                  "description": "Unique short name (e.g. 'weekly_fpa_summary')"},

@@ -23,10 +23,7 @@ def _workspace_root() -> Path:
 
 class PdfReadTool:
     name = "pdf_read"
-    description = "Read text from a PDF file. Triggers: read PDF, open PDF, extract PDF text. Input: filepath (must end in .pdf). Returns extracted text.". Use for invoices, contracts, reports, "
-        "whitepapers — any PDF the user uploaded but doesn't need RAG "
-        "indexing for. For semantic search across many PDFs, use rag_search."
-    )
+    description = "Read text from a PDF file. Triggers: read PDF, open PDF, extract PDF text. Input: filepath (must end in .pdf). Returns extracted text."
     parameters = {
         "file": {
             "type": "string",

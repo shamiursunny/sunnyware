@@ -5,10 +5,7 @@
 
 class SqlSandboxExecuteTool:
     name = "sql_sandbox_execute"
-    description = "Run SQL in an isolated sandbox database. Triggers: run SQL, execute query, SELECT from sandbox. Input: sandbox name and SQL query. Returns query results.". DDL/DML return a status "
-        "string. Search path is forced to the sandbox; main tables and "
-        "cross-schema reads are blocked. 10s statement timeout."
-    )
+    description = "Run SQL in an isolated sandbox database. Triggers: run SQL, execute query, SELECT from sandbox. Input: sandbox name and SQL query. Returns query results."
     parameters = {
         "name": {"type": "string", "required": True,
                  "description": "Sandbox name"},

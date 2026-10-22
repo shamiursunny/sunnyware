@@ -99,11 +99,7 @@ def _sheet_to_records(ws, max_rows: int, include_formulas: bool) -> dict:
 
 class ExcelReadTool:
     name = "excel_read"
-    description = "Read cell data from an Excel .xlsx file. Triggers: read Excel, open spreadsheet, get Excel data. Input: filepath. Returns cell data." and rows as JSON "
-        "objects. Formulas are shown as {\"formula\":\"=...\"} unless "
-        "include_formulas=True (default False). Caps at 2000 rows and "
-        "100 columns per sheet. Use this instead of read_file for .xlsx."
-    )
+    description = "Read cell data from an Excel .xlsx file. Triggers: read Excel, open spreadsheet, get Excel data. Input: filepath. Returns cell data."
     parameters = {
         "file": {
             "type": "string",
