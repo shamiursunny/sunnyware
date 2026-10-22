@@ -116,7 +116,7 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
     # --- Stage 2: Fallback to MiniCPM5-2B ---
 
 
-    logger.info("[jarvis] Needle 3 declined or failed. Falling back to MiniCPM5-2B.")
+    print("[jarvis] Needle 3 declined or failed. Falling back to MiniCPM5-2B.", flush=True)
 
 
     result = await local_llm.chat(
