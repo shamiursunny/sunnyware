@@ -191,5 +191,120 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if "list kpi" in p or "my kpi" in p:
         return {"tool": "kpi_watch_list", "args": {}}
 
+
+    # --- python_eval (must have "python" AND code-like words) ---
+    python_keywords = ["run this python", "execute code", "use python to",
+                       "run python", "run this code", "execute this code"]
+    if any(kw in p for kw in python_keywords):
+        # Extract code from the prompt
+        import re as _re
+        code_match = _re.search(r"(?:code:|run:|execute:)\s*(.+)", prompt, _re.IGNORECASE | _re.DOTALL)
+        if code_match:
+            return {"tool": "python_eval", "args": {"code": code_match.group(1).strip()}}
+        return None  # can't extract code safely
+
+    # --- csv_query (needs .csv + "query" / "select") ---
+    if ".csv" in p and any(w in p for w in ["query", "select", "filter", "where"]):
+        fname = _extract_filename(prompt, ["csv"])
+        if fname:
+            # Let Needle extract the SQL — too complex for regex
+            return None
+
+    # --- excel_write (Excel + write data) ---
+    if "excel" in p and any(w in p for w in ["write", "save", "create"]):
+        fname = _extract_filename(prompt, ["xlsx"])
+        if fname:
+            return None  # Need data extraction
+
+    # --- chart_from_data (bar/line/pie chart triggers) ---
+    if any(kw in p for kw in ["bar chart", "line chart", "pie chart",
+                               "create a chart", "make a chart", "plot data",
+                               "visualize numbers"]):
+        return None  # Need data extraction
+
+    # --- narrate_table (explicit "narrate" or "explain" table) ---
+    if "narrate" in p and "table" in p:
+        return None  # Need table extraction
+    if "explain this table" in p or "describe this table" in p:
+        return None
+
+    # --- financial_metrics ---
+    if "financial metrics" in p or "stock metrics" in p or "investment metrics" in p:
+        return None
+
+    # --- data_quality_report ---
+    if "data quality report" in p or "quality check" in p or "check data quality" in p:
+        return None
+
+    # --- research_search (must have "research" or "investigate") ---
+    if any(kw in p for kw in ["research the topic", "investigate topic",
+                               "do research", "deep research"]):
+        # Extract query
+        import re as _re
+        q_match = _re.search(r"(?:research the topic of|research|investigate)\s+(.+)$", prompt, _re.IGNORECASE)
+        if q_match:
+            query = q_match.group(1).strip().strip("\"'")
+            if query:
+                return {"tool": "research_search", "args": {"query": query}}
+        return None
+
+    # --- document_diff (must say "compare" or "diff") ---
+    if any(kw in p for kw in ["compare two documents", "diff the", "compare documents",
+                               "what changed between"]):
+        return None  # Need doc extraction
+
+    # --- html_to_text ---
+    if any(kw in p for kw in ["convert html", "html to text", "strip html",
+                               "extract text from html"]):
+        return None  # Need HTML extraction
+
+    # --- pdf_report ---
+    if any(kw in p for kw in ["create a pdf report", "generate pdf", "make pdf report",
+                               "create pdf report"]):
+        return None  # Need title/content extraction
+
+    # --- kpi_watch_add ---
+    if any(kw in p for kw in ["add a kpi", "watch metric", "monitor number",
+                               "add kpi watch"]):
+        return None  # Need KPI name extraction
+
+    # --- hitl_config_update ---
+    if any(kw in p for kw in ["set hitl", "require confirmation", "configure hitl",
+                               "hitl config"]):
+        return None  # Need tool name extraction
+
+    # --- recall_history ---
+    if any(kw in p for kw in ["recall our last", "recall history", "remember last",
+                               "what did we discuss"]):
+        return None  # Need count extraction
+
+    # --- webhook_add (create/add webhook) ---
+    if any(kw in p for kw in ["create a webhook", "add a webhook", "set up webhook",
+                               "create webhook", "add webhook"]):
+        return None  # Need name/URL extraction
+
+    # --- schedule_add (schedule/create task) ---
+    if any(kw in p for kw in ["schedule a task", "schedule task", "set reminder",
+                               "recurring job", "schedule every"]):
+        return None  # Need name/interval extraction
+
+    # --- search_library (library-related search) ---
+    if "library" in p and any(w in p for w in ["find", "search", "related to"]):
+        return None  # Need query extraction
+
+    # --- rag_search (RAG database search) ---
+    if "rag" in p and any(w in p for w in ["search", "find", "database"]):
+        return None  # Need query extraction
+
+    # Fix plural bugs: "list all my sql sandboxes" and "list all my webhooks"
+    if "list all my sql sandbox" in p or "list my sql sandboxes" in p or "show my sql sandboxes" in p:
+        return {"tool": "sql_sandbox_list", "args": {}}
+    
+    if "list all my webhook" in p or "list my webhooks" in p or "show my webhooks" in p:
+        return {"tool": "webhook_list", "args": {}}
+    
+    if "list my scheduled" in p or "list all my scheduled" in p or "show my scheduled" in p:
+        return {"tool": "schedule_list", "args": {}}
+
     # No confident keyword match — let Needle 3 handle it
     return None
