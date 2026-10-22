@@ -207,17 +207,10 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
     """Full Jarvis pipeline: keyword match -> RAG -> Needle 3 -> MiniCPM."""
     print(f"[jarvis] ROUTE CALLED with prompt: {prompt[:50]}", flush=True)
 
-    # Part 377: Skip tool routing for general knowledge questions
-    tool_keywords = [
-        "calculate", "math", "time", "weather", "search", "web", "http",
-        "file", "read", "write", "pdf", "excel", "sql", "csv", "email",
-        "webhook", "schedule", "kpi", "chart", "narrate", "financial",
-        "stock", "option", "risk", "insurance", "python", "run code",
-        "query", "select", "insert", "update", "delete", "list", "show"
-    ]
+    tool_keywords = ["calculate", "math", "time", "weather", "search", "web", "http", "file", "read", "write", "pdf", "excel", "sql", "csv", "email", "webhook", "schedule", "kpi", "chart", "narrate", "financial", "stock", "option", "risk", "insurance", "python", "run code", "query", "select", "insert", "update", "delete", "list", "show"]
     p_lower = prompt.lower()
     if not any(kw in p_lower for kw in tool_keywords):
-        print("[jarvis] No tool keywords found. Skipping tool router and using primary model (MiniCPM).", flush=True)
+        print("[jarvis] No tool keywords. Bypassing local model entirely.", flush=True)
         return None
 
     

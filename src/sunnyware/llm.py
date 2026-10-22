@@ -344,16 +344,18 @@ async def chat(
 ) -> dict:
 
     # Part 410: Skip local model for general chat (fast cloud answer)
-    _tool_keywords = ["calculate", "math", "time", "weather", "search", "web", "http",
-                      "file", "read", "write", "pdf", "excel", "sql", "csv", "email",
-                      "webhook", "schedule", "kpi", "chart", "narrate", "financial",
-                      "stock", "option", "risk", "insurance", "python", "run code",
-                      "query", "select", "insert", "update", "delete", "list", "show"]
+        # THE STRICT ROUTER: Only use local if tools are present AND keywords match
+    _tool_keywords = [
+        "calculate", "math", "time", "weather", "search", "web", "http",
+        "file", "read", "write", "pdf", "excel", "sql", "csv", "email",
+        "webhook", "schedule", "kpi", "chart", "narrate", "financial",
+        "stock", "option", "risk", "insurance", "python", "run code",
+        "query", "select", "insert", "update", "delete", "list", "show"
+    ]
     _has_tool = any(kw in prompt.lower() for kw in _tool_keywords) if prompt else False
     
-    # Part 376: MiniCPM is the primary model. Cloud is fallback.
     _priority = (os.getenv("LLM_PROVIDERS") or "").split(",")
-    if "local" in [n.strip().lower() for n in _priority] and (_has_tool or tools):
+    if "local" in [n.strip().lower() for n in _priority] and _has_tool:
         from . import local_llm as _llm
         from .agent_memory import read_memory
         if _llm.is_enabled():
