@@ -1,1 +1,108 @@
-{"tool_accuracy":0.0,"no_call_accuracy":0,"failures":[{"expected":null,"actual":"ERROR","prompt":"Hi there, how are you?"},{"expected":null,"actual":"ERROR","prompt":"What's the capital of France?"},{"expected":null,"actual":"ERROR","prompt":"Tell me a joke."},{"expected":null,"actual":"ERROR","prompt":"Can you explain quantum computing?"},{"expected":null,"actual":"ERROR","prompt":"Who wrote the book '1984'?"},{"expected":null,"actual":"ERROR","prompt":"What's the weather like on Mars?"},{"expected":null,"actual":"ERROR","prompt":"I'm feeling happy today."},{"expected":null,"actual":"ERROR","prompt":"Give me a recipe for pasta."},{"expected":null,"actual":"ERROR","prompt":"Translate 'hello' to Spanish."},{"expected":null,"actual":"ERROR","prompt":"What is the meaning of life?"},{"expected":"calculator","actual":"ERROR","prompt":"What is the square root of 529?"},{"expected":"calculator","actual":"ERROR","prompt":"Calculate 25 * 4 for me."},{"expected":"calculator","actual":"ERROR","prompt":"What is 100 divided by 8?"},{"expected":"calculator","actual":"ERROR","prompt":"Compute 2 to the power of 10."},{"expected":"current_time","actual":"ERROR","prompt":"What time is it right now?"},{"expected":"current_time","actual":"ERROR","prompt":"What is the current time in Tokyo?"},{"expected":"current_time","actual":"ERROR","prompt":"Tell me the time in London."},{"expected":"read_file","actual":"ERROR","prompt":"Please read the contents of my notes.txt file."},{"expected":"write_file","actual":"ERROR","prompt":"Write 'hello world' to a file named greeting.txt"},{"expected":"list_files","actual":"ERROR","prompt":"What files are in my workspace directory?"},{"expected":"list_files","actual":"ERROR","prompt":"Show me the files in the current folder."},{"expected":"web_search","actual":"ERROR","prompt":"Search the web for the latest AI news."},{"expected":"web_search","actual":"ERROR","prompt":"Find information about the James Webb telescope."},{"expected":"web_fetch","actual":"ERROR","prompt":"Fetch the content from https://example.com"},{"expected":"url_metadata","actual":"ERROR","prompt":"Get the metadata for https://github.com"},{"expected":"python_eval","actual":"ERROR","prompt":"Use Python to calculate the first 10 fibonacci numbers."},{"expected":"python_eval","actual":"ERROR","prompt":"Run this Python code: print('Hello, World!')"},{"expected":"csv_query","actual":"ERROR","prompt":"Query the data.csv file for all rows where the city is 'London'."},{"expected":"csv_query","actual":"ERROR","prompt":"Use csv_query to select all from sales.csv."},{"expected":"weather","actual":"ERROR","prompt":"What's the weather in London?"},{"expected":"weather","actual":"ERROR","prompt":"Tell me the weather forecast for Tokyo."},{"expected":"memory_search","actual":"ERROR","prompt":"Search my memory for information about the 'Project Phoenix' initiative."},{"expected":"search_library","actual":"ERROR","prompt":"Find documents in my library related to 'financial reports'."},{"expected":"rag_search","actual":"ERROR","prompt":"Search the RAG database for 'AI safety'."},{"expected":"rag_list","actual":"ERROR","prompt":"List all documents in my RAG store."},{"expected":"email_configured","actual":"ERROR","prompt":"Is my email configured?"},{"expected":"email_list_sent","actual":"ERROR","prompt":"Show me the last 3 emails I sent."},{"expected":"sql_sandbox_create","actual":"ERROR","prompt":"Create a new SQL sandbox named 'test_db'."},{"expected":"sql_sandbox_list","actual":"ERROR","prompt":"List all my SQL sandboxes."},{"expected":"sql_sandbox_execute","actual":"ERROR","prompt":"Run 'SELECT 1' in the 'test_db' sandbox."},{"expected":"webhook_add","actual":"ERROR","prompt":"Create a webhook named 'test_hook' pointing to https://mysite.com/hook."},{"expected":"webhook_list","actual":"ERROR","prompt":"List all my webhooks."},{"expected":"schedule_add","actual":"ERROR","prompt":"Schedule a task named 'daily_report' to run every 24 hours."},{"expected":"schedule_list","actual":"ERROR","prompt":"Show me my scheduled tasks."},{"expected":"chart_from_data","actual":"ERROR","prompt":"Create a bar chart from the data [1, 2, 3, 4, 5]."},{"expected":"forecast_arima","actual":"ERROR","prompt":"Forecast the next value in the time series [10, 12, 11, 15, 14, 18]."},{"expected":"financial_metrics","actual":"ERROR","prompt":"Calculate financial metrics for the prices [100, 102, 101, 105]."},{"expected":"narrate_table","actual":"ERROR","prompt":"Narrate this table: [[1, 2], [3, 4]]."},{"expected":"data_quality_report","actual":"ERROR","prompt":"Run a data quality report on the dataset [[1, 2], [3, null]]."},{"expected":"research_search","actual":"ERROR","prompt":"Research the topic of 'AI safety'."},{"expected":"document_diff","actual":"ERROR","prompt":"Compare the two documents 'A' and 'B'."},{"expected":"html_to_text","actual":"ERROR","prompt":"Convert the HTML '<b>Hello</b>' to plain text."},{"expected":"citation_lookup","actual":"ERROR","prompt":"Find citations for 'AI safety'."},{"expected":"pdf_read","actual":"ERROR","prompt":"Read the contents of the file 'report.pdf'."},{"expected":"pdf_report","actual":"ERROR","prompt":"Create a PDF report with the title 'Summary' and content 'Hello'."},{"expected":"excel_write","actual":"ERROR","prompt":"Write the data [1, 2, 3] to an Excel file named 'data.xlsx'."},{"expected":"excel_read","actual":"ERROR","prompt":"Read the contents of 'data.xlsx'."},{"expected":"api_call","actual":"ERROR","prompt":"Make a GET request to https://api.github.com."},{"expected":"kpi_watch_add","actual":"ERROR","prompt":"Add a KPI watch for 'website_traffic'."},{"expected":"kpi_watch_list","actual":"ERROR","prompt":"List all my KPI watches."},{"expected":"echo","actual":"ERROR","prompt":"Please echo 'hello'."},{"expected":"hitl_config_update","actual":"ERROR","prompt":"Set HITL to require confirmation for the 'calculator' tool."},{"expected":"recall_history","actual":"ERROR","prompt":"Recall our last 3 messages."}],"errors":[{"prompt":"Hi there, how are you?","error":"name 'logger' is not defined"},{"prompt":"What's the capital of France?","error":"name 'logger' is not defined"},{"prompt":"Tell me a joke.","error":"name 'logger' is not defined"},{"prompt":"Can you explain quantum computing?","error":"name 'logger' is not defined"},{"prompt":"Who wrote the book '1984'?","error":"name 'logger' is not defined"},{"prompt":"What's the weather like on Mars?","error":"name 'logger' is not defined"},{"prompt":"I'm feeling happy today.","error":"name 'logger' is not defined"},{"prompt":"Give me a recipe for pasta.","error":"name 'logger' is not defined"},{"prompt":"Translate 'hello' to Spanish.","error":"name 'logger' is not defined"},{"prompt":"What is the meaning of life?","error":"name 'logger' is not defined"},{"prompt":"What is the square root of 529?","error":"name 'logger' is not defined"},{"prompt":"Calculate 25 * 4 for me.","error":"name 'logger' is not defined"},{"prompt":"What is 100 divided by 8?","error":"name 'logger' is not defined"},{"prompt":"Compute 2 to the power of 10.","error":"name 'logger' is not defined"},{"prompt":"What time is it right now?","error":"name 'logger' is not defined"},{"prompt":"What is the current time in Tokyo?","error":"name 'logger' is not defined"},{"prompt":"Tell me the time in London.","error":"name 'logger' is not defined"},{"prompt":"Please read the contents of my notes.txt file.","error":"name 'logger' is not defined"},{"prompt":"Write 'hello world' to a file named greeting.txt","error":"name 'logger' is not defined"},{"prompt":"What files are in my workspace directory?","error":"name 'logger' is not defined"},{"prompt":"Show me the files in the current folder.","error":"name 'logger' is not defined"},{"prompt":"Search the web for the latest AI news.","error":"name 'logger' is not defined"},{"prompt":"Find information about the James Webb telescope.","error":"name 'logger' is not defined"},{"prompt":"Fetch the content from https://example.com","error":"name 'logger' is not defined"},{"prompt":"Get the metadata for https://github.com","error":"name 'logger' is not defined"},{"prompt":"Use Python to calculate the first 10 fibonacci numbers.","error":"name 'logger' is not defined"},{"prompt":"Run this Python code: print('Hello, World!')","error":"name 'logger' is not defined"},{"prompt":"Query the data.csv file for all rows where the city is 'London'.","error":"name 'logger' is not defined"},{"prompt":"Use csv_query to select all from sales.csv.","error":"name 'logger' is not defined"},{"prompt":"What's the weather in London?","error":"name 'logger' is not defined"},{"prompt":"Tell me the weather forecast for Tokyo.","error":"name 'logger' is not defined"},{"prompt":"Search my memory for information about the 'Project Phoenix' initiative.","error":"name 'logger' is not defined"},{"prompt":"Find documents in my library related to 'financial reports'.","error":"name 'logger' is not defined"},{"prompt":"Search the RAG database for 'AI safety'.","error":"name 'logger' is not defined"},{"prompt":"List all documents in my RAG store.","error":"name 'logger' is not defined"},{"prompt":"Is my email configured?","error":"name 'logger' is not defined"},{"prompt":"Show me the last 3 emails I sent.","error":"name 'logger' is not defined"},{"prompt":"Create a new SQL sandbox named 'test_db'.","error":"name 'logger' is not defined"},{"prompt":"List all my SQL sandboxes.","error":"name 'logger' is not defined"},{"prompt":"Run 'SELECT 1' in the 'test_db' sandbox.","error":"name 'logger' is not defined"},{"prompt":"Create a webhook named 'test_hook' pointing to https://mysite.com/hook.","error":"name 'logger' is not defined"},{"prompt":"List all my webhooks.","error":"name 'logger' is not defined"},{"prompt":"Schedule a task named 'daily_report' to run every 24 hours.","error":"name 'logger' is not defined"},{"prompt":"Show me my scheduled tasks.","error":"name 'logger' is not defined"},{"prompt":"Create a bar chart from the data [1, 2, 3, 4, 5].","error":"name 'logger' is not defined"},{"prompt":"Forecast the next value in the time series [10, 12, 11, 15, 14, 18].","error":"name 'logger' is not defined"},{"prompt":"Calculate financial metrics for the prices [100, 102, 101, 105].","error":"name 'logger' is not defined"},{"prompt":"Narrate this table: [[1, 2], [3, 4]].","error":"name 'logger' is not defined"},{"prompt":"Run a data quality report on the dataset [[1, 2], [3, null]].","error":"name 'logger' is not defined"},{"prompt":"Research the topic of 'AI safety'.","error":"name 'logger' is not defined"},{"prompt":"Compare the two documents 'A' and 'B'.","error":"name 'logger' is not defined"},{"prompt":"Convert the HTML '<b>Hello</b>' to plain text.","error":"name 'logger' is not defined"},{"prompt":"Find citations for 'AI safety'.","error":"name 'logger' is not defined"},{"prompt":"Read the contents of the file 'report.pdf'.","error":"name 'logger' is not defined"},{"prompt":"Create a PDF report with the title 'Summary' and content 'Hello'.","error":"name 'logger' is not defined"},{"prompt":"Write the data [1, 2, 3] to an Excel file named 'data.xlsx'.","error":"name 'logger' is not defined"},{"prompt":"Read the contents of 'data.xlsx'.","error":"name 'logger' is not defined"},{"prompt":"Make a GET request to https://api.github.com.","error":"name 'logger' is not defined"},{"prompt":"Add a KPI watch for 'website_traffic'.","error":"name 'logger' is not defined"},{"prompt":"List all my KPI watches.","error":"name 'logger' is not defined"},{"prompt":"Please echo 'hello'.","error":"name 'logger' is not defined"},{"prompt":"Set HITL to require confirmation for the 'calculator' tool.","error":"name 'logger' is not defined"},{"prompt":"Recall our last 3 messages.","error":"name 'logger' is not defined"}]}
+<!DOCTYPE html>
+<html class="">
+<head>
+    <meta charset="utf-8"/>
+    <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <meta
+            name="description"
+            content="We’re on a journey to advance and democratize artificial intelligence through open source and open science."
+    />
+    <meta property="fb:app_id" content="1321688464574422"/>
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:site" content="@huggingface"/>
+    <meta
+            property="og:title"
+            content="Hugging Face – The AI community building the future."
+    />
+    <meta property="og:type" content="website"/>
+
+    <title>Hugging Face – The AI community building the future.</title>
+    <style>
+        body {
+            margin: 0;
+        }
+
+        main {
+            background-color: white;
+            min-height: 100vh;
+            padding: 7rem 1rem 8rem 1rem;
+            text-align: center;
+            font-family: Source Sans Pro, ui-sans-serif, system-ui, -apple-system,
+            BlinkMacSystemFont, Segoe UI, Roboto, Helvetica Neue, Arial, Noto Sans,
+            sans-serif, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol,
+            Noto Color Emoji;
+        }
+
+        img {
+            width: 6rem;
+            height: 6rem;
+            margin: 0 auto 1rem;
+        }
+
+        h1 {
+            font-size: 3.75rem;
+            line-height: 1;
+            color: rgba(31, 41, 55, 1);
+            font-weight: 700;
+            box-sizing: border-box;
+            margin: 0 auto;
+        }
+
+        p {
+            color: rgba(107, 114, 128, 1);
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+            max-width: 28rem;
+            box-sizing: border-box;
+            margin: 0 auto;
+        }
+
+        .dark main {
+            background-color: rgb(11, 15, 25);
+        }
+
+        .dark h1 {
+            color: rgb(209, 213, 219);
+        }
+
+        .dark p {
+            color: rgb(156, 163, 175);
+        }
+    </style>
+    <script>
+        // On page load or when changing themes, best to add inline in `head` to avoid FOUC
+        const key = "_tb_global_settings";
+        let theme = window.matchMedia("(prefers-color-scheme: dark)").matches
+            ? "dark"
+            : "light";
+        try {
+            const storageTheme = JSON.parse(window.localStorage.getItem(key)).theme;
+            if (storageTheme) {
+                theme = storageTheme === "dark" ? "dark" : "light";
+            }
+        } catch (e) {
+        }
+        if (theme === "dark") {
+            document.documentElement.classList.add("dark");
+        } else {
+            document.documentElement.classList.remove("dark");
+        }
+    </script>
+</head>
+
+<body>
+<main>
+    <img
+            src="https://huggingface.co/front/assets/huggingface_logo.svg"
+            alt=""
+    />
+    <div>
+        <h1>500</h1>
+        <p>Sorry, there is an error on our side.</p>
+    </div>
+</main>
+</body>
+</html>
