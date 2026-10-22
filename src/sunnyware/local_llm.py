@@ -175,8 +175,10 @@ async def chat(
                 "messages": messages,
                 "temperature": 0.1 if use_qwen else 0.2,
                 "stream": False,
-                "max_tokens": 64 if use_qwen else 512,
+                "max_tokens": 32 if use_qwen else 512,
             }
+            if use_qwen:
+                kwargs["stop"] = ["<|im_end|>", "<|endoftext|>"]
             if tools:
                 kwargs["tools"] = tools
                 kwargs["tool_choice"] = "auto"
