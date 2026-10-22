@@ -36,7 +36,7 @@ async def try_needle_route(prompt: str, shortlist_schemas: list[dict]):
         calls = response.get("function_calls", [])
         confidence = response.get("confidence", 0.0)
 
-        if calls and confidence > 0.3:
+        if calls and confidence > 0.15:
             call = calls[0]
             print(f"[needle] Selected tool: {call['name']} (confidence={confidence:.2f})", flush=True)
             return {"tool": call["name"], "args": call.get("arguments", {})}
