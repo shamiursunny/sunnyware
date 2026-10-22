@@ -125,9 +125,11 @@ async def chat(
         def _run():
             kwargs = {
                 "messages": messages,
-                "temperature": 0.2,
+                "temperature": 0.1,      # Lower temp = more deterministic JSON
                 "stream": False,
-                "max_tokens": 512,
+                "max_tokens": 2048,      # Max tokens: never cut off mid-JSON
+                "top_p": 0.95,
+                "repeat_penalty": 1.0,
             }
             if tools:
                 kwargs["tools"] = tools
