@@ -364,7 +364,7 @@ async def chat(
                     system=system,
                     history=_local_history,
                     tools=_local_tools,
-                    timeout=120.0
+                    timeout=30.0
                 )
                 if local_res.get("ok") and (local_res.get("content") or local_res.get("tool_calls")):
                     # Check if the content is just empty reasoning

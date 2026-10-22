@@ -93,6 +93,7 @@ def _get_qwen_model():
         from huggingface_hub import hf_hub_download
         from llama_cpp import Llama
         print("[local_llm] Downloading/Loading Qwen 0.5B (Q5_K_M) for chat...", flush=True)
+        import shutil
         model_dir = "/data/models"
         os.makedirs(model_dir, exist_ok=True)
         model_path = f"{model_dir}/qwen2.5-0.5b-instruct-q5_k_m.gguf"
@@ -104,7 +105,9 @@ def _get_qwen_model():
                 filename="qwen2.5-0.5b-instruct-q5_k_m.gguf",
                 cache_dir="/data/hf_cache"
             )
-            os.system(f"cp {downloaded_path} {model_path}")
+            print(f"[local_llm] Copying Qwen to persistent storage at {model_path}...", flush=True)
+            shutil.copy(downloaded_path, model_path)
+            print("[local_llm] Qwen saved to persistent storage.", flush=True)
             
         _qwen_model = Llama(
             model_path=model_path, 
