@@ -118,7 +118,7 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
         system=system_prompt,
         history=None,
         tools=None,
-        timeout=45.0
+        timeout=120.0
     )
 
     if not result.get("ok"):
@@ -240,7 +240,12 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
 
     # STAGE 3: Fallback to MiniCPM5-2B
     print("[jarvis] Falling back to MiniCPM5-2B.", flush=True)
-    selected = await select_tool_via_local_llm(prompt, shortlist)
+    # Pass ALL tools to MiniCPM so it can catch anything RAG missed
+    from .tools import _TOOLS
+    from .needle_tool_loader import build_schema_from_tool
+    all_schemas = [build_schema_from_tool(tool) for tool in _TOOLS.values()]
+    print(f"[jarvis] Sending ALL {len(all_schemas)} tools to MiniCPM", flush=True)
+    selected = await select_tool_via_local_llm(prompt, all_schemas)
     if selected:
         print(f"[jarvis] Selected tool: {selected.get('tool')}", flush=True)
         return selected
