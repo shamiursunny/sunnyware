@@ -133,7 +133,7 @@ async def chat(
             kwargs = {
                 "messages": messages,
                 "temperature": 0.2,
-                "max_tokens": 200,
+                "max_tokens": 80,
                 "stream": False,
                 "stop": ["</think>", "\n\n\n"],
             }
