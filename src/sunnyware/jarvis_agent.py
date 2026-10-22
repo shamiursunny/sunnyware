@@ -105,7 +105,6 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
     tool_json = json.dumps(tools, indent=2)
     system_prompt = (
         "You are a tool router. Given a user request and a list of tools, select the best tool and provide the arguments.\n"
-        "CRITICAL: You MUST NOT output <think> blocks. Start your response IMMEDIATELY with {.\n"
         "Output ONLY a JSON object with keys 'tool' and 'args'. Do not add any explanation.\n"
         f"Available tools:\n{tool_json}"
     )
@@ -113,18 +112,13 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
     
 
 
-    # --- Stage 2: Fallback to MiniCPM5-2B ---
-
-
-    print("[jarvis] Needle 3 declined or failed. Falling back to MiniCPM5-2B.", flush=True)
-
-
+    # Call the local LLM (MiniCPM) to select the tool
     result = await local_llm.chat(
         prompt=prompt,
         system=system_prompt,
         history=None,
         tools=None,
-        timeout=5.0
+        timeout=45.0
     )
 
     if not result.get("ok"):
@@ -254,34 +248,3 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
     print("[jarvis] Local model did not select a tool", flush=True)
     return None
 
-    # STEP 1: Pre-Filter (RAG) - Get the Top 12 most relevant tools
-    shortlist = await find_relevant_tools(prompt, top_k=15)
-    if not shortlist:
-        return None
-    print(f"[jarvis] Shortlist contains {len(shortlist)} tools", flush=True)
-
-    # STEP 2: Try Needle 3 (Fast, Local) with ONLY the shortlist
-    try:
-        from .needle_router import try_needle_route
-        from .needle_tool_loader import build_schema_from_tool
-        
-        shortlist_schemas = [build_schema_from_tool(tool) for tool in shortlist]
-        print(f"[jarvis] DEBUG: About to call Needle with {len(shortlist_schemas)} tools", flush=True)
-        needle_result = await try_needle_route(prompt, shortlist_schemas)
-        print(f"[jarvis] DEBUG: Needle returned: {needle_result}", flush=True)
-        if needle_result:
-            return needle_result
-    except Exception as e:
-        import traceback
-        print(f"[jarvis] NEEDLE ERROR: {e}", flush=True)
-        traceback.print_exc()
-
-    # STEP 3: Fallback to MiniCPM5-2B with the same shortlist
-    print("[jarvis] Needle 3 declined. Falling back to MiniCPM5-2B.", flush=True)
-    selected = await select_tool_via_local_llm(prompt, shortlist)
-    if selected:
-        print(f"[jarvis] Selected tool: {selected.get('tool')}", flush=True)
-        return selected
-        
-    print("[jarvis] Local model did not select a tool", flush=True)
-    return None
