@@ -117,9 +117,15 @@ def load_providers(reload: bool = False) -> List[Provider]:
     out: List[Provider] = []
     for name in [n.strip().lower() for n in priority.split(",") if n.strip()]:
         prefix = name.upper()
-        base_url = (os.getenv(f"{prefix}_BASE_URL") or "").strip()
-        api_key = (os.getenv(f"{prefix}_API_KEY") or "").strip()
-        model = (os.getenv(f"{prefix}_MODEL") or "").strip()
+        # For groq, prefer LLM_* variables (same as CFO Agent)
+        if name == "groq":
+            base_url = (os.getenv("LLM_BASE_URL") or os.getenv("GROQ_BASE_URL") or "").strip()
+            api_key = (os.getenv("LLM_API_KEY") or os.getenv("GROQ_API_KEY") or "").strip()
+            model = (os.getenv("LLM_MODEL") or os.getenv("GROQ_MODEL") or "").strip()
+        else:
+            base_url = (os.getenv(f"{prefix}_BASE_URL") or "").strip()
+            api_key = (os.getenv(f"{prefix}_API_KEY") or "").strip()
+            model = (os.getenv(f"{prefix}_MODEL") or "").strip()
         if not (base_url and model):
             # Skip misconfigured providers (missing URL or model)
             continue
