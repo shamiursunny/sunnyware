@@ -873,3 +873,13 @@ async def _twofa_gate_middleware(request, call_next):
         pass
     return await call_next(request)
 
+# ==========================================
+# TEMPORARY DEBUG ENDPOINT - REMOVE AFTER TESTING
+# ==========================================
+@app.get("/api/debug/test-all-tools")
+async def debug_test_all_tools():
+    """Run the Needle 3 tool test suite and return the results."""
+    from test_needle_tools import run_tool_test
+    result = await run_tool_test()
+    return result
+
