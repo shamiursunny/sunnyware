@@ -8,8 +8,6 @@ def load_needle_tools(schema_list: list[dict]) -> list:
     for schema in schema_list:
         name = schema["name"]
 
-        # Create a placeholder function. It will never be executed because we
-        # only use the `complete()` method for routing.
         def _make_placeholder(tool_name):
             def _placeholder(**kwargs):
                 return kwargs
@@ -17,7 +15,17 @@ def load_needle_tools(schema_list: list[dict]) -> list:
             return _placeholder
 
         fn = _make_placeholder(name)
-        # Attach the raw schema to the attribute Needle inspects.
         fn._needle_tool = schema
         tools.append(fn)
     return tools
+
+def build_schema_from_tool(tool):
+    """
+    Constructs a JSON schema dictionary from a tool object with
+    name, description, and parameters attributes.
+    """
+    return {
+        "name": tool.name,
+        "description": tool.description,
+        "parameters": tool.parameters
+    }

@@ -221,14 +221,8 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
     from .needle_router import try_needle_route
 
     # Extract all 83 tool schemas from the _TOOLS registry
-    all_tool_schemas = []
-    for name, tool in _TOOLS.items():
-        if isinstance(tool, dict):
-            all_tool_schemas.append(tool)
-        elif hasattr(tool, "schema"):
-            all_tool_schemas.append(tool.schema)
-        elif hasattr(tool, "to_dict"):
-            all_tool_schemas.append(tool.to_dict())
+    from .needle_tool_loader import build_schema_from_tool
+    all_tool_schemas = [build_schema_from_tool(tool) for tool in _TOOLS.values()]
 
     needle_result = await try_needle_route(prompt, all_tool_schemas)
     if needle_result:
