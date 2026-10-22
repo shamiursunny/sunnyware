@@ -342,6 +342,9 @@ async def chat(
     timeout: float = 90.0,
     _retry_depth: int = 0,
 ) -> dict:
+    # Part 422: Truncate history globally to prevent 17k token errors
+    history = history[-4:] if history else []
+
 
     # Part 410: Skip local model for general chat (fast cloud answer)
         # THE STRICT ROUTER: Only use local if tools are present AND keywords match
@@ -376,7 +379,7 @@ async def chat(
                     system=_local_system,
                     history=_local_history,
                     tools=_local_tools,
-                    timeout=30.0  # 60s is enough for Qwen to finish
+                    timeout=120.0  # 60s is enough for Qwen to finish
                 )
                 if local_res.get("ok") and (local_res.get("content") or local_res.get("tool_calls")):
                     # Check if the content is just empty reasoning

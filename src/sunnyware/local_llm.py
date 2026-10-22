@@ -1,14 +1,4 @@
 
-# JSON Grammar to force instant JSON output and bypass <think> blocks
-JSON_GRAMMAR = r"""
-root   ::= object
-object ::= "{" space ( string ":" space value ("," space string ":" space value)* )? "}" space
-value  ::= object | array | string | number | ("true" | "false" | "null") space
-array  ::= "[" space ( value ("," space value)* )? "]" space
-string ::= "\"" ( [^"\\] | "\\" (["\\/bfnrt] | "u" [0-9a-fA-F]{4}) )* "\"" space
-number ::= ("-"? ([0-9] | [1-9] [0-9]*)) ("." [0-9]+)? ([eE] [-+]? [0-9]+)? space
-space  ::= ( [ \t\n\r]* )?
-"""
 
 # SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
 # SPDX-License-Identifier: AGPL-3.0-only
@@ -139,10 +129,9 @@ async def chat(
                 "messages": messages,
                 "temperature": 0.1,
                 "stream": False,
-                "max_tokens": 2048,
+                "max_tokens": 512,
                 "top_p": 0.95,
-                "repeat_penalty": 1.0,
-                "grammar": JSON_GRAMMAR, # Force JSON output instantly
+                "repeat_penalty": 1.0, # Force JSON output instantly
             }
             if tools:
                 kwargs["tools"] = tools
