@@ -224,13 +224,20 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
     print(f"[jarvis] Shortlist contains {len(shortlist)} tools", flush=True)
 
     # STEP 2: Try Needle 3 (Fast, Local) with ONLY the shortlist
-    from .needle_router import try_needle_route
-    from .needle_tool_loader import build_schema_from_tool
-    
-    shortlist_schemas = [build_schema_from_tool(tool) for tool in shortlist]
-    needle_result = await try_needle_route(prompt, shortlist_schemas)
-    if needle_result:
-        return needle_result
+    try:
+        from .needle_router import try_needle_route
+        from .needle_tool_loader import build_schema_from_tool
+        
+        shortlist_schemas = [build_schema_from_tool(tool) for tool in shortlist]
+        print(f"[jarvis] DEBUG: About to call Needle with {len(shortlist_schemas)} tools", flush=True)
+        needle_result = await try_needle_route(prompt, shortlist_schemas)
+        print(f"[jarvis] DEBUG: Needle returned: {needle_result}", flush=True)
+        if needle_result:
+            return needle_result
+    except Exception as e:
+        import traceback
+        print(f"[jarvis] NEEDLE ERROR: {e}", flush=True)
+        traceback.print_exc()
 
     # STEP 3: Fallback to MiniCPM5-2B with the same shortlist
     print("[jarvis] Needle 3 declined. Falling back to MiniCPM5-2B.", flush=True)
