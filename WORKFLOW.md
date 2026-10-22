@@ -1676,3 +1676,5 @@ cd /h/sunnyware
 - **Fail-Fast Timeout**: Wrapped local model call with a 5.0s timeout in `jarvis_agent.py`. If it hangs on simple prompts, it falls back to Groq instantly without crashing the server.
 
 - **Part 350 (2026-10-22)**: Final Needle 3 phase. Achieved 69.81% tool routing via keyword router + RAG shortlist + Needle 3 + MiniCPM fallback.
+
+- **Part 366 (2026-10-22)**: Passed all 83 tools to MiniCPM, set context to 16384 and timeout to 120s. Verified 100% local routing on complex tool test.

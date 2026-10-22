@@ -2604,7 +2604,7 @@ Config:
 - **Status**: App is 100% stable. Simple questions fall back to cloud in 5s. Tool calls execute locally.
 - Deployment SHA: d061b7b
 
-## Parts 320–350 — Needle 3 Integration (2026-10-21) COMPLETED
+## Parts 320–366 — Needle 3 Integration (2026-10-21) COMPLETED
 - **Part 320-321**: Integrated Needle 3 as a fast first-stage router.
 - **Part 322-324**: Fixed missing `log` variable, indentation errors, and parsing logic.
 - **Part 325-329**: Configured persistent caching (`XDG_CACHE_HOME=/data/.cache`), ensuring the 35MB `needle3.cact` is downloaded exactly once.
@@ -2632,3 +2632,10 @@ Config:
 - Keyword router is the biggest win - handles obvious cases at 100%
 - ~20 tool cases are the ceiling for 29M model argument extraction
 - Final SHA: c9bc866 (clean), 3aba13f (v6 with eval)
+
+## Parts 360-366 — MiniCPM Full Tool Routing (2026-10-22) COMPLETED
+- **Part 360-361**: Reverted XML experiment. Restored JSON prompt, `max_tokens=1024`, `stop=["</think>"]`.
+- **Part 362**: Reverted CPU params to `n_threads=4`, `n_batch=256`.
+- **Part 363-364**: Fixed `.env` override causing Groq 404 (`llama-3.1-8b-instant` -> `openai/gpt-oss-120b`).
+- **Part 366**: **BREAKTHROUGH**. Passed ALL 83 tools to MiniCPM. Set `n_ctx=16384`, `timeout=120.0`.
+- **Result**: MiniCPM successfully routes tools locally. 34s response time (including cold start). No cloud fallback needed for the fibonacci test.
