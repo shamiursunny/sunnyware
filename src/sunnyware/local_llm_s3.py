@@ -130,7 +130,13 @@ async def chat(
             return {"ok": False, "error": f"load failed: {e}", "provider": "local"}
 
         def _run():
-            kwargs = {"messages": messages, "temperature": 0.2, "max_tokens": 800, "stream": False}
+            kwargs = {
+                "messages": messages,
+                "temperature": 0.2,
+                "max_tokens": 200,
+                "stream": False,
+                "stop": ["</think>", "\n\n\n"],
+            }
             if tools:
                 kwargs["tools"] = tools
                 kwargs["tool_choice"] = "auto"
