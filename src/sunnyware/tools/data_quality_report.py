@@ -117,7 +117,13 @@ def _col_report(s: "pd.Series") -> dict:
 
 class DataQualityReportTool:
     name = "data_quality_report"
-    description = "Run a data quality check (nulls, outliers, types). Triggers: data quality report, check data, find nulls. Input: dataset. Returns quality metrics."
+    description = (
+        "Scan a data file (CSV/TSV/XLSX/Parquet/JSON) in the workspace and "
+        "return a data-quality report: per-column nulls, uniques, min/max/"
+        "mean/std, IQR outliers, skew, string length stats, plus duplicate "
+        "row count and duplicate-key warnings. Use before running analysis "
+        "to spot data issues early."
+    )
     parameters = {
         "file": {"type": "string", "required": True,
                  "description": "Workspace filename (e.g. 'data.csv', 'sheet.xlsx')"},

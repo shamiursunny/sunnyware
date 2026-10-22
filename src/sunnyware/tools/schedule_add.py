@@ -5,7 +5,12 @@
 
 class ScheduleAddTool:
     name = "schedule_add"
-    description = "Schedule a recurring task at a fixed interval. Triggers: schedule task, run every, set reminder, recurring job. Input: name and interval hours. Returns schedule ID."
+    description = (
+        "Register a recurring task that runs an agent prompt on a fixed "
+        "interval. Optionally email the result. The task persists in Neon "
+        "and auto-registers with the background scheduler on next app start. "
+        "Interval must be 60-604800 seconds (1 min to 1 week)."
+    )
     parameters = {
         "name": {"type": "string", "required": True,
                  "description": "Unique short name (e.g. 'weekly_fpa_summary')"},

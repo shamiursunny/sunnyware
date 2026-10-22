@@ -73,7 +73,7 @@ def _coerce_cell(v):
 
 class ExcelWriteTool:
     name = "excel_write"
-    description = "Write data to an Excel .xlsx file. Triggers: write Excel, save to Excel, create spreadsheet. Input: filepath and data array. Returns confirmation."
+    description = "Excel spreadsheet writer for .xlsx files."
     parameters = {
         "filename": {
             "type": "string",

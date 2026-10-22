@@ -23,7 +23,7 @@ def _workspace_root() -> Path:
 
 class PdfReadTool:
     name = "pdf_read"
-    description = "Read text from a PDF file. Triggers: read PDF, open PDF, extract PDF text. Input: filepath (must end in .pdf). Returns extracted text."
+    description = "PDF document reader for .pdf files only."
     parameters = {
         "file": {
             "type": "string",

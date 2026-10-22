@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 
 class CurrentTimeTool:
     name = "current_time"
-    description = "Get the current time or clock for a specific location or timezone (e.g., Tokyo, London, UTC). Triggers: time, clock, current time, what time is it. Returns the current timestamp."
+    description = "Clock reader for a timezone."
     parameters = {}  # no args
 
     async def run(self, args: dict) -> dict:

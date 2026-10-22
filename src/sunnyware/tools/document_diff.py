@@ -99,7 +99,15 @@ def _resolve_side(args: dict, side: str) -> tuple:
 
 class DocumentDiffTool:
     name = "document_diff"
-    description = "Compare two documents and show differences. Triggers: compare documents, diff files, what changed. Input: doc_a and doc_b. Returns diff."
+    description = (
+        "Diff two documents and return a unified diff with summary stats "
+        "(lines added/removed/same, similarity ratio). Three input modes: "
+        "(1) two workspace files via left_file + right_file, "
+        "(2) two RAG chunks via left_source/left_chunk_id + right_source/right_chunk_id, "
+        "(3) two inline strings via left_text + right_text. "
+        "Use for regulation version comparison, contract redlines, or "
+        "checking if a claim still matches its source."
+    )
     parameters = {
         "left_file": {"type": "string", "required": False,
                       "description": "Left workspace file (CSV/TXT/MD/JSON etc.)"},

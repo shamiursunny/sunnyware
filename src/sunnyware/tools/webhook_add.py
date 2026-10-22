@@ -5,7 +5,12 @@
 
 class WebhookAddTool:
     name = "webhook_add"
-    description = "Create a webhook that fires on an event. Triggers: create webhook, add webhook, set up webhook. Input: name and callback URL. Returns webhook ID."
+    description = (
+        "Register a webhook endpoint. External services POST to the "
+        "returned /webhook/{token} URL. Optionally auto-run an agent "
+        "prompt on every received payload. Use for Slack/GitHub/Stripe "
+        "events or any external trigger."
+    )
     parameters = {
         "name": {"type": "string", "required": True,
                  "description": "Short friendly name (e.g. 'stripe_payments')"},

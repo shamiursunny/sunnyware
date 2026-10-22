@@ -78,7 +78,7 @@ def _check_url(url: str) -> Optional[str]:
 
 class ApiCallTool:
     name = "api_call"
-    description = "Make an HTTP GET/POST/PUT/DELETE request to any URL. Triggers: API call, HTTP request, GET request, POST to URL, fetch API. Input: url and method. Returns response body and status."
+    description = "HTTP client for REST API endpoints."
     parameters = {
         "url": {
             "type": "string",

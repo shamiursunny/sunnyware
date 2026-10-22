@@ -26,7 +26,7 @@ def _safe_path(rel: str) -> Path:
 
 class ReadFileTool:
     name = "read_file"
-    description = "Read the contents of a text file from the workspace. Triggers: read file, open file, contents of, text file. Input: filepath (e.g., notes.txt). Returns the file text."
+    description = "Text file reader for .txt files only."
     parameters = {
         "path": {
             "type": "string",

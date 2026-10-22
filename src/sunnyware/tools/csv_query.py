@@ -30,7 +30,12 @@ def _workspace_root() -> Path:
 
 class CsvQueryTool:
     name = "csv_query"
-    description = "Query a CSV file using SQL SELECT. Triggers: CSV, spreadsheet, query data, select from csv. Input: filepath (e.g., data.csv) and SQL query. Returns matching rows."
+    description = (
+        "Run a SELECT query against a CSV, Parquet, or JSON file in the "
+        "workspace using DuckDB. Streams from disk so it handles files "
+        "larger than memory. The file is auto-registered as a view named "
+        "after its stem (e.g. sales.csv -> SELECT * FROM sales)."
+    )
     parameters = {
         "file": {
             "type": "string",

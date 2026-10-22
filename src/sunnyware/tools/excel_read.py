@@ -99,7 +99,7 @@ def _sheet_to_records(ws, max_rows: int, include_formulas: bool) -> dict:
 
 class ExcelReadTool:
     name = "excel_read"
-    description = "Read cell data from an Excel .xlsx file. Triggers: read Excel, open spreadsheet, get Excel data. Input: filepath. Returns cell data."
+    description = "Excel spreadsheet reader for .xlsx files."
     parameters = {
         "file": {
             "type": "string",
