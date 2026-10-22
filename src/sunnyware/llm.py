@@ -101,7 +101,7 @@ async def _chat_single(
         "model": model or DEFAULT_MODEL,
         "messages": messages,
         "temperature": 0.2,
-        "max_tokens": 2048,
+        "max_tokens": 8192,
     }
     if tools:
         payload["tools"] = tools
@@ -199,6 +199,7 @@ async def _chat_single(
             data = r.json()
             msg = data["choices"][0]["message"]
             content = msg.get("content") or ""
+            reasoning = msg.get("reasoning") or ""
             tool_calls = msg.get("tool_calls")
 
             # Usage tracking (Part 29) + Part 96: expose real token counts
@@ -614,7 +615,7 @@ async def stream_chat(
             "model": use_model,
             "messages": messages,
             "temperature": 0.2,
-            "max_tokens": 2048,
+            "max_tokens": 8192,
             "stream": True,
         }
         yielded_any = False
