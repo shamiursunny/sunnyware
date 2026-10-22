@@ -129,7 +129,7 @@ async def chat(
             if tools:
                 kwargs["tools"] = tools
                 kwargs["tool_choice"] = "auto"
-            return llama.create_chat_completion(max_tokens=512, **kwargs)
+            return llama.create_chat_completion(max_tokens=128, **kwargs)
 
         try:
             resp = await asyncio.wait_for(
