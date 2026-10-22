@@ -361,6 +361,7 @@ async def chat(
                 
                 # Truncate massive system prompt for CPU speed
                 _local_system = (system[:200] if system else "You are a helpful assistant.")
+                print(f"[llm.chat] Local prompt size: {len(prompt)} chars, system size: {len(_local_system)} chars", flush=True)
                 local_res = await _llm.chat(
                     prompt=prompt,
                     system=_local_system,

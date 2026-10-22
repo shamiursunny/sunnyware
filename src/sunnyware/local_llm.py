@@ -96,13 +96,13 @@ def _get_qwen_model():
         import shutil
         model_dir = "/data/models"
         os.makedirs(model_dir, exist_ok=True)
-        model_path = f"{model_dir}/qwen2.5-0.5b-instruct-q5_k_m.gguf"
+        model_path = f"{model_dir}/qwen2.5-0.5b-instruct-q4_k_m.gguf"
         
         if not os.path.exists(model_path):
             print("[local_llm] Qwen Q5_K_M not found. Downloading...", flush=True)
             downloaded_path = hf_hub_download(
                 repo_id="Qwen/Qwen2.5-0.5B-Instruct-GGUF",
-                filename="qwen2.5-0.5b-instruct-q5_k_m.gguf",
+                filename="qwen2.5-0.5b-instruct-q4_k_m.gguf",
                 cache_dir="/data/hf_cache"
             )
             print(f"[local_llm] Copying Qwen to persistent storage at {model_path}...", flush=True)
@@ -177,8 +177,6 @@ async def chat(
                 "stream": False,
                 "max_tokens": 32 if use_qwen else 512,
             }
-            if use_qwen:
-                kwargs["stop"] = ["<|im_end|>", "<|endoftext|>"]
             if tools:
                 kwargs["tools"] = tools
                 kwargs["tool_choice"] = "auto"
