@@ -347,12 +347,18 @@ async def chat(
     _priority = (os.getenv("LLM_PROVIDERS") or "").split(",")
     if "local" in [n.strip().lower() for n in _priority]:
         from . import local_llm as _llm
+        from .agent_memory import read_memory
         if _llm.is_enabled():
             try:
                 # Give it time to think and generate tools
                 # Part 379: Truncate history and tools for local CPU inference
                 _local_history = history[-4:] if history else []
-                _local_tools = []  # STRIPPED: Do not pass tools to local LLM for general chat
+                _local_tools = tools if (tools and len(tools) <= 15) else []
+                # Part 396: Shared Memory Check
+                _last_tool = read_memory("last_tool_execution")
+                if _last_tool and isinstance(_last_tool, dict):
+                    prompt += f"\n\n[Shared Memory Context]: The tool '{_last_tool.get('tool')}' was already executed with args {_last_tool.get('args')}."
+                
                 local_res = await _llm.chat(
                     prompt=prompt,
                     system=system,

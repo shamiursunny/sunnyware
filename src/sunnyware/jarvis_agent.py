@@ -6,6 +6,7 @@ Uses sentence-transformers for tool retrieval and llama-cpp-python for local too
 """
 
 import json
+from .agent_memory import write_memory
 import os
 import asyncio
 import re
@@ -249,6 +250,8 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
         shortlist_schemas = [build_schema_from_tool(tool) for tool in shortlist]
         needle_result = await try_needle_route(prompt, shortlist_schemas)
         if needle_result:
+            # Part 396: Save tool call to shared memory
+            write_memory("last_tool_execution", needle_result)
             return needle_result
     except Exception as e:
         print(f"[jarvis] Needle skipped: {e}", flush=True)
