@@ -125,11 +125,13 @@ async def chat(
                 "messages": messages,
                 "temperature": 0.2,
                 "stream": False,
+                "max_tokens": 64,
+                "stop": ["<|im_end|>", "<|endoftext|>", "\n\n"],
             }
             if tools:
                 kwargs["tools"] = tools
                 kwargs["tool_choice"] = "auto"
-            return llama.create_chat_completion(max_tokens=128, **kwargs)
+            return llama.create_chat_completion(**kwargs)
 
         try:
             resp = await asyncio.wait_for(

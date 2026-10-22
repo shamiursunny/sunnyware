@@ -352,7 +352,7 @@ async def chat(
                 # Give it time to think and generate tools
                 # Part 379: Truncate history and tools for local CPU inference
                 _local_history = history[-4:] if history else []
-                _local_tools = tools if (tools and len(tools) <= 15) else []
+                _local_tools = []  # STRIPPED: Do not pass tools to local LLM for general chat
                 local_res = await _llm.chat(
                     prompt=prompt,
                     system=system,
