@@ -885,3 +885,31 @@ async def debug_eval_minicpm():
 async def debug_eval_combined():
     from evaluate_needle import evaluate
     return await evaluate()
+
+import os as _os
+
+@app.get("/api/debug/clear-orchestrator")
+async def debug_clear_orchestrator():
+    """Delete cached orchestrator config that might have stale models."""
+    paths = ["/data/orchestrator_config.json", "data/orchestrator_config.json"]
+    results = {}
+    for p in paths:
+        if _os.path.exists(p):
+            try:
+                _os.remove(p)
+                results[p] = "deleted"
+            except Exception as e:
+                results[p] = f"error: {e}"
+        else:
+            results[p] = "not_found"
+    return {"deleted": results}
+
+@app.get("/api/debug/env-dump")
+async def debug_env_dump():
+    """Dump relevant env vars to verify what's loaded."""
+    return {
+        "LLM_MODEL": _os.getenv("LLM_MODEL", "<unset>"),
+        "GROQ_MODEL": _os.getenv("GROQ_MODEL", "<unset>"),
+        "LLM_PROVIDERS": _os.getenv("LLM_PROVIDERS", "<unset>"),
+    }
+
