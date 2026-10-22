@@ -123,10 +123,9 @@ async def chat(
         def _run():
             kwargs = {
                 "messages": messages,
-                "temperature": 0.2,
+                "temperature": 0.1,
                 "stream": False,
-                "max_tokens": 64,
-                "stop": ["<|im_end|>", "<|endoftext|>", "\n\n"],
+                "max_tokens": 128,
             }
             if tools:
                 kwargs["tools"] = tools
