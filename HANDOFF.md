@@ -2604,9 +2604,31 @@ Config:
 - **Status**: App is 100% stable. Simple questions fall back to cloud in 5s. Tool calls execute locally.
 - Deployment SHA: d061b7b
 
-## Parts 320–329 — Needle 3 Integration (2026-10-21) COMPLETED
+## Parts 320–350 — Needle 3 Integration (2026-10-21) COMPLETED
 - **Part 320-321**: Integrated Needle 3 as a fast first-stage router.
 - **Part 322-324**: Fixed missing `log` variable, indentation errors, and parsing logic.
 - **Part 325-329**: Configured persistent caching (`XDG_CACHE_HOME=/data/.cache`), ensuring the 35MB `needle3.cact` is downloaded exactly once.
 - **Result**: Needle 3 now runs locally from disk using memory-mapped (`mmap`) loading, inferring at **~860 tokens/sec**. It successfully routes tools locally and saves cloud tokens.
 - Deployment SHA: f3f5b68
+
+## Parts 330-350 — Needle 3 + Keyword Router Optimization (2026-10-22) COMPLETED
+
+### Architecture (4-stage hybrid router)
+1. Stage 0: Keyword router (100% deterministic, ~14 tools covered)
+2. Stage 1: RAG shortlist (top_k=15 from 83 tools)
+3. Stage 2: Needle 3 (29M model, ~45% accuracy on remaining)
+4. Stage 3: MiniCPM5-2B fallback
+5. Stage 4: Cloud LLM
+
+### Final Metrics (v6)
+- Tool Accuracy: 69.81% (baseline 43.40% - +26.41% improvement)
+- Argument F1: 56.60% (baseline 29.25% - +27.35% improvement)
+- No-Call Accuracy: 80.00% (stable)
+- Total Failures: 18 (all require complex argument extraction)
+
+### Lessons Learned
+- Long trigger-word descriptions hurt small models (v2/v3 regressions)
+- RAG shortlist is essential - 83 tools don't fit Needle 3's init buffer
+- Keyword router is the biggest win - handles obvious cases at 100%
+- ~20 tool cases are the ceiling for 29M model argument extraction
+- Final SHA: c9bc866 (clean), 3aba13f (v6 with eval)

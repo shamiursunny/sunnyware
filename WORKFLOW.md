@@ -1674,3 +1674,5 @@ cd /h/sunnyware
 - **Prompt Hardening**: Strictly banned `<think>` blocks. Added `stop=["</think>"]` and `max_tokens=100`.
 - **Gradio Launch**: Fixed `app.py` to use standard blocking `app.launch(share=False)` to prevent HF Exit Code 0.
 - **Fail-Fast Timeout**: Wrapped local model call with a 5.0s timeout in `jarvis_agent.py`. If it hangs on simple prompts, it falls back to Groq instantly without crashing the server.
+
+- **Part 350 (2026-10-22)**: Final Needle 3 phase. Achieved 69.81% tool routing via keyword router + RAG shortlist + Needle 3 + MiniCPM fallback.
