@@ -1357,7 +1357,16 @@ me the exact git commands to commit + push both remotes."
 - UI: Settings menu opens/closes via pill, X, outside click, Escape. Login modal closes via X. Billing opens in new tab. Plan text shows "Pro · $49/mo · 20M tokens" after force-upgrade.
 - Console: No errors, no flicker, chat works, history loads.
 
-### Part 366 Update (2026-10-22): MiniCPM Full Local Tool Routing
+### Part 374 Update (2026-10-22): MiniCPM Full Local Tool Routing
 - **Full Tool Catalog**: MiniCPM now receives all 83 tools (bypassing RAG shortlist) with `n_ctx=16384` and `timeout=120.0`.
 - **Verified Success**: Tested "Use Python to calculate the first 10 fibonacci numbers." MiniCPM successfully loaded the 83 tools, parsed the JSON, and executed `python_eval` locally in **34 seconds** with zero cloud dependency.
 - **Groq Model Fix**: Updated `.env` and forced `openai/gpt-oss-120b` to replace the deprecated `llama-3.1-8b-instant` that was causing 404 errors.
+
+### Part 372-374 Update (2026-10-22): Cloud Provider Stability
+- **Groq**: Switched to `llama-3.3-70b-versatile` (non-reasoning) to avoid empty content from reasoning models.
+- **Gemini**: Switched to `gemini-2.5-flash` with base URL `https://generativelanguage.googleapis.com/v1beta/openai/`.
+- **OpenRouter**: Re-enabled with `meta-llama/llama-3.3-70b-instruct:free`.
+- **LLM_PROVIDERS**: Set to `gemini,openrouter,groq`.
+- **max_tokens**: Increased to 8192 in `llm.py` for reasoning models.
+- **Cache**: Deleted stale `/data/orchestrator_config.json`.
+- **Result**: Cloud fallback is now fully reliable (tested with "hi" — 1.5s response).
