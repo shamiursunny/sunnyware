@@ -81,6 +81,7 @@ async def _ensure_loaded():
 
 
 
+
 _qwen_model = None
 
 def _get_qwen_model():
@@ -91,21 +92,28 @@ def _get_qwen_model():
         import os
         from huggingface_hub import hf_hub_download
         from llama_cpp import Llama
-        print("[local_llm] Downloading/Loading Qwen 0.5B for chat...", flush=True)
+        print("[local_llm] Downloading/Loading Qwen 0.5B (Q5_K_M) for chat...", flush=True)
         model_dir = "/data/models"
         os.makedirs(model_dir, exist_ok=True)
-        model_path = f"{model_dir}/qwen2.5-0.5b-instruct-q4_k_m.gguf"
+        model_path = f"{model_dir}/qwen2.5-0.5b-instruct-q5_k_m.gguf"
         
         if not os.path.exists(model_path):
-            print("[local_llm] Qwen not found in /data/models. Downloading...", flush=True)
+            print("[local_llm] Qwen Q5_K_M not found. Downloading...", flush=True)
             downloaded_path = hf_hub_download(
                 repo_id="Qwen/Qwen2.5-0.5B-Instruct-GGUF",
-                filename="qwen2.5-0.5b-instruct-q4_k_m.gguf",
+                filename="qwen2.5-0.5b-instruct-q5_k_m.gguf",
                 cache_dir="/data/hf_cache"
             )
             os.system(f"cp {downloaded_path} {model_path}")
             
-        _qwen_model = Llama(model_path=model_path, n_ctx=2048, n_threads=2, verbose=False)
+        _qwen_model = Llama(
+            model_path=model_path, 
+            n_ctx=2048, 
+            n_threads=2, 
+            n_gpu_layers=0,          # Force CPU only to prevent driver crashes
+            chat_format="chatml",    # Force ChatML template for Qwen
+            verbose=False
+        )
         print("[local_llm] Qwen 0.5B loaded successfully.", flush=True)
         return _qwen_model
     except Exception as e:
@@ -164,7 +172,7 @@ async def chat(
                 "messages": messages,
                 "temperature": 0.1 if use_qwen else 0.2,
                 "stream": False,
-                "max_tokens": 256 if use_qwen else 512,
+                "max_tokens": 64 if use_qwen else 512,
             }
             if tools:
                 kwargs["tools"] = tools
