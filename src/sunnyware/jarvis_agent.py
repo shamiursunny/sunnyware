@@ -118,7 +118,7 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
         prompt=prompt,
         system=system_prompt,
         history=None,
-        tools=None,
+        tools=tools,  # Pass the actual tool schemas
         timeout=300.0
     )
 
@@ -127,6 +127,16 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
         print(f"[jarvis] Local model failed: {result.get('error')}", flush=True)
         return None
 
+    # Check for native tool calls first
+    native_calls = result.get("tool_calls")
+    if native_calls:
+        call = native_calls[0]
+        try:
+            args = json.loads(call["function"]["arguments"])
+        except Exception:
+            args = {}
+        return {"tool": call["function"]["name"], "args": args}
+    
     content = result.get("content", "").strip()
     print(f"[jarvis] Local model response: {content[:500]}", flush=True)
 
@@ -251,9 +261,12 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
 
     # STAGE 3: Fallback to MiniCPM5-2B
     print("[jarvis] Falling back to MiniCPM5-2B.", flush=True)
-    # Send only the RAG shortlist (15 tools) to MiniCPM to fit in context
-    print(f"[jarvis] Sending {len(shortlist)} shortlisted tools to MiniCPM", flush=True)
-    selected = await select_tool_via_local_llm(prompt, shortlist)
+    # Send ALL tools to MiniCPM (native tool calling)
+    from .tools import _TOOLS
+    from .needle_tool_loader import build_schema_from_tool
+    all_schemas = [build_schema_from_tool(tool) for tool in _TOOLS.values()]
+    print(f"[jarvis] Sending ALL {len(all_schemas)} tools to MiniCPM", flush=True)
+    selected = await select_tool_via_local_llm(prompt, all_schemas)
     if selected:
         print(f"[jarvis] Selected tool: {selected.get('tool')}", flush=True)
         return selected
