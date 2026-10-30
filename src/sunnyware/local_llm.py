@@ -65,8 +65,9 @@ def _load_sync():
         _MODEL = Llama(
             model_path=path,
             n_ctx=min(int(os.getenv("LOCAL_MODEL_CTX", "2048")), 2048),
-            n_threads=int(os.getenv("LOCAL_MODEL_THREADS", "2")),
-            n_batch=32,
+            n_threads=1,
+            n_batch=1,
+            n_ubatch=1,
             use_mlock=False,
             verbose=False,
         )
