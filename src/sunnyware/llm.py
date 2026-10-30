@@ -115,6 +115,22 @@ async def _chat_single(
         messages.extend(history)
     messages.append({"role": "user", "content": prompt})
 
+    # Part 452: Bulletproof truncation for ALL paths including evals
+    if system and len(system) > 2000:
+        system = system[:2000] + "... [truncated]"
+    if prompt and len(prompt) > 2000:
+        prompt = prompt[:2000] + "... [truncated]"
+    if history and len(history) > 1:
+        history = history[-1:]
+    if tools:
+        tools = [t for t in tools if isinstance(t, dict)][:5]
+    messages = []
+    if system:
+        messages.append({"role": "system", "content": system})
+    if history:
+        messages.extend(history)
+    messages.append({"role": "user", "content": prompt})
+
     payload = {
         "model": model or DEFAULT_MODEL,
         "messages": messages,
