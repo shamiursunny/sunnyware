@@ -77,6 +77,14 @@ def keyword_route(prompt: str) -> Optional[dict]:
     """
     p = prompt.lower()
 
+    # --- Math regex (catches '2+2' etc.) ---
+    import re as _re
+    _math_match = _re.search(r'(?:what is|calculate|compute|evaluate)?\s*(-?\d+(?:\.\d+)?\s*[\+\-\*\/\%\^]\s*-?\d+(?:\.\d+)?(?:\s*[\+\-\*\/\%\^]\s*-?\d+(?:\.\d+)?)*)', prompt.lower())
+    if _math_match:
+        expr = _math_match.group(1).strip()
+        if all(c in '0123456789+-*/%^() .' for c in expr):
+            return {"tool": "calculator", "args": {"expression": expr}}
+
 # --- calculator ---
     calc_keywords = ["calculate", "compute", "math", "square root", "sqrt",
                      "multiply", "divide", "what is", "how much is"]
