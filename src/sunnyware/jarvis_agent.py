@@ -224,6 +224,13 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
         return None
 
     
+    # Part 472: Check math expressions BEFORE tool_keywords bypass
+    import re as _re
+    _math = _re.search(r'(-?\d+(?:\.\d+)?\s*[\+\-\*\/\%\^]\s*-?\d+(?:\.\d+)?)', prompt)
+    if _math and all(c in "0123456789+-*/%^() ." for c in _math.group(1).strip()):
+        print("[jarvis] Math expression detected, routing to calculator", flush=True)
+        return {"tool": "calculator", "args": {"expression": _math.group(1).strip()}}
+
     # Bypass for greetings
     p_lower = prompt.lower().strip()
     if len(p_lower) < 20 and any(p_lower.startswith(g) for g in ["hi", "hello", "hey", "who are you", "what's up", "how are you"]):

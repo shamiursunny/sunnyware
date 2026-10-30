@@ -202,6 +202,16 @@ async def _chat_single(
                         "status_code": 429,
                     }
 
+                # Part 472: If tools cause a 400, retry without tools
+                if r.status_code == 400 and "tools" in r.text.lower() and tools and _retry_depth < 1:
+                    print(f"[llm.chat] Tool schema rejected, retrying without tools: {r.text[:150]}", flush=True)
+                    return await _chat_single(
+                        prompt=prompt, base_url=base_url, api_key=api_key,
+                        model=model, system=system, history=history,
+                        tools=None, timeout=timeout,
+                        _retry_depth=_retry_depth + 1,
+                    )
+
                 # Part 31K-ext: hallucinated tool name -> retry with hint
                 if r.status_code == 400 and "was not enabled" in r.text and _retry_depth < 2:
                     m = re.search(r"called (\w+) tool", r.text)
