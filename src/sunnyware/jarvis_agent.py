@@ -274,7 +274,7 @@ If the user's request requires a tool, output ONLY a valid JSON object like this
     try:
         from .local_llm import chat as local_chat
         # We pass tools=None because MiniCPM is bad at native tool calling, so we use the JSON prompt
-        local_res = await local_chat(prompt=prompt, system=tool_prompt, tools=None)
+        local_res = await local_chat(prompt=prompt, system=tool_prompt, tools=None, timeout=30.0)
         content = local_res.get("content", "")
         
         # Strip <think> tags which MiniCPM loves to generate

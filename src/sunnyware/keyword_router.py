@@ -77,6 +77,11 @@ def keyword_route(prompt: str) -> Optional[dict]:
     """
     p = prompt.lower()
 
+    # --- Data Science / Python Fast-Path ---
+    ds_keywords = ["pandas", "dataframe", "numpy", "matplotlib", "scipy", "sklearn", "mean", "median", "std deviation"]
+    if any(kw in p_lower for kw in ds_keywords):
+        return {"tool": "python_eval", "args": {"code": prompt}}
+
     # --- calculator ---
     calc_keywords = ["calculate", "compute", "math", "square root", "sqrt",
                      "multiply", "divide", "what is", "how much is"]
