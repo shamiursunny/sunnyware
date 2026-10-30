@@ -109,6 +109,16 @@ async def chat(
             "provider": "local",
         }
 
+    # Part 453: Truncate for local model (context window is 8192)
+    if system and len(system) > 2000:
+        system = system[:2000] + "... [truncated]"
+    if prompt and len(prompt) > 2000:
+        prompt = prompt[:2000] + "... [truncated]"
+    if history and len(history) > 1:
+        history = history[-1:]
+    if tools:
+        tools = [t for t in tools if isinstance(t, dict)][:5]
+
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
