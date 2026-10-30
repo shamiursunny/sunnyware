@@ -19,6 +19,7 @@ import time
 from typing import Optional
 
 _LOCK = asyncio.Lock()
+_LOAD_LOCK = asyncio.Lock()
 _MODEL = None  # type: ignore
 _LOAD_ERROR: str = ""
 
@@ -79,7 +80,10 @@ def _load_sync():
 async def _ensure_loaded():
     if _MODEL is not None:
         return _MODEL
-    return await asyncio.to_thread(_load_sync)
+    async with _LOAD_LOCK:
+        if _MODEL is not None:
+            return _MODEL
+        return await asyncio.to_thread(_load_sync)
 
 
 
