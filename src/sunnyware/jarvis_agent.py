@@ -230,6 +230,26 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
         print("[jarvis] Skipping tool routing for greeting/simple chat", flush=True)
         return None
 
+    # FAST-PATH: Python / Data Science requests
+    if any(kw in p_lower for kw in ["pandas", "dataframe", "numpy", "matplotlib", "calculate the mean", "python script"]):
+        print("[jarvis] Fast-path: Python request detected. Using Groq to generate code.", flush=True)
+        try:
+            from .llm import chat as llm_chat
+            system_prompt = "You are a Python expert. Write the Python code to fulfill the user request. Output ONLY the raw Python code, no explanations, no markdown formatting. Set `result = ...` to return the final value."
+            res = await llm_chat(prompt, system=system_prompt)
+            code = res.get("content", "").strip()
+            
+            # Clean up markdown code blocks if present
+            if "```python" in code:
+                code = code.split("```python")[1].split("```")[0].strip()
+            elif "```" in code:
+                code = code.split("```")[1].strip()
+            
+            print(f"[jarvis] Fast-path: Generated code: {code[:100]}...", flush=True)
+            return {"tool": "python_eval", "args": {"code": code}}
+        except Exception as e:
+            print(f"[jarvis] Fast-path failed: {e}", flush=True)
+
     # STAGE 0: Deterministic keyword router (100% accurate, 0ms)
     try:
         from .keyword_router import keyword_route
