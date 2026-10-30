@@ -259,16 +259,37 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
     except Exception as e:
         print(f"[jarvis] Needle skipped: {e}", flush=True)
 
-    # STAGE 3: Fallback to MiniCPM5-2B
+    # STAGE 3: Fallback to MiniCPM5-2B with JSON prompt
     print("[jarvis] Falling back to MiniCPM5-2B.", flush=True)
-    # Send ALL tools to MiniCPM (native tool calling)
     from .needle_tool_loader import build_schema_from_tool
-    print(f"[jarvis] Sending {len(shortlist_schemas)} shortlisted tools to MiniCPM", flush=True)
-    selected = await select_tool_via_local_llm(prompt, shortlist_schemas)
-    if selected:
-        print(f"[jarvis] Selected tool: {selected.get('tool')}", flush=True)
-        return selected
+    import json
+    shortlist_schemas = [build_schema_from_tool(tool) for tool in shortlist]
+    
+    tools_json = json.dumps(shortlist_schemas, indent=2)
+    tool_prompt = f"""You are a tool router. Available tools:
+{tools_json}
+
+If the user's request requires a tool, output ONLY a valid JSON object like this: {{"tool": "tool_name", "args": {{"param": "value"}}}}. Do not include any think tags or explanations. If no tool is needed, output {{"tool": null}}."""
+    
+    try:
+        from .local_llm import chat as local_chat
+        # We pass tools=None because MiniCPM is bad at native tool calling, so we use the JSON prompt
+        local_res = await local_chat(prompt=prompt, system=tool_prompt, tools=None)
+        content = local_res.get("content", "")
         
+        # Strip <think> tags which MiniCPM loves to generate
+        if "</think>" in content:
+            content = content.split("</think>")[-1].strip()
+        
+        json_match = re.search(r'\{.*\}', content, re.DOTALL)
+        if json_match:
+            parsed = json.loads(json_match.group(0))
+            if parsed.get("tool"):
+                print(f"[jarvis] MiniCPM selected: {parsed['tool']}", flush=True)
+                return parsed
+    except Exception as e:
+        print(f"[jarvis] MiniCPM tool selection failed: {e}", flush=True)
+
     print("[jarvis] Local model did not select a tool", flush=True)
     return None
 

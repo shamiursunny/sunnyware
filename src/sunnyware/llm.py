@@ -104,6 +104,8 @@ async def _chat_single(
         "max_tokens": 8192,
     }
     if tools:
+        # Part 441: Hard limit to 15 tools for ALL cloud providers to prevent token crash
+        tools = tools[:15]
         payload["tools"] = tools
         payload["tool_choice"] = "auto"
 
