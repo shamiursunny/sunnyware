@@ -63,7 +63,17 @@ async def health_check(timeout: float = 5.0) -> dict:
     if not provs:
         return {"status": "error", "error": "no providers configured"}
     p = provs[0]
+    # Part 450: Hard truncate payload to prevent 8192 token crashes
     try:
+        import json
+        payload_size = len(json.dumps(payload))
+        if payload_size > 25000:
+            if "tools" in payload:
+                del payload["tools"]
+            if len(messages) > 3:
+                messages = [messages[0]] + messages[-2:]
+                payload["messages"] = messages
+
         async with httpx.AsyncClient(timeout=timeout) as client:
             r = await client.get(
                 f"{p.base_url}/models",
@@ -124,7 +134,17 @@ async def _chat_single(
     except Exception:
         pass
 
+    # Part 450: Hard truncate payload to prevent 8192 token crashes
     try:
+        import json
+        payload_size = len(json.dumps(payload))
+        if payload_size > 25000:
+            if "tools" in payload:
+                del payload["tools"]
+            if len(messages) > 3:
+                messages = [messages[0]] + messages[-2:]
+                payload["messages"] = messages
+
         async with httpx.AsyncClient(timeout=timeout) as client:
             r = await client.post(
                 f"{base_url}/chat/completions",

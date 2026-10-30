@@ -11,7 +11,7 @@ import os
 import asyncio
 import re
 from typing import List, Dict, Any, Optional
-from . import local_llm_s3 as local_llm
+from . import local_llm as local_llm
 
 # Part 307: Simplify array types to strings for the local model
 def _simplify_schema(params):
