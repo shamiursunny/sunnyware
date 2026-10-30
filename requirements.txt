@@ -42,3 +42,5 @@ pillow>=10.0.0
 boto3>=1.28.0
 cactus-needle
 gguf>=0.10.0
+--extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu
+llama-cpp-python==0.2.26

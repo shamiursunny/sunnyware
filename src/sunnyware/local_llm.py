@@ -60,7 +60,7 @@ def _load_sync():
         from llama_cpp import Llama
     except Exception as e:
         _LOAD_ERROR = "llama_cpp import failed: " + type(e).__name__ + ": " + str(e)
-        raise
+        raise ImportError(_LOAD_ERROR) from e
     try:
         _MODEL = Llama(
             model_path=path,
