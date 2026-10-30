@@ -99,18 +99,22 @@ class PythonEvalTool:
         q = ctx.Queue()
         p = ctx.Process(target=_worker_proc, args=(code, q))
         
-        p.start()
-        p.join(timeout)
-        
-        if p.is_alive():
-            p.terminate()
-            p.join()
-            return {"error": "execution timed out (" + str(timeout) + "s) and was killed"}
-            
-        try:
-            result = q.get_nowait()
-        except Exception:
-            return {"error": "process failed without output"}
+        def _execute_in_subprocess():
+            ctx = mp.get_context("spawn")
+            q = ctx.Queue()
+            p = ctx.Process(target=_worker_proc, args=(code, q))
+            p.start()
+            p.join(timeout)
+            if p.is_alive():
+                p.terminate()
+                p.join()
+                return {"error": "execution timed out (" + str(timeout) + "s) and was killed"}
+            try:
+                return q.get_nowait()
+            except Exception:
+                return {"error": "process failed without output"}
+
+        result = await asyncio.to_thread(_execute_in_subprocess)
 
         # Part 120: optional save-as-script (best-effort, never fatal)
         save_as = str(args.get("save_as", "")).strip()
