@@ -358,7 +358,7 @@ async def chat(
     _has_tool = any(kw in prompt.lower() for kw in _tool_keywords) if prompt else False
     
     _priority = (os.getenv("LLM_PROVIDERS") or "").split(",")
-    if "local" in [n.strip().lower() for n in _priority] and _has_tool:
+    if _priority and _priority[0].strip().lower() == "local" and _has_tool:
         from . import local_llm as _llm
         from .agent_memory import read_memory
         if _llm.is_enabled():

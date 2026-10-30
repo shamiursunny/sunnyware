@@ -134,8 +134,19 @@ async def chat(
                 "repeat_penalty": 1.0, # Force JSON output instantly
             }
             if tools:
-                kwargs["tools"] = tools
-                kwargs["tool_choice"] = "auto"
+                import json
+                clean_tools = []
+                for t in tools:
+                    if isinstance(t, str):
+                        try:
+                            t = json.loads(t)
+                        except Exception:
+                            continue
+                    if isinstance(t, dict):
+                        clean_tools.append(t)
+                if clean_tools:
+                    kwargs["tools"] = clean_tools
+                    kwargs["tool_choice"] = "auto"
             return llama.create_chat_completion(**kwargs)
 
         try:
