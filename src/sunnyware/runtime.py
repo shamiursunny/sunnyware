@@ -39,19 +39,19 @@ def init_state() -> None:
 
         # Part 26: register jobs + try starting scheduler (only if loop is running)
         try:
+            import threading as _threading
             from .jobs import register_all as _register_jobs
             from . import scheduler as _sched
-            _register_jobs()
-            _ok = _sched.start()
-            try:
-                log.info("scheduler_start_attempted", ok=_ok)
-            except Exception:
-                pass
+            def _start_sched():
+                try:
+                    _register_jobs()
+                    _ok = _sched.start()
+                    log.info("scheduler_start_attempted", ok=_ok)
+                except Exception as _e:
+                    log.error("scheduler_start_failed", err=f"{type(_e).__name__}: {_e}")
+            _threading.Thread(target=_start_sched, daemon=True).start()
         except Exception as _e:
-            try:
-                log.error("scheduler_start_failed", err=f"{type(_e).__name__}: {_e}")
-            except Exception:
-                pass
+            log.error("scheduler_thread_failed", err=f"{type(_e).__name__}: {_e}")
         log.info("sunnyware ready")
     except Exception as e:
         log.error("Startup failed", error=str(e), exc_info=True)

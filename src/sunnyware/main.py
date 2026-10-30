@@ -71,7 +71,7 @@ async def _preload_local_task():
 @asynccontextmanager
 async def lifespan(app):
     try:
-        from . import local_llm_s3 as _jarvis_local
+        from . import local_llm as _jarvis_local
         if _jarvis_local.is_enabled():
             import asyncio as _aio
             _aio.create_task(_jarvis_local.preload())
@@ -330,7 +330,7 @@ except Exception:
 
 # Part 284: Start Jarvis preload for HF Spaces (lifespan is skipped)
 try:
-    from . import local_llm_s3 as _jarvis_local
+    from . import local_llm as _jarvis_local
     if _jarvis_local.is_enabled():
         import threading as _threading
         import asyncio as _aio
