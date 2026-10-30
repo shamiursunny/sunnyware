@@ -259,24 +259,23 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
     except Exception as e:
         print(f"[jarvis] Needle skipped: {e}", flush=True)
 
-    # STAGE 3: Fallback to MiniCPM5-2B with native tool calling
-    print("[jarvis] Falling back to MiniCPM5-2B.", flush=True)
-    from .needle_tool_loader import build_schema_from_tool
-    shortlist_schemas = [build_schema_from_tool(tool) for tool in shortlist]
-    shortlist_schemas = [s for s in shortlist_schemas if isinstance(s, dict)]
-    
-    if shortlist_schemas:
-        print(f"[jarvis] Sending {len(shortlist_schemas)} shortlisted tools to MiniCPM", flush=True)
-        try:
-            from .local_llm import chat as local_chat
-            local_res = await local_chat(prompt=prompt, tools=shortlist_schemas, timeout=30.0)
-            if local_res.get("tool_calls"):
-                tc = local_res["tool_calls"][0]
+    # STAGE 3: Fallback to Groq for tool routing (local model disabled)
+    print("[jarvis] Falling back to Groq for tool routing.", flush=True)
+    try:
+        from .llm import chat as llm_chat
+        from .needle_tool_loader import build_schema_from_tool
+        shortlist_schemas = [build_schema_from_tool(tool) for tool in shortlist]
+        shortlist_schemas = [s for s in shortlist_schemas if isinstance(s, dict)][:10]
+        
+        if shortlist_schemas:
+            res = await llm_chat(prompt, tools=shortlist_schemas, timeout=20.0)
+            if res.get("tool_calls"):
+                tc = res["tool_calls"][0]
                 import json
                 return {"tool": tc["function"]["name"], "args": json.loads(tc["function"]["arguments"])}
-        except Exception as e:
-            print(f"[jarvis] MiniCPM tool selection failed: {e}", flush=True)
+    except Exception as e:
+        print(f"[jarvis] Groq tool routing failed: {e}", flush=True)
 
-    print("[jarvis] Local model did not select a tool", flush=True)
+    print("[jarvis] No tool selected by any router", flush=True)
     return None
 

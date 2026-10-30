@@ -65,9 +65,9 @@ def _load_sync():
         _MODEL = Llama(
             model_path=path,
             n_ctx=min(int(os.getenv("LOCAL_MODEL_CTX", "2048")), 2048),
-            n_threads=1,
-            n_batch=1,
-            n_ubatch=1,
+            n_threads=2,
+            
+            
             use_mlock=False,
             verbose=False,
         )
@@ -144,7 +144,7 @@ async def chat(
                 "messages": messages,
                 "temperature": 0.1,
                 "stream": False,
-                "max_tokens": 256,
+                "max_tokens": 1024,
                 "top_p": 0.95,
                 "repeat_penalty": 1.0, # Force JSON output instantly
             }
