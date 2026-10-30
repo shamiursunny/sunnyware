@@ -334,11 +334,29 @@ try:
     if _jarvis_local.is_enabled():
         import threading as _threading
         import asyncio as _aio
+        
         def _run_preload():
             try:
-                _aio.run(_jarvis_local.preload())
+                print("[jarvis] Starting hard preload of MiniCPM, Needle 3, and Embedder...", flush=True)
+                
+                # 1. Preload MiniCPM
+                res = _aio.run(_jarvis_local.preload())
+                print(f"[jarvis] MiniCPM Preload Status: {res}", flush=True)
+                
+                # 2. Preload Needle 3 and Embedder
+                async def _preload_tools():
+                    from .jarvis_agent import find_relevant_tools
+                    from .needle_router import try_needle_route
+                    # A dummy call to trigger embedding and Needle 3 initialization
+                    await find_relevant_tools("test", top_k=1)
+                    await try_needle_route("test", [])
+                    
+                _aio.run(_preload_tools())
+                print("[jarvis] Needle 3 and Embedder Preload Complete!", flush=True)
+                
             except Exception as _e:
                 print(f"[jarvis] Preload thread error: {_e}", flush=True)
+                
         _threading.Thread(target=_run_preload, daemon=True).start()
         print("[jarvis] Preload thread started (fallback path)", flush=True)
     else:
