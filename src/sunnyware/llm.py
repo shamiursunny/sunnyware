@@ -106,7 +106,15 @@ async def _chat_single(
     if tools:
         # Part 441: Hard limit to 15 tools for ALL cloud providers to prevent token crash
         tools = tools[:15]
-        payload["tools"] = tools
+        clean_tools = []
+        for _t in tools:
+            if isinstance(_t, str):
+                try: import json; _t = json.loads(_t)
+                except: continue
+            if isinstance(_t, dict): clean_tools.append(_t)
+        tools = clean_tools[:15]
+        if tools:
+            payload["tools"] = tools
         payload["tool_choice"] = "auto"
 
     start = time.time()

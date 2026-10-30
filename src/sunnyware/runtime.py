@@ -30,7 +30,7 @@ def init_state() -> None:
     try:
         cfg = load_config()
         state["config"] = cfg
-        log.info("Config loaded", agent_path=cfg.generic_agent_path)
+        log.info("Config loaded")
         # Part 31: use persistent paths (falls back to ./data if no /data)
         from . import paths as _paths
         _paths.workspace()   # ensures workspace dir exists

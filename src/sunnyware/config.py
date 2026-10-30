@@ -22,7 +22,6 @@ class Config:
     def __init__(self, raw: dict):
         raw = raw or {}
         self.raw = raw
-        self.generic_agent_path = raw.get("generic_agent_path", "/app/GenericAgent")
         self.max_context_tokens = int(raw.get("max_context_tokens", 1048576))
 
         # Database
