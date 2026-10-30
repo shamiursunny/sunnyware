@@ -945,12 +945,17 @@ async def _run_agent_body(
                         "tool_call_id": call.get("id", ""),
                         "content": json.dumps(_truncate_tool_result(tool_result)),
                     })
+                    # Part 469: Force LLM to answer using the tool result
+                    messages.append({
+                        "role": "user",
+                        "content": "The tool '" + tool_name + "' ran successfully and returned: " + json.dumps(_truncate_tool_result(tool_result)) + ". Now provide a brief, direct answer to the user's original question. Do not call any more tools."
+                    })
             # Part 271: Force final answer after 2 tool calls to prevent loops
             if (len(steps) >= 2 or _dup_streak >= 2) and steps:
                 last = steps[-1]
                 return {
                     "ok": True,
-                    "content": "Result: " + json.dumps(_truncate_tool_result(last.get("result", {}))),
+                    "content": (str(last.get("result", {}).get("result")) if isinstance(last.get("result"), dict) and "result" in last.get("result") else json.dumps(_truncate_tool_result(last.get("result", {})))),
                     "steps": steps,
                     "iterations": iteration + 1,
                     "provider": _last_provider,
