@@ -100,6 +100,14 @@ async def _chat_single(
     _retry_depth: int = 0,
 ) -> dict:
     """Low-level single-endpoint chat call. Preserves all Part-31 retries."""
+    # Part 451: Hard truncate strings to guarantee we never exceed 8192 tokens
+    if system and len(system) > 4000:
+        system = system[:4000] + "... [truncated]"
+    if prompt and len(prompt) > 4000:
+        prompt = prompt[:4000] + "... [truncated]"
+    if history:
+        history = history[-2:]  # Keep only the last 2 history messages
+
     messages = []
     if system:
         messages.append({"role": "system", "content": system})
@@ -675,6 +683,14 @@ async def stream_chat(
     provs = _providers.load_providers()
     if not provs:
         raise RuntimeError("no providers configured")
+
+    # Part 451: Hard truncate strings to guarantee we never exceed 8192 tokens
+    if system and len(system) > 4000:
+        system = system[:4000] + "... [truncated]"
+    if prompt and len(prompt) > 4000:
+        prompt = prompt[:4000] + "... [truncated]"
+    if history:
+        history = history[-2:]  # Keep only the last 2 history messages
 
     messages = []
     if system:
