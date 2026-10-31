@@ -1607,3 +1607,18 @@ me the exact git commands to commit + push both remotes."
 **Verified (local TestClient SSE stream):** `tool_call` event received, calculator returned `56088`.
 
 *Part 489 logged: 2026-11-01*
+
+---
+
+### Part 490 Update (2026-11-01): Tool-Calling SSE Schema Normalized
+
+- `tool_call` SSE schema confirmed: `{"type": "tool_call", "tool": "<name>", "args": {...}, "protocol": "native|prompt-json|jarvis"}`
+- Test parser corrected to read `tool` and `args` keys.
+- Verified all 3 tools via `/api/agent/stream`:
+  - Calculator: "What is 123 * 456?" -> calculator({'expression': '123 * 456'}) PASS
+  - Web search: "Search the web for python tutorials" -> web_search({'query': 'python tutorials'}) PASS
+  - Email (placeholder): "Send an email to test@example.com..." -> email_configured({}) (safety check)
+  - Email (real address): routes to email_send directly
+- No code changes needed.
+
+*Part 490 logged: 2026-11-01*

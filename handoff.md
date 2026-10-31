@@ -3031,3 +3031,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Optionally expose a CLI tool for sending test prompts to `/api/agent/stream`.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 490 Update (2026-11-01): Ready for Part 491
+
+**Status:** Tool-calling SSE schema normalized, 3 tools verified end-to-end.
+
+**What was done:**
+- Confirmed tool_call SSE payload uses `tool` + `args` keys (not `function`).
+- Verified calculator, web_search, email_send (both placeholder and real).
+- No production code changes needed.
+
+**Next Steps (Part 491):**
+1. Add web_search and email_send integration tests to test_tool_call.py.
+2. Optionally add a CLI helper (tools/test_chat.py) to send prompts to /api/agent/stream.
+3. Expand tool-calling coverage to additional tools (pdf_read, image_generate, etc.).
+
+*Handoff updated: 2026-11-01*

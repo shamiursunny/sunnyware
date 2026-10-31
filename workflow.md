@@ -1958,3 +1958,20 @@ cd /h/sunnyware
 **Local test:** `TestClient` with auth disabled — works without API key.
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 490 Update (2026-11-01): SSE Event Schema & Tool Coverage
+
+**Tool call SSE schema:**
+`{"type": "tool_call", "tool": "<name>", "args": {...}, "protocol": "native|prompt-json|jarvis"}`
+
+**Test coverage via `/api/agent/stream`:**
+- Calculator (math) -> calculator [jarvis] PASS
+- Web search -> web_search [jarvis] PASS
+- Email to placeholder -> email_configured (safety check) PASS
+- Email to real address -> email_send (confirmed working)
+
+**Key insight:** Router falls back to email_configured when placeholder email is detected.
+
+*Workflow updated: 2026-11-01*
