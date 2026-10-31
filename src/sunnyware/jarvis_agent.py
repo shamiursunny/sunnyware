@@ -217,6 +217,13 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
     """Full Jarvis pipeline: keyword match -> RAG -> Needle 3 -> MiniCPM."""
     print(f"[jarvis] ROUTE CALLED with prompt: {prompt[:50]}", flush=True)
 
+    # Part 473: Math check BEFORE tool_keywords bypass
+    import re as _re
+    _math = _re.search(r'(-?\d+(?:\.\d+)?\s*[\+\-\*\/\%\^]\s*-?\d+(?:\.\d+)?)', prompt)
+    if _math and all(c in "0123456789+-*/%^() ." for c in _math.group(1).strip()):
+        print("[jarvis] Math expression detected, routing to calculator", flush=True)
+        return {"tool": "calculator", "args": {"expression": _math.group(1).strip()}}
+
     tool_keywords = ["calculate", "math", "time", "weather", "search", "web", "http", "file", "read", "write", "pdf", "excel", "sql", "csv", "email", "webhook", "schedule", "kpi", "chart", "narrate", "financial", "stock", "option", "risk", "insurance", "python", "run code", "query", "select", "insert", "update", "delete", "list", "show"]
     p_lower = prompt.lower()
     if not any(kw in p_lower for kw in tool_keywords):
@@ -224,13 +231,6 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
         return None
 
     
-    # Part 472: Check math expressions BEFORE tool_keywords bypass
-    import re as _re
-    _math = _re.search(r'(-?\d+(?:\.\d+)?\s*[\+\-\*\/\%\^]\s*-?\d+(?:\.\d+)?)', prompt)
-    if _math and all(c in "0123456789+-*/%^() ." for c in _math.group(1).strip()):
-        print("[jarvis] Math expression detected, routing to calculator", flush=True)
-        return {"tool": "calculator", "args": {"expression": _math.group(1).strip()}}
-
     # Bypass for greetings
     p_lower = prompt.lower().strip()
     if len(p_lower) < 20 and any(p_lower.startswith(g) for g in ["hi", "hello", "hey", "who are you", "what's up", "how are you"]):

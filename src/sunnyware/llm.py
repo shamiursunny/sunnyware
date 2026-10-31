@@ -205,9 +205,11 @@ async def _chat_single(
                 # Part 472: If tools cause a 400, retry without tools
                 if r.status_code == 400 and "tools" in r.text.lower() and tools and _retry_depth < 1:
                     print(f"[llm.chat] Tool schema rejected, retrying without tools: {r.text[:150]}", flush=True)
+                    # Part 473: Add a helpful system prompt so the LLM knows what to do
+                    fallback_system = system or "You are a helpful Python assistant. Write complete, working code to answer the user's question. Include the expected output."
                     return await _chat_single(
                         prompt=prompt, base_url=base_url, api_key=api_key,
-                        model=model, system=system, history=history,
+                        model=model, system=fallback_system, history=history,
                         tools=None, timeout=timeout,
                         _retry_depth=_retry_depth + 1,
                     )
