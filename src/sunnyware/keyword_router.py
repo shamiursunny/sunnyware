@@ -173,6 +173,83 @@ def keyword_route(prompt: str) -> Optional[dict]:
         if fname:
             return {"tool": "pdf_read", "args": {"file": fname}}
 
+    # --- data_quality_report (must come before generic file handlers) ---
+    if any(kw in p for kw in ["data quality report", "quality check",
+                               "check data quality", "data quality of",
+                               "data quality for"]):
+        import re as _re_dq
+        f_match = _re_dq.search(
+            r'([\w\-./\\]+\.(?:csv|tsv|xlsx|xls|parquet|json))',
+            prompt, _re_dq.IGNORECASE
+        )
+        if f_match:
+            return {"tool": "data_quality_report",
+                    "args": {"file": f_match.group(1)}}
+        return None
+
+    # --- sql_sandbox_drop ---
+    if any(kw in p for kw in ["drop sql sandbox", "delete sql sandbox",
+                               "drop sandbox", "delete sandbox"]):
+        import re as _re_drop
+        m = _re_drop.search(
+            r'(?:drop|delete)\s+(?:sql\s+)?sandbox\s+(?:named\s+)?([a-z_][a-z0-9_]*)',
+            prompt, _re_drop.IGNORECASE
+        )
+        if m:
+            return {"tool": "sql_sandbox_drop", "args": {"name": m.group(1)}}
+        return None
+
+    # --- sql_sandbox_create ---
+    if any(kw in p for kw in ["create sql sandbox", "create a sql sandbox",
+                               "create sandbox", "create a sandbox",
+                               "new sql sandbox", "make a sql sandbox",
+                               "make sandbox"]):
+        import re as _re_cr
+        m = _re_cr.search(
+            r'(?:create|new|make)\s+(?:a\s+)?(?:sql\s+)?sandbox\s+(?:named\s+)?([a-z_][a-z0-9_]*)',
+            prompt, _re_cr.IGNORECASE
+        )
+        if m:
+            return {"tool": "sql_sandbox_create", "args": {"name": m.group(1)}}
+        return None
+
+    # --- sql_sandbox_load_csv (must come before generic csv handler) ---
+    if any(kw in p for kw in ["load", "import"]) and "sandbox" in p and any(x in p for x in [".csv", ".tsv"]):
+        import re as _re_ld
+        m = _re_ld.search(
+            r'load\s+([\w\-./\\]+\.(?:csv|tsv))'
+            r'(?:\s+into\s+table\s+([a-z_][a-z0-9_]*))?'
+            r'\s+(?:in|into)\s+sandbox\s+([a-z_][a-z0-9_]*)',
+            prompt, _re_ld.IGNORECASE
+        )
+        if m:
+            file_ = m.group(1)
+            table = (m.group(2) or
+                     file_.rsplit('.', 1)[0].rsplit('/', 1)[-1].rsplit('\\', 1)[-1])
+            return {"tool": "sql_sandbox_load_csv",
+                    "args": {"name": m.group(3), "file": file_, "table": table}}
+        return None
+
+    # --- sql_sandbox_execute ---
+    if any(kw in p for kw in ["run sql in sandbox", "execute sql in sandbox",
+                               "query sandbox", "run query in sandbox",
+                               "execute query in sandbox"]):
+        import re as _re_ex
+        m = _re_ex.search(
+            r'(?:run|execute|query)(?:\s+(?:sql|query))?\s+(?:in\s+)?sandbox\s+([a-z_][a-z0-9_]*)\s*:?\s*(.+)$',
+            prompt, _re_ex.IGNORECASE | _re_ex.DOTALL
+        )
+        if m:
+            return {"tool": "sql_sandbox_execute",
+                    "args": {"name": m.group(1), "sql": m.group(2).strip()}}
+        return None
+
+    # --- sql_sandbox_list ---
+    if any(kw in p for kw in ["list sql sandboxes", "list sandboxes",
+                               "show sql sandboxes", "show sandboxes",
+                               "my sql sandboxes", "all sql sandboxes"]):
+        return {"tool": "sql_sandbox_list", "args": {}}
+
     # --- excel_read (must have .xlsx) ---
     if "excel" in p or ".xlsx" in p:
         fname = _extract_filename(prompt, ["xlsx"])
@@ -344,19 +421,6 @@ def keyword_route(prompt: str) -> Optional[dict]:
         # No numbers detected — let LLM handle
         return None
 
-    # --- narrate_table (explicit "narrate" or "explain" table) ---
-    if "narrate" in p and "table" in p:
-        return None  # Need table extraction
-    if "explain this table" in p or "describe this table" in p:
-        return None
-
-    # --- financial_metrics ---
-    if "financial metrics" in p or "stock metrics" in p or "investment metrics" in p:
-        return None
-
-    # --- data_quality_report ---
-    if "data quality report" in p or "quality check" in p or "check data quality" in p:
-        return None
 
     # --- research_search (must have "research" or "investigate", not delegate) ---
     if any(kw in p for kw in ["research the topic", "investigate topic",
