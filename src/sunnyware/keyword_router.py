@@ -178,20 +178,29 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if ".txt" in p:
         fname = _extract_filename(prompt, ["txt"])
         if fname and any(w in p for w in ["read", "open", "contents", "show"]):
-            return {"tool": "read_file", "args": {"filepath": fname}}
+            return {"tool": "read_file", "args": {"path": fname}}
 
     # --- write_file (must have .txt) ---
     if any(w in p for w in ["write", "save", "create"]) and ".txt" in p:
         fname = _extract_filename(prompt, ["txt"])
         if fname:
-            # Need content — let LLM handle it
+            import re as _re_wf
+            # Try to extract content from quotes: write 'hello' to file.txt
+            content_m = _re_wf.search(r"['\"]([^'\"]+)['\"]", prompt)
+            if content_m:
+                return {"tool": "write_file", "args": {"path": fname, "content": content_m.group(1)}}
+            # Try "write X to file.txt" pattern
+            content_m = _re_wf.search(r"(?:write|save)\s+(.+?)\s+to\s+", prompt, _re_wf.IGNORECASE)
+            if content_m:
+                return {"tool": "write_file", "args": {"path": fname, "content": content_m.group(1).strip()}}
+            # No content detected — let LLM handle
             return None
 
     # --- web_fetch (must have http URL AND "fetch" or "download" or "get content") ---
     url = _extract_url(prompt)
     if url:
         if any(w in p for w in ["fetch", "download", "get the content", "get content from",
-                                 "get the page", "raw html"]):
+                                 "get the page", "get url", "get page", "raw html"]):
             return {"tool": "web_fetch", "args": {"url": url}}
         # URL present but ambiguous (could be api_call, web_fetch, url_metadata)
         # Let Needle handle it
@@ -280,11 +289,23 @@ def keyword_route(prompt: str) -> Optional[dict]:
         if fname:
             return None  # Need data extraction
 
-    # --- chart_from_data (bar/line/pie chart triggers) ---
-    if any(kw in p for kw in ["bar chart", "line chart", "pie chart",
-                               "create a chart", "make a chart", "plot data",
-                               "visualize numbers"]):
-        return None  # Need data extraction
+    # --- chart_from_data (chart/plot/graph + numbers) ---
+    if any(kw in p for kw in ["chart ", "plot ", "graph ", "bar chart", "line chart", "pie chart",
+                               "create a chart", "make a chart", "plot data", "visualize numbers"]):
+        import re as _re_ch
+        nums = _re_ch.findall(r'-?\d+(?:\.\d+)?', prompt)
+        if len(nums) >= 2:
+            import json as _json
+            data = [float(n) if '.' in n else int(n) for n in nums]
+            # Detect chart type
+            chart_type = "line"
+            if "bar" in p:
+                chart_type = "bar"
+            elif "pie" in p:
+                chart_type = "pie"
+            return {"tool": "chart_from_data", "args": {"data": _json.dumps(data), "chart_type": chart_type}}
+        # No numbers detected — let LLM handle
+        return None
 
     # --- narrate_table (explicit "narrate" or "explain" table) ---
     if "narrate" in p and "table" in p:
