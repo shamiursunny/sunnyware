@@ -1765,3 +1765,18 @@ me the exact git commands to commit + push both remotes."
 - **Deterministic, fast, and network-free** tests form a solid foundation for future features.
 
 *Part 500 logged: 2026-11-01*
+
+---
+
+### Part 501 Update (2026-11-01): `date_calc` Keyword Routes Added
+
+- **Added** 4 natural-language routes for `date_calc`:
+  - `"add N days to YYYY-MM-DD"` → `date_calc(add, days=N)`
+  - `"subtract N days from YYYY-MM-DD"` → `date_calc(add, days=-N)`
+  - `"days between YYYY-MM-DD and YYYY-MM-DD"` → `date_calc(diff)`
+  - `"what day of the week is YYYY-MM-DD"` → `date_calc(weekday)`
+- **Moved** the block before the math regex so dates like `2026-11-01` aren't parsed as arithmetic.
+- **Added** 4 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Full test suite:** 109 passing, 1 skipped.
+
+*Part 501 logged: 2026-11-01*

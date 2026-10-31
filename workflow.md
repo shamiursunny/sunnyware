@@ -2112,3 +2112,17 @@ Verifies `run_agent` direct answer path with mocked LLM.
 **Total test suite:** 105 passing, 1 skipped.
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 501 Update (2026-11-01): `date_calc` Routes
+
+**New routes:**
+- `"add N days to YYYY-MM-DD"` → `date_calc(add)`
+- `"subtract N days from YYYY-MM-DD"` → `date_calc(add, negative)`
+- `"days between YYYY-MM-DD and YYYY-MM-DD"` → `date_calc(diff)`
+- `"what day of the week is YYYY-MM-DD"` → `date_calc(weekday)`
+
+**Placement:** Before math regex to avoid date-as-arithmetic conflicts.
+
+*Workflow updated: 2026-11-01*

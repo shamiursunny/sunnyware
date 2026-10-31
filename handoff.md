@@ -3222,3 +3222,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Consider adding end-to-end tests for multi-step planner via `/api/agent/stream`.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 501 Update (2026-11-01): Ready for Part 502
+
+**Status:** `date_calc` routes added and tested; full suite 109 passing.
+
+**What was done:**
+- Added 4 `date_calc` keyword routes.
+- Added 4 direct unit tests.
+- Confirmed full suite passes.
+
+**Next Steps (Part 502):**
+1. Add keyword routes for `schedule_add`, `schedule_delete`, `schedule_run_now`.
+2. Add tests for those routes.
+3. Consider adding `kpi_watch_add` and `webhook_delete` routes.
+
+*Handoff updated: 2026-11-01*

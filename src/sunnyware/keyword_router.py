@@ -77,6 +77,26 @@ def keyword_route(prompt: str) -> Optional[dict]:
     """
     p = prompt.lower()
 
+    # --- date_calc ---
+    # "add N days to YYYY-MM-DD" / "subtract N days from YYYY-MM-DD"
+    import re as _re_dc
+    m = _re_dc.search(r'(add|subtract)\s+(\d+)\s+days?\s+(?:to|from)\s+(\d{4}-\d{2}-\d{2})', prompt, _re_dc.IGNORECASE)
+    if m:
+        op, n, d = m.group(1).lower(), int(m.group(2)), m.group(3)
+        if op == 'subtract':
+            n = -n
+        return {"tool": "date_calc", "args": {"action": "add", "date": d, "days": n}}
+    # "days between YYYY-MM-DD and YYYY-MM-DD"
+    m = _re_dc.search(r'(?:days|difference)\s+between\s+(\d{4}-\d{2}-\d{2})\s+and\s+(\d{4}-\d{2}-\d{2})', prompt, _re_dc.IGNORECASE)
+    if m:
+        return {"tool": "date_calc", "args": {"action": "diff", "date": m.group(1), "date2": m.group(2)}}
+    # "what day of the week is YYYY-MM-DD"
+    m = _re_dc.search(r'(?:day of (?:the )?week|weekday)\s+(?:is|for)\s+(\d{4}-\d{2}-\d{2})', prompt, _re_dc.IGNORECASE)
+    if not m:
+        m = _re_dc.search(r'(\d{4}-\d{2}-\d{2})\s+(?:is what day|weekday)', prompt, _re_dc.IGNORECASE)
+    if m:
+        return {"tool": "date_calc", "args": {"action": "weekday", "date": m.group(1)}}
+
     # --- Math regex (catches '2+2' etc.) ---
     import re as _re
     _math_match = _re.search(r'(?:what is|calculate|compute|evaluate)?\s*(-?\d+(?:\.\d+)?\s*[\+\-\*\/\%\^]\s*-?\d+(?:\.\d+)?(?:\s*[\+\-\*\/\%\^]\s*-?\d+(?:\.\d+)?)*)', prompt.lower())
@@ -127,6 +147,7 @@ def keyword_route(prompt: str) -> Optional[dict]:
         if city_match:
             return {"tool": "weather", "args": {"city": city_match.group(1)}}
         # No city detected; let LLM ask the user
+
 
     # --- email_send ---
     if any(kw in p for kw in ["send an email", "send email", "email to", "mail to"]):
