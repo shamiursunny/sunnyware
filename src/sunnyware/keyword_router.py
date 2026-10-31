@@ -173,6 +173,16 @@ def keyword_route(prompt: str) -> Optional[dict]:
         if fname:
             return {"tool": "pdf_read", "args": {"file": fname}}
 
+    # --- narrate_table (needs JSON rows — keyword can't extract) ---
+    if "narrate" in p and "table" in p:
+        return None
+    if "explain this table" in p or "describe this table" in p:
+        return None
+
+    # --- financial_metrics (LLM-only — requires structured financial data) ---
+    if "financial metrics" in p or "stock metrics" in p or "investment metrics" in p:
+        return None
+
     # --- data_quality_report (must come before generic file handlers) ---
     if any(kw in p for kw in ["data quality report", "quality check",
                                "check data quality", "data quality of",
@@ -182,10 +192,31 @@ def keyword_route(prompt: str) -> Optional[dict]:
             r'([\w\-./\\]+\.(?:csv|tsv|xlsx|xls|parquet|json))',
             prompt, _re_dq.IGNORECASE
         )
-        if f_match:
-            return {"tool": "data_quality_report",
-                    "args": {"file": f_match.group(1)}}
-        return None
+        if not f_match:
+            return None
+        args = {"file": f_match.group(1)}
+        mr = _re_dq.search(
+            r'(?:max_rows\s*=\s*|max\s+|limit\s+|first\s+|with\s+)(\d{1,9})(?:\s*rows?)?',
+            prompt, _re_dq.IGNORECASE
+        )
+        if mr:
+            try:
+                args["max_rows"] = int(mr.group(1))
+            except ValueError:
+                pass
+        sp = _re_dq.search(
+            r'sample_pct\s*=\s*(\d+(?:\.\d+)?)'
+            r'|sample\s+(\d+(?:\.\d+)?)\s*(?:%|percent)'
+            r'|(\d+(?:\.\d+)?)\s*%\s*sample',
+            prompt, _re_dq.IGNORECASE
+        )
+        if sp:
+            val = sp.group(1) or sp.group(2) or sp.group(3)
+            try:
+                args["sample_pct"] = float(val)
+            except (ValueError, TypeError):
+                pass
+        return {"tool": "data_quality_report", "args": args}
 
     # --- sql_sandbox_drop ---
     if any(kw in p for kw in ["drop sql sandbox", "delete sql sandbox",
@@ -239,10 +270,21 @@ def keyword_route(prompt: str) -> Optional[dict]:
             r'(?:run|execute|query)(?:\s+(?:sql|query))?\s+(?:in\s+)?sandbox\s+([a-z_][a-z0-9_]*)\s*:?\s*(.+)$',
             prompt, _re_ex.IGNORECASE | _re_ex.DOTALL
         )
-        if m:
-            return {"tool": "sql_sandbox_execute",
-                    "args": {"name": m.group(1), "sql": m.group(2).strip()}}
-        return None
+        if not m:
+            return None
+        args = {"name": m.group(1), "sql": m.group(2).strip()}
+        pm = _re_ex.search(
+            r'(?:with\s+params?\s*[=:]?\s*|params?\s*=\s*)\[([^\]]+)\]',
+            args["sql"], _re_ex.IGNORECASE
+        )
+        if pm:
+            import json as _json
+            try:
+                args["params"] = _json.loads("[" + pm.group(1) + "]")
+                args["sql"] = args["sql"][:pm.start()].strip().rstrip(",;")
+            except Exception:
+                pass
+        return {"tool": "sql_sandbox_execute", "args": args}
 
     # --- sql_sandbox_list ---
     if any(kw in p for kw in ["list sql sandboxes", "list sandboxes",
