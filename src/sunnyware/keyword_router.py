@@ -429,13 +429,57 @@ def keyword_route(prompt: str) -> Optional[dict]:
                                "recurring job", "schedule every"]):
         return None  # Need name/interval extraction
 
+    # --- document_library (list action only; add/save needs LLM) ---
+    if any(w in p for w in ["list library", "list documents", "show library documents",
+                              "list my documents", "list saved documents", "show my documents"]):
+        return {"tool": "document_library", "args": {"action": "list"}}
+
     # --- search_library (library-related search) ---
     if "library" in p and any(w in p for w in ["find", "search", "related to"]):
-        return None  # Need query extraction
+        import re as _re_sl
+        patterns = [
+            r"search\s+(?:in\s+)?(?:the\s+)?library\s+for\s+(.+)",
+            r"find\s+(.+?)\s+in\s+(?:the\s+)?library",
+            r"related to\s+(.+?)(?:\s+in\s+(?:the\s+)?library)?$",
+            r"(?:find|search|related to)\s+(.+)",
+        ]
+        query = None
+        for pat in patterns:
+            m = _re_sl.search(pat, prompt, _re_sl.IGNORECASE)
+            if m:
+                q = m.group(1).strip()
+                q = _re_sl.sub(r"\s+in\s+(?:the\s+)?library\s*$", "", q, flags=_re_sl.IGNORECASE)
+                q = q.strip()
+                if q:
+                    query = q
+                    break
+        if query:
+            return {"tool": "search_library", "args": {"query": query}}
+        return None
+        return None
 
     # --- rag_search (RAG database search) ---
     if "rag" in p and any(w in p for w in ["search", "find", "database"]):
-        return None  # Need query extraction
+        import re as _re_rs
+        patterns = [
+            r"(?:search|query)\s+(?:in\s+)?(?:the\s+)?rag(?:\s+database)?\s+for\s+(.+)",
+            r"find\s+(.+?)\s+in\s+(?:the\s+)?rag(?:\s+database)?",
+            r"(?:search|find|query)\s+(?:in\s+)?(?:the\s+)?rag(?:\s+database)?\s+(.+)",
+        ]
+        query = None
+        for pat in patterns:
+            m = _re_rs.search(pat, prompt, _re_rs.IGNORECASE)
+            if m:
+                q = m.group(1).strip()
+                q = _re_rs.sub(r"\s+in\s+(?:the\s+)?rag(?:\s+database)?\s*$", "", q, flags=_re_rs.IGNORECASE)
+                q = q.strip()
+                if q:
+                    query = q
+                    break
+        if query:
+            return {"tool": "rag_search", "args": {"query": query}}
+        return None
+        return None
 
     # Fix plural bugs: "list all my sql sandboxes" and "list all my webhooks"
     if "list all my sql sandbox" in p or "list my sql sandboxes" in p or "show my sql sandboxes" in p:
