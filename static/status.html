@@ -366,7 +366,16 @@ function renderIntegrations(d){
   };
   c.appendChild(badgeRow("WorkOS Auth", d.workos));
   c.appendChild(badgeRow("Paddle Billing", d.paddle));
-  c.appendChild(badgeRow("Neon Database", d.neon));
+  var _neon_label = (d.neon === "disabled" || d.neon === "not_configured" || d.neon === "no_pool") ? "LOCAL STORAGE" : d.neon;
+  var _neon_cls = (d.neon === "disabled" || d.neon === "not_configured" || d.neon === "no_pool") ? "ok" : null;
+  if (_neon_cls) {
+    var _row = el("div", "row");
+    _row.appendChild(el("span", "k", "Neon Database"));
+    _row.appendChild(badge(_neon_cls, _neon_label));
+    c.appendChild(_row);
+  } else {
+    c.appendChild(badgeRow("Neon Database", d.neon));
+  }
   return c;
 }
 function renderGolden(d){
@@ -592,8 +601,9 @@ function renderNeon(d){
     return c;
   }
   var s = d.status || "unknown";
-  var cls = s === "up" ? "ok" : s === "down" ? "err" : "dim";
-  var txt = s === "up" ? "UP" : s === "down" ? "DOWN" : "UNKNOWN";
+  var isLocal = s === "disabled" || s === "not_configured" || s === "no_pool";
+  var cls = s === "up" ? "ok" : s === "down" ? "err" : isLocal ? "warn" : "dim";
+  var txt = s === "up" ? "UP" : s === "down" ? "DOWN" : isLocal ? "LOCAL" : "UNKNOWN";
   c.appendChild(badge(cls, txt));
 
   if (d.latency_ms != null){

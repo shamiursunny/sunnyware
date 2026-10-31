@@ -1862,6 +1862,10 @@ def _dur_s(start_iso, end_iso):
 
 
 async def neon_health():
+    # Part 475: Return disabled when no Neon URL is configured
+    import os
+    if not os.getenv("NEON_DATABASE_URL"):
+        return {"status": "disabled", "detail": "local storage in use"}
     """Ping NeonDB with a cheap SELECT 1; return status + latency."""
     import time as _t
     t0 = _t.time()
