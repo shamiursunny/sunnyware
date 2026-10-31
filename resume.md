@@ -1736,3 +1736,17 @@ me the exact git commands to commit + push both remotes."
 - Removed the old root-level `test_chat_tool.py` (superseded by `scripts/chat_test.py`).
 
 *Part 498 logged: 2026-11-01*
+
+---
+
+### Part 499 Update (2026-11-01): Planner & Multi-Step Tests Added
+
+- **Added** `tests/test_planner_execute.py` — 4 unit tests for `planner.plan_and_execute` using mocked `llm_client.chat` and `orchestrator.run_agent`:
+  - Successful plan → 2 subtasks → all succeed → synthesized answer.
+  - Planner LLM failure → graceful error.
+  - Partial sub-task failure → synthesis from successful ones.
+  - Empty task → immediate error.
+- **No network calls** — fully deterministic and fast (4.94s).
+- **Total tests:** 104 passing (100 original + 4 new).
+
+*Part 499 logged: 2026-11-01*

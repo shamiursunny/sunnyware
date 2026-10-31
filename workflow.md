@@ -2084,3 +2084,19 @@ All integration and unit tests are now green. The test foundation is stable and 
 The full suite runs on every push to `main`, ensuring all 100 tests remain green.
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 499 Update (2026-11-01): Planner Unit Tests Added
+
+**New file:** `tests/test_planner_execute.py`
+
+Covers `plan_and_execute` with mocked LLM and orchestrator:
+- Success path
+- Planner failure
+- Partial sub-task failure
+- Empty task
+
+All deterministic, no network.
+
+*Workflow updated: 2026-11-01*

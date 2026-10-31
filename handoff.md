@@ -3188,3 +3188,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Review tool-calling metrics and consider adding a dashboard.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 499 Update (2026-11-01): Ready for Part 500
+
+**Status:** Planner unit tests added, full suite now 104 passing.
+
+**What was done:**
+- Added `tests/test_planner_execute.py` with 4 mocked tests.
+- Verified all pass in 4.94s.
+
+**Next Steps (Part 500):**
+1. Run the full test suite again to confirm 104 passed.
+2. Add tests for `orchestrator.run_agent` direct multi-step flows.
+3. Consider adding a mock-based test for `orchestrator` tool execution.
+
+*Handoff updated: 2026-11-01*
