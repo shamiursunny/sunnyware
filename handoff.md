@@ -3136,3 +3136,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Consider adding a dedicated test for `sql_sandbox_drop` using a fixture that bypasses the LLM.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 496 Update (2026-11-01): Ready for Part 497
+
+**Status:** Added 3 deterministic keyword router tests.
+
+**What was done:**
+- Added `tests/test_keyword_router_direct.py` for fast coverage of flaky routes.
+- Verified all 3 pass in 0.10s.
+
+**Next Steps (Part 497):**
+1. Run the full test suite (`pytest tests/ -v`) to confirm everything passes together.
+2. Review any CI failures on GitHub (if accessible).
+3. Begin planning the next major feature (e.g., streaming improvements).
+
+*Handoff updated: 2026-11-01*

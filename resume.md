@@ -1698,3 +1698,18 @@ me the exact git commands to commit + push both remotes."
 **Verified:** 13 passed, 1 skipped.
 
 *Part 495 logged: 2026-11-01*
+
+---
+
+### Part 496 Update (2026-11-01): Deterministic Keyword Router Tests
+
+- **Added**  — 3 fast, deterministic unit tests that bypass the LLM and directly verify  output for:
+  - 
+  -  (GET)
+  -  (POST)
+- **Why:** These routes were flaky in the integration suite due to LLM provider rate limits (Groq 429) and native tool-call validation quirks. The direct tests ensure stable coverage without network dependency.
+- **Total test coverage:** 13 integration tests + 3 direct routing tests = 16 passing routes, 1 skipped.
+
+**Verified:** 3 passed in 0.10s.
+
+*Part 496 logged: 2026-11-01*

@@ -2052,3 +2052,13 @@ python scripts/chat_test.py "What is 123 * 456?"
 **Total coverage:** 13 tool routes verified via `/api/agent/stream`.
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 496 Update (2026-11-01): Deterministic Keyword Router Tests
+
+**New file:** `tests/test_keyword_router_direct.py`
+
+Covers `sql_sandbox_drop`, `api_call` (GET), and `api_call` (POST) without LLM dependency.
+
+*Workflow updated: 2026-11-01*
