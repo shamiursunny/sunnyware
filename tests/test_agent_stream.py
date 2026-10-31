@@ -150,3 +150,28 @@ def test_sql_sandbox_load_csv_tool_call(client):
         tools = list(_parse_sse(resp))
     assert any(t[0] == "sql_sandbox_load_csv" for t in tools), f"sql_sandbox_load_csv not found in {tools}"
     assert any(t[1] == {"name": "test", "file": "data.csv", "table": "data"} for t in tools if t[0] == "sql_sandbox_load_csv")
+
+def test_image_generate_tool_call(client):
+    """Image generation should extract the prompt."""
+    prompt = "generate an image of a cat"
+    with client.stream("POST", "/api/agent/stream", json={
+        "input": prompt,
+        "session_id": "test-image-493",
+    }) as resp:
+        assert resp.status_code == 200
+        tools = list(_parse_sse(resp))
+    assert any(t[0] == "image_generate" for t in tools), f"image_generate not found in {tools}"
+    assert any(t[1] == {"prompt": "a cat"} for t in tools if t[0] == "image_generate")
+
+
+def test_sql_sandbox_execute_tool_call(client):
+    """SQL sandbox execute should extract name and SQL."""
+    prompt = "run sql in sandbox test: SELECT * FROM t"
+    with client.stream("POST", "/api/agent/stream", json={
+        "input": prompt,
+        "session_id": "test-sqlexec-493",
+    }) as resp:
+        assert resp.status_code == 200
+        tools = list(_parse_sse(resp))
+    assert any(t[0] == "sql_sandbox_execute" for t in tools), f"sql_sandbox_execute not found in {tools}"
+    assert any(t[1] == {"name": "test", "sql": "SELECT * FROM t"} for t in tools if t[0] == "sql_sandbox_execute")

@@ -2010,3 +2010,17 @@ python scripts/chat_test.py "What is 123 * 456?"
 **Coverage:** 7 tool routes verified via `/api/agent/stream`.
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 493 Update (2026-11-01): CI Workflow & Full Tool Coverage
+
+**New tests:**
+- `test_image_generate_tool_call`
+- `test_sql_sandbox_execute_tool_call`
+
+**CI workflow:** `.github/workflows/agent_stream_tests.yml` runs on every push to `main`.
+
+**Total coverage:** 9 tool routes verified via `/api/agent/stream`.
+
+*Workflow updated: 2026-11-01*

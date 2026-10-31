@@ -3083,3 +3083,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Optionally add regression tests for SQL sandbox routes.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 493 Update (2026-11-01): Ready for Part 494
+
+**Status:** CI workflow added, 9 tool routes verified.
+
+**What was done:**
+- Added tests for `image_generate`, `sql_sandbox_execute`.
+- Created `.github/workflows/agent_stream_tests.yml` for automated testing.
+- Full suite passes (9 passed, 1 skipped).
+
+**Next Steps (Part 494):**
+1. Wait for CI to run on GitHub and confirm it passes.
+2. Expand coverage to `api_call`, `web_fetch`, `browser_goto`.
+3. Add regression tests for `chart_from_data`, `research_search`.
+
+*Handoff updated: 2026-11-01*

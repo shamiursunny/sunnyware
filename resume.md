@@ -1656,3 +1656,17 @@ me the exact git commands to commit + push both remotes."
 **Verified:** 7 passed, 1 skipped in `pytest tests/test_agent_stream.py`.
 
 *Part 492 logged: 2026-11-01*
+
+---
+
+### Part 493 Update (2026-11-01): CI Workflow & Full Tool Coverage
+
+- **Added 2 more integration tests** to `tests/test_agent_stream.py`:
+  - `test_image_generate_tool_call` — verifies prompt extraction
+  - `test_sql_sandbox_execute_tool_call` — verifies name + SQL extraction
+- **Created `.github/workflows/agent_stream_tests.yml`** — runs `pytest tests/test_agent_stream.py -v` on every push to `main`.
+- **Full suite now covers 9 tool routes** (calculator, web_search, email, pdf_read, excel_read, sql_sandbox_create, sql_sandbox_load_csv, image_generate, sql_sandbox_execute).
+
+**Verified:** 9 passed, 1 skipped.
+
+*Part 493 logged: 2026-11-01*
