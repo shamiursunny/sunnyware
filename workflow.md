@@ -1737,3 +1737,19 @@ cd /h/sunnyware
 - `pdf_report` remains LLM-handled (needs structured spec)
 
 *Workflow updated: 2026-10-31*
+
+---
+
+### Part 477 Update (2026-10-31): Routing Expansion + Gemini Compatibility
+
+**New keyword routes:**
+- `"search the web for X"` / `"google X"` → `web_search`
+- `"generate an image of X"` / `"create image"` / `"make image"` → `image_generate`
+- `"list files"` / `"show files"` / `"workspace files"` → `list_files`
+- `"weather in New York"` / multi-word cities → `weather`
+- `"send email to X"` without `RESEND_API_KEY` → `email_configured` (graceful)
+
+**Tool format fix:**
+- Tools now wrapped in `{"type": "function", "function": {...}}` for all providers — Gemini's OpenAI-compat endpoint no longer rejects them.
+
+*Workflow updated: 2026-10-31*

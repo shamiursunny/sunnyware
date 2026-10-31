@@ -1417,3 +1417,19 @@ me the exact git commands to commit + push both remotes."
 - **Verified in Chat UI**: Weather → instant response, Email → sent, PDF read → graceful "file not found", PDF report → LLM asks for data.
 
 *Part 476 logged: 2026-10-31*
+
+---
+
+### Part 477 Update (2026-10-31): Gemini Tool Fix + Expanded Routing
+
+- **Gemini tool wrapping fixed** (`llm.py`): Tools now wrapped in OpenAI standard format `{"type": "function", "function": {...}}` — Gemini's `/openai` endpoint accepts this, eliminating the 400 "Unknown name" error.
+- **Multi-word cities** (`keyword_router.py`): Weather regex now handles 1-3 words + accents (`"New York"`, `"Mexico City"`, `"São Paulo"`).
+- **Email pre-check** (`keyword_router.py`): `email_send` routes to `email_configured` first if `RESEND_API_KEY` is missing — graceful fallback instead of silent failure.
+- **New routes** (`keyword_router.py`):
+  - `"search the web for X"` / `"google X"` → `web_search`
+  - `"generate an image of X"` → `image_generate`
+  - `"list files"` / `"show files"` → `list_files`
+
+**Verified (8/8 tests pass locally):** All routes return correct tool calls.
+
+*Part 477 logged: 2026-10-31*

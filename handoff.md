@@ -2716,3 +2716,27 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Improve tool schema rejection fallback in `llm.py` (Gemini 400 — retry without tools correctly).
 
 *Handoff updated: 2026-10-31*
+
+---
+
+### Part 477 Update (2026-10-31): Ready for Part 478
+
+**Status:** 10+ keyword routes now work instantly. Gemini tool schema fixed.
+
+**What changed:**
+- OpenAI-standard tool wrapping in `llm.py` → Gemini accepts tools correctly
+- Multi-word cities in weather route
+- Graceful `email_configured` fallback
+- New routes: `web_search`, `image_generate`, `list_files`
+
+**Known Limitations:**
+- `"Draw a dragon"` / `"Image of a beach"` (no verb) → fall through to LLM (acceptable)
+- `pdf_report` still requires structured spec (LLM handles it — correct)
+
+**Next Steps (Part 478):**
+1. Add `chart_from_data` routing (`"chart this data"` → chart tool)
+2. Add `schedule_add` routing (`"schedule X at Y"` → scheduler)
+3. Add `kpi_watch_add` routing
+4. Test Gemini tool-calling end-to-end in production
+
+*Handoff updated: 2026-10-31*
