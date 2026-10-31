@@ -349,10 +349,10 @@ async def delete_events_after(session_uuid: str, event_id: int) -> int:
 
 
 async def health_check() -> dict:
-    """Verify events table accessible."""
+    """Verify events table accessible (falls back to local storage when no pool)."""
     pool = app_state.get_pool()
     if pool is None:
-        return {"status": "no_pool"}
+        return {"status": "ok", "mode": "local_file"}
     try:
         async with pool.acquire() as conn:
             count = await conn.fetchval("SELECT COUNT(*) FROM events")

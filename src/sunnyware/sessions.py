@@ -235,10 +235,10 @@ async def get_title(session_key: str) -> Optional[str]:
 
 
 async def health_check() -> dict:
-    """Verify sessions table accessible."""
+    """Verify sessions table accessible (falls back to local storage when no pool)."""
     pool = app_state.get_pool()
     if pool is None:
-        return {"status": "no_pool"}
+        return {"status": "ok", "mode": "local_file"}
     try:
         async with pool.acquire() as conn:
             count = await conn.fetchval("SELECT COUNT(*) FROM sessions")

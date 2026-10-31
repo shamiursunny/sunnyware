@@ -147,15 +147,22 @@ async def readiness():
         if neon.get("status") == "error":
             all_ok = False
     else:
-        checks["neon"] = "not_configured"
+        checks["neon"] = "disabled"
 
-    if state["config"] and state["config"].llm_base_url:
-        llm_health = await llm_client.health_check(timeout=3.0)
-        checks["llm"] = llm_health.get("status", "unknown")
-        if llm_health.get("status") == "error":
-            checks["llm_error"] = llm_health.get("error", "")[:200]
-    else:
-        checks["llm"] = "not_configured"
+    # Part 475: LLM health — green if ANY provider is live (no slow HTTP probe)
+    try:
+        from .. import providers as _prov
+        _statuses = _prov.provider_statuses()
+        _live = sum(1 for s in _statuses if not s.get("cooling"))
+        if _live > 0:
+            checks["llm"] = "ok"
+            checks["llm_live_providers"] = f"{_live}/{len(_statuses)}"
+        else:
+            checks["llm"] = "error"
+            checks["llm_error"] = "all providers cooling/down"
+    except Exception as e:
+        checks["llm"] = "unknown"
+        checks["llm_error"] = f"{type(e).__name__}: {e}"
 
     sess_health = await sessions_store.health_check()
     checks["sessions"] = sess_health.get("status", "unknown")
