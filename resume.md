@@ -1433,3 +1433,16 @@ me the exact git commands to commit + push both remotes."
 **Verified (8/8 tests pass locally):** All routes return correct tool calls.
 
 *Part 477 logged: 2026-10-31*
+
+---
+
+### Part 478 Update (2026-10-31): Schedule + KPI Routing
+
+- **`schedule_list`** (`keyword_router.py`): Expanded triggers → `"list schedules"`, `"show my schedules"`, `"list tasks"`, `"my schedules"`, `"what schedules"`.
+- **`kpi_watch_list`** (`keyword_router.py`): Expanded triggers → `"list kpis"`, `"show kpi watches"`, `"what kpis"`, `"my kpis"`.
+- **`kpi_watch_run`** (`keyword_router.py`): New route → `"run kpis"`, `"run all kpis now"`, `"check kpis now"`.
+- **Complex tools (schedule_add, kpi_watch_add, chart_from_data)**: Intentionally left for LLM (need structured specs).
+
+**Verified (9/9 routes pass locally):** All schedule/KPI list+run prompts route instantly.
+
+*Part 478 logged: 2026-10-31*

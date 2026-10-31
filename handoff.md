@@ -2740,3 +2740,22 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 4. Test Gemini tool-calling end-to-end in production
 
 *Handoff updated: 2026-10-31*
+
+---
+
+### Part 478 Update (2026-10-31): Ready for Part 479
+
+**Status:** 13+ instant keyword routes working. No crashes, all tests pass.
+
+**What changed:**
+- `schedule_list`, `kpi_watch_list`, `kpi_watch_run` routes now work instantly
+- Expanded triggers for all three tools
+- Complex "add" variants still delegate to LLM (correct)
+
+**Next Steps (Part 479):**
+1. Add `chart_from_data` routing for simple cases (e.g., `"chart 1,2,3,4,5"` → chart tool)
+2. Add `web_fetch` routing for URLs (`"fetch https://..."`)
+3. Add `read_file` / `write_file` routing for `.txt` files
+4. Verify Gemini tool-calling works end-to-end in production
+
+*Handoff updated: 2026-10-31*

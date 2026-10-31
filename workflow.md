@@ -1753,3 +1753,19 @@ cd /h/sunnyware
 - Tools now wrapped in `{"type": "function", "function": {...}}` for all providers — Gemini's OpenAI-compat endpoint no longer rejects them.
 
 *Workflow updated: 2026-10-31*
+
+---
+
+### Part 478 Update (2026-10-31): Schedule + KPI List/Run Routing
+
+**New keyword routes:**
+- `"list schedules"` / `"show my schedules"` / `"list tasks"` → `schedule_list`
+- `"list kpis"` / `"show kpi watches"` / `"what kpis"` → `kpi_watch_list`
+- `"run kpis"` / `"run all kpis now"` / `"check kpis now"` → `kpi_watch_run`
+
+**LLM-handled (complex specs):**
+- `schedule_add` (needs cron/interval + prompt)
+- `kpi_watch_add` (needs metric + threshold + prompt)
+- `chart_from_data` (needs JSON data array)
+
+*Workflow updated: 2026-10-31*
