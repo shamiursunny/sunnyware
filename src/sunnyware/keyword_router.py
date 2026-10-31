@@ -100,10 +100,13 @@ def keyword_route(prompt: str) -> Optional[dict]:
         tz = _extract_timezone(prompt)
         return {"tool": "current_time", "args": {"timezone": tz}}
 
-    # --- weather ---
+    # --- weather (1-3 word cities + accents) ---
     if "weather" in p:
         import re as _re_w
-        city_match = _re_w.search(r"(?:in|at|for|of)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)", prompt)
+        city_match = _re_w.search(
+            r"(?:in|at|for|of)\s+([A-Z\u00C0-\u024F][a-zA-Z\u00C0-\u024F]+(?:\s+[A-Z\u00C0-\u024F][a-zA-Z\u00C0-\u024F]+){0,2})",
+            prompt
+        )
         if city_match:
             return {"tool": "weather", "args": {"city": city_match.group(1)}}
         # No city detected; let LLM ask the user
@@ -115,11 +118,37 @@ def keyword_route(prompt: str) -> Optional[dict]:
         if to_match:
             subj_match = _re_e.search(r"(?:about|regarding|subject:?)\s+([^,\.\n]+)", prompt)
             subject = subj_match.group(1).strip() if subj_match else "Message from Sunnyware"
+            import os as _os_e
+            if not _os_e.getenv("RESEND_API_KEY"):
+                return {"tool": "email_configured", "args": {}}
             return {"tool": "email_send", "args": {
                 "to": to_match.group(1),
                 "subject": subject,
                 "body": prompt,
             }}
+
+
+    # --- web_search ---
+    if any(kw in p for kw in ["search the web", "search web", "google ", "look up online", "search online"]):
+        import re as _re_ws
+        q_match = _re_ws.search(r"(?:search (?:the )?web(?: for)?|google|look up online|search online)\s+(.+)", prompt, _re_ws.IGNORECASE)
+        if q_match:
+            return {"tool": "web_search", "args": {"query": q_match.group(1).strip()}}
+
+    # --- image_generate (handles "generate an image", "create image", etc.) ---
+    if any(kw in p for kw in ["generate image", "generate an image", "create image", "create an image",
+                               "draw ", "make an image", "make image", "image of"]):
+        import re as _re_ig
+        q_match = _re_ig.search(
+            r"(?:generate|create|make|draw)\s+(?:an?\s+)?image(?:\s+of|\s+showing)?\s+(.+)",
+            prompt, _re_ig.IGNORECASE
+        )
+        if q_match:
+            return {"tool": "image_generate", "args": {"prompt": q_match.group(1).strip()}}
+
+    # --- list_files ---
+    if any(kw in p for kw in ["list files", "show files", "what files", "workspace files", "list workspace"]):
+        return {"tool": "list_files", "args": {}}
 
     # --- pdf_read (must have .pdf extension) ---
     if ".pdf" in p and not any(kw in p for kw in ["create", "generate", "make", "build", "write a pdf"]):

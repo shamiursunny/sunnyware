@@ -148,7 +148,14 @@ async def _chat_single(
             if isinstance(_t, dict): clean_tools.append(_t)
         tools = clean_tools[:15]
         if tools:
-            payload["tools"] = tools
+            # Part 477: Wrap tools in OpenAI-standard format (required by Gemini's /openai endpoint)
+            _wrapped = []
+            for _t in tools:
+                if isinstance(_t, dict) and "function" not in _t and "name" in _t:
+                    _wrapped.append({"type": "function", "function": _t})
+                else:
+                    _wrapped.append(_t)
+            payload["tools"] = _wrapped
         payload["tool_choice"] = "auto"
 
     start = time.time()
