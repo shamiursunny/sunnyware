@@ -3010,3 +3010,24 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Expand tool-calling coverage to more tools (email_send, web_search, etc.).
 
 *Handoff updated: 2026-10-31*
+
+---
+
+### Part 489 Update (2026-11-01): End-to-End Tool Calling Complete
+
+**Status:** Tool calling works end-to-end via `/api/agent/stream`.
+
+**What was verified:**
+- `/api/agent/stream` correctly routes tool-triggering prompts.
+- Calculator tool invoked, result `56088` returned via SSE.
+- SSE events: `tool_call`, `tool_result` (plus `start`, `done`).
+
+**Known minor note:**
+- The `tool_call` SSE event may put function name/args under a different key than `function` (still executed correctly).
+
+**Next Steps (Part 490):**
+1. Inspect the exact `tool_call` SSE event schema and normalize our test parser.
+2. Add integration test for `web_search` and `email_send` via `/api/agent/stream`.
+3. Optionally expose a CLI tool for sending test prompts to `/api/agent/stream`.
+
+*Handoff updated: 2026-11-01*

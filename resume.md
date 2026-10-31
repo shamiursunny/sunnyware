@@ -1593,3 +1593,17 @@ me the exact git commands to commit + push both remotes."
 **Verified (local `llm.chat` with tools):** `tool_calls` correctly contains `calculator` with expected expression.
 
 *Part 488 logged: 2026-10-31*
+
+---
+
+### Part 489 Update (2026-11-01): End-to-End Tool Calling Verified via /api/agent/stream
+
+- **`/api/agent/stream`** (routes/agent.py) correctly routes tool-triggering prompts through the orchestrator.
+- **Test**: `"What is 123 * 456? Use the calculator tool."` → Jarvis detects math → calculator runs → `tool_result: {'expression': '123 * 456', 'result': 56088}`.
+- **SSE events** emitted: `tool_call` (name/args in event payload) and `tool_result` (correct output).
+- **Auth disabled locally** — no API key needed for local testing.
+- **Production** uses the same `/api/agent/stream` endpoint, so tool calling is live there too.
+
+**Verified (local TestClient SSE stream):** `tool_call` event received, calculator returned `56088`.
+
+*Part 489 logged: 2026-11-01*

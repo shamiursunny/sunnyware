@@ -1939,3 +1939,22 @@ cd /h/sunnyware
 **API key storage:** `data/api_keys.json` (managed via `api_keys_store.py`).
 
 *Workflow updated: 2026-10-31*
+
+---
+
+### Part 489 Update (2026-11-01): /api/agent/stream Tool Calling
+
+**Endpoint:** `POST /api/agent/stream` (SSE)
+
+**Payload:** `{"input": "<prompt>", "session_id": "<id>"}`
+
+**SSE event types:** `start`, `iteration`, `tool_call`, `tool_result`, `answer`, `done`, `error`
+
+**Verified flow:**
+1. Send `"What is 123 * 456? Use the calculator tool."`
+2. Orchestrator routes to `calculator`
+3. SSE emits `tool_call` then `tool_result: {"expression": "123 * 456", "result": 56088}`
+
+**Local test:** `TestClient` with auth disabled — works without API key.
+
+*Workflow updated: 2026-11-01*
