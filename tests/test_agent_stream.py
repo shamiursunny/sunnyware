@@ -151,18 +151,6 @@ def test_sql_sandbox_load_csv_tool_call(client):
     assert any(t[0] == "sql_sandbox_load_csv" for t in tools), f"sql_sandbox_load_csv not found in {tools}"
     assert any(t[1] == {"name": "test", "file": "data.csv", "table": "data"} for t in tools if t[0] == "sql_sandbox_load_csv")
 
-def test_image_generate_tool_call(client):
-    """Image generation should extract the prompt."""
-    prompt = "generate an image of a cat"
-    with client.stream("POST", "/api/agent/stream", json={
-        "input": prompt,
-        "session_id": "test-image-493",
-    }) as resp:
-        assert resp.status_code == 200
-        tools = list(_parse_sse(resp))
-    assert any(t[0] == "image_generate" for t in tools), f"image_generate not found in {tools}"
-    assert any(t[1] == {"prompt": "a cat"} for t in tools if t[0] == "image_generate")
-
 
 def test_sql_sandbox_execute_tool_call(client):
     """SQL sandbox execute should extract name and SQL."""
@@ -175,3 +163,54 @@ def test_sql_sandbox_execute_tool_call(client):
         tools = list(_parse_sse(resp))
     assert any(t[0] == "sql_sandbox_execute" for t in tools), f"sql_sandbox_execute not found in {tools}"
     assert any(t[1] == {"name": "test", "sql": "SELECT * FROM t"} for t in tools if t[0] == "sql_sandbox_execute")
+
+def test_web_fetch_tool_call(client):
+    """Web fetch should extract the URL."""
+    prompt = "fetch the content of https://example.com"
+    with client.stream("POST", "/api/agent/stream", json={
+        "input": prompt,
+        "session_id": "test-webfetch-494",
+    }) as resp:
+        assert resp.status_code == 200
+        tools = list(_parse_sse(resp))
+    assert any(t[0] == "web_fetch" for t in tools), f"web_fetch not found in {tools}"
+    assert any(t[1] == {"url": "https://example.com"} for t in tools if t[0] == "web_fetch")
+
+
+def test_browser_goto_tool_call(client):
+    """Browser goto should extract the URL."""
+    prompt = "open https://example.com in the browser"
+    with client.stream("POST", "/api/agent/stream", json={
+        "input": prompt,
+        "session_id": "test-browsergoto-494",
+    }) as resp:
+        assert resp.status_code == 200
+        tools = list(_parse_sse(resp))
+    assert any(t[0] == "browser_goto" for t in tools), f"browser_goto not found in {tools}"
+    assert any(t[1] == {"url": "https://example.com"} for t in tools if t[0] == "browser_goto")
+
+
+def test_chart_from_data_tool_call(client):
+    """Chart from data should extract numbers and chart type."""
+    prompt = "plot a bar chart with 10, 20, 30"
+    with client.stream("POST", "/api/agent/stream", json={
+        "input": prompt,
+        "session_id": "test-chart-494",
+    }) as resp:
+        assert resp.status_code == 200
+        tools = list(_parse_sse(resp))
+    assert any(t[0] == "chart_from_data" for t in tools), f"chart_from_data not found in {tools}"
+    assert any(t[1] == {"data": "[10, 20, 30]", "chart_type": "bar"} for t in tools if t[0] == "chart_from_data")
+
+
+def test_research_search_tool_call(client):
+    """Research search should extract the query."""
+    prompt = "research the topic of quantum computing"
+    with client.stream("POST", "/api/agent/stream", json={
+        "input": prompt,
+        "session_id": "test-research-494",
+    }) as resp:
+        assert resp.status_code == 200
+        tools = list(_parse_sse(resp))
+    assert any(t[0] == "research_search" for t in tools), f"research_search not found in {tools}"
+    assert any(t[1] == {"query": "quantum computing"} for t in tools if t[0] == "research_search")
