@@ -150,8 +150,8 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if any(kw in p for kw in ["list files", "show files", "what files", "workspace files", "list workspace"]):
         return {"tool": "list_files", "args": {}}
 
-    # --- pdf_read (must have .pdf extension) ---
-    if ".pdf" in p and not any(kw in p for kw in ["create", "generate", "make", "build", "write a pdf"]):
+    # --- pdf_read (must have .pdf extension, and not be a compare/diff prompt) ---
+    if ".pdf" in p and not any(kw in p for kw in ["create", "generate", "make", "build", "write a pdf", "compare", "diff"]):
         fname = _extract_filename(prompt, ["pdf"])
         if fname:
             return {"tool": "pdf_read", "args": {"file": fname}}
@@ -161,10 +161,9 @@ def keyword_route(prompt: str) -> Optional[dict]:
         fname = _extract_filename(prompt, ["xlsx"])
         if fname:
             action = "write" if any(w in p for w in ["write", "save", "create"]) else "read"
-            tool = f"excel_{action}"
             if action == "read":
-                return {"tool": tool, "args": {"filepath": fname}}
-            # write needs data — fall through to LLM
+                return {"tool": "excel_read", "args": {"file": fname}}
+            # write needs structured data (sheets array) — let LLM handle
             return None
 
     # --- csv_query (must have .csv) ---
@@ -349,10 +348,16 @@ def keyword_route(prompt: str) -> Optional[dict]:
                 return {"tool": "research_search", "args": {"query": query}}
         return None
 
-    # --- document_diff (must say "compare" or "diff") ---
+    # --- document_diff (compare/diff X and Y) ---
     if any(kw in p for kw in ["compare two documents", "diff the", "compare documents",
-                               "what changed between"]):
-        return None  # Need doc extraction
+                               "what changed between", "compare ", "diff ", "difference between"]):
+        import re as _re_df
+        # Find two filenames with extensions
+        files = _re_df.findall(r'([\w\-.]+\.(?:txt|pdf|docx?|md|csv))', prompt, _re_df.IGNORECASE)
+        if len(files) >= 2:
+            return {"tool": "document_diff", "args": {"left_file": files[0], "right_file": files[1]}}
+        # No two files detected — let LLM handle
+        return None
 
     # --- html_to_text ---
     if any(kw in p for kw in ["convert html", "html to text", "strip html",
