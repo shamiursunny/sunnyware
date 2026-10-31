@@ -366,8 +366,9 @@ function renderIntegrations(d){
   };
   c.appendChild(badgeRow("WorkOS Auth", d.workos));
   c.appendChild(badgeRow("Paddle Billing", d.paddle));
-  var _neon_label = (d.neon === "disabled" || d.neon === "not_configured" || d.neon === "no_pool") ? "LOCAL STORAGE" : d.neon;
-  var _neon_cls = (d.neon === "disabled" || d.neon === "not_configured" || d.neon === "no_pool") ? "ok" : null;
+  var _isNeonLocal = (d.neon === false || d.neon === "disabled" || d.neon === "not_configured" || d.neon === "no_pool");
+  var _neon_label = _isNeonLocal ? "LOCAL STORAGE" : d.neon;
+  var _neon_cls = _isNeonLocal ? "ok" : null;
   if (_neon_cls) {
     var _row = el("div", "row");
     _row.appendChild(el("span", "k", "Neon Database"));
