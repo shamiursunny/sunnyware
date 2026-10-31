@@ -230,6 +230,14 @@ def keyword_route(prompt: str) -> Optional[dict]:
             # No content detected — let LLM handle
             return None
 
+    # --- url_metadata (must have URL + "metadata" or "og tags" etc.) ---
+    if any(kw in p for kw in ["metadata of ", "metadata for ", "get metadata", "extract metadata",
+                                "og tags", "open graph", "meta tags of", "url info for"]):
+        import re as _re_um
+        url_m = _re_um.search(r"(https?://[^\s]+)", prompt)
+        if url_m:
+            return {"tool": "url_metadata", "args": {"url": url_m.group(1)}}
+
     # --- web_fetch (must have http URL AND "fetch" or "download" or "get content") ---
     url = _extract_url(prompt)
     if url:
@@ -378,8 +386,12 @@ def keyword_route(prompt: str) -> Optional[dict]:
 
     # --- html_to_text ---
     if any(kw in p for kw in ["convert html", "html to text", "strip html",
-                               "extract text from html"]):
-        return None  # Need HTML extraction
+                               "extract text from html", "convert to text"]):
+        import re as _re_ht
+        url_m = _re_ht.search(r"(https?://[^\s]+)", prompt)
+        if url_m:
+            return {"tool": "html_to_text", "args": {"url": url_m.group(1)}}
+        return None  # No URL — LLM handles (user may paste raw HTML)
 
     # --- pdf_report ---
     if "pdf" in p and any(w in p for w in ["create", "generate", "make", "build", "write", "report"]):
@@ -403,7 +415,14 @@ def keyword_route(prompt: str) -> Optional[dict]:
     # --- webhook_add (create/add webhook) ---
     if any(kw in p for kw in ["create a webhook", "add a webhook", "set up webhook",
                                "create webhook", "add webhook"]):
-        return None  # Need name/URL extraction
+        import re as _re_wh
+        name_m = _re_wh.search(r"(?:named|called)\s+[\"\']?([\w\- ]+?)[\"\']?(?:\s|$)", prompt, _re_wh.IGNORECASE)
+        if not name_m:
+            name_m = _re_wh.search(r"webhook\s+[\"\']?([\w\-]+)[\"\']?", prompt, _re_wh.IGNORECASE)
+        if name_m:
+            name = name_m.group(1).strip()
+            return {"tool": "webhook_add", "args": {"name": name}}
+        return None  # No name detected — LLM handles
 
     # --- schedule_add (schedule/create task) ---
     if any(kw in p for kw in ["schedule a task", "schedule task", "set reminder",
