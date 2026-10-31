@@ -1713,3 +1713,16 @@ me the exact git commands to commit + push both remotes."
 **Verified:** 3 passed in 0.10s.
 
 *Part 496 logged: 2026-11-01*
+
+---
+
+### Part 497 Update (2026-11-01): Full Test Suite Passes
+
+- **`pytest tests/ -v`** → **100 passed, 1 skipped, 1 warning** in 135.71s.
+- Coverage includes:
+  - 13 integration tests for `/api/agent/stream`
+  - 3 deterministic keyword router tests
+  - Existing unit tests for auth, calculator, eval_runner, file_tools, metrics, orchestrator_parse, planner, prompts, tenant, tools_misc
+- **CI workflow** `.github/workflows/agent_stream_tests.yml` will run a subset on every push.
+
+*Part 497 logged: 2026-11-01*
