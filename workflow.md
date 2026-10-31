@@ -1858,3 +1858,18 @@ cd /h/sunnyware
 - `webhook_events` (needs token)
 
 *Workflow updated: 2026-10-31*
+
+---
+
+### Part 484 Update (2026-10-31): Library + RAG + Document Routing
+
+**New/fixed keyword routes:**
+- `"Find X in the library"` / `"Search library for X"` → `search_library` (clean query)
+- `"Search RAG for X"` / `"Find X in RAG database"` / `"Query RAG for X"` → `rag_search` (clean query)
+- `"List library documents"` / `"List my documents"` → `document_library` (action: list)
+- `"List RAG docs"` → `rag_list` (already worked)
+
+**LLM-handled:**
+- `document_library` (add/save — needs content, tags, description)
+
+*Workflow updated: 2026-10-31*

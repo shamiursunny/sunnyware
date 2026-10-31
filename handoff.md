@@ -2887,3 +2887,31 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 4. Add `document_library` routing for `"save to library"` / `"list library files"`
 
 *Handoff updated: 2026-10-31*
+
+---
+
+### Part 484 Update (2026-10-31): Ready for Part 485
+
+**Status:** 35+ instant keyword routes working.
+
+**What changed:**
+- `search_library` now extracts clean query (multi-pattern fallback)
+- `rag_search` handles both "search RAG for X" and "find X in RAG"
+- `document_library` basic list route added
+
+**Verified (8/8 functional routes pass):**
+- 3 search_library variants
+- 3 rag_search variants
+- 2 document_library list variants
+
+**Known Limitations:**
+- `document_library` save/add needs LLM (structured content + tags)
+- `rag_search` with complex filters needs LLM
+
+**Next Steps (Part 485):**
+1. Verify Gemini tool-calling end-to-end in production (check HF logs for `Tool schema rejected` — should be gone)
+2. Add `document_diff` support for chunk/text sources (currently only files)
+3. Add `hitl_config_update` routing for `"set HITL for X"` prompts
+4. Add `feature_flags` routing for `"enable feature X"` prompts
+
+*Handoff updated: 2026-10-31*

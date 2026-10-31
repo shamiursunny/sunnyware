@@ -1519,3 +1519,17 @@ me the exact git commands to commit + push both remotes."
 **Verified (8/9 routes pass locally):** 2 url_metadata, 2 html_to_text, 1 webhook_list, 3 webhook_add. 1 webhook_events correctly falls through.
 
 *Part 483 logged: 2026-10-31*
+
+---
+
+### Part 484 Update (2026-10-31): Library, RAG, Document Routing
+
+- **`search_library` fixed** (`keyword_router.py`): Now extracts clean query from multiple patterns — `"search library for X"` → query `"X"` (no longer `"library for X"`).
+- **`rag_search` fixed** (`keyword_router.py`): Handles both `"search RAG for X"` and `"find X in RAG database"` — clean query extraction.
+- **`document_library` added** (`keyword_router.py`): Basic list route → `"List library documents"` / `"List my documents"` → `{"tool": "document_library", "args": {"action": "list"}}`.
+- **`rag_list`**: Already worked (verified).
+- **`document_library` (add/save)**: Left to LLM — needs structured content + tags.
+
+**Verified (8/8 routes pass locally):** 3 search_library, 3 rag_search, 2 document_library.
+
+*Part 484 logged: 2026-10-31*
