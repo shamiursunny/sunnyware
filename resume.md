@@ -1641,3 +1641,18 @@ me the exact git commands to commit + push both remotes."
 **Verified:** 3 passed, 1 skipped in `pytest tests/test_agent_stream.py`; CLI helper correctly shows `tool_call: calculator(...)` and result `56088`.
 
 *Part 491 logged: 2026-11-01*
+
+---
+
+### Part 492 Update (2026-11-01): Expanded Tool-Calling Coverage
+
+- **4 new integration tests added** to `tests/test_agent_stream.py`:
+  - `test_pdf_read_tool_call` — verifies `pdf_read` with file extraction
+  - `test_excel_read_tool_call` — verifies `excel_read` with file extraction
+  - `test_sql_sandbox_create_tool_call` — verifies `sql_sandbox_create` with name extraction
+  - `test_sql_sandbox_load_csv_tool_call` — verifies `sql_sandbox_load_csv` with name, file, table extraction
+- **Full suite now covers 7 tool routes** (calculator, web_search, email, pdf_read, excel_read, sql_sandbox_create, sql_sandbox_load_csv).
+
+**Verified:** 7 passed, 1 skipped in `pytest tests/test_agent_stream.py`.
+
+*Part 492 logged: 2026-11-01*

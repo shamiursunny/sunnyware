@@ -1996,3 +1996,17 @@ python scripts/chat_test.py "What is 123 * 456?"
 ```
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 492 Update (2026-11-01): Expanded Tool-Calling Coverage
+
+**New tests added:**
+- `test_pdf_read_tool_call`
+- `test_excel_read_tool_call`
+- `test_sql_sandbox_create_tool_call`
+- `test_sql_sandbox_load_csv_tool_call`
+
+**Coverage:** 7 tool routes verified via `/api/agent/stream`.
+
+*Workflow updated: 2026-11-01*

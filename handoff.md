@@ -3066,3 +3066,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Consider adding a CI step to run these integration tests on push.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 492 Update (2026-11-01): Ready for Part 493
+
+**Status:** Integration tests expanded to 7 passing routes.
+
+**What was done:**
+- Added tests for `pdf_read`, `excel_read`, `sql_sandbox_create`, `sql_sandbox_load_csv`.
+- Full suite passes (7 passed, 1 skipped).
+
+**Next Steps (Part 493):**
+1. Add CI step to run `pytest tests/test_agent_stream.py` on push.
+2. Expand coverage to `image_generate` and `sql_sandbox_execute`.
+3. Optionally add regression tests for SQL sandbox routes.
+
+*Handoff updated: 2026-11-01*

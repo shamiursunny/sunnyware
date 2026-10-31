@@ -99,3 +99,54 @@ def test_email_real_routes_to_send(client):
         assert resp.status_code == 200
         tools = list(_parse_sse(resp))
     assert any(t[0] == "email_send" for t in tools)
+
+def test_pdf_read_tool_call(client):
+    """PDF routing should extract the file name."""
+    prompt = "read test.pdf"
+    with client.stream("POST", "/api/agent/stream", json={
+        "input": prompt,
+        "session_id": "test-pdf-492",
+    }) as resp:
+        assert resp.status_code == 200
+        tools = list(_parse_sse(resp))
+    assert any(t[0] == "pdf_read" for t in tools), f"pdf_read not found in {tools}"
+    assert any(t[1] == {"file": "test.pdf"} for t in tools if t[0] == "pdf_read")
+
+
+def test_excel_read_tool_call(client):
+    """Excel routing should extract the file name."""
+    prompt = "read sales.xlsx"
+    with client.stream("POST", "/api/agent/stream", json={
+        "input": prompt,
+        "session_id": "test-excel-492",
+    }) as resp:
+        assert resp.status_code == 200
+        tools = list(_parse_sse(resp))
+    assert any(t[0] == "excel_read" for t in tools), f"excel_read not found in {tools}"
+    assert any(t[1] == {"file": "sales.xlsx"} for t in tools if t[0] == "excel_read")
+
+
+def test_sql_sandbox_create_tool_call(client):
+    """SQL sandbox create should extract the sandbox name."""
+    prompt = "create sql sandbox test"
+    with client.stream("POST", "/api/agent/stream", json={
+        "input": prompt,
+        "session_id": "test-sqlcreate-492",
+    }) as resp:
+        assert resp.status_code == 200
+        tools = list(_parse_sse(resp))
+    assert any(t[0] == "sql_sandbox_create" for t in tools), f"sql_sandbox_create not found in {tools}"
+    assert any(t[1] == {"name": "test"} for t in tools if t[0] == "sql_sandbox_create")
+
+
+def test_sql_sandbox_load_csv_tool_call(client):
+    """SQL sandbox load_csv should extract name, file, and table."""
+    prompt = "load data.csv into sandbox test"
+    with client.stream("POST", "/api/agent/stream", json={
+        "input": prompt,
+        "session_id": "test-sqlload-492",
+    }) as resp:
+        assert resp.status_code == 200
+        tools = list(_parse_sse(resp))
+    assert any(t[0] == "sql_sandbox_load_csv" for t in tools), f"sql_sandbox_load_csv not found in {tools}"
+    assert any(t[1] == {"name": "test", "file": "data.csv", "table": "data"} for t in tools if t[0] == "sql_sandbox_load_csv")
