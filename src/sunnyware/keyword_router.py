@@ -100,11 +100,32 @@ def keyword_route(prompt: str) -> Optional[dict]:
         tz = _extract_timezone(prompt)
         return {"tool": "current_time", "args": {"timezone": tz}}
 
+    # --- weather ---
+    if "weather" in p:
+        import re as _re_w
+        city_match = _re_w.search(r"(?:in|at|for|of)\s+([A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)?)", prompt)
+        if city_match:
+            return {"tool": "weather", "args": {"city": city_match.group(1)}}
+        # No city detected; let LLM ask the user
+
+    # --- email_send ---
+    if any(kw in p for kw in ["send an email", "send email", "email to", "mail to"]):
+        import re as _re_e
+        to_match = _re_e.search(r"([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,})", prompt)
+        if to_match:
+            subj_match = _re_e.search(r"(?:about|regarding|subject:?)\s+([^,\.\n]+)", prompt)
+            subject = subj_match.group(1).strip() if subj_match else "Message from Sunnyware"
+            return {"tool": "email_send", "args": {
+                "to": to_match.group(1),
+                "subject": subject,
+                "body": prompt,
+            }}
+
     # --- pdf_read (must have .pdf extension) ---
-    if "pdf" in p or ".pdf" in p:
+    if ".pdf" in p and not any(kw in p for kw in ["create", "generate", "make", "build", "write a pdf"]):
         fname = _extract_filename(prompt, ["pdf"])
         if fname:
-            return {"tool": "pdf_read", "args": {"filepath": fname}}
+            return {"tool": "pdf_read", "args": {"file": fname}}
 
     # --- excel_read (must have .xlsx) ---
     if "excel" in p or ".xlsx" in p:
@@ -267,8 +288,7 @@ def keyword_route(prompt: str) -> Optional[dict]:
         return None  # Need HTML extraction
 
     # --- pdf_report ---
-    if any(kw in p for kw in ["create a pdf report", "generate pdf", "make pdf report",
-                               "create pdf report"]):
+    if "pdf" in p and any(w in p for w in ["create", "generate", "make", "build", "write", "report"]):
         return None  # Need title/content extraction
 
     # --- kpi_watch_add ---
