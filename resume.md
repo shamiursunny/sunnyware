@@ -1446,3 +1446,16 @@ me the exact git commands to commit + push both remotes."
 **Verified (9/9 routes pass locally):** All schedule/KPI list+run prompts route instantly.
 
 *Part 478 logged: 2026-10-31*
+
+---
+
+### Part 479 Update (2026-10-31): File I/O + Chart + Web Fetch Routes
+
+- **`read_file` arg fix** (`keyword_router.py`): `{"filepath": X}` → `{"path": X}` (was silently failing).
+- **`write_file` content extraction** (`keyword_router.py`): Now extracts content from `'quoted text'` or `"write X to Y.txt"` patterns and routes to `write_file`.
+- **`chart_from_data` extraction** (`keyword_router.py`): Broader triggers (`chart`, `plot`, `graph`) + auto-extracts numbers from prompt → `{"data": "[1,2,3,4,5]", "chart_type": "line"}`.
+- **`web_fetch` triggers expanded** (`keyword_router.py`): Added `"get url"`, `"get page"` alongside `"fetch"`, `"download"`.
+
+**Verified (7/7 tests pass locally):** read_file, write_file, web_fetch (3 triggers), chart_from_data (3 triggers).
+
+*Part 479 logged: 2026-10-31*

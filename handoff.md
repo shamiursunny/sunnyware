@@ -2759,3 +2759,23 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 4. Verify Gemini tool-calling works end-to-end in production
 
 *Handoff updated: 2026-10-31*
+
+---
+
+### Part 479 Update (2026-10-31): Ready for Part 480
+
+**Status:** 17+ instant keyword routes working.
+
+**What changed:**
+- `read_file` arg fixed (`filepath` → `path`)
+- `write_file` content extraction from quotes/pattern
+- `chart_from_data` number extraction + broader triggers
+- `web_fetch` triggers expanded (`get url`, `get page`)
+
+**Next Steps (Part 480):**
+1. Add `web_search` trigger for `"search the web for X"` (already exists but verify)
+2. Add `research_search` routing for `"research X"` prompts
+3. Add `csv_query` routing for `.csv` files
+4. Test Gemini tool-calling end-to-end in production (still pending from Part 477)
+
+*Handoff updated: 2026-10-31*

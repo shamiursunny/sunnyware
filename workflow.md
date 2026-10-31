@@ -1769,3 +1769,18 @@ cd /h/sunnyware
 - `chart_from_data` (needs JSON data array)
 
 *Workflow updated: 2026-10-31*
+
+---
+
+### Part 479 Update (2026-10-31): File I/O + Chart + Web Fetch
+
+**New/fixed keyword routes:**
+- `"read X.txt"` → `read_file` (arg: `path`)
+- `"write 'content' to X.txt"` → `write_file` (extracts content from quotes)
+- `"write content to X.txt"` → `write_file` (extracts content from pattern)
+- `"fetch https://..."` / `"get url ..."` / `"get page ..."` → `web_fetch`
+- `"chart 1,2,3,4,5"` → `chart_from_data` (data=`[1,2,3,4,5]`, chart_type=line)
+- `"plot 10,20,30"` → `chart_from_data`
+- `"graph 5,10,15"` → `chart_from_data`
+
+*Workflow updated: 2026-10-31*
