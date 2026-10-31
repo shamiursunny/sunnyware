@@ -2830,3 +2830,31 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 4. Add `delegate_to_agent` routing for multi-agent workflows
 
 *Handoff updated: 2026-10-31*
+
+---
+
+### Part 482 Update (2026-10-31): Ready for Part 483
+
+**Status:** 25+ instant keyword routes working.
+
+**What changed:**
+- `browser_goto` routes added (`"Open https://..."`, `"Visit https://..."`)
+- `browser_screenshot` routes added (fixes `web_search` hijack)
+- `research_search` excludes `"delegate"` / `"agent:"` prompts
+
+**Verified (7/8 functional routes pass):**
+- 3 api_call variants (GET, POST, generic)
+- 2 browser_goto variants
+- 2 browser_screenshot variants
+
+**Known Limitations:**
+- `delegate_to_agent` → LLM handles (needs structured agent + task)
+- `browser_goto`/`browser_screenshot` require Playwright installed in Space
+
+**Next Steps (Part 483):**
+1. Verify Gemini tool-calling end-to-end in production (no logs errors on `[llm.chat] Tool schema rejected`)
+2. Add `url_metadata` routing for `"metadata of URL"` prompts
+3. Add `html_to_text` routing for `"convert HTML to text"`
+4. Add `webhook_add` / `webhook_list` routing for webhook management
+
+*Handoff updated: 2026-10-31*

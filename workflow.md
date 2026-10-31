@@ -1820,3 +1820,21 @@ cd /h/sunnyware
 **pdf_read fix:** Now excludes `"compare"` / `"diff"` prompts so it doesn't hijack document_diff.
 
 *Workflow updated: 2026-10-31*
+
+---
+
+### Part 482 Update (2026-10-31): Browser + API Routing
+
+**New keyword routes:**
+- `"Open https://..."` / `"Visit https://..."` / `"Navigate to ..."` → `browser_goto`
+- `"Take a screenshot of https://..."` / `"Capture https://..."` → `browser_screenshot`
+- `"API call to https://..."` / `"HTTP GET/POST https://..."` → `api_call` (already worked)
+
+**Fixes:**
+- `"Take a screenshot of https://..."` was wrongly routing to `web_search` → now routes to `browser_screenshot`
+- `"Delegate this to the research agent..."` was wrongly routing to `research_search` → now falls through to LLM
+
+**LLM-handled:**
+- `delegate_to_agent` (needs structured agent name + task)
+
+*Workflow updated: 2026-10-31*

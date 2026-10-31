@@ -1489,3 +1489,18 @@ me the exact git commands to commit + push both remotes."
 **Verified (6/6 functional routes pass locally):** excel_read (2), document_diff (2), image_generate (2).
 
 *Part 481 logged: 2026-10-31*
+
+---
+
+### Part 482 Update (2026-10-31): Browser + API Routes
+
+- **`browser_goto` added** (`keyword_router.py`): `"Open https://..."` / `"Visit https://..."` → browser_goto with URL extraction.
+- **`browser_screenshot` added** (`keyword_router.py`): `"Take a screenshot of https://..."` / `"Capture https://..."` → browser_screenshot (was wrongly routing to web_search).
+- **`research_search` exclusion** (`keyword_router.py`): Now excludes prompts containing `"delegate"` / `"agent:"` / `"sub-agent"` — so `"Delegate this to the research agent..."` correctly falls through to LLM.
+- **`api_call` verified**: Already worked (GET, POST) — no changes needed.
+- **`delegate_to_agent`**: Left to LLM (needs agent name + task that can't be extracted reliably).
+- **Gemini tool wrap**: Confirmed present in `llm.py` (Part 477 fix) — verified during discovery.
+
+**Verified (7/8 routes pass locally):** 3 api_call, 2 browser_goto, 2 browser_screenshot, 1 delegate (correctly None).
+
+*Part 482 logged: 2026-10-31*
