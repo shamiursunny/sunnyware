@@ -100,6 +100,23 @@ def keyword_route(prompt: str) -> Optional[dict]:
         tz = _extract_timezone(prompt)
         return {"tool": "current_time", "args": {"timezone": tz}}
 
+    # --- browser_screenshot (URL + screenshot trigger) ---
+    if any(kw in p for kw in ["screenshot of ", "take a screenshot", "take screenshot",
+                                "capture http", "capture the site", "capture the page",
+                                "snapshot of ", "capture this url", "capture url "]):
+        import re as _re_bs
+        url_m = _re_bs.search(r"(https?://[^\s]+)", prompt)
+        if url_m:
+            return {"tool": "browser_screenshot", "args": {"url": url_m.group(1)}}
+
+    # --- browser_goto (URL + open/visit/browse) ---
+    if any(kw in p for kw in ["open http", "open https", "visit http", "visit https",
+                                "browse to ", "navigate to ", "go to http", "go to https"]):
+        import re as _re_bg
+        url_m = _re_bg.search(r"(https?://[^\s]+)", prompt)
+        if url_m:
+            return {"tool": "browser_goto", "args": {"url": url_m.group(1)}}
+
     # --- weather (1-3 word cities + accents) ---
     if "weather" in p:
         import re as _re_w
@@ -333,10 +350,10 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if "data quality report" in p or "quality check" in p or "check data quality" in p:
         return None
 
-    # --- research_search (must have "research" or "investigate") ---
+    # --- research_search (must have "research" or "investigate", not delegate) ---
     if any(kw in p for kw in ["research the topic", "investigate topic",
                                "do research", "deep research",
-                               "research ", "investigate "]):
+                               "research ", "investigate "]) and not any(kw in p for kw in ["delegate", "agent:", "sub-agent"]):
 
 
         # Extract query
