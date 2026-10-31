@@ -1580,3 +1580,16 @@ me the exact git commands to commit + push both remotes."
 **Verified (15/15 routes pass locally).**
 
 *Part 487 logged: 2026-10-31*
+
+---
+
+### Part 488 Update (2026-10-31): Gemini & Groq Tool-Calling Verified
+
+- **Provider tool-calling confirmed**: Groq (`openai/gpt-oss-120b`) and Gemini (`gemini-2.5-flash`) both return `tool_calls` for calculator prompts.
+- **Local Ollama** (`gemma2-2b`) does **not** support tools — the fallback in `llm.py` (Part 472) correctly retries without tools and returns Python code.
+- **Production LLM routing**: `LLM_PROVIDERS = groq,gemini,openrouter`; Groq is primary. Tool schemas are accepted without rejection.
+- **API keys** stored in `data/api_keys.json` (hashed, per‑org), endpoint requires `X-API-Key` or `Bearer`.
+
+**Verified (local `llm.chat` with tools):** `tool_calls` correctly contains `calculator` with expected expression.
+
+*Part 488 logged: 2026-10-31*

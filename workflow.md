@@ -1920,3 +1920,22 @@ cd /h/sunnyware
 - `financial_metrics` (LLM-only)
 
 *Workflow updated: 2026-10-31*
+
+---
+
+### Part 488 Update (2026-10-31): Tool-Calling Verification
+
+**Production providers:**
+- Groq (`openai/gpt-oss-120b`) ✅ tool calling
+- Gemini (`gemini-2.5-flash`) ✅ tool calling
+- OpenRouter (free Llama) — network timeout from dev, not a key issue
+
+**Local Ollama** (`gemma2-2b-tuned-stable`) ⚠️ no tool support, but fallback to Python code works.
+
+**Test methodology:**
+- Load `.env` → `llm.chat` with a `calculator` tool schema → inspect `tool_calls`.
+- Groq returns `calculator({"expression":"123 * 456"})`; Gemini does the same.
+
+**API key storage:** `data/api_keys.json` (managed via `api_keys_store.py`).
+
+*Workflow updated: 2026-10-31*

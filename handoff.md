@@ -2992,3 +2992,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 4. Consider route for `financial_metrics` if structured data is provided inline.
 
 *Handoff updated: 2026-10-31*
+
+---
+
+### Part 488 Update (2026-10-31): Tool-Calling Verified
+
+**Status:** 53+ instant keyword routes + verified LLM tool calling.
+
+**What was verified:**
+- Groq and Gemini both support and return tool calls.
+- Local Ollama does not, but fallback works.
+- `llm.chat` with tools returns `tool_calls` as expected.
+
+**Remaining (Part 489):**
+1. Optional: Test production `/api/chat` with a real API key (requires creating one in the HF Space).
+2. Add a `test_tool_call.py` integration test for the full orchestrator flow.
+3. Expand tool-calling coverage to more tools (email_send, web_search, etc.).
+
+*Handoff updated: 2026-10-31*
