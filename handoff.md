@@ -2858,3 +2858,32 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 4. Add `webhook_add` / `webhook_list` routing for webhook management
 
 *Handoff updated: 2026-10-31*
+
+---
+
+### Part 483 Update (2026-10-31): Ready for Part 484
+
+**Status:** 28+ instant keyword routes working.
+
+**What changed:**
+- `url_metadata` route added
+- `html_to_text` stub fixed (URL extraction)
+- `webhook_add` stub fixed (name extraction with prefix strip)
+- Webhook name regex fixed to not include "named"/"called"
+
+**Verified (8/9 functional routes pass):**
+- 2 url_metadata variants
+- 2 html_to_text variants
+- 1 webhook_list
+- 3 webhook_add variants
+
+**Known Limitations:**
+- `webhook_delete` / `webhook_events` need token → LLM handles
+
+**Next Steps (Part 484):**
+1. Verify Gemini tool-calling end-to-end in production (check HF logs for `Tool schema rejected`)
+2. Add `search_library` routing for `"find in library"` / `"search library for X"`
+3. Add `rag_search` routing for `"search RAG database for X"`
+4. Add `document_library` routing for `"save to library"` / `"list library files"`
+
+*Handoff updated: 2026-10-31*

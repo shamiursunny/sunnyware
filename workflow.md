@@ -1838,3 +1838,23 @@ cd /h/sunnyware
 - `delegate_to_agent` (needs structured agent name + task)
 
 *Workflow updated: 2026-10-31*
+
+---
+
+### Part 483 Update (2026-10-31): URL Metadata + HTML + Webhooks
+
+**New keyword routes:**
+- `"Get metadata of https://..."` / `"Extract metadata from ..."` → `url_metadata`
+- `"Convert html to text from https://..."` / `"Strip html from ..."` → `html_to_text`
+- `"Create a webhook named X"` / `"Add webhook called X"` → `webhook_add`
+- `"List all webhooks"` → `webhook_list` (already worked)
+
+**Fixed stubs:**
+- `html_to_text` — was returning `None`, now extracts URL
+- `webhook_add` — was returning `None`, now extracts name (with regex fix to strip prefix)
+
+**LLM-handled:**
+- `webhook_delete` (needs token)
+- `webhook_events` (needs token)
+
+*Workflow updated: 2026-10-31*

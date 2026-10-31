@@ -1504,3 +1504,18 @@ me the exact git commands to commit + push both remotes."
 **Verified (7/8 routes pass locally):** 3 api_call, 2 browser_goto, 2 browser_screenshot, 1 delegate (correctly None).
 
 *Part 482 logged: 2026-10-31*
+
+---
+
+### Part 483 Update (2026-10-31): URL Metadata + HTML-to-Text + Webhook Routes
+
+- **`url_metadata` added** (`keyword_router.py`): `"Get metadata of https://..."` / `"extract metadata from ..."` → url_metadata with URL extraction.
+- **`html_to_text` fixed** (`keyword_router.py`): Was a dead `return None` stub — now extracts URL and returns `{"tool": "html_to_text", "args": {"url": "..."}}`.
+- **`webhook_add` fixed** (`keyword_router.py`): Was a dead `return None` stub — now extracts name from `"named X"` / `"called X"` / `"webhook X"` patterns and returns `{"tool": "webhook_add", "args": {"name": "..."}}`.
+- **Webhook name regex fix**: Initial regex included `"named"` / `"called"` prefix in name. Fixed with lookahead to extract just the name.
+- **`webhook_list`**: Already worked (verified).
+- **`webhook_delete` / `webhook_events`**: Left to LLM (need `token` arg that can't be extracted reliably).
+
+**Verified (8/9 routes pass locally):** 2 url_metadata, 2 html_to_text, 1 webhook_list, 3 webhook_add. 1 webhook_events correctly falls through.
+
+*Part 483 logged: 2026-10-31*
