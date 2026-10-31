@@ -2100,3 +2100,15 @@ Covers `plan_and_execute` with mocked LLM and orchestrator:
 All deterministic, no network.
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### í¾‰ Part 500 Milestone (2026-11-01): Orchestrator Unit Test & Full Coverage
+
+**New file:** `tests/test_orchestrator_execute.py`
+
+Verifies `run_agent` direct answer path with mocked LLM.
+
+**Total test suite:** 105 passing, 1 skipped.
+
+*Workflow updated: 2026-11-01*

@@ -1750,3 +1750,18 @@ me the exact git commands to commit + push both remotes."
 - **Total tests:** 104 passing (100 original + 4 new).
 
 *Part 499 logged: 2026-11-01*
+
+---
+
+### í¾‰ Part 500 Milestone (2026-11-01): Orchestrator Unit Test & Full Coverage
+
+- **Added** `tests/test_orchestrator_execute.py` â€” verifies the direct answer path of `orchestrator.run_agent` (no tool calls, returns answer, `_execute_tool` not invoked).
+- **Full test suite:** 105 passing (104 original + 1 orchestrator test), 1 skipped.
+- **Milestone summary:**
+  - 16 tool routes verified via `/api/agent/stream` and direct `keyword_route` tests.
+  - 4 planner multi-step tests with mocked dependencies.
+  - 1 orchestrator direct-answer test.
+  - CI workflow runs full suite + fast keyword router suite on every push.
+- **Deterministic, fast, and network-free** tests form a solid foundation for future features.
+
+*Part 500 logged: 2026-11-01*

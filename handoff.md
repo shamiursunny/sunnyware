@@ -3205,3 +3205,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Consider adding a mock-based test for `orchestrator` tool execution.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### í¾‰ Part 500 Milestone (2026-11-01): Ready for Part 501
+
+**Status:** Orchestrator unit test added, full suite now 105 passing.
+
+**What was done:**
+- Added `tests/test_orchestrator_execute.py` verifying direct answer path.
+- Confirmed full suite: 105 passed, 1 skipped.
+
+**Next Steps (Part 501):**
+1. Add a mock test for the tool-calling path of `orchestrator.run_agent`.
+2. Begin planning the next major feature (streaming, memory, new tools).
+3. Consider adding end-to-end tests for multi-step planner via `/api/agent/stream`.
+
+*Handoff updated: 2026-11-01*
