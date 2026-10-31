@@ -1,4 +1,4 @@
-# Sunnyware — Deploy & Push Workflow
+# Sunnyware â€” Deploy & Push Workflow
 
 **This is the canonical workflow for every Part (1-25). Locked permanently.**
 
@@ -11,7 +11,7 @@
 
 ## The Rule
 
-**After every successful Part — and ONLY when the smoke test passes — push to BOTH remotes.**
+**After every successful Part â€” and ONLY when the smoke test passes â€” push to BOTH remotes.**
 
 Both remotes must end up at the **same commit hash**.
 
@@ -37,7 +37,7 @@ cat >> README.md << 'EOF'
 
 ## Deployment Workflow
 
-**Every successful Part is pushed to BOTH remotes — Hugging Face + GitHub.**
+**Every successful Part is pushed to BOTH remotes â€” Hugging Face + GitHub.**
 
 See [WORKFLOW.md](./WORKFLOW.md) for the locked dual-remote workflow.
 
@@ -95,8 +95,8 @@ Same codebase supports multiple OpenAI-compatible backends via env vars:
 
 ### Backends
 
-- **Local (dev):** Ollama — `http://localhost:11434/v1`, key `ollama`
-- **HF Space (prod):** Groq — `https://api.groq.com/openai/v1`, model `openai/gpt-oss-20b`
+- **Local (dev):** Ollama â€” `http://localhost:11434/v1`, key `ollama`
+- **HF Space (prod):** Groq â€” `https://api.groq.com/openai/v1`, model `openai/gpt-oss-20b`
 - **Fallback:** OpenAI, HF Inference API
 
 ### Deployment Matrix
@@ -110,14 +110,14 @@ Same codebase supports multiple OpenAI-compatible backends via env vars:
 
 - Cloudflare Tunnel blocked by BD ISP (verified 2026-10-04)
 - Groq: 14,400 req/day free, ~200-300ms latency
-- No laptop dependency — HF Space always-on
+- No laptop dependency â€” HF Space always-on
 - Same OpenAI-compatible client code
 
 ## Orchestrator + Tools (Part 6)
 
 ### Architecture
-- `orchestrator.py` — ReAct loop: think → tool call → observe → answer
-- `tools/` — modular tool framework (registry pattern)
+- `orchestrator.py` â€” ReAct loop: think â†’ tool call â†’ observe â†’ answer
+- `tools/` â€” modular tool framework (registry pattern)
 - Max iterations: 5
 
 ### Hybrid protocol (auto-detected)
@@ -129,13 +129,13 @@ Same codebase supports multiple OpenAI-compatible backends via env vars:
 Override with `LLM_NATIVE_TOOLS=true|false`.
 
 ### Available tools
-- `echo` — sanity check
-- `current_time` — UTC time
+- `echo` â€” sanity check
+- `current_time` â€” UTC time
 
 ### Endpoints
-- `GET /api/tools` — list tools
-- `POST /api/tools/{name}` — direct invocation
-- `POST /api/agent/run` — full agent loop
+- `GET /api/tools` â€” list tools
+- `POST /api/tools/{name}` â€” direct invocation
+- `POST /api/agent/run` â€” full agent loop
 
 ### Debug
 Response `steps[].protocol` shows `native` or `prompt-json`.
@@ -149,12 +149,12 @@ Response `steps[].protocol` shows `native` or `prompt-json`.
 | `read_file` | read text file | sandbox: `./data/workspace/` |
 | `write_file` | write text file | sandbox: `./data/workspace/` |
 | `calculator` | math eval | AST-based, no `eval()` |
-| `web_fetch` | URL → text | http/https only |
+| `web_fetch` | URL â†’ text | http/https only |
 | `memory_search` | search events | ILIKE on payload |
 
 ### Endpoints
-- `GET  /api/tools` — list all
-- `POST /api/tools/{name}` — direct invoke (deterministic tests)
+- `GET  /api/tools` â€” list all
+- `POST /api/tools/{name}` â€” direct invoke (deterministic tests)
 
 ### Prompt sizing note
 - Small models (gemma2-2b): compact prompt (tool names only) + `max_tokens=500`
@@ -165,7 +165,7 @@ Response `steps[].protocol` shows `native` or `prompt-json`.
 ### Auto-injection
 - Every `/api/agent/run` call fetches **3 relevant past events** from OTHER sessions
 - Injected into system prompt (native + prompt-JSON modes)
-- Ranking: keyword hits (desc) → recency (desc)
+- Ranking: keyword hits (desc) â†’ recency (desc)
 - Stopword filter + length>=4 keyword extraction
 
 ### Endpoint
@@ -174,9 +174,9 @@ Response `steps[].protocol` shows `native` or `prompt-json`.
   - Debug tool: "what does the agent remember about X?"
 
 ### Files
-- `memory.select_relevant_events(query, exclude_session_uuid, limit)` — query events
-- `memory.format_context(events)` — format as text block
-- `_build_system_prompt(context)` / `_build_native_system_prompt(context)` — prompt with context
+- `memory.select_relevant_events(query, exclude_session_uuid, limit)` â€” query events
+- `memory.format_context(events)` â€” format as text block
+- `_build_system_prompt(context)` / `_build_native_system_prompt(context)` â€” prompt with context
 
 ### Health
 - `/health/ready` includes `memory_context: "ok"` check
@@ -184,13 +184,13 @@ Response `steps[].protocol` shows `native` or `prompt-json`.
 ## Session History API (Part 9)
 
 ### Endpoints
-- `GET  /api/sessions/{key}/history?limit=N` — chronological event timeline
-- `GET  /api/sessions/{key}/export` — JSON download (with Content-Disposition)
-- `POST /api/sessions/{key}/rewind` — soft truncate (body: {"to_event": <id>})
+- `GET  /api/sessions/{key}/history?limit=N` â€” chronological event timeline
+- `GET  /api/sessions/{key}/export` â€” JSON download (with Content-Disposition)
+- `POST /api/sessions/{key}/rewind` â€” soft truncate (body: {"to_event": <id>})
 
 ### Helpers
-- `memory.get_all_events(uuid, max_limit)` — all events ASC
-- `memory.delete_events_after(uuid, event_id)` — returns deleted count
+- `memory.get_all_events(uuid, max_limit)` â€” all events ASC
+- `memory.delete_events_after(uuid, event_id)` â€” returns deleted count
 
 ### Pool init fix (critical)
 - `_ensure_pool()` helper added to `main.py`
@@ -204,7 +204,7 @@ Response `steps[].protocol` shows `native` or `prompt-json`.
 - #19: Session rewind deletes events after given ID
 
 ### Test #8 fix
-- Previously used fixed `smoke-llm` session → history buildup over runs → timeout
+- Previously used fixed `smoke-llm` session â†’ history buildup over runs â†’ timeout
 - Now: unique session per run (`smoke-llm-{ts}-{pid}`), 90s curl timeout, auto-cleanup
 
 ## SSE Streaming (Part 10)
@@ -230,22 +230,22 @@ Test #20 verifies SSE content + done events received.
 ## Local RAG + Groq LLM + Agent Tool (Part 31)
 
 ### Files added
-- `src/sunnyware/rag/` — 7-module RAG package
-  - `embeddings.py`       — BAAI/bge-small-en-v1.5, CPU, 384-dim
-  - `chunker.py`          — 1024-token windows / 100-token overlap + row-based for CSV/XLSX
-  - `extractor.py`        — PDF, DOCX, TXT/MD, CSV, XLSX/XLS
-  - `vector_store.py`     — per-tenant FAISS at `data/vector_store/{org_id}/`
-  - `report_generator.py` — FP&A prompt + async narrative + stub fallback
-  - `_threads.py`         — env-var thread caps (OMP/MKL/OPENBLAS + torch + faiss)
-- `src/sunnyware/routes/rag.py` — 4 endpoints
-- `src/sunnyware/tools/rag_search.py` — agent-callable search (15th tool)
+- `src/sunnyware/rag/` â€” 7-module RAG package
+  - `embeddings.py`       â€” BAAI/bge-small-en-v1.5, CPU, 384-dim
+  - `chunker.py`          â€” 1024-token windows / 100-token overlap + row-based for CSV/XLSX
+  - `extractor.py`        â€” PDF, DOCX, TXT/MD, CSV, XLSX/XLS
+  - `vector_store.py`     â€” per-tenant FAISS at `data/vector_store/{org_id}/`
+  - `report_generator.py` â€” FP&A prompt + async narrative + stub fallback
+  - `_threads.py`         â€” env-var thread caps (OMP/MKL/OPENBLAS + torch + faiss)
+- `src/sunnyware/routes/rag.py` â€” 4 endpoints
+- `src/sunnyware/tools/rag_search.py` â€” agent-callable search (15th tool)
 
 ### Endpoints
 - `GET  /api/rag/status`
 - `POST /api/rag/upload`   (multipart: file, reset)
 - `POST /api/rag/query`    (query, k, with_prompt, with_narrative)
 - `POST /api/rag/reset`
-- `POST /api/tools/rag_search` — direct tool invocation
+- `POST /api/tools/rag_search` â€” direct tool invocation
 
 ### Env vars added
 | Var | Purpose | Default |
@@ -266,9 +266,9 @@ Test #20 verifies SSE content + done events received.
 - Cloud LLM = zero local heat during LLM calls
 
 ### Smoke tests
-- `scripts/rag_smoke_test.py`      — 10-step retrieval e2e
-- `scripts/rag_narrative_smoke.py` — full pipeline + Groq narrative
-- `scripts/agent_rag_smoke.py`     — direct tool + opt-in agent loop
+- `scripts/rag_smoke_test.py`      â€” 10-step retrieval e2e
+- `scripts/rag_narrative_smoke.py` â€” full pipeline + Groq narrative
+- `scripts/agent_rag_smoke.py`     â€” direct tool + opt-in agent loop
 
 ### Verified (all PASS)
 - Retrieval e2e: 10/10 checks
@@ -276,10 +276,10 @@ Test #20 verifies SSE content + done events received.
 - Agent tool call: rag_search invoked by gpt-oss-120b on natural prompt
 
 ### Commit
-- `f7d5531` — 17 files, +1352/-3
+- `f7d5531` â€” 17 files, +1352/-3
 
 ### Rollback
-- `.env.bak.20261010-171322` — pre-Groq Ollama config
+- `.env.bak.20261010-171322` â€” pre-Groq Ollama config
 \n
 
 ## Data Science Workbench for python_eval (Part 31D)
@@ -423,24 +423,24 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - RAG search -> correct figures + citation
 - Multi-turn, multi-chart session -> no 413, no 400, no placeholder
 
-## Part 87 — Reasoning-model token budget (2026-10-14)
+## Part 87 â€” Reasoning-model token budget (2026-10-14)
 - max_tokens 900 -> 2048 in llm.py
 - Symptom fixed: empty content after tool calls on reasoning models
 - Commit: 3e33c28
 
-## Part 88 — Orchestrator token economy (2026-10-14)
+## Part 88 â€” Orchestrator token economy (2026-10-14)
 - MAX_ITERATIONS 7 -> 3
 - Greeting rule, ONE TOOL PER STEP, NO PREFLIGHT LISTS (rules 1, 3, 3a)
 - echo tool marked TEST-ONLY
 - Commit: 273b7bf (88b), d271167 (88c), 896570a (88d)
 
-## Part 88b/88c/88d — Tool-call dedup & preflight removal
+## Part 88b/88c/88d â€” Tool-call dedup & preflight removal
 - Exact-match + subset/superset dedup in orchestrator
 - Hard-stop after 2 duplicate calls
 - Skip sql_sandbox_list when resource is named
 - Combined effect: 10-50x token reduction
 
-## Part 89 — Self-host marked.js, no CDN dependency (2026-10-14)
+## Part 89 â€” Self-host marked.js, no CDN dependency (2026-10-14)
 - Root cause of InPrivate '(empty response)': tracking protection + VPN blocked cdn.jsdelivr.net
 - marked@12 -> src/sunnyware/static/marked.min.js (35 KB) + __init__.py
 - main.py: /static mounted via FastAPI StaticFiles after include_router block
@@ -450,7 +450,7 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Verified live: InPrivate Firefox loads UI clean + chat works
 - Commit: 3732fb5
 
-## Part 90 + 90b — Per-request token budget guard (2026-10-14)
+## Part 90 + 90b â€” Per-request token budget guard (2026-10-14)
 - MAX_REQUEST_TOKENS = 8000 in orchestrator.py
 - _estimate_tokens(*parts): char-based heuristic (~4 chars/token)
 - _tokens_used accumulator + trip check each iteration
@@ -464,7 +464,7 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Verified: 67k chars -> trips at 34837 / 8000, budget_exceeded True
 - Commits: 0bebe62 (initial), 65ad114 (Part 90b fix)
 
-## Part 91 — WebUI budget_exceeded styling (2026-10-14)
+## Part 91 â€” WebUI budget_exceeded styling (2026-10-14)
 - budgetExceeded flag declared per-request in webui.py stream handler
 - SSE event 'budget_exceeded' sets the flag
 - 'final' event also reads data.budget_exceeded as fallback
@@ -475,7 +475,7 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Smoke test: scripts/smoke_test_part91.py (8 checks, ASCII-safe)
 - Commit: e09abd3
 
-## Parts 93, 93b, 94, 95, 95b — Professional WebUI redesign (2026-10-14)
+## Parts 93, 93b, 94, 95, 95b â€” Professional WebUI redesign (2026-10-14)
 - Part 93: header redesign (gradient S, session pill, icon buttons, dropdown)
 - Part 93b: paperclip inside composer (ChatGPT-style)
 - Part 94: doc badge shows number only; overflow menu always visible
@@ -485,7 +485,7 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Smoke test: scripts/smoke_test_part93.py (52 checks)
 - Commits: 13585fc (93), 2574dcc (93b), dcd32f3 (94), 54e29e5 (95), a984bcb (95b)
 
-## Parts 96 + 96b — Real token counts from provider usage (2026-10-14)
+## Parts 96 + 96b â€” Real token counts from provider usage (2026-10-14)
 - llm.py: return tokens_in / tokens_out / tokens_total in result dict
   (previously only written to usage DB)
 - orchestrator.py: prefer result['tokens_total'] - _tools_overhead over
@@ -499,7 +499,7 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Smoke test: scripts/smoke_test_part96.py (13 checks)
 - Commits: b9342d4 (96), ae65d27 (96b)
 
-## Parts 97 + 97b — Pollinations AI fallback provider (2026-10-14)
+## Parts 97 + 97b â€” Pollinations AI fallback provider (2026-10-14)
 - Added Pollinations as 4th provider (after groq, gemini, openrouter)
 - Free anonymous tier, no API key needed (dummy 'pollinations')
 - Base URL: https://text.pollinations.ai/openai (OpenAI-compatible)
@@ -512,19 +512,19 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Smoke test: scripts/smoke_test_part97.py (10 checks)
 - Commits: 46a5a25 (97), 97d7123 (97b)
 
-## Parts 98 + 98b + 98c — Image generation tool (2026-10-15)
+## Parts 98 + 98b + 98c â€” Image generation tool (2026-10-15)
 - New tool: image_generate (Pollinations.AI free text-to-image)
 - Models: flux (default), turbo, gptimage, qwen-image, kontext, nanobanana
-- Returns {image_base64, image_format} — same contract as chart_from_data
+- Returns {image_base64, image_format} â€” same contract as chart_from_data
 - Part 98b: 'call EXACTLY ONCE' instruction (free tier rate-limit 1/15s)
 - Part 98c: WebUI 'tool_result' SSE case renders images inline as
-  <img class='msg-image'> — also benefits chart_from_data / browser_screenshot
+  <img class='msg-image'> â€” also benefits chart_from_data / browser_screenshot
 - Tools: 58 -> 59
 - Verified live: 52 KB JPEG @ 1024x1024, model=flux, rendered inline
 - Smoke test: scripts/smoke_test_part98.py (24 checks)
 - Commits: 6498e3d (98), a0a0df8 (98b), e27a541 (98c)
 
-## Part 99 — Long-prompt routing (2026-10-15)
+## Part 99 â€” Long-prompt routing (2026-10-15)
 - Provider dataclass: max_prompt_tokens field (0 = no limit)
 - Defaults: groq=7500, gemini=1M, openrouter/pollinations=32000,
   mistral=32000, nvidia=8000, local=0
@@ -538,7 +538,7 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Smoke test: scripts/smoke_test_part99.py (17 checks)
 - Commit: 20ed50b
 
-## Parts 100 + 100b — Auto-learn provider limits (2026-10-15)
+## Parts 100 + 100b â€” Auto-learn provider limits (2026-10-15)
 - New module: src/sunnyware/provider_limits.py
 - On 413: learn_limit(name, sent_tokens) -> max(500, sent - 200)
 - Never raises existing lower limit; persists to disk
@@ -557,7 +557,7 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Smoke test: scripts/smoke_test_part100.py (44 checks)
 - Commits: 91bf676 (100), ad38fcf (100b)
 
-## Part 101 — Empty-response fallback (2026-10-15)
+## Part 101 â€” Empty-response fallback (2026-10-15)
 - llm.py: _is_empty_response(r) detects ok=True with blank content
   AND empty tool_calls
 - Both HTTP and local provider paths treat empty as failure:
@@ -569,7 +569,7 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Smoke test: scripts/smoke_test_part101.py (22 checks)
 - Commit: 1214276
 
-## Part 102 — Retry policy for full failover cycle (2026-10-15)
+## Part 102 â€” Retry policy for full failover cycle (2026-10-15)
 - llm.py: after failover loop, if _retry_depth == 0
 - Reload providers to see fresh cooldown state
 - If all cooling AND soonest cooldown <= 20s:
@@ -580,7 +580,7 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Smoke test: scripts/smoke_test_part102.py (18 checks)
 - Commit: 0da91ab
 
-## Part 103 — Provider health metrics dashboard (2026-10-15)
+## Part 103 â€” Provider health metrics dashboard (2026-10-15)
 - New endpoint: GET /api/providers/metrics
 - Aggregates three sources:
   1. Session stats (per-process): success/fail counts, cooldowns
@@ -592,7 +592,7 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Smoke test: scripts/smoke_test_part103.py (33 checks)
 - Commit: b48173f
 
-## Part 104 — WebUI provider health panel (2026-10-15)
+## Part 104 â€” WebUI provider health panel (2026-10-15)
 - Renders /api/providers/metrics in the Stats modal
 - Modal title: 'Stats & Provider Health'
 - Table: Provider | Model | Status(dot) | Success Rate
@@ -603,8 +603,8 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Smoke test: scripts/smoke_test_part104.py (36 checks)
 - Commit: f6160ce
 
-## Part 105 — Per-message provider chip (2026-10-15)
-- Small 'via groq · 1.2s' chip appears under each assistant bubble
+## Part 105 â€” Per-message provider chip (2026-10-15)
+- Small 'via groq Â· 1.2s' chip appears under each assistant bubble
 - lastProvider tracked per-request, set from data.provider in
   both 'final' and 'done' SSE events
 - Inserted via agentBubble.insertAdjacentElement('afterend', chip)
@@ -613,7 +613,7 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Smoke test: scripts/smoke_test_part105.py (18 checks)
 - Commit: a640a80
 
-## Parts 106 + 106b/c/d — Persistent image attachments (2026-10-15)
+## Parts 106 + 106b/c/d â€” Persistent image attachments (2026-10-15)
 - Bug: images rendered live but disappeared after browser refresh /
   session navigation. Base64 only lived in the SSE stream.
 - New module: src/sunnyware/attachments.py
@@ -631,7 +631,7 @@ python_eval) into every subsequent prompt, blowing the 8K TPM budget.
 - Smoke test: scripts/smoke_test_part106.py (38 checks)
 - Commits: 0587c1f, c1a3845, c558e78
 
-## Parts 107-109 + 108b/109b — Financial data tools (2026-10-15)
+## Parts 107-109 + 108b/109b â€” Financial data tools (2026-10-15)
 7 new tools for FP&A and quantitative finance roles:
 
 - edgar_fundamentals: SEC EDGAR /companyfacts (no key, US public cos)
@@ -669,7 +669,7 @@ Verified live on HF: all 8 endpoints return real data
 Commits: c180d24 (initial), b881954 (107b EDGAR fix), 1f6c789 (109b FMP fix),
 ff2054f (108b Tiingo fix)
 
-## Part 110 — Eulerpool multi-source data (2026-10-15)
+## Part 110 â€” Eulerpool multi-source data (2026-10-15)
 - New tool: eulerpool_data (curated 70 endpoints of 447-endpoint API)
 - Base URL: https://api.eulerpool.com/api/1 (query-param auth ?token=)
 - Fills gaps not covered by other tools:
@@ -689,7 +689,7 @@ ff2054f (108b Tiingo fix)
   * Earnings call transcripts
 - Uses 'action' + optional 'identifier' + optional 'params' (JSON string)
 - 1-hour TTL cache to preserve free tier budget
-- Path fix: /fundamentals/company/ was 500 — correct is /equity/profile/
+- Path fix: /fundamentals/company/ was 500 â€” correct is /equity/profile/
   (and /equity/overview/ as bonus with description)
 - Verified live on HF: 10/10 actions return real data
   profile, overview, bonds_yield_curve, options_greeks, macro_fred,
@@ -699,11 +699,11 @@ ff2054f (108b Tiingo fix)
 - EULERPOOL_API_KEY on HF Space secrets (len 32)
 - Commit: d26718f
 
-## Part 111 — Actuarial / insurance / risk libraries (2026-10-15)
+## Part 111 â€” Actuarial / insurance / risk libraries (2026-10-15)
 - Added 3 PyPI packages to requirements.txt:
-  * chainladder 0.10.1   — P&C IBNR reserving
-  * lifelib     0.17.2   — Life/pension actuarial models
-  * solvency2-data 0.5.0 — EIOPA risk-free rate curves
+  * chainladder 0.10.1   â€” P&C IBNR reserving
+  * lifelib     0.17.2   â€” Life/pension actuarial models
+  * solvency2-data 0.5.0 â€” EIOPA risk-free rate curves
 - haute removed (requires Python 3.11+, HF runs 3.10.13)
 - Sandbox ALLOWED_MODULES extended with 12 modules (top-level + transitive deps)
 - Verified live on HF:
@@ -713,11 +713,11 @@ ff2054f (108b Tiingo fix)
 - Smoke test: scripts/smoke_test_part111.py (11 checks)
 - Commits: a2bef46 (111), b37dd00 (111b haute removal), 3c927ce (111c allowlist)
 
-## Part 112 — Role personas + tool subsetting (2026-10-15)
+## Part 112 â€” Role personas + tool subsetting (2026-10-15)
 - New module src/sunnyware/roles.py (5 roles)
 - Backend:
-  * orchestrator._build_tools_schema(role=None) — filters by role
-  * orchestrator.run_agent(..., role=None) — injects role prompt addon
+  * orchestrator._build_tools_schema(role=None) â€” filters by role
+  * orchestrator.run_agent(..., role=None) â€” injects role prompt addon
   * routes/agent.py: /run + /stream read `role` field
   * NEW endpoint: GET /api/roles
 - WebUI:
@@ -728,7 +728,7 @@ ff2054f (108b Tiingo fix)
 - Token savings: 4-6K/request in non-general roles
 - Smoke test: scripts/smoke_test_part112.py (28 checks)
 
-## Part 113A — Per-session role persistence (2026-10-15)
+## Part 113A â€” Per-session role persistence (2026-10-15)
 - sessions.py: set_role + get_role (stored in existing metadata JSONB)
 - routes/sessions.py:
     GET  /api/sessions/{key}/role  -> {role}
@@ -739,7 +739,7 @@ ff2054f (108b Tiingo fix)
 - No schema migration (reuses sessions.metadata)
 - Smoke test: scripts/smoke_test_part113a.py (18 checks)
 
-## Part 113B — Role-specific result rendering (2026-10-15)
+## Part 113B â€” Role-specific result rendering (2026-10-15)
 - roles.py: style(role) returns {accent, chip} per role
   general #8899aa | fpa #4a90e2 | quant #a855f7 | actuary #10b981 | tax #f59e0b
 - routes/agent.py /stream: start event carries role + accent + chip
@@ -752,26 +752,26 @@ ff2054f (108b Tiingo fix)
 - Session-level: switching role re-colors ALL bubbles in the active chat
 - Smoke test: scripts/smoke_test_part113b.py (25 checks)
 
-### Part 113B hotfix — orchestrator + agent_stream
+### Part 113B hotfix â€” orchestrator + agent_stream
 - orchestrator._emit start event now includes accent + chip (from roles.style)
 - routes/agent.py agent_stream() reads role from body + passes role=role to orchestrator
 - agent_stream "session" SSE event also enriched with role/accent/chip
 - Root cause: WebUI calls /api/agent/stream (not /api/agent/run/stream); that
   route goes through orchestrator, which previously emitted only {type, role}
 
-## Part 113C — Options-cache TTL differentiation (2026-10-15)
+## Part 113C â€” Options-cache TTL differentiation (2026-10-15)
 - _financial_http.py: cache_stats() + cache_clear() helpers
 - eulerpool_data.py: _TTL_OVERRIDES per action
-    options_greeks/chain/iv/flow → 60s
-    candles                     → 300s
-    profile/overview/dividends/esg/analyst_grades → 24h
-    everything else             → 1h default
+    options_greeks/chain/iv/flow â†’ 60s
+    candles                     â†’ 300s
+    profile/overview/dividends/esg/analyst_grades â†’ 24h
+    everything else             â†’ 1h default
 - eulerpool_data.py: metrics counters (hit/miss per action, api_calls_total)
 - routes/meta.py: GET /api/cache/stats, POST /api/cache/clear
 - Smoke test: scripts/smoke_test_part113c.py (24 checks)
 
-## Part 113D — Insurance data sources (2026-10-15)
-- New tool: tools/insurance_data.py — Socrata state-DOI portals (no key)
+## Part 113D â€” Insurance data sources (2026-10-15)
+- New tool: tools/insurance_data.py â€” Socrata state-DOI portals (no key)
 - 8 portals: TX TDI, NY DFS, CT, WA, IL, CO, OR, VT
 - Actions: states / discover / inspect / fetch
 - Tool registry: 68 tools total (was 67)
@@ -779,11 +779,11 @@ ff2054f (108b Tiingo fix)
 - Cache: discovery 24h, inspect 24h, fetch 1h
 - Smoke test: scripts/smoke_test_part113d.py (20 checks)
 
-## Part 114 — CFO + CDO supervisor delegation (2026-10-15)
+## Part 114 â€” CFO + CDO supervisor delegation (2026-10-15)
 - New tool: delegate_to_agent (69th tool)
   - contextvars: role / depth / path
   - max depth 3; cycle detection by path
-  - permission matrix: cfo→cdo; cdo→workers; workers→nothing
+  - permission matrix: cfoâ†’cdo; cdoâ†’workers; workersâ†’nothing
 - New roles: cfo (Chief Financial Officer), cdo (Chief Delivery Officer)
 - orchestrator.run_agent wrapped: sets _CURRENT_ROLE contextvar
 - routes/agent.py: timeout for cfo/cdo bumped to 300s
@@ -791,28 +791,28 @@ ff2054f (108b Tiingo fix)
 - Bonus fix: 113B chip emoji now render correctly (were literal \U escapes)
 - Smoke test: scripts/smoke_test_part114.py (49 checks)
 
-### Part 114b-e — Pipeline hardening (2026-10-15)
+### Part 114b-e â€” Pipeline hardening (2026-10-15)
 - 114b: CFO tools trimmed to 8 (delegate/email/pdf/read/current_time);
         MANDATORY-first delegation; 300s timeout
-- 114c: CDO tools 6→2 (delegate_to_agent + read_file);
-        CDO prompt hardened FORBIDDEN ACTIONS; timeout 300s→600s
+- 114c: CDO tools 6â†’2 (delegate_to_agent + read_file);
+        CDO prompt hardened FORBIDDEN ACTIONS; timeout 300sâ†’600s
 - 114d: compact_prompt(allowed_tools=) filters prompt tool list
         by role; orchestrator guards _execute_tool at runtime
 - 114e: STRICT PIPELINE RULE in CFO prompt overrides base
         'answer simple questions directly' clause
-- VERIFIED: '15% of $2400' → 1 delegation → '360' in 12.3s
+- VERIFIED: '15% of $2400' â†’ 1 delegation â†’ '360' in 12.3s
 
-## Part 115 — Role-specific content styling (2026-10-15)
+## Part 115 â€” Role-specific content styling (2026-10-15)
 - Per-role CSS on agent-bubble content (tables, code, lists, headings)
 - FP&A blue | Quant purple | Actuary emerald | Tax amber | CFO violet | CDO cyan
 - Smoke: smoke_test_part115.py (22 checks)
 
-## Part 116 — Role config export/import (2026-10-15)
+## Part 116 â€” Role config export/import (2026-10-15)
 - roles.export_roles() / roles.import_roles(payload)
 - GET /api/roles/export, POST /api/roles/import (validate-only)
 - Smoke: smoke_test_part116.py (25 checks)
 
-## Part 117 — insurance_research tool (2026-10-15)
+## Part 117 â€” insurance_research tool (2026-10-15)
 - 70th tool: SEC EDGAR (search_filings, company_filings) + FRED
   (fred_search, fred_series)
 - Honest reframe: NAIC (no API) + AmericasSuretyBonds (blocks bots)
@@ -822,7 +822,7 @@ ff2054f (108b Tiingo fix)
 - actuary role now includes insurance_research
 - Smoke: smoke_test_part117.py (23 checks)
 
-## Part 118 — govcon_data tool (USAspending.gov) (2026-10-15)
+## Part 118 â€” govcon_data tool (USAspending.gov) (2026-10-15)
 - 71st tool: federal contracts + spending (Treasury, keyless)
 - Honest replacement for SAM.gov (OTP never arrived)
 - Actions: award_search / recipient_search / spending_by_category
@@ -835,7 +835,7 @@ ff2054f (108b Tiingo fix)
 - cfo role now has govcon_data in its subset
 - Smoke: smoke_test_part118.py (20 checks)
 
-## Parts 119-128 — Multi-platform feature roadmap (2026-10-15)
+## Parts 119-128 â€” Multi-platform feature roadmap (2026-10-15)
 Sourced from verified research of high-value platforms (Bloomberg,
 Kensho, AlphaSense, Hebbia, ServiceNow, Workday).
 
@@ -850,9 +850,9 @@ Kensho, AlphaSense, Hebbia, ServiceNow, Workday).
 - 127: earnings_call tool (8-theme transcript summarizer)
 - 128: clause_extractor tool (14-type contract clause extraction)
 
-Tools: 71 → 78. Zero regressions across all 10 parts.
+Tools: 71 â†’ 78. Zero regressions across all 10 parts.
 
-## Phase A + C-2 — Specialist sub-agents (2026-10-15)
+## Phase A + C-2 â€” Specialist sub-agents (2026-10-15)
 - Added 2 new roles to the supervisor hierarchy:
   * legal    (14 tools)  slate #64748b  LEGAL
   * risk_ins (22 tools)  red   #ef4444  RISK/INS
@@ -871,7 +871,7 @@ Tools: 71 → 78. Zero regressions across all 10 parts.
 - Zero changes to orchestrator.py or delegate_to_agent.py
 - Smoke: 129 (48/48), 130 (47/47), 114 (50/50), 112 (28/28)
 
-## Phase C-1 — legal_citation_check (2026-10-16)
+## Phase C-1 â€” legal_citation_check (2026-10-16)
 - New tool #80: legal_citation_check (CourtListener REST API v4)
 - Actions: verify_one / verify_text / search_cases / get_opinion
 - Status codes: 200 found | 404 valid-not-found | 400 invalid reporter
@@ -901,7 +901,7 @@ Tools: 71 → 78. Zero regressions across all 10 parts.
   * Smoke: smoke_test_part133.py (43 checks)
 - VERIFIED live: 80 tools, 9 roles, 4/4 providers, external prompts loaded
 
-## 2026-10-16 (session 2) — Parts 134-141
+## 2026-10-16 (session 2) â€” Parts 134-141
 
 Session: production safety + observability. 21 commits, 8 bug fixes.
 
@@ -943,7 +943,7 @@ Bugs found + fixed (5 surfaced by observability built same session):
 7. result.model leaked legacy LLM_MODEL env
 8. Gemini hallucinated "I'm LFM"
 
-## 2026-10-16 (session 3) — Part 142a
+## 2026-10-16 (session 3) â€” Part 142a
 
 Auditor sub-agent: forensic verification of AI outputs.
 
@@ -1481,7 +1481,7 @@ cd /h/sunnyware
 
 ## Environment Variables
 
-- `SUNNYWARE_JWT_SECRET` — required in production; generate with `openssl rand -base64 48` and set in HF Space settings.
+- `SUNNYWARE_JWT_SECRET` â€” required in production; generate with `openssl rand -base64 48` and set in HF Space settings.
 
 
 ## Background Workers
@@ -1508,7 +1508,7 @@ cd /h/sunnyware
 
 - Admin adds member via Team page.
 - Backend generates a magic link and returns it to the UI.
-- User opens link → gets JWT → auto-logged into `/ui`.
+- User opens link â†’ gets JWT â†’ auto-logged into `/ui`.
 - (Email sending is stubbed; users copy the link manually.)
 
 
@@ -1539,7 +1539,7 @@ cd /h/sunnyware
 
 - The chat UI silently collects hardware specs (CPU cores, GPU, RAM, network) and a synthetic benchmark score.
 - Data is sent to `POST /api/telemetry/report` and stored in `analytics_store`.
-- Visible in `/admin` → User Analytics → Details → Device Hardware Profile.
+- Visible in `/admin` â†’ User Analytics â†’ Details â†’ Device Hardware Profile.
 - Use this to identify users with slow devices and optimize orchestration.
 
 
@@ -1560,7 +1560,7 @@ cd /h/sunnyware
 - Stored in `hardware_profiles.json` under `_data`.
 - Key constant: `HARDWARE_FILE` in `analytics_store.py`.
 - API route: `POST /api/telemetry/report` (public).
-- Admin view: `/admin` → User Analytics → Details → Device Hardware Profile.
+- Admin view: `/admin` â†’ User Analytics â†’ Details â†’ Device Hardware Profile.
 
 - CPU cores, RAM (approx), platform, OS, browser, language, timezone
 - Screen resolution, pixel ratio, color depth, touch support
@@ -1642,7 +1642,7 @@ cd /h/sunnyware
 
 ## Mobile UX Polish (Part 266)
 
-- `chat.html`: `selectChat()` and `newChat()` now call `closeSidebar()` on screens ≤900px to prevent the sidebar from blocking the chat view.
+- `chat.html`: `selectChat()` and `newChat()` now call `closeSidebar()` on screens â‰¤900px to prevent the sidebar from blocking the chat view.
 
 
 ## Admin Token Analytics (Part 267)
@@ -1680,3 +1680,29 @@ cd /h/sunnyware
 - **Part 366 (2026-10-22)**: Passed all 83 tools to MiniCPM, set context to 16384 and timeout to 120s. Verified 100% local routing on complex tool test.
 
 - **Part 374 (2026-10-22)**: Stabilized cloud fallback (Gemini 2.5, Groq non-reasoning, OpenRouter re-enabled).
+
+---
+
+### Part 474 Update (2026-10-31): Updated Request Flow
+
+- **Early Math Regex** (`jarvis_agent.py`): Routes "2+2", "10*5" to calculator instantly.
+- **Keyword Router** (`keyword_router.py`): Matches "calculate", "python", etc.
+- **RAG Shortlist** (`find_relevant_tools`): Top 15 of 83 tools.
+- **Needle 3** (`needle_router.py`): Local tool selection, confidence ≥ 0.30.
+- **Hardcoded Fallback** (`jarvis_agent.py`): "pandas"/"dataframe" → `python_eval`.
+- **Cloud Fallback** (`llm.py`): Groq → Pollinations → Gemini → OpenRouter.
+
+**Disabled Components:**
+- MiniCPM (GGML_ASSERT crash)
+- Background evals (saves API quota)
+- Neon DB (quota exceeded)
+- local_llm_s3.py (caused segfaults)
+
+**Success Logs:**
+```
+[jarvis] Math expression detected, routing to calculator
+[jarvis] Hardcoded pandas fallback activated
+[llm.chat] Provider: groq
+```
+
+*Workflow updated: 2026-10-31*

@@ -1,4 +1,4 @@
-# HANDOFF — Sunnyware Current State
+# HANDOFF â€” Sunnyware Current State
 
 > **Read this first.** This file is the single source of truth for "where we are."
 > Update it at the end of every work session.
@@ -81,7 +81,7 @@ All smoke tests passing:
 4. **README refresh** (~15 min)
    Public-facing docs, architecture diagram, live demo links.
 
-5. **Part 32** — next feature (define together)
+5. **Part 32** â€” next feature (define together)
 
 ---
 
@@ -113,26 +113,26 @@ HF Space secrets mirror the above.
 
 ## Known limitations and gotchas
 
-1. **Do NOT run `pip install` piped to `tail` on MINGW** — it buffers
+1. **Do NOT run `pip install` piped to `tail` on MINGW** â€” it buffers
    everything for minutes. Use `--progress-bar on` for live output.
 
-2. **MINGW `/tmp/` is NOT Windows `/tmp/`** — use relative paths for
+2. **MINGW `/tmp/` is NOT Windows `/tmp/`** â€” use relative paths for
    file arguments shared between bash and native Windows Python.
 
 3. **Prefer Python heredocs over bash heredocs** for multi-line content.
    Inside triple-quoted strings, `\` can mis-escape.
 
-4. **HF Space rebuild time** — ~1 min for code-only changes, ~10 min if
+4. **HF Space rebuild time** â€” ~1 min for code-only changes, ~10 min if
    requirements.txt changed (new wheels download).
 
-5. **HF Space runs on ZeroGPU hardware** — works fine for CPU workloads.
+5. **HF Space runs on ZeroGPU hardware** â€” works fine for CPU workloads.
    The iframe sometimes shows "refused to connect" while the API is fine.
    Use `curl /health/ready` as ground truth.
 
-6. **Groq free-tier TPM limits** — 8K tokens/min for gpt-oss-20b.
+6. **Groq free-tier TPM limits** â€” 8K tokens/min for gpt-oss-20b.
    Memory caps + truncation keep us under it.
 
-7. **gpt-oss-20b quirks** — sometimes abbreviates tool names or returns
+7. **gpt-oss-20b quirks** â€” sometimes abbreviates tool names or returns
    placeholder text. Alias map + retry handle both.
 
 8. **Pre-Groq `.env` backup** lives at `.env.bak.20261010-171322`.
@@ -142,9 +142,9 @@ HF Space secrets mirror the above.
 
 ## See also
 
-- `WORKFLOW.md` — dual-remote workflow + per-part progress log
-- `AGENTS.md`   — briefing for AI assistants on this repo
-- `README.md`   — public-facing project overview
+- `WORKFLOW.md` â€” dual-remote workflow + per-part progress log
+- `AGENTS.md`   â€” briefing for AI assistants on this repo
+- `README.md`   â€” public-facing project overview
 
 ---
 
@@ -161,7 +161,7 @@ At the end of every session, before committing:
 Then commit + push both remotes.
 \n
 
-## Part 31G — Real PDF end-to-end test + max_tokens fix
+## Part 31G â€” Real PDF end-to-end test + max_tokens fix
 
 **Date:** 2026-10-10 (continued session)
 
@@ -209,7 +209,7 @@ Verified end-to-end in the browser at https://shamiur-sunnyware.hf.space/ui:
 
 Conclusion: full document-intelligence pipeline is production-validated
 via both API and WebUI. Drag-drop upload button is the only remaining
-UX gap (next session — Part 31H).
+UX gap (next session â€” Part 31H).
 \n
 
 ## Part 31H + 31I + 31J (2026-10-10, extended session)
@@ -243,12 +243,12 @@ UX gap (next session — Part 31H).
 
 ## Part 31K + 31K-ext (2026-10-10, late session)
 
-### Part 31K — Stronger prompt rules
+### Part 31K â€” Stronger prompt rules
 - RAG FIRST: if any document is uploaded, prefer rag_search for all
   factual questions about its content (not just explicit 'in my docs')
 - TOOL OBEDIENCE: if user says 'use X tool', MUST call it, no mental simulation
 
-### Part 31K-ext — Groq hallucinated-tool-name retry
+### Part 31K-ext â€” Groq hallucinated-tool-name retry
 - On HTTP 400 'Model called <X> tool which was not enabled', retry with
   an injected system hint: "The only Python tool is named exactly
   'python_eval'. Never use 'python' or abbreviations."
@@ -554,7 +554,7 @@ localStorage['sunnyware_active_v2'] = "web-xxxxx"
 - Old single-session key 'sunnyware_session' abandoned (fresh start)
 
 ### Bugs fixed during build
-- f-string backslash issue (Python 3.10 restriction) — split into concatenation
+- f-string backslash issue (Python 3.10 restriction) â€” split into concatenation
 - CSS/HTML structure needed two-pass patch (CSS first, JS later)
 
 ### Verified live
@@ -575,9 +575,9 @@ localStorage['sunnyware_active_v2'] = "web-xxxxx"
 ### What shipped
 - File picker accepts multiple files (Ctrl+Click or Shift+Click)
 - Sequential upload with per-file progress: [1/N] filename.pdf...
-- Per-file result: ✓ for success, ✗ for failure
+- Per-file result: âœ“ for success, âœ— for failure
 - Continues after failures (doesn't stop the batch)
-- Summary line at end: "Done: N uploaded (M chunks) · K failed"
+- Summary line at end: "Done: N uploaded (M chunks) Â· K failed"
 - docs:N badge refreshes after batch completes
 - Zero backend changes (loop of existing /api/rag/upload calls)
 
@@ -743,7 +743,7 @@ for a future session).
 2. Part 41 - define next
 3. Optional: use pre-push gate as the standard workflow going forward
 
-## 2026-10-14 — Part 87-88d
+## 2026-10-14 â€” Part 87-88d
 - Token economy fixes: max_tokens 900->2048, MAX_ITERATIONS 7->3, dedup, preflight rules.
 - Token burn: 6 iterations / 10k tokens for "hi" -> 1 iteration / 200 tokens.
 - SQL query: 3 tool calls -> 1 tool call.
@@ -752,7 +752,7 @@ for a future session).
 - Next: Part 89 (self-host marked.js), Part 90 (token budget guard), cleanup old sandboxes.
 - Current HEAD: ac66e30
 
-## 2026-10-14 — Part 90 + 90b
+## 2026-10-14 â€” Part 90 + 90b
 - Per-request token budget guard: MAX_REQUEST_TOKENS = 8000
 - _estimate_tokens helper (char-based, ~4 chars/token)
 - Trips on cumulative >= 8000, returns friendly message + budget_exceeded flag
@@ -765,7 +765,7 @@ for a future session).
 - HEAD: 65ad114
 - NEXT: monitor 429s; NVIDIA NIM integration; optional WebUI budget styling
 
-## 2026-10-14 — Part 91
+## 2026-10-14 â€” Part 91
 - WebUI styling for budget_exceeded SSE event
 - webui.py: budgetExceeded flag, SSE handler case, classList.add('budget')
 - webui.py: new .msg.agent.budget CSS (amber, #ffb020 border)
@@ -775,7 +775,7 @@ for a future session).
 - HEAD: e09abd3
 - NEXT: monitor 429s; NVIDIA NIM; optional exact token counts via llm.py usage
 
-## 2026-10-14 — Parts 93, 93b, 94, 95, 95b
+## 2026-10-14 â€” Parts 93, 93b, 94, 95, 95b
 - Professional WebUI redesign (5 iterations):
   - Part 93: header (gradient S + session pill + icon buttons + menu)
   - Part 93b: paperclip inside composer (ChatGPT-style)
@@ -789,7 +789,7 @@ for a future session).
   removing an id from HTML. Part 95 removed #clear and it crashed
   every subsequent init call silently.
 
-## 2026-10-14 — Parts 96 + 96b
+## 2026-10-14 â€” Parts 96 + 96b
 - Real token counts from provider usage (replaces char/4 heuristic)
 - llm.py: returns tokens_in / tokens_out / tokens_total
 - orchestrator.py: prefers real tokens; subtracts tools_schema overhead;
@@ -802,7 +802,7 @@ for a future session).
 - HEAD: ae65d27
 - NEXT: monitor 429s; NVIDIA NIM; optional long-prompt routing tweak
 
-## 2026-10-14 — Parts 97 + 97b
+## 2026-10-14 â€” Parts 97 + 97b
 - Pollinations AI added as 4th fallback provider (free tier)
 - Base URL: https://text.pollinations.ai/openai (OpenAI-compatible)
 - Model: 'openai' (GPT-OSS-20b); fallbacks registered in resolver
@@ -817,13 +817,13 @@ for a future session).
 - HEAD: 97d7123
 - NEXT: monitor status; NVIDIA NIM; optional Pollinations image gen tool
 
-## 2026-10-15 — Parts 98 + 98b + 98c
+## 2026-10-15 â€” Parts 98 + 98b + 98c
 - New tool: image_generate (free text-to-image via Pollinations.AI)
 - Models: flux (default), turbo, gptimage, qwen-image, kontext, nanobanana
-- Returns {image_base64, image_format} — same contract as chart_from_data
+- Returns {image_base64, image_format} â€” same contract as chart_from_data
 - 128-2048px clamp, 45s timeout, 2 MB size cap, magic-byte detection
 - Part 98b: 'call EXACTLY ONCE' (rate limit 1/15s)
-- Part 98c: WebUI 'tool_result' SSE case + .msg-image CSS — renders
+- Part 98c: WebUI 'tool_result' SSE case + .msg-image CSS â€” renders
   any tool's image_base64 result inline (also benefits chart_from_data
   and browser_screenshot)
 - Part 98c: tool description says 'Do NOT include base64 in reply'
@@ -834,7 +834,7 @@ for a future session).
 - HEAD: e27a541
 - NEXT: monitor 429s; NVIDIA NIM; video gen; long-prompt routing; TTS
 
-## 2026-10-15 — Part 99
+## 2026-10-15 â€” Part 99
 - Long-prompt routing: skip providers that can't fit the prompt
 - Provider.max_prompt_tokens field (defaults per provider)
 - Env override: {PREFIX}_MAX_PROMPT_TOKENS
@@ -845,7 +845,7 @@ for a future session).
 - HEAD: 20ed50b
 - NEXT: monitor 429s; NVIDIA NIM; video gen; TTS; learn real limits
 
-## 2026-10-15 — Parts 100 + 100b
+## 2026-10-15 â€” Parts 100 + 100b
 - Auto-learn provider prompt limits from 413 errors
 - New module: provider_limits.py
 - learn_limit(name, sent_tokens) -> max(500, sent - 200)
@@ -865,7 +865,7 @@ for a future session).
   "Agent failed" instead of trying next provider (surfaced during Part
   100 test when Groq 413'd). Deferred to a future part.
 
-## 2026-10-15 — Part 101
+## 2026-10-15 â€” Part 101
 - Empty-response fallback in multi-provider chain
 - _is_empty_response(r): ok=True + no content + no tool_calls
 - Both HTTP and local paths: cooldown + metric + continue
@@ -875,7 +875,7 @@ for a future session).
 - HEAD: 1214276
 - NEXT: monitor 429s; NVIDIA NIM; video gen; TTS; possible retry cycle
 
-## 2026-10-15 — Part 102
+## 2026-10-15 â€” Part 102
 - Retry policy for full failover cycle
 - When all providers cooling AND recovery imminent (<= 20s):
   wait min(min_cool + 0.5, 8.0)s then retry once
@@ -885,7 +885,7 @@ for a future session).
 - HEAD: 0da91ab
 - NEXT: monitor 429s; NVIDIA NIM; video gen; TTS; provider metrics dashboard
 
-## 2026-10-15 — Part 103
+## 2026-10-15 â€” Part 103
 - Provider health metrics dashboard
 - New endpoint: GET /api/providers/metrics
 - Aggregates session stats + lifetime counters + storage diag
@@ -895,7 +895,7 @@ for a future session).
 - HEAD: b48173f
 - NEXT: monitor metrics; NVIDIA NIM; video gen; TTS; WebUI health panel
 
-## 2026-10-15 — Part 104
+## 2026-10-15 â€” Part 104
 - WebUI provider health panel in the Stats modal
 - Renders /api/providers/metrics: table + summary + footers
 - Auto-refresh 10s while open
@@ -904,9 +904,9 @@ for a future session).
 - HEAD: f6160ce
 - NEXT: monitor metrics; NVIDIA NIM; video gen; TTS; per-message provider badge
 
-## 2026-10-15 — Part 105
+## 2026-10-15 â€” Part 105
 - Per-message provider chip in chat
-- 'via groq · 1.2s' appears under each assistant bubble
+- 'via groq Â· 1.2s' appears under each assistant bubble
 - lastProvider tracked per-request, set in 'final' + 'done' SSE handlers
 - .provider-chip CSS: muted, aligned, non-selectable
 - NEW: scripts/smoke_test_part105.py (18 checks)
@@ -914,7 +914,7 @@ for a future session).
 - NEXT: NVIDIA NIM (waiting on user activation); video gen (deferred);
   TTS; streaming-provider attribution for instant chip display
 
-## 2026-10-15 — Parts 106 + 106b/c/d
+## 2026-10-15 â€” Parts 106 + 106b/c/d
 - Persistent image attachments
 - New module: src/sunnyware/attachments.py
 - Serving: GET /api/attachments/{id}.{ext} + /stats
@@ -928,7 +928,7 @@ for a future session).
 - HEAD: c558e78
 - NEXT: monitor attachments/stats; NVIDIA NIM (waiting); TTS; video gen
 
-## 2026-10-15 — Parts 107 + 108 + 109
+## 2026-10-15 â€” Parts 107 + 108 + 109
 - Added 7 financial data tools for FP&A + quant roles:
   - edgar_fundamentals (SEC EDGAR XBRL, no key)
   - fred_economic (FRED macro, free key)
@@ -948,7 +948,7 @@ for a future session).
 - HEAD: ff2054f
 - NEXT: FP&A/Quant role prompts; NVIDIA NIM; options data (Polygon)
 
-## 2026-10-15 — Part 110
+## 2026-10-15 â€” Part 110
 - Eulerpool multi-source financial data tool (8th data source)
 - Curated 70 endpoints over Eulerpool's 447-endpoint API
 - NEW capabilities over other tools: bonds / yield curves / fixed income,
@@ -964,13 +964,13 @@ for a future session).
 - HEAD: d26718f
 - NEXT: FP&A / Quant role personas; NVIDIA NIM (waiting); options caching
 
-## 2026-10-15 — Part 111
+## 2026-10-15 â€” Part 111
 - Actuarial / insurance / risk libraries
 - Added to requirements.txt + python_eval sandbox allowlist:
   * chainladder 0.10.1 (P&C IBNR)
   * lifelib 0.17.2 (life/pension models)
   * solvency2-data 0.5.0 (EIOPA RFR curves)
-- haute rejected — requires Python 3.11+, HF runs 3.10.13
+- haute rejected â€” requires Python 3.11+, HF runs 3.10.13
 - Sandbox ALLOWED_MODULES extended with 12 modules (incl. transitive deps
   sparse, numba, llvmlite, modelx, libcst, asttokens, bs4, configparser,
   diskcache)
@@ -980,7 +980,7 @@ for a future session).
 - NEXT: role personas (FP&A / Quant / Actuary); NVIDIA NIM; insurance
   data sources (AmericasSuretyBonds MCP, NAIC API)
 
-## 2026-10-15 — Part 112
+## 2026-10-15 â€” Part 112
 - Role personas + per-role tool subsetting
 - New module: src/sunnyware/roles.py (5 roles: general, fpa, quant, actuary, tax)
 - Backend wiring: orchestrator + routes/agent (both /run and /stream)
@@ -989,7 +989,7 @@ for a future session).
 - Verified: 28/28 smoke checks + 6/6 pre-push gate
 - NEXT: NVIDIA NIM; per-session role; role-specific result formatting
 
-## 2026-10-15 — Part 113A
+## 2026-10-15 â€” Part 113A
 - Per-session role persistence
 - Stored in existing sessions.metadata JSONB (no migration)
 - New endpoints: GET/PUT /api/sessions/{key}/role
@@ -1002,7 +1002,7 @@ for a future session).
 - orchestrator._emit start event carries accent + chip
 - Fixes accent=None / chip=None in the live SSE start event
 
-## 2026-10-15 — Part 113C
+## 2026-10-15 â€” Part 113C
 - Options-cache TTL differentiation
 - In-memory cache now differentiated per action (60s / 300s / 24h / 1h)
 - Metrics: eulerpool_cache_hit_<action>, eulerpool_cache_miss_<action>, eulerpool_api_calls_total
@@ -1010,25 +1010,25 @@ for a future session).
 - Smoke test: scripts/smoke_test_part113c.py (24 checks)
 - NEXT: Part 113D insurance data sources (AmericasSuretyBonds, NAIC, state TDI)
 
-## 2026-10-15 — Part 114
+## 2026-10-15 â€” Part 114
 - CFO + CDO supervisor hierarchy
 - New tool: delegate_to_agent (bounded, max depth 3, cycle-safe)
 - New roles: cfo (user-facing PM), cdo (internal orchestrator)
-- Delegation matrix: cfo→cdo; cdo→{actuary,quant,fpa,tax,general}
+- Delegation matrix: cfoâ†’cdo; cdoâ†’{actuary,quant,fpa,tax,general}
 - WebUI: dropdown + borders + chips for cfo/cdo
 - Bonus fix: 113B chip emoji now render correctly
 - Smoke test: scripts/smoke_test_part114.py (49 checks)
 - NEXT: NVIDIA NIM (blocked on account); NAIC JSON:API; AmericasSuretyBonds
 
-### Part 114b-e — Pipeline hardening
+### Part 114b-e â€” Pipeline hardening
 - 114b CFO tool trim + 114c CDO tool trim + 600s timeout
 - 114d compact_prompt(allowed_tools) + _execute_tool guard
 - 114e STRICT PIPELINE RULE overrides base prompt
-- Live-verified: User → CFO → CDO → workers → CDO → CFO → User
+- Live-verified: User â†’ CFO â†’ CDO â†’ workers â†’ CDO â†’ CFO â†’ User
   on trivial task; correct answer, single delegation, no local tools
 - HEAD: 16e1462
 
-## 2026-10-15 — Parts 115, 116, 117
+## 2026-10-15 â€” Parts 115, 116, 117
 - Part 115: role-specific content CSS (tables/code/lists/headings)
 - Part 116: role config export/import (GET /api/roles/export,
   POST /api/roles/import)
@@ -1038,7 +1038,7 @@ for a future session).
 - NEXT: NVIDIA NIM (blocked); optional SAM.gov federal surety
   (needs free API key from api.data.gov/signup)
 
-## 2026-10-15 — Part 118
+## 2026-10-15 â€” Part 118
 - govcon_data tool (71st, USAspending.gov keyless federal contracts)
 - Honest replacement for SAM.gov plan
 - Live: NAICS 524126 P&C insurer contracts, AIG UEI lookup,
@@ -1047,7 +1047,7 @@ for a future session).
 - HEAD: d2cdf9c
 - NEXT: NVIDIA NIM (blocked on account activation)
 
-## 2026-10-15 — Parts 119-128 (roadmap complete)
+## 2026-10-15 â€” Parts 119-128 (roadmap complete)
 - 10 of 10 multi-platform roadmap features shipped
 - 78 tools total (was 71 at start of roadmap)
 - All zero-LLM deterministic, except 119 (metrics wrapper around
@@ -1057,12 +1057,12 @@ for a future session).
 - NEXT: NVIDIA NIM (blocked on account); add roadmap tools to
   quant role for full symmetry
 
-## 2026-10-15 — Phase A + C-2 (specialist sub-agents)
+## 2026-10-15 â€” Phase A + C-2 (specialist sub-agents)
 - 2 new roles: legal (Financial Legal Assistant) + risk_ins
   (Financial Risk & Insurance)
 - Extended cdo delegation to include legal + risk_ins
 - New tool #79: risk_metrics (12 deterministic actions)
-- Zero orchestrator changes — pure registry extension
+- Zero orchestrator changes â€” pure registry extension
 - VERIFIED live: 9 roles in /api/roles, both new roles answer
   correctly, risk_ins autonomously calls risk_metrics end-to-end
 - HEAD: 85beac3
@@ -1242,7 +1242,7 @@ usage CSV).
 - Live test of the auditor role (Part 142a) revealed two real issues:
     1. Large models (groq gpt-oss-120b) return clean JSON.
        Small models (Liquid LFM 2.6B via openrouter) wrap the JSON in
-       a markdown code fence and prepend prose — so the API consumer
+       a markdown code fence and prepend prose â€” so the API consumer
        couldn't reliably parse the verdict.
     2. The auditor was misusing rag_search for logic-fallacy names
        ("post hoc ergo propter hoc") which are general knowledge,
@@ -1460,9 +1460,9 @@ usage CSV).
                cooling=4 ready=0 min_cool=29.0s retry_depth=0
   So cooldowns WERE persisted (Part 153 works), but the router still
   gave up because of two limits in llm.py:
-    1. `if _min_cool <= 20.0` — pollinations' 35s IP floor exceeds this,
+    1. `if _min_cool <= 20.0` â€” pollinations' 35s IP floor exceeds this,
        so the wait branch never fired.
-    2. `_wait = min(_min_cool + 0.5, 8.0)` — even when it did fire,
+    2. `_wait = min(_min_cool + 0.5, 8.0)` â€” even when it did fire,
        the sleep was hard-capped at 8s. With a 29s cooldown, the
        recursion exited still cooling.
 - Fix:
@@ -1747,7 +1747,7 @@ smokes + gate run before any git action.
        that key only.
     2. Dashboard rewrite: single fetch of /api/status/summary every
        10s (was 9 fetches / 5s). CARDS now carry key:"..." instead
-       of url:"..." — the same renderers are called with data pulled
+       of url:"..." â€” the same renderers are called with data pulled
        from the summary map. New renderCardFromSummary() handles
        missing keys with amber dot + "no data for key".
 - Rate usage now: 6 req/min vs 60 cap. 10x headroom.
@@ -2104,10 +2104,10 @@ Config:
 - routes/accounting.py: 6 new endpoints for COA, drafts, chat, agent status.
 - admin-v2.html: new CFO Agent tab with chat UI, draft cards, approve/reject.
 - Model: Groq openai/gpt-oss-20b (auto-activated via LLM_API_KEY).
-- WORKFLOW: AI drafts → human approves → posts to ledger → dashboard updates.
+- WORKFLOW: AI drafts â†’ human approves â†’ posts to ledger â†’ dashboard updates.
 - VERIFIED END-TO-END with 3 transaction types:
   * Revenue subscription (Assets:Cash / Revenue:Subscriptions)
-  * Owner draw (Equity:Owner Draws / Assets:Cash) — correct equity treatment
+  * Owner draw (Equity:Owner Draws / Assets:Cash) â€” correct equity treatment
   * Team meal (Expenses:Meals / Assets:Cash)
   All 3 posted to ledger with correct P&L impact.
 
@@ -2212,8 +2212,8 @@ Config:
 
 ## Backend
 - **New** `src/sunnyware/routes/workos_admin.py`: 
-  - `GET /api/admin/workos/users` — fetches users from WorkOS User Management API.
-  - `GET /api/admin/workos/organizations` — fetches orgs from WorkOS.
+  - `GET /api/admin/workos/users` â€” fetches users from WorkOS User Management API.
+  - `GET /api/admin/workos/organizations` â€” fetches orgs from WorkOS.
 - **Updated** `src/sunnyware/main.py`: Registered `workos_admin_routes`.
 
 ## Frontend (`static/admin-v2.html`)
@@ -2237,16 +2237,16 @@ Config:
   - Updated `/api/saas/checkout` to ensure Paddle prices exist before creating a checkout.
 
 ## Frontend (`static/chat.html`)
-- **Plan Display**: Sidebar now shows the user's real plan (`Free · Free · 1M tokens`) instead of the hardcoded "Enterprise · Unlimited".
+- **Plan Display**: Sidebar now shows the user's real plan (`Free Â· Free Â· 1M tokens`) instead of the hardcoded "Enterprise Â· Unlimited".
 - **Upgrade Modal**: Clicking the plan text opens a modal with Pro/Enterprise options.
 - **Checkout Redirect**: Clicking "Upgrade" redirects to Paddle checkout.
-- **Admin Mode**: Logged in as `master-admin-key`, the plan text shows "Admin · Full Access" and clicking it shows an alert.
+- **Admin Mode**: Logged in as `master-admin-key`, the plan text shows "Admin Â· Full Access" and clicking it shows an alert.
 - **Auth Guard**: API calls (`/api/roles`, `/api/sessions`, `/api/saas/me`) are skipped when no API key is present to prevent 401 loops.
 - **Loop Guards**: `handle401` now has a 5-second cooldown to prevent infinite reload loops.
 - **Flicker Guard**: `syncSessionsFromServer` only re-renders the sidebar if the session data has actually changed.
 
 ## Verified
-- Google login sets the plan text to `Free · Free · 1M tokens`.
+- Google login sets the plan text to `Free Â· Free Â· 1M tokens`.
 - Billing button opens Paddle Customer Portal with correct user email.
 - No 401 errors or red banners appear when logged out.
 - UI is stable with no flicker.
@@ -2261,13 +2261,13 @@ Config:
   - Mobile: full-width bottom sheet with overlay.
   - Menu items: Upgrade plan (with current plan badge), Manage billing, Theme toggle, Switch account, Log out.
 - **Close Buttons**: Added X button to Settings menu header and Login modal header.
-- **Plan Display Fix**: No more "Free · Free · 1M tokens"; now shows "Free · 1M tokens".
+- **Plan Display Fix**: No more "Free Â· Free Â· 1M tokens"; now shows "Free Â· 1M tokens".
 - **Billing Opens in New Tab**: Paddle Customer Portal opens in a new tab, keeping the chat UI intact.
 - **Null-Safety**: `applyTheme` now gracefully handles missing `#iconMoon`/`#iconSun` elements.
 - **Script Position**: Moved `<script>` to the end of `<body>` so all DOM elements exist at parse time.
 - **Standalone `openUpgradeModal()`**: Defined for use in the upgrade flow.
 - **Upgrade Modal**: Shows current plan with "Current plan" label instead of an Upgrade button.
-- **Loading Fallback**: `loadUserPlan` falls back to "Free · 1M tokens" if the API call fails or hangs.
+- **Loading Fallback**: `loadUserPlan` falls back to "Free Â· 1M tokens" if the API call fails or hangs.
 
 ## Backend (`src/sunnyware/routes/saas.py`)
 - **Force-Upgrade Endpoint** (`POST /api/saas/admin/force-upgrade`): Admin-only endpoint to instantly upgrade an org to a given plan for testing. Fixed path to include `/api/saas` prefix.
@@ -2277,18 +2277,18 @@ Config:
 ## Verified
 - `system_monitor.py`: 99.8/100 (A+), PRODUCTION-READY.
 - `pre_push_check.py`: ALL PASS, READY TO PUSH.
-- UI: Settings menu opens/closes via pill, X, outside click, Escape. Login modal closes via X. Billing opens in new tab. Plan text shows "Pro · $49/mo · 20M tokens" after force-upgrade.
+- UI: Settings menu opens/closes via pill, X, outside click, Escape. Login modal closes via X. Billing opens in new tab. Plan text shows "Pro Â· $49/mo Â· 20M tokens" after force-upgrade.
 - Console: No errors, no flicker, chat works, history loads.
 
-## Part 211 — Full Team Management (2026-10-19)
+## Part 211 â€” Full Team Management (2026-10-19)
 
 ### Backend
-- `src/sunnyware/team_store.py` — JSON-backed store: members + activity
-- `src/sunnyware/routes/team.py` — REST API: GET/POST/PATCH/DELETE members, GET/DELETE activity
-- Auth hooks in `routes/auth.py` and `routes/authkit.py` — track_login / track_logout
+- `src/sunnyware/team_store.py` â€” JSON-backed store: members + activity
+- `src/sunnyware/routes/team.py` â€” REST API: GET/POST/PATCH/DELETE members, GET/DELETE activity
+- Auth hooks in `routes/auth.py` and `routes/authkit.py` â€” track_login / track_logout
 
 ### Frontend
-- `static/admin-v2.html` — `renderTeam()` rewritten with:
+- `static/admin-v2.html` â€” `renderTeam()` rewritten with:
   - Members table (name, email, role dropdown, status, last login/logout, delete)
   - Add member form
   - Role permissions reference
@@ -2302,32 +2302,32 @@ Config:
 - `DELETE /api/team/members/{id}`
 - `GET    /api/team/activity?limit=200&user=&action=`
 - `DELETE /api/team/activity`
-- `POST   /api/auth/logout` (new — triggers track_logout)
+- `POST   /api/auth/logout` (new â€” triggers track_logout)
 
 ### Data Files
 - `/data/team_members.json`
 - `/data/team_activity.json`
 
 ### Verified
-- Add, list, role change, delete all work ✅
-- Activity log shows member_added, member_deleted, login, logout ✅
-- Plan display fix confirmed in production ✅
-- Orgs remain healthy (no regression) ✅
+- Add, list, role change, delete all work âœ…
+- Activity log shows member_added, member_deleted, login, logout âœ…
+- Plan display fix confirmed in production âœ…
+- Orgs remain healthy (no regression) âœ…
 
-## Part 215 — Final Polish Bundle (2026-10-19) COMPLETED
+## Part 215 â€” Final Polish Bundle (2026-10-19) COMPLETED
 - **Charts**: Integrated Chart.js into Admin User Analytics (Tokens + Chats over 7 days).
 - **Cancel Subscription**: Added `POST /api/saas/cancel` and UI button (visible only for non-Free/Enterprise plans).
 - **Token Accuracy**: Added prompt+content fallback estimation in analytics hooks.
 - **Verified**: Pro plan correctly shows "Cancel Subscription" in the UI. Chart API returns correct data.
 
-## Part 216d — Final Polish & Fixes (2026-10-19)
+## Part 216d â€” Final Polish & Fixes (2026-10-19)
 - Fixed PDF `bytearray` error (now returns `bytes` in `saas.py`).
 - Downgraded Chart.js to v3.9.1 to fix blank charts.
 - Added robust error handling for user details panel.
 - Fixed PDF invoice date formatting to be human-readable (e.g., Oct 19, 2026).
 - Verified: All features (Analytics, PDFs, Charts, Cancel Sub) are fully functional.
 
-## Part 218b — Smoke Test System Proven (2026-10-19)
+## Part 218b â€” Smoke Test System Proven (2026-10-19)
 - Fixed fmtDuration is not defined (module-level helpers + aliases in renderAnalytics/showUserDetail)
 - Fixed fmtNum already declared (removed duplicate arrow function in showUserDetail)
 - Moved Chart.js CDN to head for reliable load
@@ -2337,17 +2337,17 @@ Config:
 ### Workflow (proven end-to-end)
   ./safe_deploy.sh "Part XXX: description"
 
-## Part 219c — Inline SVG Chart + Telemetry + Auto-Login (2026-10-19)
-- Replaced Chart.js CDN with inline SVG renderer (`_renderSimpleChart`) — no external deps, works on blocked networks
-- Telemetry (IP, UA, Device) now uses ContextVars — reliably propagates across async tasks
+## Part 219c â€” Inline SVG Chart + Telemetry + Auto-Login (2026-10-19)
+- Replaced Chart.js CDN with inline SVG renderer (`_renderSimpleChart`) â€” no external deps, works on blocked networks
+- Telemetry (IP, UA, Device) now uses ContextVars â€” reliably propagates across async tasks
 - Auto-login event fired on first chat in 30 min session (Sessions counter now works)
 - Updated smoke test markers: `_renderSimpleChart` instead of `chart.js@3`
 - Deployment verified: LOCAL PASSED -> pushed `ad061d9` -> HF rebuilt in 30s -> REMOTE PASSED
 
-## Part 220 — Device Header + Telemetry Fixes (2026-10-19) VERIFIED
+## Part 220 â€” Device Header + Telemetry Fixes (2026-10-19) VERIFIED
 - Added `X-Device-ID` header to central fetch wrapper in chat.html
 - Middleware now sets telemetry contextvars (IP, UA, Device) on every request
-- `_log_llm` has robust fallback (contextvars → stack → UA parsing)
+- `_log_llm` has robust fallback (contextvars â†’ stack â†’ UA parsing)
 - Auto-login event fires on first chat in 30 min session
 - `_session_active_seconds` has span fallback (Active Time now shows real value)
 - **Verified in live screenshots**:
@@ -2359,30 +2359,30 @@ Config:
   - Chat with tool calls works (list_files returned 27 files)
 
 ## Proven Deployment Pipeline
-- `./safe_deploy.sh "message"` runs local smoke → push → poll HF → remote smoke → SUCCESS
+- `./safe_deploy.sh "message"` runs local smoke â†’ push â†’ poll HF â†’ remote smoke â†’ SUCCESS
 - 27 local checks + 24 remote checks pass every deploy
 
-## Part 221d — VERIFIED LIVE (2026-10-20)
+## Part 221d â€” VERIFIED LIVE (2026-10-20)
 - Chat Audit shows 5 messages from real browser traffic
-- User: "what is 2+2" → Assistant: "2 + 2 = 4" — both captured
+- User: "what is 2+2" â†’ Assistant: "2 + 2 = 4" â€” both captured
 - Email attribution correct, role badges render, stats accurate
 - SHA: 2329c77
 
 ## Part 221 Status: FULLY COMPLETE
-- ✅ A: API Keys (scoped, rate-limited, revocable)
-- ✅ B: RAG Management (upload, auto-chunk, inspect)
-- ✅ C: Webhooks (Slack/Discord, retries, log)
-- ✅ D: Chat Audit (auto-capture + flag + CSV export)
-- ✅ E: Scheduled Tasks (cron prompts, run history)
+- âœ… A: API Keys (scoped, rate-limited, revocable)
+- âœ… B: RAG Management (upload, auto-chunk, inspect)
+- âœ… C: Webhooks (Slack/Discord, retries, log)
+- âœ… D: Chat Audit (auto-capture + flag + CSV export)
+- âœ… E: Scheduled Tasks (cron prompts, run history)
 
 ## Platform Feature Count
 - 17 admin pages
 - 24 API endpoints (verified by remote smoke test)
 - 43 local checks + 39 remote checks per deploy
-- `./safe_deploy.sh` — one-command ship
+- `./safe_deploy.sh` â€” one-command ship
 
-## Part 222 — 2FA Fully Working (2026-10-20) VERIFIED
-- Dashboard loads after TOTP verification — no more unauthorized
+## Part 222 â€” 2FA Fully Working (2026-10-20) VERIFIED
+- Dashboard loads after TOTP verification â€” no more unauthorized
 - All admin endpoints return 428 without valid X-2FA-Session
 - Whitelisted endpoints (auth, chat, checkout) still work
 - SHA: b9b808b
@@ -2392,7 +2392,7 @@ Config:
 - safe_deploy.sh proven (47 local + 39 remote checks)
 - Next options: B (Impersonation), C (Backup), D (Feature Flags), E (Overage Billing), F (Slack Bot)
 
-## Part 223 — Backup & Restore (2026-10-20) COMPLETED
+## Part 223 â€” Backup & Restore (2026-10-20) COMPLETED
 - New route file: `routes/backup.py` with 4 endpoints (list, export, validate, restore)
 - ZIP export bundles all `.json` files from `/data`
 - Validate parses ZIP and shows what will be restored
@@ -2402,18 +2402,18 @@ Config:
 - **Verified**: 49 local checks, 26 remote endpoints, 16 HTML markers all pass
 
 ### Known small gaps for future polish
-- Pre-restore snapshots accumulate in `/data` — could add auto-cleanup of old snapshots
+- Pre-restore snapshots accumulate in `/data` â€” could add auto-cleanup of old snapshots
 - No scheduled/automatic backups yet (manual only)
 - File upload size limit is whatever FastAPI defaults to (could be tuned)
 
-## Part 225 — User Feedback Collection (2026-10-20) COMPLETED
+## Part 225 â€” User Feedback Collection (2026-10-20) COMPLETED
 - Public endpoint `POST /api/feedback` (whitelisted from auth & 2FA)
-- Admin dashboard at `/admin` → Feedback with stats, distribution chart, and list
+- Admin dashboard at `/admin` â†’ Feedback with stats, distribution chart, and list
 - Store: `feedback_store.py` (rating 1-5, comment, page, user, timestamp)
 - Verified: curl test returned `{"ok": true, "id": "fb_..."}`, admin UI shows the entry
 - Deployment SHA: 63397fd
 
-## Part 226 — Audit Fixes & Webhook Retry Engine (2026-10-20) COMPLETED
+## Part 226 â€” Audit Fixes & Webhook Retry Engine (2026-10-20) COMPLETED
 - **Audit Fixes**:
   - `llm.py`: Replaced race-prone global `_LAST_STREAM_PROVIDER` with `contextvars`.
   - `_sandbox.py`: Fixed `ImportError` for libraries needing `os`, secured spoofable `__name__` check with `__sandbox__` marker.
@@ -2424,7 +2424,7 @@ Config:
   - Admin UI shows a "Pending Retries" table.
 - Deployment SHA: 1a2f8cd
 
-## Part 227 — Critical Security Fixes (2026-10-20) COMPLETED
+## Part 227 â€” Critical Security Fixes (2026-10-20) COMPLETED
 - `auth.py`: Hardcoded JWT secret replaced with env var `SUNNYWARE_JWT_SECRET` + secure random fallback.
 - `saas.py`: `cancel_subscription` now verifies JWT signature via `verify_jwt()` instead of manual decode.
 - `saas.py`: Replaced hardcoded `master-admin-key` checks in `force-upgrade` and `paddle-live` with `_admin(req)`.
@@ -2432,40 +2432,40 @@ Config:
 - Deployment SHA: 634fd33
 - **Action required**: Set `SUNNYWARE_JWT_SECRET` in HF Space settings (DONE).
 
-## Part 228 — Background Worker Audit & Fixes (2026-10-20) COMPLETED
+## Part 228 â€” Background Worker Audit & Fixes (2026-10-20) COMPLETED
 - `main.py`: Added `_start_scheduled_task_worker` async loop (runs every 60s).
 - `scheduled_tasks_store.py`: `_next_run_ts` now returns `None` for "once" schedule.
 - `scheduled_tasks_store.py`: Tasks auto-disable after a "once" run completes.
 - `routes/chat_audit.py`: Offloaded synchronous `log_message` to `asyncio.to_thread` to prevent blocking the event loop.
 - Deployment SHA: f808de2
 
-## Part 229 & 230 — Rate Limiting & API Key Reveal (2026-10-20) COMPLETED
+## Part 229 & 230 â€” Rate Limiting & API Key Reveal (2026-10-20) COMPLETED
 - **Rate Limiting**: `rate_limiter.py` (sliding window), `main.py` middleware, `api_keys_store.py` update limit, editable in UI.
 - **API Key Reveal**: Added "Reveal" button to `/admin` -> API Keys table. Opens a modal with full key and "Copy to Clipboard".
 - Deployment SHA: f137f84
 
-## Part 231 & 232 — Team Invites & API Key Regenerate (2026-10-20) COMPLETED
+## Part 231 & 232 â€” Team Invites & API Key Regenerate (2026-10-20) COMPLETED
 - **Team Invites**: `invite_store.py`, magic links, email delivery, UI on Team page, public `/invite` accept route.
 - **API Key Regenerate**: Replaced "Reveal" (impossible since hashed) with "Regenerate" button. `api_keys_store.regenerate_key()` generates a new `sk_...`, hashes it, updates the prefix, resets usage, and returns the raw key exactly once.
 - Deployment SHA: eafb808
 
-## Part 233 & 233b — Team Magic Link Invites (2026-10-20) COMPLETED
+## Part 233 & 233b â€” Team Magic Link Invites (2026-10-20) COMPLETED
 - **Invite Store**: `invite_store.py` with `create_invite`, `get_invite`, `delete_invite`.
 - **Backend**: `routes/team.py` now creates an invite on `add_member` and returns the magic link. Accept route `/invite` generates a JWT and redirects to `/ui`.
 - **Frontend**: `addTeamMember()` now shows a modal with the magic link and a copy button.
 - **Fix 233b**: Removed broken `from .. import email as _email` import that crashed the HF Space.
 - Deployment SHA: b897404
 
-## Part 234 & 235 — Team Login RBAC & Email/Google Login (2026-10-20) COMPLETED
+## Part 234 & 235 â€” Team Login RBAC & Email/Google Login (2026-10-20) COMPLETED
 - **Part 234**: Added `/api/auth/me` endpoint, fixed 2FA gate to skip JWT users, added auto-login via invite link, implemented role-based tab hiding.
 - **Part 235**: Added `/api/auth/admin-login` for email-based login. Replaced the old master-key-only login form with a beautiful email/Google login form. Kept master key fallback.
 - Deployment SHA: d455020 (Part 235b) / c23b67a (Part 234) / b897404 (Part 233b)
 
-## Part 236 — Add About & API Docs to Sidebar (2026-10-20) COMPLETED
+## Part 236 â€” Add About & API Docs to Sidebar (2026-10-20) COMPLETED
 - Added "Resources" section at the bottom of the admin sidebar with links to `/about` and `/docs`.
 - Deployment SHA: ab07b77
 
-## Part 237 — Complete Team API Surface (2026-10-20) COMPLETED
+## Part 237 â€” Complete Team API Surface (2026-10-20) COMPLETED
 - Added 5 missing team routes to `team.py`:
   - `POST /api/team/invite`
   - `GET /api/team/invites`
@@ -2475,108 +2475,108 @@ Config:
 - All routes are now visible in `/docs` (OpenAPI spec).
 - Deployment SHA: 96b8245
 
-## Part 238 — Advanced Hardware Telemetry & Performance Profiling (2026-10-20) COMPLETED
+## Part 238 â€” Advanced Hardware Telemetry & Performance Profiling (2026-10-20) COMPLETED
 - **Backend**: Added `POST /api/telemetry/report` (public) to receive hardware profiles. Updated `analytics_store.py` with `update_hardware_profile()`.
 - **Frontend (Chat)**: Injects a script that collects CPU cores, GPU vendor/model (WebGL), RAM, network speed, screen resolution, OS, browser, and runs a synthetic benchmark.
 - **Frontend (Admin)**: Injected a "Device Hardware Profile" grid into the user details view, showing all specs + a color-coded Performance Score.
 - **Whitelist**: Added `/api/telemetry/report` to `_public_api` and `_2FA_WHITELIST`.
 - Deployment SHA: 0dd810f
 
-## Part 239 — Planner & RAG Reliability Audit (2026-10-20) COMPLETED
+## Part 239 â€” Planner & RAG Reliability Audit (2026-10-20) COMPLETED
 - **planner.py**: Deduped subtasks, added per-subtask 60s timeout, made `asyncio.gather` exception-safe, truncated answers to 2000 chars before synthesis.
 - **routes/rag_admin.py**: Offloaded all file I/O to `asyncio.to_thread` (7 calls) so uploads no longer freeze the server.
 - **routes/agent.py**: Added 180s outer timeout to `/api/agent/plan`.
 - Deployment SHA: f6d305e
 
-## Part 238b — Anonymous Hardware Telemetry (2026-10-20) COMPLETED
+## Part 238b â€” Anonymous Hardware Telemetry (2026-10-20) COMPLETED
 - Backend: `/api/telemetry/report` now defaults to "anonymous" if no email is provided.
 - Frontend: `chat.html` falls back to `'anonymous'` for the email.
 - Deployment SHA: f64245a
 
-## Part 241 — Massive Telemetry Expansion (2026-10-20) COMPLETED
+## Part 241 â€” Massive Telemetry Expansion (2026-10-20) COMPLETED
 - **Frontend (chat.html)**: Expanded telemetry to collect 20+ fields (platform, timezone, language, touch, max texture, network type, full user agent, color depth, etc.).
 - **Backend (analytics.py)**: Improved error reporting for telemetry endpoint (traceback + exception type).
 - **Admin UI (admin-v2.html)**: Expanded Hardware Grid to display all 18+ fields with color-coded performance score.
 - Deployment SHA: b446eda
 
-## Part 242b & 243 — Telemetry and Auth Middleware Fixes (2026-10-20) COMPLETED
+## Part 242b & 243 â€” Telemetry and Auth Middleware Fixes (2026-10-20) COMPLETED
 - **Telemetry**: Fixed `NameError: USERS_FILE not defined` by creating `HARDWARE_FILE` constant and updating `update_hardware_profile` and the route in `analytics.py`.
 - **Auth Middleware**: Fixed `UnboundLocalError: local variable 'key' referenced before assignment` by initializing `key = ""` at the start of the middleware try block.
 - Deployment SHA: ec4bd83 (Part 242b) / 3538ef4 (Part 243)
 
-## Part 248 — Telemetry for Real Users (2026-10-20) COMPLETED
+## Part 248 â€” Telemetry for Real Users (2026-10-20) COMPLETED
 - **Frontend (`chat.html`)**: When WorkOS JWT is received, the email is extracted and saved to `localStorage` for telemetry.
 - **Backend (`analytics.py`)**: Telemetry route now overrides `"anonymous"` with the email from the JWT, ensuring profiles are saved under the correct user.
 - Verified: `curl` with `X-API-Key: user:test@example.com` and `email: anonymous` returns `{"ok": true}` and saves under `test@example.com`. Console shows `[auth] Extracted email from JWT: shamiur.sunny@gmail.com` and `[Telemetry] Sent successfully`.
 - Deployment SHA: cd79eed
 
-## Part 251 — Status Page 2FA Fix (2026-10-20) COMPLETED
+## Part 251 â€” Status Page 2FA Fix (2026-10-20) COMPLETED
 - **static/status.html**: Added a global fetch interceptor that injects `X-API-Key` and `X-2FA-Session` from `localStorage` into all same-origin API calls.
 - This fixes the `/status` page showing "2FA verification required" for all health cards.
 - Deployment SHA: cc1672d
 
-## Part 252 — Tools Page 2FA Fix (2026-10-20) COMPLETED
+## Part 252 â€” Tools Page 2FA Fix (2026-10-20) COMPLETED
 - **static/tools.html**: Added a global fetch interceptor that injects `X-API-Key` and `X-2FA-Session` from `localStorage` into all same-origin API calls.
 - This fixes the `/tools` page showing "HTTP 428" for the tool health table.
 - Deployment SHA: 3a38da5
 
-## Part 253 — Status Page Integrations (2026-10-20) COMPLETED
+## Part 253 â€” Status Page Integrations (2026-10-20) COMPLETED
 - **meta.py**: Replaced the `budget` aggregation with an `integrations` object that checks for WorkOS, Paddle, and Neon API keys.
 - **status.html**: Replaced the `renderBudget` function with `renderIntegrations` to display real-time SaaS integration connection statuses.
 - Deployment SHA: d049ed7
 
-## Part 254 & 255 — Image Rendering & Action Buttons (2026-10-20) COMPLETED
+## Part 254 & 255 â€” Image Rendering & Action Buttons (2026-10-20) COMPLETED
 - **chat.html**: Fixed duplicate image rendering by stripping markdown image tags from LLM text.
 - **chat.html**: Added hover overlay with Fullscreen, Copy, and Share buttons for generated images.
 - Deployment SHA: 84adb25
 
-## Part 256 — Cross-Device Library Sync (2026-10-20) COMPLETED
+## Part 256 â€” Cross-Device Library Sync (2026-10-20) COMPLETED
 - **routes/library.py**: Created new API endpoints for listing, saving, and deleting library files. Uses a new `library_files` table in Neon DB.
 - **chat.html**: Removed the broken Share button, and replaced `localStorage` logic with API calls to sync uploads and generated images across devices.
 - Deployment SHA: 1dd6d6d
 
-## Part 257 — Security Audit Fixes (2026-10-20) COMPLETED
+## Part 257 â€” Security Audit Fixes (2026-10-20) COMPLETED
 - **chat.html**: Fixed XSS in `mdLite` by sanitizing link URLs.
 - **orchestrator.py**: Reduced `MAX_ITERATIONS` from 10 to 5 to protect tokens.
 - **auth.py**: Moved hardcoded `master-admin-key` to `os.getenv("SUNNYWARE_MASTER_KEY")`.
 - Deployment SHA: 96412e4
 
-## Part 258 & 259 — Storage Protection & Key Rotation (2026-10-20) COMPLETED
+## Part 258 & 259 â€” Storage Protection & Key Rotation (2026-10-20) COMPLETED
 - **library.py**: Added 5MB file size limit and 100-file cap per user. Added UUID validation on delete.
 - **chat.html**: Added frontend check for 5MB limit.
 - **main.py, agent.py, analytics_hooks.py, auth.py**: Replaced hardcoded `master-admin-key` with `os.getenv("SUNNYWARE_MASTER_KEY")` in all files.
 - Deployment SHA: 8bd9039
 
-## Part 260 — Auth Security Fixes (2026-10-20) COMPLETED
+## Part 260 â€” Auth Security Fixes (2026-10-20) COMPLETED
 - **twofa_store.py**: Added brute-force protection to `verify_login`. Locks out user for 15 mins after 5 failed TOTP attempts.
 - **auth.py**: Fixed JWT decoding padding bug (`b64 + "=="` -> dynamic padding) to prevent random logouts.
 - Deployment SHA: 7e35004
 
-## Part 263 — Chat UI 2FA Fix (2026-10-21) COMPLETED
+## Part 263 â€” Chat UI 2FA Fix (2026-10-21) COMPLETED
 - **chat.html**: Updated global `window.fetch` interceptor to inject `X-2FA-Session` header for all `/api/*` requests. Fixes the `HTTP 428 2fa_required` error that was blocking chat, session history, and library loading for admin users.
 - Deployment SHA: 5c719f3
 
-## Part 264 — Cross-Device Chat Titles (2026-10-21) COMPLETED
+## Part 264 â€” Cross-Device Chat Titles (2026-10-21) COMPLETED
 - **agent.py**: Updated all `get_or_create` calls to pass `metadata={"title": prompt[:50]}` so the first message is saved as the chat title.
 - This fixes the issue where chats loaded from the backend on a new device would only show "Chat sunny-..." instead of the actual title.
 - Deployment SHA: 9191de1
 
-## Part 265 — Library Search Tool (2026-10-21) COMPLETED
+## Part 265 â€” Library Search Tool (2026-10-21) COMPLETED
 - **tools/search_library.py**: Created a new tool that lets the AI search the user's uploaded Library files using SQL `ILIKE` queries on filenames and content.
 - **tools/__init__.py**: Registered `SearchLibraryTool`.
 - This enables the AI to read PDFs, text files, and code files you upload directly from the chat.
 - Deployment SHA: 1b832a8
 
-## Part 266 — Mobile UX Sidebar Fix (2026-10-21) COMPLETED
+## Part 266 â€” Mobile UX Sidebar Fix (2026-10-21) COMPLETED
 - **chat.html**: Added `closeSidebar()` to `selectChat()` and `newChat()` so the mobile sidebar closes automatically when navigating.
 - Deployment SHA: f58a674
 
-## Part 267 — Admin Token Analytics (2026-10-21) COMPLETED
+## Part 267 â€” Admin Token Analytics (2026-10-21) COMPLETED
 - **analytics_store.py**: Added `MODEL_PRICING` map and auto-calculation of `cost_cents` based on model + token count.
 - **admin-v2.html**: Added `_renderBarChart` and a "Top Token Users (Last 30 Days)" chart to the User Analytics page.
 - Deployment SHA: 4ec27ab
 
-## Parts 269–273 — Performance, Routing, and Loop Fixes (2026-10-21) COMPLETED
+## Parts 269â€“273 â€” Performance, Routing, and Loop Fixes (2026-10-21) COMPLETED
 - **Part 269**: Enabled tool calling for Pollinations.
 - **Part 270**: Increased Groq token limit to 128,000 to prevent skipping.
 - **Part 271**: Added a hard limit in `orchestrator.py` to force a final answer after 2 tool calls.
@@ -2584,7 +2584,7 @@ Config:
 - **Part 273**: Reduced LLM HTTP timeout from 20s to 5s for faster failover.
 - Deployment SHA: fc83622
 
-## Parts 274–303 — Local Jarvis Agent (2026-10-21) COMPLETED
+## Parts 274â€“303 â€” Local Jarvis Agent (2026-10-21) COMPLETED
 - **jarvis_agent.py**: Created to use embedding RAG and local GGUF models for tool selection.
 - **local_llm_s3.py**: Created to load the model from `/models` mount or download to `/data/models`.
 - **orchestrator.py**: Intercepts tool calls with Jarvis before the cloud LLM, and uses a minimal synthesis prompt to avoid HTTP 413 errors.
@@ -2593,7 +2593,7 @@ Config:
 - **chat.html**: Added `final` event handler to render the streamed answer.
 - Deployment SHA: 31e7c10
 
-## Parts 310–319 — Local Jarvis Stability & Failover (2026-10-21) COMPLETED
+## Parts 310â€“319 â€” Local Jarvis Stability & Failover (2026-10-21) COMPLETED
 - **Part 310**: Simplified embedder loader to download-once to `/data/hub`.
 - **Part 311**: Attempted AVX2 compilation (reverted later for stability).
 - **Part 312-313**: Banned `<think>` blocks in prompt, added `stop=["</think>"]` and `max_tokens=100`.
@@ -2604,14 +2604,14 @@ Config:
 - **Status**: App is 100% stable. Simple questions fall back to cloud in 5s. Tool calls execute locally.
 - Deployment SHA: d061b7b
 
-## Parts 320–374 — Needle 3 Integration (2026-10-21) COMPLETED
+## Parts 320â€“374 â€” Needle 3 Integration (2026-10-21) COMPLETED
 - **Part 320-321**: Integrated Needle 3 as a fast first-stage router.
 - **Part 322-324**: Fixed missing `log` variable, indentation errors, and parsing logic.
 - **Part 325-329**: Configured persistent caching (`XDG_CACHE_HOME=/data/.cache`), ensuring the 35MB `needle3.cact` is downloaded exactly once.
 - **Result**: Needle 3 now runs locally from disk using memory-mapped (`mmap`) loading, inferring at **~860 tokens/sec**. It successfully routes tools locally and saves cloud tokens.
 - Deployment SHA: f3f5b68
 
-## Parts 330-350 — Needle 3 + Keyword Router Optimization (2026-10-22) COMPLETED
+## Parts 330-350 â€” Needle 3 + Keyword Router Optimization (2026-10-22) COMPLETED
 
 ### Architecture (4-stage hybrid router)
 1. Stage 0: Keyword router (100% deterministic, ~14 tools covered)
@@ -2633,15 +2633,50 @@ Config:
 - ~20 tool cases are the ceiling for 29M model argument extraction
 - Final SHA: c9bc866 (clean), 3aba13f (v6 with eval)
 
-## Parts 360-366 — MiniCPM Full Tool Routing (2026-10-22) COMPLETED
+## Parts 360-366 â€” MiniCPM Full Tool Routing (2026-10-22) COMPLETED
 - **Part 360-361**: Reverted XML experiment. Restored JSON prompt, `max_tokens=1024`, `stop=["</think>"]`.
 - **Part 362**: Reverted CPU params to `n_threads=4`, `n_batch=256`.
 - **Part 363-364**: Fixed `.env` override causing Groq 404 (`llama-3.1-8b-instant` -> `openai/gpt-oss-120b`).
 - **Part 366**: **BREAKTHROUGH**. Passed ALL 83 tools to MiniCPM. Set `n_ctx=16384`, `timeout=120.0`.
 - **Result**: MiniCPM successfully routes tools locally. 34s response time (including cold start). No cloud fallback needed for the fibonacci test.
 
-## Parts 372-374 — Cloud Provider Stability (2026-10-22) COMPLETED
+## Parts 372-374 â€” Cloud Provider Stability (2026-10-22) COMPLETED
 - **Part 372**: Raised `max_tokens` to 8192 in `llm.py`.
 - **Part 373**: Switched Groq to `llama-3.3-70b-versatile` (non-reasoning).
 - **Part 374**: Updated Gemini to `gemini-2.5-flash`, re-enabled OpenRouter.
 - **Result**: All 3 cloud providers (Gemini, OpenRouter, Groq) are active and working. Test "hi" succeeded in 1.5s.
+
+---
+
+### Part 474 Update (2026-10-31): Ready for Next Stage
+
+**Status:** Stable, tested, ready for handoff.
+
+**Critical Configuration:**
+```
+LLM_PROVIDERS = groq,pollinations,gemini,openrouter
+LOCAL_MODEL_ENABLED = 0
+SUNNYWARE_AGENT_TIMEOUT = 300
+```
+
+**Verified Tests:**
+| Prompt | Result | Time |
+|---|---|---|
+| "What is 2+2?" | 4 | ~1.4s |
+| "10*5" | 50 | ~0.7s |
+| "Use Python to calculate 5+5" | 10 | ~0.8s |
+| Pandas prompt | python_eval code | ~30s |
+
+**Technical Debt:**
+- HIGH: MiniCPM disabled (Test Qwen2.5-1.5B)
+- HIGH: Evals disabled (Re-enable on paid tiers)
+- MEDIUM: Neon DB deleted (Re-add when quota resets)
+- MEDIUM: Only pandas hardcoded (Add weather, email, pdf fallbacks)
+
+**Suggested Next Steps:**
+1. Add hardcoded fallbacks for weather, email, pdf.
+2. Re-enable evals when on paid API tier.
+3. Re-add Neon DB.
+4. Consider Qwen2.5 for local model.
+
+*Handoff updated: 2026-10-31*
