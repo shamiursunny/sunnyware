@@ -3170,3 +3170,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Review any remaining flaky tests and stabilize them.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 498 Update (2026-11-01): Ready for Part 499
+
+**Status:** CI workflow now runs the full test suite and a fast keyword router suite.
+
+**What was done:**
+- Updated `.github/workflows/agent_stream_tests.yml` to run all tests.
+- Added a fast job for deterministic router tests.
+- Removed obsolete `test_chat_tool.py`.
+
+**Next Steps (Part 499):**
+1. Wait for the first full CI run on GitHub and verify it passes.
+2. Consider adding test coverage for `planner.py` and `orchestrator` multi-step flows.
+3. Review tool-calling metrics and consider adding a dashboard.
+
+*Handoff updated: 2026-11-01*

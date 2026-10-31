@@ -1,4 +1,4 @@
-name: Agent Stream Integration Tests
+name: Full Test Suite
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 jobs:
-  test:
+  full-suite:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
@@ -23,9 +23,29 @@ jobs:
         pip install pytest fastapi httpx fastapi-testclient starlette
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
 
-    - name: Run integration tests
+    - name: Run full test suite
       env:
         LLM_API_KEY: "dummy"
         GEMINI_API_KEY: "dummy"
       run: |
-        pytest tests/test_agent_stream.py -v
+        pytest tests/ -v --tb=short
+
+  fast-tests:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pytest fastapi httpx fastapi-testclient starlette
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Run deterministic keyword router tests
+      run: |
+        pytest tests/test_keyword_router_direct.py -v

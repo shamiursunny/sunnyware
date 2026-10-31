@@ -1726,3 +1726,13 @@ me the exact git commands to commit + push both remotes."
 - **CI workflow** `.github/workflows/agent_stream_tests.yml` will run a subset on every push.
 
 *Part 497 logged: 2026-11-01*
+
+---
+
+### Part 498 Update (2026-11-01): CI Expanded to Full Test Suite
+
+- **Updated** `.github/workflows/agent_stream_tests.yml` to run the **full test suite** (`pytest tests/ -v`) on every push.
+- Added a second fast job that runs only `test_keyword_router_direct.py` (0.1s) for quick feedback.
+- Removed the old root-level `test_chat_tool.py` (superseded by `scripts/chat_test.py`).
+
+*Part 498 logged: 2026-11-01*

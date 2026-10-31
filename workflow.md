@@ -2072,3 +2072,15 @@ Covers `sql_sandbox_drop`, `api_call` (GET), and `api_call` (POST) without LLM d
 All integration and unit tests are now green. The test foundation is stable and ready for future features.
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 498 Update (2026-11-01): CI Expanded to Full Test Suite
+
+**Workflow jobs:**
+- `full-suite` — runs `pytest tests/ -v --tb=short`
+- `fast-tests` — runs `pytest tests/test_keyword_router_direct.py -v` (fast feedback)
+
+The full suite runs on every push to `main`, ensuring all 100 tests remain green.
+
+*Workflow updated: 2026-11-01*
