@@ -1459,3 +1459,19 @@ me the exact git commands to commit + push both remotes."
 **Verified (7/7 tests pass locally):** read_file, write_file, web_fetch (3 triggers), chart_from_data (3 triggers).
 
 *Part 479 logged: 2026-10-31*
+
+---
+
+### Part 480 Update (2026-10-31): Research Search + CSV Query Routing
+
+- **`research_search` triggers expanded** (`keyword_router.py`): Added `"research "` and `"investigate "` patterns → `"Research quantum computing"` and `"Investigate climate change"` now route instantly.
+- **`csv_query` implemented** (`keyword_router.py`): 
+  - `"Query data.csv for all rows"` → `{"file": "data.csv", "sql": "SELECT * FROM data.csv"}`
+  - `"Select * from users.csv"` → `{"file": "users.csv", "sql": "Select * FROM users.csv"}`
+  - `"Query X for Y"` → auto-builds `WHERE Y` clause
+- **Dead code removed** (`keyword_router.py`): Second `csv_query` block (that only returned `None`) removed.
+- **SQL truncation bug fixed** (`keyword_router.py`): `"Select * from users.csv"` was returning `"Select *"` — now appends `FROM users.csv`.
+
+**Verified (6/6 tests pass locally):** research_search (2), csv_query (2), web_search (2).
+
+*Part 480 logged: 2026-10-31*

@@ -1784,3 +1784,20 @@ cd /h/sunnyware
 - `"graph 5,10,15"` → `chart_from_data`
 
 *Workflow updated: 2026-10-31*
+
+---
+
+### Part 480 Update (2026-10-31): Research + CSV Query Routing
+
+**New/fixed keyword routes:**
+- `"Research X"` / `"Investigate X"` → `research_search`
+- `"Query X.csv for all rows"` → `csv_query` (auto `SELECT * FROM X.csv`)
+- `"Select * from X.csv"` → `csv_query` (valid SQL generated)
+- `"Query X.csv for Y"` → `csv_query` (auto WHERE clause)
+
+**Verified (6/6 tests pass locally):**
+- 2 web_search variants
+- 2 research_search variants  
+- 2 csv_query variants
+
+*Workflow updated: 2026-10-31*

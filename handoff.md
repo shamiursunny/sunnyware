@@ -2779,3 +2779,26 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 4. Test Gemini tool-calling end-to-end in production (still pending from Part 477)
 
 *Handoff updated: 2026-10-31*
+
+---
+
+### Part 480 Update (2026-10-31): Ready for Part 481
+
+**Status:** 19+ instant keyword routes working. No crashes.
+
+**What changed:**
+- `research_search` now matches `"research X"` / `"investigate X"`
+- `csv_query` extracts SQL from `"query for all rows"`, `"select * from X"`, `"query for Y"`
+- SQL truncation bug fixed (`"Select *"` → `"Select * FROM file.csv"`)
+
+**Known Limitations:**
+- `csv_query` only handles simple SQL (`SELECT *`, `WHERE`). Complex joins need LLM.
+- `"Query the csv file for sales"` (no filename) → falls through to LLM (correct).
+
+**Next Steps (Part 481):**
+1. Add `excel_read` / `excel_write` routing (currently dead code returning None)
+2. Add `document_diff` routing for `"compare X and Y"` prompts
+3. Add `image_generate` with DALL-E/Gemini support
+4. Verify Gemini tool-calling end-to-end (still pending from Part 477)
+
+*Handoff updated: 2026-10-31*
