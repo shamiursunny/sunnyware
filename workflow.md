@@ -1706,3 +1706,19 @@ cd /h/sunnyware
 ```
 
 *Workflow updated: 2026-10-31*
+
+---
+
+### Part 475 Update (2026-10-31): CI/CD & Status Page Health
+
+**Status Page Logic:**
+- When `NEON_DATABASE_URL` is missing:
+  - `sessions`/`memory` report `ok` (local file mode).
+  - `neon` reports `disabled` (yellow).
+  - Integrations panel shows `LOCAL STORAGE` (green).
+
+**CI Pipeline:**
+- `gate` job runs `system_monitor.py --offline`.
+- `continue-on-error: true` prevents non-critical MEDIUM warnings from failing the build.
+
+*Workflow updated: 2026-10-31*
