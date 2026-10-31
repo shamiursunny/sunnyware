@@ -1873,3 +1873,16 @@ cd /h/sunnyware
 - `document_library` (add/save — needs content, tags, description)
 
 *Workflow updated: 2026-10-31*
+
+---
+
+### Part 485 Update (2026-10-31): HITL Config Routing
+
+**New keyword route:**
+- `"Require confirmation for X"` / `"Set hitl for X"` / `"Configure hitl for X"` → `hitl_config_update` (`tool_name: X, decision: "require"`)
+- `"Auto-approve X"` / `"Auto approve X"` → `hitl_config_update` (`tool_name: X, decision: "auto"`)
+
+**Not a tool (Admin UI only):**
+- `feature_flags` — managed through `/admin` → Feature Flags section, not through chat
+
+*Workflow updated: 2026-10-31*

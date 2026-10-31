@@ -2915,3 +2915,31 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 4. Add `feature_flags` routing for `"enable feature X"` prompts
 
 *Handoff updated: 2026-10-31*
+
+---
+
+### Part 485 Update (2026-10-31): Ready for Part 486
+
+**Status:** 41+ instant keyword routes working.
+
+**What changed:**
+- `hitl_config_update` stub fixed — tool_name + decision extraction
+- Decision logic: "auto-approve" → "auto", everything else → "require"
+- Regex fixed to not capture "for" as tool name
+
+**Verified (6/6 HITL routes pass):**
+- 3 "require" variants
+- 2 "auto" variants
+- 1 "hitl config" variant
+
+**Known Limitations:**
+- `feature_flags` is not a callable tool — only managed via Admin UI
+- Tool name must be a valid identifier (letters, numbers, underscores)
+
+**Next Steps (Part 486):**
+1. Verify Gemini tool-calling end-to-end in production (check HF logs for `Tool schema rejected`)
+2. Add `data_quality_report` routing (`"check data quality of X.csv"`)
+3. Add `narrate_table` routing (`"narrate table X"`)
+4. Add `sql_sandbox_*` routing for `"create sql sandbox"` / `"load csv to sandbox"`
+
+*Handoff updated: 2026-10-31*

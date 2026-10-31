@@ -1533,3 +1533,16 @@ me the exact git commands to commit + push both remotes."
 **Verified (8/8 routes pass locally):** 3 search_library, 3 rag_search, 2 document_library.
 
 *Part 484 logged: 2026-10-31*
+
+---
+
+### Part 485 Update (2026-10-31): HITL Config Routing
+
+- **`hitl_config_update` fixed** (`keyword_router.py`): Was a dead `return None` stub. Now extracts `tool_name` + `decision` from prompts like `"Require confirmation for python_eval"` / `"Auto-approve calculator"`.
+- **Decision logic**: `"auto-approve"` / `"allow"` / `"auto"` → `decision: "auto"`. Everything else → `decision: "require"`.
+- **Regex fix**: Original regex captured `"for"` as tool name. Fixed with `(?:(?:for|on|to)\s+)?` (trailing space inside optional group).
+- **`feature_flags`**: Not a callable tool — managed via Admin UI (`/admin` → Feature Flags). Left as `None` (LLM handles).
+
+**Verified (6/6 HITL routes pass locally):** 3 "require" variants, 2 "auto" variants, 1 "hitl config" variant.
+
+*Part 485 logged: 2026-10-31*
