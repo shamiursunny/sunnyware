@@ -1905,3 +1905,18 @@ cd /h/sunnyware
 - `financial_metrics` — needs structured financial data.
 
 *Workflow updated: 2026-10-31*
+
+---
+
+### Part 487 Update (2026-10-31): Advanced Argument Extraction
+
+**Enhanced routes:**
+- `"check data quality of X.csv with max 1000 rows"` → `data_quality_report` (`file=X.csv, max_rows=1000`)
+- `"check data quality of X.csv sample 10%"` → `data_quality_report` (`file=X.csv, sample_pct=10.0`)
+- `"run sql in sandbox Y: SELECT * FROM t WHERE id = $1 with params [42]"` → `sql_sandbox_execute` (`name=Y, sql=..., params=[42]`)
+
+**Re-added stubs:**
+- `narrate_table` (needs JSON rows)
+- `financial_metrics` (LLM-only)
+
+*Workflow updated: 2026-10-31*

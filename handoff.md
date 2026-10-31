@@ -2967,3 +2967,28 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 4. Add `sql_sandbox_execute` parameter extraction (`$1..$n` placeholders).
 
 *Handoff updated: 2026-10-31*
+
+---
+
+### Part 487 Update (2026-10-31): Ready for Part 488
+
+**Status:** 53+ instant keyword routes working, with advanced argument extraction.
+
+**What changed:**
+- `data_quality_report` now accepts `max_rows` and `sample_pct` (extracted from prompt).
+- `sql_sandbox_execute` now accepts `params` array (extracted and stripped from SQL).
+- `narrate_table` and `financial_metrics` stubs re-added.
+
+**Verified (15/15 routes pass):**
+- 6 `data_quality_report` variants with args
+- 3 `sql_sandbox_execute` variants (with and without params)
+- 4 core SQL sandbox routes (create, load, drop, list)
+- 2 LLM-only stubs (narrate_table, financial_metrics)
+
+**Next Steps (Part 488):**
+1. Verify Gemini tool-calling end-to-end in production (check HF logs for `Tool schema rejected`).
+2. Add `narrate_table` route if we can extract rows from prior context.
+3. Add `sql_sandbox_execute` with named parameters (`$name` style).
+4. Consider route for `financial_metrics` if structured data is provided inline.
+
+*Handoff updated: 2026-10-31*

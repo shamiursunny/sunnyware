@@ -1565,3 +1565,18 @@ me the exact git commands to commit + push both remotes."
 **Verified (12/12 new routes pass locally).**
 
 *Part 486 logged: 2026-10-31*
+
+---
+
+### Part 487 Update (2026-10-31): Advanced Argument Extraction
+
+- **`data_quality_report`** now extracts optional `max_rows` and `sample_pct` from prompts:
+  - `"with max 1000 rows"` / `"max_rows=500"` → `max_rows`
+  - `"sample 10%"` / `"sample_pct=5"` → `sample_pct`
+  - Both can be combined: `"max 500 rows sample 20%"` → `{max_rows: 500, sample_pct: 20.0}`
+- **`sql_sandbox_execute`** now extracts `params` array from `"with params [42]"` and strips it from SQL.
+- **`narrate_table`** and **`financial_metrics`** stubs re-added (were dropped during Part 486 reorder) — still return `None` for LLM.
+
+**Verified (15/15 routes pass locally).**
+
+*Part 487 logged: 2026-10-31*
