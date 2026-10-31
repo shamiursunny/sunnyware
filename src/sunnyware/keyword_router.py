@@ -171,7 +171,25 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if ".csv" in p or "csv file" in p:
         fname = _extract_filename(prompt, ["csv"])
         if fname:
-            # Let Needle extract the SQL query — it's too complex for regex
+            import re as _re_csv
+            # Try to extract explicit SQL first
+            sql_match = _re_csv.search(r'(select\s+.+?)(?:\s*$|\s*from\s+[^\s]+)', prompt, _re_csv.IGNORECASE)
+            if sql_match and "select" in sql_match.group(1).lower():
+                sql = sql_match.group(1).strip()
+                if " from " not in sql.lower():
+                    sql = f"{sql} FROM {fname}"
+                return {"tool": "csv_query", "args": {"file": fname, "sql": sql}}
+            # Try "query X for Y" / "select * from X"
+            if "all rows" in p or "all data" in p or "everything" in p:
+                return {"tool": "csv_query", "args": {"file": fname, "sql": f"SELECT * FROM {fname}"}}
+            # Try "select * from X"
+            if "select" in p and "*" in p:
+                return {"tool": "csv_query", "args": {"file": fname, "sql": f"SELECT * FROM {fname}"}}
+            # Try "query for X" pattern
+            q_match = _re_csv.search(r'query(?:\s+\w+)?\s+for\s+(.+)$', prompt, _re_csv.IGNORECASE)
+            if q_match:
+                return {"tool": "csv_query", "args": {"file": fname, "sql": f"SELECT * FROM {fname} WHERE {q_match.group(1).strip()}"}}
+            # Fall through to LLM for complex SQL
             return None
 
     # --- read_file (must have .txt) ---
@@ -276,12 +294,7 @@ def keyword_route(prompt: str) -> Optional[dict]:
             return {"tool": "python_eval", "args": {"code": code_match.group(1).strip()}}
         return None  # can't extract code safely
 
-    # --- csv_query (needs .csv + "query" / "select") ---
-    if ".csv" in p and any(w in p for w in ["query", "select", "filter", "where"]):
-        fname = _extract_filename(prompt, ["csv"])
-        if fname:
-            # Let Needle extract the SQL — too complex for regex
-            return None
+    # (csv_query handled earlier at line ~170)
 
     # --- excel_write (Excel + write data) ---
     if "excel" in p and any(w in p for w in ["write", "save", "create"]):
@@ -323,7 +336,10 @@ def keyword_route(prompt: str) -> Optional[dict]:
 
     # --- research_search (must have "research" or "investigate") ---
     if any(kw in p for kw in ["research the topic", "investigate topic",
-                               "do research", "deep research"]):
+                               "do research", "deep research",
+                               "research ", "investigate "]):
+
+
         # Extract query
         import re as _re
         q_match = _re.search(r"(?:research the topic of|research|investigate)\s+(.+)$", prompt, _re.IGNORECASE)
