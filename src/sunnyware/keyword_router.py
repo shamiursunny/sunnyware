@@ -238,7 +238,8 @@ def keyword_route(prompt: str) -> Optional[dict]:
 
     # --- schedule_list ---
     if any(kw in p for kw in ["list my schedule", "list all schedule", "show my scheduled",
-                               "show me my scheduled"]):
+                               "show me my scheduled", "list schedules", "show schedules",
+                               "list tasks", "show tasks", "what schedules", "my schedules"]):
         return {"tool": "schedule_list", "args": {}}
 
     # --- email_configured ---
@@ -246,8 +247,13 @@ def keyword_route(prompt: str) -> Optional[dict]:
         return {"tool": "email_configured", "args": {}}
 
     # --- kpi_watch_list ---
-    if "list kpi" in p or "my kpi" in p:
+    if any(kw in p for kw in ["list kpi", "my kpi", "show kpi", "kpi watches", "what kpis"]):
         return {"tool": "kpi_watch_list", "args": {}}
+
+    # --- kpi_watch_run ---
+    if any(kw in p for kw in ["run kpis", "run all kpis", "check kpis now",
+                               "run kpi watches", "trigger kpis", "check kpis"]):
+        return {"tool": "kpi_watch_run", "args": {}}
 
 
     # --- python_eval (must have "python" AND code-like words) ---
