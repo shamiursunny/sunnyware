@@ -1622,3 +1622,22 @@ me the exact git commands to commit + push both remotes."
 - No code changes needed.
 
 *Part 490 logged: 2026-11-01*
+
+---
+
+### Part 491 Update (2026-11-01): Integration Tests & CLI Helper
+
+- **`tests/test_agent_stream.py`** added — 3 passing integration tests:
+  - `test_calculator_tool_call` — verifies `calculator` routing
+  - `test_web_search_tool_call` — verifies `web_search` routing
+  - `test_email_placeholder_routes_to_configured` — verifies safety check for placeholder emails
+  - `test_email_real_routes_to_send` — skipped (sends actual email, manual verification only)
+- **`scripts/chat_test.py`** added — CLI helper for manual `/api/agent/stream` testing:
+  ```
+  python scripts/chat_test.py "What is 123 * 456?"
+  ```
+  Outputs SSE events (`tool_call`, `tool_result`, `answer`, `error`) in real time.
+
+**Verified:** 3 passed, 1 skipped in `pytest tests/test_agent_stream.py`; CLI helper correctly shows `tool_call: calculator(...)` and result `56088`.
+
+*Part 491 logged: 2026-11-01*

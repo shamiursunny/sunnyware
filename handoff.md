@@ -3049,3 +3049,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Expand tool-calling coverage to additional tools (pdf_read, image_generate, etc.).
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 491 Update (2026-11-01): Ready for Part 492
+
+**Status:** Integration tests added (3 passing, 1 skipped), CLI helper created.
+
+**What was done:**
+- `tests/test_agent_stream.py` — covers calculator, web_search, email placeholder safety check.
+- `scripts/chat_test.py` — CLI helper for manual SSE testing.
+
+**Next Steps (Part 492):**
+1. Expand tool-calling coverage to `pdf_read`, `image_generate`, `excel_read`.
+2. Add regression tests for SQL sandbox routes via `/api/agent/stream`.
+3. Consider adding a CI step to run these integration tests on push.
+
+*Handoff updated: 2026-11-01*

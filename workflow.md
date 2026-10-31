@@ -1975,3 +1975,24 @@ cd /h/sunnyware
 **Key insight:** Router falls back to email_configured when placeholder email is detected.
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 491 Update (2026-11-01): Integration Tests & CLI Helper
+
+**New files:**
+- `tests/test_agent_stream.py` — pytest integration tests for `/api/agent/stream` tool routing
+- `scripts/chat_test.py` — CLI helper to send prompts and print SSE events
+
+**Test coverage:**
+- Calculator: ✅ `calculator({'expression': '123 * 456'})`
+- Web search: ✅ `web_search({'query': 'python tutorials'})`
+- Email placeholder: ✅ `email_configured({})` (safety check)
+- Email real address: skipped (manual verification)
+
+**CLI usage:**
+```
+python scripts/chat_test.py "What is 123 * 456?"
+```
+
+*Workflow updated: 2026-11-01*
