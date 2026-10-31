@@ -1722,3 +1722,18 @@ cd /h/sunnyware
 - `continue-on-error: true` prevents non-critical MEDIUM warnings from failing the build.
 
 *Workflow updated: 2026-10-31*
+
+---
+
+### Part 476 Update (2026-10-31): Expanded Keyword Routing
+
+**New keyword routes:**
+- `"weather in X"` → `weather` tool (city extraction)
+- `"send email to X about Y"` → `email_send` tool (email + subject extraction)
+
+**Bug fixes:**
+- `pdf_read` arg `filepath` → `file` (was silently failing)
+- `pdf_read` condition narrowed to `.pdf` filenames only
+- `pdf_report` remains LLM-handled (needs structured spec)
+
+*Workflow updated: 2026-10-31*

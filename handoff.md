@@ -2700,3 +2700,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Consider Qwen2.5 for local model.
 
 *Handoff updated: 2026-10-31*
+
+---
+
+### Part 476 Update (2026-10-31): Ready for Part 477
+
+**Status:** Weather, Email, PDF Read routing instant. PDF Report via LLM (by design).
+
+**Known Limitation:**
+- PDF report generation requires structured data — the LLM asks user for it.
+
+**Next Steps (Part 477):**
+1. Add `email_configured` check before routing to `email_send` (avoid "not configured" errors).
+2. Test `weather` with city names containing spaces (e.g., "New York").
+3. Improve tool schema rejection fallback in `llm.py` (Gemini 400 — retry without tools correctly).
+
+*Handoff updated: 2026-10-31*

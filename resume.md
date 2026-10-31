@@ -1405,3 +1405,15 @@ me the exact git commands to commit + push both remotes."
 - **Result**: Status page is 100% green/yellow. CI/CD pipeline is passing.
 
 *Part 475 logged: 2026-10-31*
+
+---
+
+### Part 476 Update (2026-10-31): Weather, Email, PDF Routing
+
+- **Weather routing** (`keyword_router.py`): Extracts city from `"in Tokyo"` → routes to `weather` tool instantly.
+- **Email routing** (`keyword_router.py`): Detects `"send email to X about Y"` → routes to `email_send` tool.
+- **PDF read bug fixed** (`keyword_router.py`): Arg name changed `filepath` → `file` (correct schema). Condition narrowed from `"pdf" in p` to `".pdf" in p` (with create-guard) so `"Generate a PDF"` no longer wrongly routes to `pdf_read`.
+- **PDF report**: Left as `return None` (LLM builds structured spec — correct behavior).
+- **Verified in Chat UI**: Weather → instant response, Email → sent, PDF read → graceful "file not found", PDF report → LLM asks for data.
+
+*Part 476 logged: 2026-10-31*
