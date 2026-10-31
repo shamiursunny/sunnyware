@@ -2802,3 +2802,31 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 4. Verify Gemini tool-calling end-to-end (still pending from Part 477)
 
 *Handoff updated: 2026-10-31*
+
+---
+
+### Part 481 Update (2026-10-31): Ready for Part 482
+
+**Status:** 21+ instant keyword routes working.
+
+**What changed:**
+- `excel_read` arg fixed (`filepath` → `file`)
+- `document_diff` file pair extraction implemented
+- `pdf_read` now excludes compare/diff prompts
+
+**Verified (6/6 functional routes pass):**
+- 2 excel_read variants
+- 2 document_diff variants
+- 2 image_generate variants
+
+**Known Limitations:**
+- `excel_write` needs structured `sheets` array → LLM handles
+- `document_diff` with non-file sources (chunks, text) → LLM handles
+
+**Next Steps (Part 482):**
+1. Verify Gemini tool-calling end-to-end in production (still pending from Part 477)
+2. Add `api_call` routing for REST endpoints
+3. Add `browser_goto` / `browser_screenshot` routing (Playwright tools)
+4. Add `delegate_to_agent` routing for multi-agent workflows
+
+*Handoff updated: 2026-10-31*

@@ -1475,3 +1475,17 @@ me the exact git commands to commit + push both remotes."
 **Verified (6/6 tests pass locally):** research_search (2), csv_query (2), web_search (2).
 
 *Part 480 logged: 2026-10-31*
+
+---
+
+### Part 481 Update (2026-10-31): Excel + Document Diff Routing
+
+- **`excel_read` arg fix** (`keyword_router.py`): `{"filepath": X}` → `{"file": X}` (was silently failing).
+- **`document_diff` implemented** (`keyword_router.py`): Extracts two filenames from `"compare X and Y"` / `"diff X Y"` prompts → `{"left_file": X, "right_file": Y}`.
+- **`pdf_read` exclusion** (`keyword_router.py`): Now skips prompts containing `"compare"` or `"diff"` — so `"Compare report1.pdf and report2.pdf"` correctly routes to `document_diff` instead of `pdf_read`.
+- **`excel_write`**: Left as LLM-handled (needs `sheets` array that can't be extracted from plain text).
+- **`image_generate`**: Already worked (verified).
+
+**Verified (6/6 functional routes pass locally):** excel_read (2), document_diff (2), image_generate (2).
+
+*Part 481 logged: 2026-10-31*

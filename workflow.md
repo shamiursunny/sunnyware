@@ -1801,3 +1801,22 @@ cd /h/sunnyware
 - 2 csv_query variants
 
 *Workflow updated: 2026-10-31*
+
+---
+
+### Part 481 Update (2026-10-31): Excel + Document Diff Routing
+
+**New/fixed keyword routes:**
+- `"Read X.xlsx"` / `"Show me X.xlsx"` → `excel_read` (arg: `file`)
+- `"Compare X.pdf and Y.pdf"` → `document_diff` (args: `left_file`, `right_file`)
+- `"Diff X.txt and Y.txt"` → `document_diff`
+- `"Generate an image of X"` → `image_generate` (already worked)
+- `"Create an image of X"` → `image_generate` (already worked)
+
+**LLM-handled:**
+- `excel_write` (needs `sheets` array — complex spec)
+- Any compare/diff prompt without two clear filenames
+
+**pdf_read fix:** Now excludes `"compare"` / `"diff"` prompts so it doesn't hijack document_diff.
+
+*Workflow updated: 2026-10-31*
