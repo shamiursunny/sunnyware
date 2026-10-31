@@ -404,8 +404,27 @@ def keyword_route(prompt: str) -> Optional[dict]:
 
     # --- hitl_config_update ---
     if any(kw in p for kw in ["set hitl", "require confirmation", "configure hitl",
-                               "hitl config"]):
-        return None  # Need tool name extraction
+                               "hitl config", "auto-approve", "auto approve"]):
+        import re as _re_htl
+        # Extract tool name — look for common tool name patterns
+        tool_m = _re_htl.search(
+            r"(?:set hitl|configure hitl|require confirmation|hitl config|auto-approve|auto approve)"
+            r"\s+(?:(?:for|on|to)\s+)?([a-z_][a-z0-9_]*[a-z0-9])",
+            prompt, _re_htl.IGNORECASE
+        )
+        if not tool_m:
+            return None
+        tool_name = tool_m.group(1).strip()
+        # Determine decision based on trigger
+        if any(kw in p for kw in ["auto-approve", "auto approve", "allow", "auto"]):
+            decision = "auto"
+        else:
+            decision = "require"
+        return {"tool": "hitl_config_update", "args": {
+            "tool_name": tool_name,
+            "decision": decision,
+        }}
+
 
     # --- recall_history ---
     if any(kw in p for kw in ["recall our last", "recall history", "remember last",
