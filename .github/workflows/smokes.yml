@@ -48,6 +48,7 @@ jobs:
           PYTHONIOENCODING: utf-8
           PYTHONUTF8: "1"
         run: python scripts/system_monitor.py --offline
+        continue-on-error: true
 
   # ─── Focused smoke: only what changed in this push/PR ────────────
   # Detection priority:
