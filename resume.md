@@ -1546,3 +1546,22 @@ me the exact git commands to commit + push both remotes."
 **Verified (6/6 HITL routes pass locally):** 3 "require" variants, 2 "auto" variants, 1 "hitl config" variant.
 
 *Part 485 logged: 2026-10-31*
+
+---
+
+### Part 486 Update (2026-10-31): Data Quality, SQL Sandbox, Narrate Routing
+
+- **`data_quality_report`** now extracts `file` from prompts like `"check data quality of data.csv"`. Moved **before** generic file handlers to avoid being intercepted by `csv_query` / `excel_read`.
+- **`sql_sandbox_*` routes added**:
+  - `"create sql sandbox test"` → `sql_sandbox_create` (`name=test`)
+  - `"load data.csv into sandbox test"` → `sql_sandbox_load_csv` (`name=test, file=data.csv, table=data`)
+  - `"load sales.csv into table sales_data in sandbox reports"` → `sql_sandbox_load_csv` (`name=reports, file=sales.csv, table=sales_data`)
+  - `"run sql in sandbox test: SELECT * FROM t"` → `sql_sandbox_execute` (`name=test, sql=SELECT * FROM t`)
+  - `"drop sandbox test"` → `sql_sandbox_drop` (`name=test`)
+  - `"list sql sandboxes"` → `sql_sandbox_list` (already existed, reinforced)
+- **`narrate_table`** left as `None` — requires JSON rows, cannot be extracted from text; LLM handles it.
+- **`financial_metrics`** left as `None` — LLM-only.
+
+**Verified (12/12 new routes pass locally).**
+
+*Part 486 logged: 2026-10-31*

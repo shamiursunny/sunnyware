@@ -2943,3 +2943,27 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 4. Add `sql_sandbox_*` routing for `"create sql sandbox"` / `"load csv to sandbox"`
 
 *Handoff updated: 2026-10-31*
+
+---
+
+### Part 486 Update (2026-10-31): Ready for Part 487
+
+**Status:** 53+ instant keyword routes working.
+
+**What changed:**
+- `data_quality_report` route added (before generic file handlers).
+- All 5 `sql_sandbox_*` routes added.
+- Reordered blocks to avoid conflict with `csv_query` / `excel_read`.
+
+**Verified (12/12 new routes pass):**
+- 3 `data_quality_report` variants
+- 5 `sql_sandbox_*` routes (create, load_csv, execute, drop, list)
+- 2 `narrate_table` / `financial_metrics` correctly return `None` (LLM handles)
+
+**Next Steps (Part 487):**
+1. Verify Gemini tool-calling end-to-end in production (check HF logs for `Tool schema rejected`).
+2. Add routes for `data_quality_report` sample arguments (`max_rows`, `sample_pct`).
+3. Add `narrate_table` route if we can extract rows from prior context (requires stateful routing).
+4. Add `sql_sandbox_execute` parameter extraction (`$1..$n` placeholders).
+
+*Handoff updated: 2026-10-31*

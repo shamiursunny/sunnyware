@@ -1886,3 +1886,22 @@ cd /h/sunnyware
 - `feature_flags` — managed through `/admin` → Feature Flags section, not through chat
 
 *Workflow updated: 2026-10-31*
+
+---
+
+### Part 486 Update (2026-10-31): Data Quality & SQL Sandbox Routing
+
+**New keyword routes:**
+- `"check data quality of X.csv"` → `data_quality_report` (`file=X.csv`)
+- `"create sql sandbox X"` → `sql_sandbox_create` (`name=X`)
+- `"load X.csv into sandbox Y"` → `sql_sandbox_load_csv` (`name=Y, file=X.csv, table=X`)
+- `"load X.csv into table Z in sandbox Y"` → `sql_sandbox_load_csv` (`name=Y, file=X.csv, table=Z`)
+- `"run sql in sandbox Y: <SQL>"` → `sql_sandbox_execute` (`name=Y, sql=<SQL>`)
+- `"drop sandbox Y"` → `sql_sandbox_drop` (`name=Y`)
+- `"list sql sandboxes"` → `sql_sandbox_list` (existing)
+
+**LLM-only (no keyword route):**
+- `narrate_table` — needs JSON rows, cannot be extracted from plain text.
+- `financial_metrics` — needs structured financial data.
+
+*Workflow updated: 2026-10-31*
