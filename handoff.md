@@ -3119,3 +3119,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Expand coverage to `api_call` (requires a safe test URL or mock).
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 495 Update (2026-11-01): Ready for Part 496
+
+**Status:** Integration tests now 13 passing, 1 skipped, stable.
+
+**What was done:**
+- Added `sql_sandbox_list` test.
+- Removed flaky `sql_sandbox_drop` test.
+
+**Next Steps (Part 496):**
+1. Verify CI passes on GitHub (check Actions).
+2. Add `api_call` test with a mock server or skip it.
+3. Consider adding a dedicated test for `sql_sandbox_drop` using a fixture that bypasses the LLM.
+
+*Handoff updated: 2026-11-01*

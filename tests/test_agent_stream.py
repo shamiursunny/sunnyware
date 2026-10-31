@@ -214,3 +214,16 @@ def test_research_search_tool_call(client):
         tools = list(_parse_sse(resp))
     assert any(t[0] == "research_search" for t in tools), f"research_search not found in {tools}"
     assert any(t[1] == {"query": "quantum computing"} for t in tools if t[0] == "research_search")
+
+
+def test_sql_sandbox_list_tool_call(client):
+    """SQL sandbox list should have empty args."""
+    prompt = "list sql sandboxes"
+    with client.stream("POST", "/api/agent/stream", json={
+        "input": prompt,
+        "session_id": "test-sqllist-495",
+    }) as resp:
+        assert resp.status_code == 200
+        tools = list(_parse_sse(resp))
+    assert any(t[0] == "sql_sandbox_list" for t in tools), f"sql_sandbox_list not found in {tools}"
+    assert any(t[1] == {} for t in tools if t[0] == "sql_sandbox_list")

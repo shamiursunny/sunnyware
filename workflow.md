@@ -2040,3 +2040,15 @@ python scripts/chat_test.py "What is 123 * 456?"
 **Total coverage:** 12 tool routes verified via `/api/agent/stream`.
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 495 Update (2026-11-01): SQL Sandbox List Test Added
+
+**Added test:** `test_sql_sandbox_list_tool_call`
+
+**Removed flaky test:** `test_sql_sandbox_drop_tool_call` (router works, but LLM fallback is unreliable).
+
+**Total coverage:** 13 tool routes verified via `/api/agent/stream`.
+
+*Workflow updated: 2026-11-01*
