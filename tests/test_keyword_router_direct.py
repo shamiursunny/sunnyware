@@ -242,3 +242,27 @@ def test_insurance_fred_search_routing():
 def test_insurance_fred_series_routing():
     result = keyword_route("insurance fred series CCSA")
     assert result == {"tool": "insurance_research", "args": {"action": "fred_series", "series_id": "CCSA"}}
+
+def test_finnhub_quote_routing():
+    result = keyword_route("get stock quote for AAPL")
+    assert result == {"tool": "finnhub_quote", "args": {"action": "quote", "symbol": "AAPL"}}
+
+def test_fmp_income_routing():
+    result = keyword_route("get income statement for MSFT")
+    assert result == {"tool": "fmp_fundamentals", "args": {"action": "income", "ticker": "MSFT"}}
+
+def test_fmp_balance_routing():
+    result = keyword_route("get balance sheet for AAPL")
+    assert result == {"tool": "fmp_fundamentals", "args": {"action": "balance", "ticker": "AAPL"}}
+
+def test_fred_series_routing():
+    result = keyword_route("get economic data for GDP")
+    assert result == {"tool": "fred_economic", "args": {"action": "series", "series_id": "GDP"}}
+
+def test_fred_search_routing():
+    result = keyword_route("search economic data for inflation")
+    assert result == {"tool": "fred_economic", "args": {"action": "search", "query": "inflation"}}
+
+def test_fred_popular_routing():
+    result = keyword_route("list popular economic indicators")
+    assert result == {"tool": "fred_economic", "args": {"action": "popular"}}

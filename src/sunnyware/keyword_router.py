@@ -255,6 +255,24 @@ def keyword_route(prompt: str) -> Optional[dict]:
             return {"tool": "citation_lookup", "args": {"query": m.group(1).strip()}}
         return None
 
+    # --- fred_economic ---
+    if any(kw in p for kw in ["search economic data for", "search fred for"]):
+        import re as _re_fs
+        m = _re_fs.search(r'(?:search economic data for|search fred for)\s+(.+)', prompt, _re_fs.IGNORECASE)
+        if m:
+            return {"tool": "fred_economic", "args": {"action": "search", "query": m.group(1).strip()}}
+        return None
+
+    if any(kw in p for kw in ["economic data for", "fred series for", "economic indicator for"]):
+        import re as _re_fe
+        m = _re_fe.search(r'(?:economic data for|fred series for|economic indicator for)\s+([A-Z0-9]+)', prompt)
+        if m:
+            return {"tool": "fred_economic", "args": {"action": "series", "series_id": m.group(1)}}
+        return None
+
+    if any(kw in p for kw in ["popular economic indicators", "list popular economic indicators"]):
+        return {"tool": "fred_economic", "args": {"action": "popular"}}
+
     # --- web_search ---
     if any(kw in p for kw in ["search the web", "search web", "google ", "look up online", "search online"]):
         import re as _re_ws
@@ -681,6 +699,29 @@ def keyword_route(prompt: str) -> Optional[dict]:
         m = _re_is.search(r'(?:insurance fred series|fred insurance series)\s+([A-Z0-9]+)', prompt, _re_is.IGNORECASE)
         if m:
             return {"tool": "insurance_research", "args": {"action": "fred_series", "series_id": m.group(1).upper()}}
+        return None
+
+    # --- finnhub_quote ---
+    if any(kw in p for kw in ["stock quote for", "get quote for", "price of stock", "quote for"]):
+        import re as _re_fq
+        m = _re_fq.search(r'(?:stock quote for|get quote for|price of|quote for)\s+([A-Z]{1,5})', prompt)
+        if m:
+            return {"tool": "finnhub_quote", "args": {"action": "quote", "symbol": m.group(1)}}
+        return None
+
+    # --- fmp_fundamentals ---
+    if any(kw in p for kw in ["income statement for", "balance sheet for", "cash flow for",
+                               "financial ratios for", "key metrics for", "dcf for"]):
+        import re as _re_fmp
+        action = "income"
+        if "balance" in p: action = "balance"
+        elif "cash flow" in p: action = "cashflow"
+        elif "ratios" in p: action = "ratios"
+        elif "key metrics" in p: action = "metrics"
+        elif "dcf" in p: action = "dcf"
+        m = _re_fmp.search(r'(?:income statement for|balance sheet for|cash flow for|financial ratios for|key metrics for|dcf for)\s+([A-Z]{1,5})', prompt)
+        if m:
+            return {"tool": "fmp_fundamentals", "args": {"action": action, "ticker": m.group(1)}}
         return None
 
     # --- research_search (must have "research" or "investigate", not delegate) ---

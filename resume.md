@@ -1922,3 +1922,23 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 40 passing in 0.40s.
 
 *Part 512 logged: 2026-11-01*
+
+---
+
+### Part 513 Update (2026-11-01): Financial API Routes Added
+
+- **Added** `finnhub_quote` route:
+  - `"get stock quote for X"` → `finnhub_quote(action='quote', symbol=X)`
+- **Added** `fmp_fundamentals` routes:
+  - `"get income statement for X"` → `fmp_fundamentals(action='income', ticker=X)`
+  - `"get balance sheet for X"` → `fmp_fundamentals(action='balance', ticker=X)`
+- **Added** `fred_economic` routes:
+  - `"get economic data for X"` → `fred_economic(action='series', series_id=X)`
+  - `"search economic data for X"` → `fred_economic(action='search', query=X)`
+  - `"list popular economic indicators"` → `fred_economic(action='popular')`
+- **Moved** `fred_economic` block before `web_search` to avoid interception.
+- **Fixed** regex variable reference in the search block.
+- **Added** 6 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 46 passing in 0.56s.
+
+*Part 513 logged: 2026-11-01*

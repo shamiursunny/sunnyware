@@ -2239,3 +2239,17 @@ Fixed regex for conversation/discussion matching.
 - `"insurance fred series X"` → `insurance_research(action='fred_series', series_id=X)`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 513 Update (2026-11-01): Financial API Routes
+
+**New routes:**
+- `"get stock quote for X"` → `finnhub_quote(action='quote', symbol=X)`
+- `"get income statement for X"` → `fmp_fundamentals(action='income', ticker=X)`
+- `"get balance sheet for X"` → `fmp_fundamentals(action='balance', ticker=X)`
+- `"get economic data for X"` → `fred_economic(action='series', series_id=X)`
+- `"search economic data for X"` → `fred_economic(action='search', query=X)`
+- `"list popular economic indicators"` → `fred_economic(action='popular')`
+
+*Workflow updated: 2026-11-01*
