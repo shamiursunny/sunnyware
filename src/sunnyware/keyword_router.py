@@ -304,6 +304,41 @@ def keyword_route(prompt: str) -> Optional[dict]:
             return {"tool": "marketaux_news", "args": {"symbols": m.group(1)}}
         return None
 
+    # --- edgar_fundamentals ---
+    if any(kw in p for kw in ["sec financials for", "edgar financials for", "sec filings for"]):
+        import re as _re_ef
+        statement = "all"
+        if "income statement" in p: statement = "income"
+        elif "balance sheet" in p: statement = "balance"
+        elif "cash flow" in p: statement = "cashflow"
+        m = _re_ef.search(r'(?:sec financials for|edgar financials for|sec filings for)\s+([A-Z]{1,5})', prompt)
+        if m:
+            return {"tool": "edgar_fundamentals", "args": {"ticker": m.group(1), "statement": statement}}
+        return None
+
+    # --- govcon_data (simple actions) ---
+    if any(kw in p for kw in ["search government contracts for", "government contracts for"]):
+        import re as _re_gc
+        m = _re_gc.search(r'(?:search government contracts for|government contracts for)\s+(.+)', prompt, _re_gc.IGNORECASE)
+        if m:
+            return {"tool": "govcon_data", "args": {"action": "award_search", "keyword": m.group(1).strip()}}
+        return None
+
+    if any(kw in p for kw in ["search government recipients for", "government recipients for"]):
+        import re as _re_gr
+        m = _re_gr.search(r'(?:search government recipients for|government recipients for)\s+(.+)', prompt, _re_gr.IGNORECASE)
+        if m:
+            return {"tool": "govcon_data", "args": {"action": "recipient_search", "keyword": m.group(1).strip()}}
+        return None
+
+    # --- eulerpool_data (simple profile lookup) ---
+    if any(kw in p for kw in ["eulerpool profile for", "eulerpool data for"]):
+        import re as _re_ep
+        m = _re_ep.search(r'(?:eulerpool profile for|eulerpool data for)\s+([A-Z]{1,5})', prompt)
+        if m:
+            return {"tool": "eulerpool_data", "args": {"action": "profile", "identifier": m.group(1)}}
+        return None
+
     # --- web_search ---
     if any(kw in p for kw in ["search the web", "search web", "google ", "look up online", "search online"]):
         import re as _re_ws

@@ -2267,3 +2267,15 @@ Fixed regex for conversation/discussion matching.
 - `"news for X"` → `marketaux_news(symbols=X)`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 515 Update (2026-11-01): Remaining Financial API Routes
+
+**New routes:**
+- `"get sec financials for X"` → `edgar_fundamentals(ticker=X, statement='all')`
+- `"search government contracts for X"` → `govcon_data(action='award_search', keyword=X)`
+- `"search government recipients for X"` → `govcon_data(action='recipient_search', keyword=X)`
+- `"eulerpool profile for X"` → `eulerpool_data(action='profile', identifier=X)`
+
+*Workflow updated: 2026-11-01*

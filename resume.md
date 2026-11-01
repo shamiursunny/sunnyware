@@ -1960,3 +1960,19 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 52 passing in 1.05s.
 
 *Part 514 logged: 2026-11-01*
+
+---
+
+### Part 515 Update (2026-11-01): Remaining Financial API Routes Added
+
+- **Added** `edgar_fundamentals` route:
+  - `"get sec financials for X"` → `edgar_fundamentals(ticker=X, statement='all')`
+- **Added** `govcon_data` routes:
+  - `"search government contracts for X"` → `govcon_data(action='award_search', keyword=X)`
+  - `"search government recipients for X"` → `govcon_data(action='recipient_search', keyword=X)`
+- **Added** `eulerpool_data` route:
+  - `"eulerpool profile for X"` → `eulerpool_data(action='profile', identifier=X)`
+- **Added** 4 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 56 passing in 0.48s.
+
+*Part 515 logged: 2026-11-01*

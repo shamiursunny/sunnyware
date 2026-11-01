@@ -290,3 +290,19 @@ def test_twelvedata_rsi_routing():
 def test_marketaux_news_routing():
     result = keyword_route("news for AAPL,MSFT")
     assert result == {"tool": "marketaux_news", "args": {"symbols": "AAPL,MSFT"}}
+
+def test_edgar_fundamentals_routing():
+    result = keyword_route("get sec financials for AAPL")
+    assert result == {"tool": "edgar_fundamentals", "args": {"ticker": "AAPL", "statement": "all"}}
+
+def test_govcon_award_search_routing():
+    result = keyword_route("search government contracts for defense")
+    assert result == {"tool": "govcon_data", "args": {"action": "award_search", "keyword": "defense"}}
+
+def test_govcon_recipient_search_routing():
+    result = keyword_route("search government recipients for Acme")
+    assert result == {"tool": "govcon_data", "args": {"action": "recipient_search", "keyword": "Acme"}}
+
+def test_eulerpool_profile_routing():
+    result = keyword_route("eulerpool profile for AAPL")
+    assert result == {"tool": "eulerpool_data", "args": {"action": "profile", "identifier": "AAPL"}}
