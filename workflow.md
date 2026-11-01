@@ -2366,3 +2366,13 @@ Fixed regex for conversation/discussion matching.
 - `"events for webhook wh_abc top 10"` → `webhook_events(token='wh_abc', limit=10)`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 524 Update (2026-11-01): Enhanced `list_files` with Subpath
+
+**Enhanced routes:**
+- `"list files in reports"` → `list_files(path='reports')`
+- `"show files under /data"` → `list_files(path='/data')`
+
+*Workflow updated: 2026-11-01*

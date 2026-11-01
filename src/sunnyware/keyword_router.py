@@ -401,7 +401,13 @@ def keyword_route(prompt: str) -> Optional[dict]:
 
     # --- list_files ---
     if any(kw in p for kw in ["list files", "show files", "what files", "workspace files", "list workspace"]):
-        return {"tool": "list_files", "args": {}}
+        import re as _re_lf
+        # Extract optional subpath: "list files in reports" / "list files under /data"
+        m = _re_lf.search(r'(?:list|show|what)\s+(?:the\s+)?files?\s+(?:in|under|inside|within)\s+([\w\-./\\]+)', prompt, _re_lf.IGNORECASE)
+        args = {}
+        if m:
+            args["path"] = m.group(1).strip()
+        return {"tool": "list_files", "args": args}
 
     # --- pdf_read (must have .pdf extension, and not be a compare/diff prompt) ---
     if ".pdf" in p and not any(kw in p for kw in ["create", "generate", "make", "build", "write a pdf", "compare", "diff"]):

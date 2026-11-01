@@ -2084,3 +2084,15 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 78 passing in 1.19s.
 
 *Part 523 logged: 2026-11-01*
+
+---
+
+### Part 524 Update (2026-11-01): Enhanced `list_files` with Subpath Extraction
+
+- **Enhanced** `list_files` to extract optional subpath from prompts:
+  - `"list files in reports"` → `list_files(path='reports')`
+  - `"show files under /data"` → `list_files(path='/data')`
+- **Added** 3 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 81 passing in 0.54s.
+
+*Part 524 logged: 2026-11-01*

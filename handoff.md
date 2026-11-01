@@ -3611,3 +3611,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 524 Update (2026-11-01): Ready for Part 525
+
+**Status:** `list_files` enhanced with subpath extraction, fast suite 81 passing.
+
+**What was done:**
+- Enhanced `list_files` to extract optional subpath.
+- Added 3 direct unit tests.
+
+**Next Steps (Part 525):**
+1. Review remaining missing routes (e.g., `echo` — test-only, skip it).
+2. Consider adding routes for `recall_history` with `limit` extraction (similar to memory_search).
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*

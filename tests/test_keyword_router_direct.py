@@ -402,3 +402,15 @@ def test_webhook_events_with_limit_routing():
 def test_webhook_events_with_top_routing():
     result = keyword_route("events for webhook wh_abc top 10")
     assert result == {"tool": "webhook_events", "args": {"token": "wh_abc", "limit": 10}}
+
+def test_list_files_default_routing():
+    result = keyword_route("list files")
+    assert result == {"tool": "list_files", "args": {}}
+
+def test_list_files_subpath_routing():
+    result = keyword_route("list files in reports")
+    assert result == {"tool": "list_files", "args": {"path": "reports"}}
+
+def test_list_files_under_routing():
+    result = keyword_route("show files under /data")
+    assert result == {"tool": "list_files", "args": {"path": "/data"}}
