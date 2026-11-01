@@ -3749,3 +3749,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 533 Update (2026-11-02): Ready for Part 534
+
+**Status:** Summarization wired into orchestrator, fast suite 93 passing.
+
+**What was done:**
+- Added `build_context_with_summary()` in `memory.py`.
+- Updated `orchestrator.py` to use it.
+- Added 1 test for the no-pool case.
+
+**Next Steps (Part 534):**
+1. Consider wiring the same helper into the streaming endpoint (`routes/agent.py`).
+2. Add an API endpoint to expose `list_memory()`.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-02*

@@ -2175,3 +2175,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 92 passing (83 keyword + 3 memory + 6 summarize).
 
 *Part 532 logged: 2026-11-02*
+
+---
+
+### Part 533 Update (2026-11-02): Wire Summarization into Orchestrator
+
+- **Added** `memory.build_context_with_summary()` — conditionally summarizes older turns when a session has more than 12 turns (24 events).
+- **Updated** `orchestrator.run_agent()` to use `build_context_with_summary()` instead of `build_context()`.
+- **Added** 1 direct unit test (no-pool fallback).
+- **Fast suite:** 93 passing.
+
+*Part 533 logged: 2026-11-02*

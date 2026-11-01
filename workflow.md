@@ -2433,3 +2433,11 @@ Fixed regex for conversation/discussion matching.
 **Memory change:** `summarize_session()` condenses old turns into a short text and returns recent messages.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 533 Update (2026-11-02): Wire Summarization into Orchestrator
+
+**Integration:** `run_agent()` now automatically summarizes long session histories.
+
+*Workflow updated: 2026-11-02*

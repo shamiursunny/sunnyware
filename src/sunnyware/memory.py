@@ -235,6 +235,60 @@ async def summarize_session(session_uuid: str, keep_recent: int = 6) -> dict:
         return {"summary": "", "recent": []}
 
 
+
+async def build_context_with_summary(
+    session_uuid: str,
+    max_turns: int = 4,
+    summarize_threshold: int = 12,
+) -> list:
+    """Build OpenAI-format messages, summarizing older turns when history is long.
+
+    If the session has more than summarize_threshold * 2 events,
+    older turns are condensed into a single system message.
+    Otherwise falls back to build_context().
+
+    Args:
+        session_uuid: session UUID
+        max_turns: number of recent TURNS to keep unsummarized
+        summarize_threshold: minimum number of TURNS before summarizing
+    Returns:
+        list of {role, content} dicts
+    """
+    pool = app_state.get_pool()
+    if pool is None or not session_uuid:
+        return []
+    try:
+        async with pool.acquire() as conn:
+            count = await conn.fetchval(
+                """
+                SELECT COUNT(*) FROM events
+                WHERE session_id = $1::uuid
+                  AND event_type IN ('user_message', 'assistant_message')
+                """,
+                session_uuid,
+            )
+        if count and count > summarize_threshold * 2:
+            result = await summarize_session(session_uuid, keep_recent=max_turns)
+            messages = []
+            summary = result.get("summary", "")
+            if summary:
+                messages.append({"role": "system", "content": summary})
+            for r in result.get("recent", []):
+                event_type = r.get("event_type") if isinstance(r, dict) else r["event_type"]
+                payload = r.get("payload") if isinstance(r, dict) else r["payload"]
+                content = _extract_content(payload)
+                if not content:
+                    continue
+                content = _sanitize_content(content, MAX_HISTORY_CONTENT_CHARS)
+                if event_type == "user_message":
+                    messages.append({"role": "user", "content": content})
+                elif event_type == "assistant_message":
+                    messages.append({"role": "assistant", "content": content})
+            return messages
+        return await build_context(session_uuid, max_turns=max_turns)
+    except Exception:
+        return await build_context(session_uuid, max_turns=max_turns)
+
 # ── Part 8: cross-session memory selection ──────────────────────────────────
 
 _STOPWORDS = {

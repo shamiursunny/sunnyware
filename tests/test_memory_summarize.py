@@ -47,3 +47,10 @@ def test_summarize_caps_each_snippet():
     rows = [_row("user_message", "x" * 200)]
     result = _summarize_old_events(rows)
     assert len(result) < 200
+
+import asyncio
+
+def test_build_context_with_summary_no_pool():
+    from sunnyware.memory import build_context_with_summary
+    result = asyncio.run(build_context_with_summary("", max_turns=4))
+    assert result == []

@@ -644,7 +644,7 @@ async def _run_agent_body(
 
     history = []
     if session_uuid:
-        history = await memory_store.build_context(session_uuid, max_turns=4)
+        history = await memory_store.build_context_with_summary(session_uuid, max_turns=4)
 
     _role_style = {}
     try:
