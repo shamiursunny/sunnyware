@@ -3490,3 +3490,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 517 Update (2026-11-01): Ready for Part 518
+
+**Status:** `recall_history` enhanced with `days`/`limit` extraction, fast suite 62 passing.
+
+**What was done:**
+- Enhanced `recall_history` to extract and strip optional `days`/`limit`.
+- Added tests for `fmp_fundamentals` DCF and ratios.
+- Added 4 direct unit tests.
+
+**Next Steps (Part 518):**
+1. Review remaining missing routes (e.g., `echo`, `schedule_add`, `memory_search` with limit).
+2. Consider adding routes for `chart_from_data` with more complex data.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*

@@ -2289,3 +2289,17 @@ Fixed regex for conversation/discussion matching.
 - `"financial metrics for [..]"` → `financial_metrics(returns=[..])`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 517 Update (2026-11-01): Enhanced recall_history & FMP Tests
+
+**Enhanced routes:**
+- `"what did we discuss about ai last 30 days"` → `recall_history(query='ai', days=30)`
+- `"what did we discuss about ai last 30 days limit 5"` → `recall_history(query='ai', days=30, limit=5)`
+
+**New tests:**
+- `"get dcf for AAPL"` → `fmp_fundamentals(action='dcf', ticker='AAPL')`
+- `"get financial ratios for MSFT"` → `fmp_fundamentals(action='ratios', ticker='MSFT')`
+
+*Workflow updated: 2026-11-01*

@@ -201,7 +201,20 @@ def keyword_route(prompt: str) -> Optional[dict]:
             prompt, _re_rh.IGNORECASE
         )
         if m:
-            return {"tool": "recall_history", "args": {"query": m.group(1).strip()}}
+            query = m.group(1).strip()
+            args = {"query": query}
+            # Extract optional days: "last 30 days" / "past 7 days"
+            dm = _re_rh.search(r'(?:last|past)\s+(\d+)\s+days?', prompt, _re_rh.IGNORECASE)
+            if dm:
+                args["days"] = int(dm.group(1))
+                query = _re_rh.sub(r'(?:last|past)\s+\d+\s+days?', '', query, flags=_re_rh.IGNORECASE).strip()
+            # Extract optional limit: "limit 5" / "top 5"
+            lm = _re_rh.search(r'(?:limit|top)\s+(\d+)', prompt, _re_rh.IGNORECASE)
+            if lm:
+                args["limit"] = int(lm.group(1))
+                query = _re_rh.sub(r'(?:limit|top)\s+\d+', '', query, flags=_re_rh.IGNORECASE).strip()
+            args["query"] = query
+            return {"tool": "recall_history", "args": args}
         return None
 
     # --- memory_search ---

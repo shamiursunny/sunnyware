@@ -1989,3 +1989,19 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 58 passing in 1.77s.
 
 *Part 516 logged: 2026-11-01*
+
+---
+
+### Part 517 Update (2026-11-01): Enhanced `recall_history` with `days`/`limit` & FMP DCF/Ratios Tests
+
+- **Enhanced** `recall_history` to extract optional `days` and `limit` from prompts:
+  - `"what did we discuss about ai last 30 days"` → `recall_history(query='ai', days=30)`
+  - `"what did we discuss about ai last 30 days limit 5"` → `recall_history(query='ai', days=30, limit=5)`
+  - The extracted parameters are **stripped from the query** to keep it clean.
+- **Added** tests for `fmp_fundamentals` DCF and ratios:
+  - `"get dcf for AAPL"` → `fmp_fundamentals(action='dcf', ticker='AAPL')`
+  - `"get financial ratios for MSFT"` → `fmp_fundamentals(action='ratios', ticker='MSFT')`
+- **Added** 4 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 62 passing in 0.57s.
+
+*Part 517 logged: 2026-11-01*

@@ -314,3 +314,19 @@ def test_mkdir_routing():
 def test_financial_metrics_routing():
     result = keyword_route("financial metrics for [0.01, -0.02, 0.03]")
     assert result == {"tool": "financial_metrics", "args": {"returns": "[0.01, -0.02, 0.03]"}}
+
+def test_recall_history_with_days():
+    result = keyword_route("what did we discuss about ai last 30 days")
+    assert result == {"tool": "recall_history", "args": {"query": "ai", "days": 30}}
+
+def test_recall_history_with_days_and_limit():
+    result = keyword_route("what did we discuss about ai last 30 days limit 5")
+    assert result == {"tool": "recall_history", "args": {"query": "ai", "days": 30, "limit": 5}}
+
+def test_fmp_dcf_routing():
+    result = keyword_route("get dcf for AAPL")
+    assert result == {"tool": "fmp_fundamentals", "args": {"action": "dcf", "ticker": "AAPL"}}
+
+def test_fmp_ratios_routing():
+    result = keyword_route("get financial ratios for MSFT")
+    assert result == {"tool": "fmp_fundamentals", "args": {"action": "ratios", "ticker": "MSFT"}}
