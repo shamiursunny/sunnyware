@@ -2159,3 +2159,13 @@ Verifies `run_agent` direct answer path with mocked LLM.
 - `"watch kpi X >= Y"` → `kpi_watch_add(..., comparison="ge")`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 506 Update (2026-11-01): `email_list_sent` Route
+
+**New route:**
+- `"list sent emails"` → `email_list_sent()`
+- `"show recent 10 sent emails"` → `email_list_sent(limit=10)`
+
+*Workflow updated: 2026-11-01*

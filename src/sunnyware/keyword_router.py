@@ -465,6 +465,16 @@ def keyword_route(prompt: str) -> Optional[dict]:
                                "list tasks", "show tasks", "what schedules", "my schedules"]):
         return {"tool": "schedule_list", "args": {}}
 
+    # --- email_list_sent ---
+    if any(kw in p for kw in ["list sent emails", "show sent emails", "my sent emails",
+                               "recent sent emails", "what emails have i sent", "sent emails"]):
+        import re as _re_els
+        m = _re_els.search(r'(?:list|show|get|my|last|recent)\s+(\d+)\s+sent\s+emails?', prompt, _re_els.IGNORECASE)
+        args = {}
+        if m:
+            args["limit"] = int(m.group(1))
+        return {"tool": "email_list_sent", "args": args}
+
     # --- email_configured ---
     if "email configured" in p or "is my email" in p:
         return {"tool": "email_configured", "args": {}}

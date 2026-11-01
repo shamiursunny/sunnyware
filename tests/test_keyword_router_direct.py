@@ -103,3 +103,20 @@ def test_kpi_watch_add_routing_ge():
     assert result["tool"] == "kpi_watch_add"
     assert result["args"]["comparison"] == "ge"
     assert result["args"]["threshold_value"] == 100.0
+
+def test_email_list_sent_default_routing():
+    """'list sent emails' routes to email_list_sent with empty args."""
+    result = keyword_route("list sent emails")
+    assert result == {"tool": "email_list_sent", "args": {}}
+
+
+def test_email_list_sent_with_limit_routing():
+    """'show recent 10 sent emails' routes to email_list_sent with limit=10."""
+    result = keyword_route("show recent 10 sent emails")
+    assert result == {"tool": "email_list_sent", "args": {"limit": 10}}
+
+
+def test_email_list_sent_what_routing():
+    """'what emails have i sent' routes to email_list_sent."""
+    result = keyword_route("what emails have i sent")
+    assert result == {"tool": "email_list_sent", "args": {}}

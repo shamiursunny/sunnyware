@@ -1819,3 +1819,16 @@ me the exact git commands to commit + push both remotes."
 - **Full test suite:** 116 passing, 1 skipped.
 
 *Part 505 logged: 2026-11-01*
+
+---
+
+### Part 506 Update (2026-11-01): `email_list_sent` Keyword Route Added
+
+- **Added** `email_list_sent` route for natural language queries:
+  - `"list sent emails"` / `"show sent emails"` → `email_list_sent()`
+  - `"show recent 10 sent emails"` → `email_list_sent(limit=10)`
+  - `"what emails have i sent"` → `email_list_sent()`
+- **Added** 3 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Full test suite:** 119 passing, 1 skipped.
+
+*Part 506 logged: 2026-11-01*
