@@ -2279,3 +2279,13 @@ Fixed regex for conversation/discussion matching.
 - `"eulerpool profile for X"` → `eulerpool_data(action='profile', identifier=X)`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 516 Update (2026-11-01): `mkdir` and `financial_metrics` Routes
+
+**New routes:**
+- `"create directory X"` → `mkdir(path=X)`
+- `"financial metrics for [..]"` → `financial_metrics(returns=[..])`
+
+*Workflow updated: 2026-11-01*

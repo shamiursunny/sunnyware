@@ -1976,3 +1976,16 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 56 passing in 0.48s.
 
 *Part 515 logged: 2026-11-01*
+
+---
+
+### Part 516 Update (2026-11-01): `mkdir` and `financial_metrics` Routes Added
+
+- **Added** `mkdir` route:
+  - `"create directory X"` → `mkdir(path=X)`
+- **Added** `financial_metrics` route:
+  - `"financial metrics for [..]"` → `financial_metrics(returns=[..])`
+- **Added** 2 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 58 passing in 1.77s.
+
+*Part 516 logged: 2026-11-01*

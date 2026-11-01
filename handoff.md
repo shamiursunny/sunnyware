@@ -3473,3 +3473,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 516 Update (2026-11-01): Ready for Part 517
+
+**Status:** `mkdir` and `financial_metrics` routes added, fast suite 58 passing.
+
+**What was done:**
+- Added `mkdir` and `financial_metrics` keyword routes.
+- Added 2 direct unit tests.
+
+**Next Steps (Part 517):**
+1. Review remaining missing routes (e.g., `echo`, `schedule_add`, `recall_history` with days/limit).
+2. Consider adding routes for `fmp_fundamentals` other actions like `dcf`, `ratios`.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*

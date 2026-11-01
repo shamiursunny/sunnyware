@@ -339,6 +339,22 @@ def keyword_route(prompt: str) -> Optional[dict]:
             return {"tool": "eulerpool_data", "args": {"action": "profile", "identifier": m.group(1)}}
         return None
 
+    # --- mkdir ---
+    if any(kw in p for kw in ["create directory", "make directory", "mkdir"]):
+        import re as _re_mk
+        m = _re_mk.search(r'(?:create directory|make directory|mkdir)\s+([\w\-./\\]+)', prompt, _re_mk.IGNORECASE)
+        if m:
+            return {"tool": "mkdir", "args": {"path": m.group(1)}}
+        return None
+
+    # --- financial_metrics ---
+    if any(kw in p for kw in ["financial metrics for", "calculate financial metrics for"]):
+        import re as _re_fm
+        arr_match = _re_fm.search(r'\[([-\d.,\s]+)\]', prompt)
+        if arr_match:
+            return {"tool": "financial_metrics", "args": {"returns": arr_match.group(0)}}
+        return None
+
     # --- web_search ---
     if any(kw in p for kw in ["search the web", "search web", "google ", "look up online", "search online"]):
         import re as _re_ws

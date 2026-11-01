@@ -306,3 +306,11 @@ def test_govcon_recipient_search_routing():
 def test_eulerpool_profile_routing():
     result = keyword_route("eulerpool profile for AAPL")
     assert result == {"tool": "eulerpool_data", "args": {"action": "profile", "identifier": "AAPL"}}
+
+def test_mkdir_routing():
+    result = keyword_route("create directory reports")
+    assert result == {"tool": "mkdir", "args": {"path": "reports"}}
+
+def test_financial_metrics_routing():
+    result = keyword_route("financial metrics for [0.01, -0.02, 0.03]")
+    assert result == {"tool": "financial_metrics", "args": {"returns": "[0.01, -0.02, 0.03]"}}
