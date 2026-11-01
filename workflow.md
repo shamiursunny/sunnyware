@@ -2481,3 +2481,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `GET /api/memory/stats` returns memory usage summary (total, with_expiry, without_expiry).
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 539 Update (2026-11-02): `/api/memory/search` Endpoint
+
+**API change:** `GET /api/memory/search?q=...` searches memory entries.
+
+*Workflow updated: 2026-11-02*

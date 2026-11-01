@@ -89,3 +89,18 @@ async def memory_stats():
         "without_expiry": total - with_expiry,
     }
 
+@router.get("/api/memory/search")
+async def memory_search(q: str = ""):
+    """Search shared agent memory for keys or values containing the query (case-insensitive)."""
+    if not q.strip():
+        return {"query": q, "count": 0, "entries": []}
+    needle = q.strip().lower()
+    entries = agent_memory.list_memory()
+    matches = []
+    for e in entries:
+        key_s = str(e.get("key", "")).lower()
+        val_s = str(e.get("value", "")).lower()
+        if needle in key_s or needle in val_s:
+            matches.append(e)
+    return {"query": q, "count": len(matches), "entries": matches}
+
