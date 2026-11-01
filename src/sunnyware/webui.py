@@ -1285,6 +1285,19 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     margin: 4px 0 4px 8px;
     vertical-align: middle;
   }
+  .retry-btn {
+    margin-left: 8px;
+    padding: 2px 8px;
+    font-size: 11px;
+    cursor: pointer;
+    background: transparent;
+    border: 1px solid var(--border, #555);
+    border-radius: 4px;
+    color: var(--text, #ccc);
+  }
+  .retry-btn:hover {
+    background: var(--hover, #333);
+  }
 </style>
 </head>
 <body>
@@ -1967,6 +1980,25 @@ window.fetch = function(url, options) {
     }
   }
 
+  let lastUserText = '';
+
+  function attachRetry(msgEl) {
+    if (!lastUserText || !msgEl) return;
+    const btn = document.createElement('button');
+    btn.className = 'retry-btn';
+    btn.textContent = 'Retry';
+    btn.onclick = function() {
+      msgEl.remove();
+      sendMessage(lastUserText);
+    };
+    msgEl.appendChild(btn);
+  }
+
+  function showErrorWithRetry(msg) {
+    const el = addMsg('error: ' + msg, 'error');
+    attachRetry(el);
+  }
+
   function addMsg(text, cls, persist) {
     if (persist === undefined) persist = true;
     const d = document.createElement('div');
@@ -1985,6 +2017,7 @@ window.fetch = function(url, options) {
   }
 
   async function sendMessage(text) {
+    lastUserText = text;
     addMsg(text, 'user');
     send.disabled = true;
     const t0 = performance.now();
@@ -2016,7 +2049,7 @@ window.fetch = function(url, options) {
 
       if (!r.ok) {
         const errText = await r.text();
-        addMsg('error: HTTP ' + r.status + ' ' + errText.slice(0, 200), 'error');
+        showErrorWithRetry('HTTP ' + r.status + ' ' + errText.slice(0, 200));
         return;
       }
 
@@ -2112,7 +2145,7 @@ window.fetch = function(url, options) {
             } else if (type === 'budget_exceeded') {
               budgetExceeded = true;  // Part 91: style the final bubble
             } else if (type === 'error') {
-              addMsg('error: ' + (data.error || data.text || 'unknown'), 'error');
+              showErrorWithRetry(data.error || data.text || 'unknown');
             } else if (type === 'final') {
               // Tool-aware endpoint: final carries assembled answer + provider
               const ans = data.answer || '';
@@ -2212,9 +2245,9 @@ window.fetch = function(url, options) {
 
       if (!agentText) {
         if (streamError) {
-          addMsg('⚠️ ' + streamError, 'error');  // Part 88
+          showErrorWithRetry('⚠️ ' + streamError);  // Part 88
         } else {
-          addMsg('(empty response)', 'error');
+          showErrorWithRetry('(empty response)');
         }
       } else {
         // Part 35: persist the final streamed answer
@@ -2222,7 +2255,7 @@ window.fetch = function(url, options) {
         renderSidebar();
       }
     } catch (e) {
-      addMsg('network error: ' + e.message, 'error');
+      showErrorWithRetry('network error: ' + e.message);
     } finally {
       send.disabled = false;
       input.focus();

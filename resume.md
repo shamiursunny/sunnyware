@@ -2141,3 +2141,14 @@ me the exact git commands to commit + push both remotes."
 - No new tests (UI-only change), fast suite still 83 passing.
 
 *Part 529 logged: 2026-11-01*
+
+---
+
+### Part 530 Update (2026-11-01): Add Retry Button for Failed Messages
+
+- **Added** a "Retry" button to error bubbles in the chat UI.
+- Track `lastUserText` so the user can resend the last prompt with one click.
+- Replaced all `addMsg('error: ...', 'error')` calls with `showErrorWithRetry(...)`.
+- No new tests (UI-only change), fast suite still 83 passing.
+
+*Part 530 logged: 2026-11-01*

@@ -3696,3 +3696,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 530 Update (2026-11-01): Ready for Part 531
+
+**Status:** Retry button added to error bubbles, fast suite 83 passing.
+
+**What was done:**
+- Added `lastUserText` tracking and `showErrorWithRetry()` helper.
+- Retry button on all error bubbles.
+- No new tests (UI-only change).
+
+**Next Steps (Part 531):**
+1. Test the retry button manually in the chat.
+2. Consider memory enhancements — session summarization or smarter context retrieval.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*

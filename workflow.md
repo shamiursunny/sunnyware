@@ -2409,3 +2409,11 @@ Fixed regex for conversation/discussion matching.
 **UI change:** A spinner appears while tools are running, disappearing on result.
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 530 Update (2026-11-01): Retry Button for Failed Messages
+
+**UI change:** Error bubbles now show a "Retry" button that resends the last user message.
+
+*Workflow updated: 2026-11-01*
