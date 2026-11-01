@@ -154,3 +154,26 @@ def test_recall_history_discussion_routing():
     """'recall our last discussion about X' routes to recall_history."""
     result = keyword_route("recall our last discussion about taxes")
     assert result == {"tool": "recall_history", "args": {"query": "taxes"}}
+
+def test_workspace_snapshot_routing():
+    """'workspace snapshot' routes to workspace_snapshot."""
+    result = keyword_route("workspace snapshot")
+    assert result == {"tool": "workspace_snapshot", "args": {}}
+
+
+def test_zip_workspace_routing():
+    """'zip the workspace' routes to workspace_snapshot."""
+    result = keyword_route("zip the workspace")
+    assert result == {"tool": "workspace_snapshot", "args": {}}
+
+
+def test_archive_workspace_routing():
+    """'archive the workspace' routes to workspace_snapshot."""
+    result = keyword_route("archive the workspace")
+    assert result == {"tool": "workspace_snapshot", "args": {}}
+
+
+def test_workspace_snapshot_subpath_routing():
+    """'snapshot of the workspace for X' extracts subpath."""
+    result = keyword_route("snapshot of the workspace for /data/reports")
+    assert result == {"tool": "workspace_snapshot", "args": {"subpath": "/data/reports"}}

@@ -731,5 +731,20 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if "list my scheduled" in p or "list all my scheduled" in p or "show my scheduled" in p:
         return {"tool": "schedule_list", "args": {}}
 
+    # --- workspace_snapshot ---
+    if any(kw in p for kw in ["workspace snapshot", "snapshot workspace",
+                               "zip the workspace", "archive the workspace",
+                               "snapshot of the workspace"]):
+        import re as _re_ws
+        m = _re_ws.search(
+            r'(?:workspace snapshot|snapshot workspace|zip the workspace|archive the workspace|snapshot of the workspace)'
+            r'(?:\s+(?:of|for)\s+([\w\-./\\]+))?',
+            prompt, _re_ws.IGNORECASE
+        )
+        args = {}
+        if m and m.group(1):
+            args["subpath"] = m.group(1).strip()
+        return {"tool": "workspace_snapshot", "args": args}
+
     # No confident keyword match — let Needle 3 handle it
     return None
