@@ -2169,3 +2169,12 @@ Verifies `run_agent` direct answer path with mocked LLM.
 - `"show recent 10 sent emails"` → `email_list_sent(limit=10)`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 507 Update (2026-11-01): `delete_file` Route
+
+**New route:**
+- `"delete file report.txt"` → `delete_file(path='report.txt')`
+
+*Workflow updated: 2026-11-01*

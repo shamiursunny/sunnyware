@@ -3312,3 +3312,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Consider adding route for `recall_history` / `memory_search`.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 507 Update (2026-11-01): Ready for Part 508
+
+**Status:** `delete_file` route added, full suite 121 passing.
+
+**What was done:**
+- Added `delete_file` keyword route.
+- Moved it before `csv_query` to avoid file extension conflicts.
+- Added 2 direct unit tests.
+
+**Next Steps (Part 508):**
+1. Add keyword route for `recall_history` / `memory_search`.
+2. Review remaining missing tool routes (financial, insurance, etc.) and prioritize.
+3. Consider adding routes for `workspace_snapshot` or `metrics_batch`.
+
+*Handoff updated: 2026-11-01*

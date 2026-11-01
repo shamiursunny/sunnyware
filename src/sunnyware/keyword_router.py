@@ -323,6 +323,14 @@ def keyword_route(prompt: str) -> Optional[dict]:
             # write needs structured data (sheets array) — let LLM handle
             return None
 
+    # --- delete_file ---
+    if any(kw in p for kw in ["delete file", "remove file", "delete the file"]):
+        import re as _re_df
+        m = _re_df.search(r'(?:delete|remove)\s+(?:the\s+)?file\s+([\w\-./\\]+\.[\w]+)', prompt, _re_df.IGNORECASE)
+        if m:
+            return {"tool": "delete_file", "args": {"path": m.group(1)}}
+        return None
+
     # --- csv_query (must have .csv) ---
     if ".csv" in p or "csv file" in p:
         fname = _extract_filename(prompt, ["csv"])

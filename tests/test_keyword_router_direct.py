@@ -120,3 +120,14 @@ def test_email_list_sent_what_routing():
     """'what emails have i sent' routes to email_list_sent."""
     result = keyword_route("what emails have i sent")
     assert result == {"tool": "email_list_sent", "args": {}}
+
+def test_delete_file_routing():
+    """'delete file X' routes to delete_file."""
+    result = keyword_route("delete file report.txt")
+    assert result == {"tool": "delete_file", "args": {"path": "report.txt"}}
+
+
+def test_remove_file_routing():
+    """'remove file X' routes to delete_file."""
+    result = keyword_route("remove file data.csv")
+    assert result == {"tool": "delete_file", "args": {"path": "data.csv"}}

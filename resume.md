@@ -1832,3 +1832,16 @@ me the exact git commands to commit + push both remotes."
 - **Full test suite:** 119 passing, 1 skipped.
 
 *Part 506 logged: 2026-11-01*
+
+---
+
+### Part 507 Update (2026-11-01): `delete_file` Keyword Route Added
+
+- **Added** `delete_file` route for natural language queries:
+  - `"delete file report.txt"` → `delete_file(path='report.txt')`
+  - `"remove file data.csv"` → `delete_file(path='data.csv')`
+- **Moved** the block before `csv_query` to prevent `.csv` prompts from being intercepted.
+- **Added** 2 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Full test suite:** 121 passing, 1 skipped.
+
+*Part 507 logged: 2026-11-01*
