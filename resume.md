@@ -1860,3 +1860,15 @@ me the exact git commands to commit + push both remotes."
 - **Full test suite:** 125 passing, 1 skipped.
 
 *Part 508 logged: 2026-11-01*
+
+---
+
+### Part 509 Update (2026-11-01): `workspace_snapshot` Keyword Route Added
+
+- **Added** `workspace_snapshot` route:
+  - `"workspace snapshot"` / `"zip the workspace"` → `workspace_snapshot()`
+  - `"snapshot of the workspace for X"` → `workspace_snapshot(subpath=X)`
+- **Added** 4 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 27 passed in 0.41s.
+
+*Part 509 logged: 2026-11-01*

@@ -3348,3 +3348,23 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Consider adding route for `citation_lookup` or `clause_extractor`.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 509 Update (2026-11-01): Ready for Part 510
+
+**Status:** `workspace_snapshot` route added, fast tests 27 passing.
+
+**Note:** Full suite (129 tests) should only be run in CI to avoid local resource exhaustion.
+
+**What was done:**
+- Added `workspace_snapshot` keyword route.
+- Added 4 direct unit tests.
+- Committed code and docs.
+
+**Next Steps (Part 510):**
+1. Review remaining missing routes (financial, insurance, etc.) and prioritize.
+2. Consider adding route for `citation_lookup` or `clause_extractor`.
+3. Update CI to run only deterministic tests locally.
+
+*Handoff updated: 2026-11-01*

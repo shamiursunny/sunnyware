@@ -2190,3 +2190,15 @@ Verifies `run_agent` direct answer path with mocked LLM.
 Fixed regex for conversation/discussion matching.
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 509 Update (2026-11-01): `workspace_snapshot` Route
+
+**New route:**
+- `"workspace snapshot"` → `workspace_snapshot()`
+- `"zip the workspace"` → `workspace_snapshot()`
+- `"archive the workspace"` → `workspace_snapshot()`
+- `"snapshot of the workspace for X"` → `workspace_snapshot(subpath=X)`
+
+*Workflow updated: 2026-11-01*
