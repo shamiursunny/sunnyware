@@ -3330,3 +3330,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Consider adding routes for `workspace_snapshot` or `metrics_batch`.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 508 Update (2026-11-01): Ready for Part 509
+
+**Status:** `recall_history` and `memory_search` routes added, full suite 125 passing.
+
+**What was done:**
+- Implemented `recall_history` and `memory_search` keyword routes.
+- Fixed regex and block order.
+- Added 4 direct unit tests.
+
+**Next Steps (Part 509):**
+1. Add route for `workspace_snapshot` / `metrics_batch`.
+2. Review remaining missing routes (financial, insurance) and prioritize.
+3. Consider adding route for `citation_lookup` or `clause_extractor`.
+
+*Handoff updated: 2026-11-01*

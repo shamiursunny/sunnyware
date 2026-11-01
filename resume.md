@@ -1845,3 +1845,18 @@ me the exact git commands to commit + push both remotes."
 - **Full test suite:** 121 passing, 1 skipped.
 
 *Part 507 logged: 2026-11-01*
+
+---
+
+### Part 508 Update (2026-11-01): Memory & Recall Routes Added
+
+- **Implemented** `recall_history` route (was a dead stub):
+  - `"what did we discuss about X"` → `recall_history(query=X)`
+  - `"recall our last conversation about X"` → `recall_history(query=X)`
+- **Added** `memory_search` route:
+  - `"search memory for X"` → `memory_search(query=X)`
+- **Fixed regex**: Corrected alternation grouping (`discussion|conversation`) and moved blocks before the `weather` block to prevent interception.
+- **Added** 4 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Full test suite:** 125 passing, 1 skipped.
+
+*Part 508 logged: 2026-11-01*

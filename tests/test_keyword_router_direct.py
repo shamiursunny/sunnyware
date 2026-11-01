@@ -131,3 +131,26 @@ def test_remove_file_routing():
     """'remove file X' routes to delete_file."""
     result = keyword_route("remove file data.csv")
     assert result == {"tool": "delete_file", "args": {"path": "data.csv"}}
+
+def test_recall_history_routing():
+    """'what did we discuss about X' routes to recall_history."""
+    result = keyword_route("what did we discuss about ai")
+    assert result == {"tool": "recall_history", "args": {"query": "ai"}}
+
+
+def test_memory_search_routing():
+    """'search memory for X' routes to memory_search."""
+    result = keyword_route("search memory for python")
+    assert result == {"tool": "memory_search", "args": {"query": "python"}}
+
+
+def test_recall_history_conversation_routing():
+    """'recall our last conversation about X' routes to recall_history."""
+    result = keyword_route("recall our last conversation about weather")
+    assert result == {"tool": "recall_history", "args": {"query": "weather"}}
+
+
+def test_recall_history_discussion_routing():
+    """'recall our last discussion about X' routes to recall_history."""
+    result = keyword_route("recall our last discussion about taxes")
+    assert result == {"tool": "recall_history", "args": {"query": "taxes"}}

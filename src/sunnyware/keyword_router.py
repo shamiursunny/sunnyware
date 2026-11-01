@@ -137,6 +137,29 @@ def keyword_route(prompt: str) -> Optional[dict]:
         if url_m:
             return {"tool": "browser_goto", "args": {"url": url_m.group(1)}}
 
+    # --- recall_history ---
+    if any(kw in p for kw in ["recall our last", "recall history", "remember last",
+                               "what did we discuss", "find where i mentioned"]):
+        import re as _re_rh
+        m = _re_rh.search(
+            r'(?:recall(?: our)?(?: last)?(?:\s+\w+)?\s+about|what did we discuss about|find where i mentioned)\s+(.+)',
+            prompt, _re_rh.IGNORECASE
+        )
+        if m:
+            return {"tool": "recall_history", "args": {"query": m.group(1).strip()}}
+        return None
+
+    # --- memory_search ---
+    if any(kw in p for kw in ["search memory for", "memory search for"]):
+        import re as _re_ms
+        m = _re_ms.search(
+            r'(?:search memory for|memory search for)\s+(.+)',
+            prompt, _re_ms.IGNORECASE
+        )
+        if m:
+            return {"tool": "memory_search", "args": {"query": m.group(1).strip()}}
+        return None
+
     # --- weather (1-3 word cities + accents) ---
     if "weather" in p:
         import re as _re_w
@@ -628,11 +651,6 @@ def keyword_route(prompt: str) -> Optional[dict]:
             "decision": decision,
         }}
 
-
-    # --- recall_history ---
-    if any(kw in p for kw in ["recall our last", "recall history", "remember last",
-                               "what did we discuss"]):
-        return None  # Need count extraction
 
     # --- webhook_add (create/add webhook) ---
     if any(kw in p for kw in ["create a webhook", "add a webhook", "set up webhook",

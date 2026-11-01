@@ -2178,3 +2178,15 @@ Verifies `run_agent` direct answer path with mocked LLM.
 - `"delete file report.txt"` → `delete_file(path='report.txt')`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 508 Update (2026-11-01): Memory & Recall Routes
+
+**New route:**
+- `"what did we discuss about X"` → `recall_history(query=X)`
+- `"search memory for X"` → `memory_search(query=X)`
+
+Fixed regex for conversation/discussion matching.
+
+*Workflow updated: 2026-11-01*
