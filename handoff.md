@@ -3368,3 +3368,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Update CI to run only deterministic tests locally.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 510 Update (2026-11-01): Ready for Part 511
+
+**Status:** Legal & compliance routes added, fast suite 30 passing.
+
+**What was done:**
+- Added `citation_lookup`, `clause_extractor`, and `legal_citation_check` routes.
+- Moved `citation_lookup` before `web_search` to avoid "look up" interception.
+- Added 3 direct unit tests.
+
+**Next Steps (Part 511):**
+1. Review remaining missing routes (financial, insurance, etc.) and prioritize.
+2. Consider adding routes for `auditor_full_spec`, `risk_metrics`, or `forecast_arima`.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*

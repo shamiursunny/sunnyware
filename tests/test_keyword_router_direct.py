@@ -177,3 +177,28 @@ def test_workspace_snapshot_subpath_routing():
     """'snapshot of the workspace for X' extracts subpath."""
     result = keyword_route("snapshot of the workspace for /data/reports")
     assert result == {"tool": "workspace_snapshot", "args": {"subpath": "/data/reports"}}
+
+def test_citation_lookup_routing():
+    """'look up citation X' routes to citation_lookup."""
+    result = keyword_route("look up citation 42 U.S.C. 1983")
+    assert result == {"tool": "citation_lookup", "args": {"query": "42 U.S.C. 1983"}}
+
+
+def test_clause_extractor_list_types_routing():
+    """'list clause types' routes to clause_extractor."""
+    result = keyword_route("list clause types")
+    assert result == {"tool": "clause_extractor", "args": {"action": "list_types"}}
+
+
+def test_legal_citation_check_verify_one_routing():
+    """'verify citation 576 U.S. 644' routes to legal_citation_check."""
+    result = keyword_route("verify citation 576 U.S. 644")
+    assert result == {
+        "tool": "legal_citation_check",
+        "args": {
+            "action": "verify_one",
+            "volume": "576",
+            "reporter": "U.S.",
+            "page": "644",
+        }
+    }

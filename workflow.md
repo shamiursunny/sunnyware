@@ -2202,3 +2202,14 @@ Fixed regex for conversation/discussion matching.
 - `"snapshot of the workspace for X"` → `workspace_snapshot(subpath=X)`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 510 Update (2026-11-01): Legal & Compliance Routes
+
+**New routes:**
+- `"look up citation X"` → `citation_lookup(query=X)`
+- `"list clause types"` → `clause_extractor(action='list_types')`
+- `"verify citation 576 U.S. 644"` → `legal_citation_check(action='verify_one', volume='576', reporter='U.S.', page='644')`
+
+*Workflow updated: 2026-11-01*

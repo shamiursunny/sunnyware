@@ -189,6 +189,17 @@ def keyword_route(prompt: str) -> Optional[dict]:
             }}
 
 
+    # --- citation_lookup ---
+    if any(kw in p for kw in ["look up citation", "find citation", "citation for"]):
+        import re as _re_cl
+        m = _re_cl.search(
+            r'(?:look up citation|find citation|citation for)\s+(.+)',
+            prompt, _re_cl.IGNORECASE
+        )
+        if m:
+            return {"tool": "citation_lookup", "args": {"query": m.group(1).strip()}}
+        return None
+
     # --- web_search ---
     if any(kw in p for kw in ["search the web", "search web", "google ", "look up online", "search online"]):
         import re as _re_ws
@@ -745,6 +756,27 @@ def keyword_route(prompt: str) -> Optional[dict]:
         if m and m.group(1):
             args["subpath"] = m.group(1).strip()
         return {"tool": "workspace_snapshot", "args": args}
+
+    # --- clause_extractor (list_types action only) ---
+    if any(kw in p for kw in ["list clause types", "what clause types", "available clause types"]):
+        return {"tool": "clause_extractor", "args": {"action": "list_types"}}
+
+    # --- legal_citation_check (verify citation) ---
+    if any(kw in p for kw in ["verify citation", "check citation", "validate citation"]):
+        import re as _re_lc
+        # Pattern: volume reporter page, e.g., 576 U.S. 644
+        m = _re_lc.search(r'(\d+)\s+([A-Za-z.]+)\s+(\d+)', prompt)
+        if m:
+            return {
+                "tool": "legal_citation_check",
+                "args": {
+                    "action": "verify_one",
+                    "volume": m.group(1),
+                    "reporter": m.group(2),
+                    "page": m.group(3),
+                }
+            }
+        return None
 
     # No confident keyword match — let Needle 3 handle it
     return None

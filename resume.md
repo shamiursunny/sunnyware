@@ -1872,3 +1872,19 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 27 passed in 0.41s.
 
 *Part 509 logged: 2026-11-01*
+
+---
+
+### Part 510 Update (2026-11-01): Legal & Compliance Routes Added
+
+- **Added** `citation_lookup` route:
+  - `"look up citation X"` → `citation_lookup(query=X)`
+- **Added** `clause_extractor` route:
+  - `"list clause types"` → `clause_extractor(action='list_types')`
+- **Added** `legal_citation_check` route:
+  - `"verify citation 576 U.S. 644"` → `legal_citation_check(action='verify_one', volume='576', reporter='U.S.', page='644')`
+- **Moved** `citation_lookup` block before `web_search` to prevent interception by "look up".
+- **Added** 3 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 30 passing in 0.47s.
+
+*Part 510 logged: 2026-11-01*
