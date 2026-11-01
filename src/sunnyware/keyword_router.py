@@ -97,6 +97,61 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if m:
         return {"tool": "date_calc", "args": {"action": "weekday", "date": m.group(1)}}
 
+    # --- risk_metrics ---
+    if any(kw in p for kw in ["risk metrics", "sharpe ratio", "sortino ratio", "calmar ratio",
+                               "var ", "cvar ", "drawdown", "volatility", "stress test",
+                               "correlation", "beta"]):
+        import re as _re_rm
+        arr_match = _re_rm.search(r'\[([-\d.,\s]+)\]', prompt)
+        if arr_match:
+            action = "summary"
+            if "sharpe" in p:
+                action = "sharpe"
+            elif "sortino" in p:
+                action = "sortino"
+            elif "calmar" in p:
+                action = "calmar"
+            elif "cvar" in p:
+                action = "cvar"
+            elif "var" in p:
+                action = "var"
+            elif "drawdown" in p:
+                action = "drawdown"
+            elif "volatility" in p:
+                action = "volatility"
+            elif "stress" in p:
+                action = "stress_test"
+            elif "correlation" in p:
+                action = "correlation"
+            elif "beta" in p:
+                action = "beta"
+            elif "from prices" in p:
+                action = "from_prices"
+            return {"tool": "risk_metrics", "args": {"action": action, "returns": arr_match.group(0)}}
+        return None
+
+    # --- forecast_arima ---
+    if any(kw in p for kw in ["forecast arima", "arima forecast", "forecast for",
+                               "forecast periods", "forecast 10 periods"]):
+        import re as _re_fa
+        arr_match = _re_fa.search(r'\[([-\d.,\s]+)\]', prompt)
+        if arr_match:
+            periods = 6
+            pm = _re_fa.search(r'forecast\s+(\d+)\s+periods?', prompt, _re_fa.IGNORECASE)
+            if pm:
+                periods = int(pm.group(1))
+            import json as _json
+            try:
+                data_list = _json.loads(arr_match.group(0))
+                return {"tool": "forecast_arima", "args": {"data": data_list, "periods": periods}}
+            except Exception:
+                return None
+        return None
+
+    # --- auditor_full_spec ---
+    if any(kw in p for kw in ["auditor spec", "full auditor spec", "auditor specification", "auditor full spec"]):
+        return {"tool": "auditor_full_spec", "args": {}}
+
     # --- Math regex (catches '2+2' etc.) ---
     import re as _re
     _math_match = _re.search(r'(?:what is|calculate|compute|evaluate)?\s*(-?\d+(?:\.\d+)?\s*[\+\-\*\/\%\^]\s*-?\d+(?:\.\d+)?(?:\s*[\+\-\*\/\%\^]\s*-?\d+(?:\.\d+)?)*)', prompt.lower())

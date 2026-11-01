@@ -1888,3 +1888,20 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 30 passing in 0.47s.
 
 *Part 510 logged: 2026-11-01*
+
+---
+
+### Part 511 Update (2026-11-01): Financial Routes Added
+
+- **Added** `risk_metrics` route:
+  - `"calculate risk metrics for returns [..]"` → `risk_metrics(action='summary', returns='[..]')`
+  - `"calculate sharpe ratio for returns [..]"` → `risk_metrics(action='sharpe', returns='[..]')`
+- **Added** `forecast_arima` route:
+  - `"forecast arima for [..]"` → `forecast_arima(data=[..], periods=6)`
+  - `"forecast 10 periods for [..]"` → `forecast_arima(data=[..], periods=10)`
+- **Added** `auditor_full_spec` route:
+  - `"auditor full spec"` → `auditor_full_spec()`
+- **Added** 5 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 35 passing in 0.30s.
+
+*Part 511 logged: 2026-11-01*

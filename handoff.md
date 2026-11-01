@@ -3386,3 +3386,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 511 Update (2026-11-01): Ready for Part 512
+
+**Status:** Financial routes added, fast suite 35 passing.
+
+**What was done:**
+- Added `risk_metrics`, `forecast_arima`, and `auditor_full_spec` keyword routes.
+- Added 5 direct unit tests.
+
+**Next Steps (Part 512):**
+1. Review remaining missing routes (insurance, other financial APIs).
+2. Consider adding route for `insurance_data` or `insurance_research`.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*

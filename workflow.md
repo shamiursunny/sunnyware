@@ -2213,3 +2213,16 @@ Fixed regex for conversation/discussion matching.
 - `"verify citation 576 U.S. 644"` → `legal_citation_check(action='verify_one', volume='576', reporter='U.S.', page='644')`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 511 Update (2026-11-01): Financial Routes
+
+**New routes:**
+- `"calculate risk metrics for returns [..]"` → `risk_metrics(action='summary', returns='[..]')`
+- `"calculate sharpe ratio for returns [..]"` → `risk_metrics(action='sharpe', returns='[..]')`
+- `"forecast arima for [..]"` → `forecast_arima(data=[..], periods=6)`
+- `"forecast 10 periods for [..]"` → `forecast_arima(data=[..], periods=10)`
+- `"auditor full spec"` → `auditor_full_spec()`
+
+*Workflow updated: 2026-11-01*

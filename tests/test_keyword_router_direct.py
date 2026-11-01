@@ -202,3 +202,23 @@ def test_legal_citation_check_verify_one_routing():
             "page": "644",
         }
     }
+
+def test_risk_metrics_summary_routing():
+    result = keyword_route("calculate risk metrics for returns [0.01, -0.02, 0.03]")
+    assert result == {"tool": "risk_metrics", "args": {"action": "summary", "returns": "[0.01, -0.02, 0.03]"}}
+
+def test_risk_metrics_sharpe_routing():
+    result = keyword_route("calculate sharpe ratio for returns [0.01, -0.02, 0.03]")
+    assert result == {"tool": "risk_metrics", "args": {"action": "sharpe", "returns": "[0.01, -0.02, 0.03]"}}
+
+def test_forecast_arima_routing():
+    result = keyword_route("forecast arima for [1, 2, 3, 4, 5]")
+    assert result == {"tool": "forecast_arima", "args": {"data": [1, 2, 3, 4, 5], "periods": 6}}
+
+def test_forecast_arima_periods_routing():
+    result = keyword_route("forecast 10 periods for [1, 2, 3, 4, 5]")
+    assert result == {"tool": "forecast_arima", "args": {"data": [1, 2, 3, 4, 5], "periods": 10}}
+
+def test_auditor_full_spec_routing():
+    result = keyword_route("auditor full spec")
+    assert result == {"tool": "auditor_full_spec", "args": {}}
