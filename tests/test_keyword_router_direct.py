@@ -376,3 +376,21 @@ def test_memory_search_with_days():
 def test_memory_search_with_days_and_limit():
     result = keyword_route("search memory for python last 30 days limit 5")
     assert result == {"tool": "memory_search", "args": {"query": "python", "days": 30, "limit": 5}}
+
+def test_email_configured_setup_routing():
+    result = keyword_route("check email setup")
+    assert result == {"tool": "email_configured", "args": {}}
+
+def test_email_configured_working_routing():
+    result = keyword_route("is my email working")
+    assert result == {"tool": "email_configured", "args": {}}
+
+def test_chart_histogram_routing():
+    result = keyword_route("make a histogram with 5, 10, 15")
+    assert result["tool"] == "chart_from_data"
+    assert result["args"]["chart_type"] == "bar"
+
+def test_chart_donut_routing():
+    result = keyword_route("plot a donut chart with 1, 2, 3")
+    assert result["tool"] == "chart_from_data"
+    assert result["args"]["chart_type"] == "pie"

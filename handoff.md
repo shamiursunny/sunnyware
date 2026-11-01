@@ -3576,3 +3576,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 522 Update (2026-11-01): Ready for Part 523
+
+**Status:** `email_configured` and `chart_from_data` enhanced, fast suite 76 passing.
+
+**What was done:**
+- Enhanced `email_configured` with more natural language triggers.
+- Enhanced `chart_from_data` to support histogram, donut, scatter.
+- Added 4 direct unit tests.
+
+**Next Steps (Part 523):**
+1. Review remaining missing routes (e.g., `echo` — test-only, skip it).
+2. Consider adding routes for `webhook_events` with limit extraction.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*

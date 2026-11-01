@@ -2345,3 +2345,14 @@ Fixed regex for conversation/discussion matching.
 - `"search memory for python last 30 days limit 5"` → `memory_search(query='python', days=30, limit=5)`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 522 Update (2026-11-01): Enhanced email_configured & chart_from_data
+
+**Enhanced routes:**
+- `"check email setup"` / `"is my email working"` → `email_configured()`
+- `"make a histogram with 5, 10, 15"` → `chart_from_data(chart_type='bar')`
+- `"plot a donut chart with 1, 2, 3"` → `chart_from_data(chart_type='pie')`
+
+*Workflow updated: 2026-11-01*

@@ -2057,3 +2057,18 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 72 passing in 0.67s.
 
 *Part 521 logged: 2026-11-01*
+
+---
+
+### Part 522 Update (2026-11-01): Enhanced `email_configured` and `chart_from_data`
+
+- **Enhanced** `email_configured` triggers:
+  - `"check email setup"` / `"is my email working"` / `"email status"` → `email_configured()`
+- **Enhanced** `chart_from_data`:
+  - Added `"histogram"` → bar chart
+  - Added `"donut chart"` → pie chart
+  - Added `"scatter plot"` (fallback to line)
+- **Added** 4 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 76 passing in 0.50s.
+
+*Part 522 logged: 2026-11-01*

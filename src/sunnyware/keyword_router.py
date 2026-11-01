@@ -699,7 +699,9 @@ def keyword_route(prompt: str) -> Optional[dict]:
         return {"tool": "email_list_sent", "args": args}
 
     # --- email_configured ---
-    if "email configured" in p or "is my email" in p:
+    if any(kw in p for kw in ["email configured", "is my email", "check email setup",
+                               "email setup", "is email set up", "do i have email configured",
+                               "email status", "is my email working"]):
         return {"tool": "email_configured", "args": {}}
 
     # --- kpi_watch_add ---
@@ -759,7 +761,8 @@ def keyword_route(prompt: str) -> Optional[dict]:
 
     # --- chart_from_data (chart/plot/graph + numbers) ---
     if any(kw in p for kw in ["chart ", "plot ", "graph ", "bar chart", "line chart", "pie chart",
-                               "create a chart", "make a chart", "plot data", "visualize numbers"]):
+                               "create a chart", "make a chart", "plot data", "visualize numbers",
+                               "histogram", "donut chart", "scatter plot"]):
         import re as _re_ch
         nums = _re_ch.findall(r'-?\d+(?:\.\d+)?', prompt)
         if len(nums) >= 2:
@@ -767,10 +770,12 @@ def keyword_route(prompt: str) -> Optional[dict]:
             data = [float(n) if '.' in n else int(n) for n in nums]
             # Detect chart type
             chart_type = "line"
-            if "bar" in p:
+            if "bar" in p or "histogram" in p:
                 chart_type = "bar"
-            elif "pie" in p:
+            elif "pie" in p or "donut" in p:
                 chart_type = "pie"
+            elif "scatter" in p:
+                chart_type = "line"  # fallback
             return {"tool": "chart_from_data", "args": {"data": _json.dumps(data), "chart_type": chart_type}}
         # No numbers detected — let LLM handle
         return None
