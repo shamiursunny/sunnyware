@@ -54,3 +54,14 @@ def test_date_calc_weekday_routing():
     """'what day of the week is date' routes to date_calc weekday."""
     result = keyword_route("what day of the week is 2026-11-01")
     assert result == {"tool": "date_calc", "args": {"action": "weekday", "date": "2026-11-01"}}
+
+def test_schedule_delete_routing():
+    """'delete scheduled task X' routes to schedule_delete."""
+    result = keyword_route("delete scheduled task my_task")
+    assert result == {"tool": "schedule_delete", "args": {"name": "my_task"}}
+
+
+def test_schedule_run_now_routing():
+    """'run schedule X now' routes to schedule_run_now."""
+    result = keyword_route("run schedule my_task now")
+    assert result == {"tool": "schedule_run_now", "args": {"name": "my_task"}}

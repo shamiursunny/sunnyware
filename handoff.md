@@ -3240,3 +3240,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Consider adding `kpi_watch_add` and `webhook_delete` routes.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 502 Update (2026-11-01): Ready for Part 503
+
+**Status:** 2 new scheduling routes added, full suite 111 passing.
+
+**What was done:**
+- Added `schedule_delete` and `schedule_run_now` keyword routes.
+- Added 2 direct unit tests.
+- Confirmed full suite passes.
+
+**Next Steps (Part 503):**
+1. Add keyword routes for `kpi_watch_add` and `webhook_delete`.
+2. Add tests for those routes.
+3. Consider adding `email_list_sent` and `webhook_events` routes.
+
+*Handoff updated: 2026-11-01*

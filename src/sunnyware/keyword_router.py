@@ -427,6 +427,22 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if any(kw in p for kw in ["list my webhook", "list all webhook", "show my webhook"]):
         return {"tool": "webhook_list", "args": {}}
 
+    # --- schedule_delete ---
+    if any(kw in p for kw in ["delete scheduled task", "remove schedule", "delete schedule"]):
+        import re as _re_sd
+        m = _re_sd.search(r'(?:delete|remove)\s+(?:scheduled?\s+)?(?:task|schedule)\s+(?:named\s+)?([a-z_][a-z0-9_]*)', prompt, _re_sd.IGNORECASE)
+        if m:
+            return {"tool": "schedule_delete", "args": {"name": m.group(1)}}
+        return None
+
+    # --- schedule_run_now ---
+    if any(kw in p for kw in ["run schedule", "trigger schedule", "run scheduled task now"]):
+        import re as _re_sr
+        m = _re_sr.search(r'(?:run|trigger)\s+(?:scheduled?\s+)?(?:task|schedule)\s+(?:named\s+)?([a-z_][a-z0-9_]*)', prompt, _re_sr.IGNORECASE)
+        if m:
+            return {"tool": "schedule_run_now", "args": {"name": m.group(1)}}
+        return None
+
     # --- schedule_list ---
     if any(kw in p for kw in ["list my schedule", "list all schedule", "show my scheduled",
                                "show me my scheduled", "list schedules", "show schedules",

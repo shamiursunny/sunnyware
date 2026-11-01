@@ -2126,3 +2126,15 @@ Verifies `run_agent` direct answer path with mocked LLM.
 **Placement:** Before math regex to avoid date-as-arithmetic conflicts.
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 502 Update (2026-11-01): Schedule Delete & Run Now Routes
+
+**New routes:**
+- `"delete scheduled task X"` → `schedule_delete(name)`
+- `"run schedule X now"` → `schedule_run_now(name)`
+
+`schedule_add` remains LLM-only (requires complex arguments).
+
+*Workflow updated: 2026-11-01*

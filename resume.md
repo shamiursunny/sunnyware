@@ -1780,3 +1780,16 @@ me the exact git commands to commit + push both remotes."
 - **Full test suite:** 109 passing, 1 skipped.
 
 *Part 501 logged: 2026-11-01*
+
+---
+
+### Part 502 Update (2026-11-01): Schedule Delete & Run Now Routes Added
+
+- **Added** 2 keyword routes for scheduling:
+  - `"delete scheduled task X"` / `"remove schedule X"` → `schedule_delete(name)`
+  - `"run schedule X now"` / `"trigger schedule X"` → `schedule_run_now(name)`
+- **Left `schedule_add`** for the LLM (requires prompt, interval, etc. — too complex for simple keyword extraction).
+- **Added** 2 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Full test suite:** 111 passing, 1 skipped.
+
+*Part 502 logged: 2026-11-01*
