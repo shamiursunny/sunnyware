@@ -2044,3 +2044,16 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 70 passing in 0.52s.
 
 *Part 520 logged: 2026-11-01*
+
+---
+
+### Part 521 Update (2026-11-01): `memory_search` Enhanced with `days` Extraction
+
+- **Enhanced** `memory_search` to extract optional `days` from prompts:
+  - `"search memory for python last 30 days"` → `memory_search(query='python', days=30)`
+  - `"search memory for python last 30 days limit 5"` → `memory_search(query='python', days=30, limit=5)`
+  - The extracted `days` and `limit` are **stripped from the query**.
+- **Added** 2 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 72 passing in 0.67s.
+
+*Part 521 logged: 2026-11-01*

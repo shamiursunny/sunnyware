@@ -2335,3 +2335,13 @@ Fixed regex for conversation/discussion matching.
 - `"set reminder named X every day to Y"` → `schedule_add(name=X, prompt=Y, interval_seconds=86400)`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 521 Update (2026-11-01): `memory_search` Enhanced with `days`
+
+**Enhanced routes:**
+- `"search memory for python last 30 days"` → `memory_search(query='python', days=30)`
+- `"search memory for python last 30 days limit 5"` → `memory_search(query='python', days=30, limit=5)`
+
+*Workflow updated: 2026-11-01*

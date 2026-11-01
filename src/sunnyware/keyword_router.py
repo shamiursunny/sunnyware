@@ -227,6 +227,11 @@ def keyword_route(prompt: str) -> Optional[dict]:
         if m:
             query = m.group(1).strip()
             args = {"query": query}
+            # Extract optional days: "last 30 days" / "past 7 days"
+            dm = _re_ms.search(r'(?:last|past)\s+(\d+)\s+days?', prompt, _re_ms.IGNORECASE)
+            if dm:
+                args["days"] = int(dm.group(1))
+                query = _re_ms.sub(r'(?:last|past)\s+\d+\s+days?', '', query, flags=_re_ms.IGNORECASE).strip()
             # Extract optional limit: "limit 5" / "top 5"
             lm = _re_ms.search(r'(?:limit|top)\s+(\d+)', prompt, _re_ms.IGNORECASE)
             if lm:

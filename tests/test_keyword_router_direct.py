@@ -368,3 +368,11 @@ def test_schedule_add_daily_routing():
     assert result["tool"] == "schedule_add"
     assert result["args"]["name"] == "daily"
     assert result["args"]["interval_seconds"] == 86400
+
+def test_memory_search_with_days():
+    result = keyword_route("search memory for python last 30 days")
+    assert result == {"tool": "memory_search", "args": {"query": "python", "days": 30}}
+
+def test_memory_search_with_days_and_limit():
+    result = keyword_route("search memory for python last 30 days limit 5")
+    assert result == {"tool": "memory_search", "args": {"query": "python", "days": 30, "limit": 5}}

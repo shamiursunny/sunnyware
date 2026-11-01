@@ -3559,3 +3559,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 521 Update (2026-11-01): Ready for Part 522
+
+**Status:** `memory_search` enhanced with `days` extraction, fast suite 72 passing.
+
+**What was done:**
+- Enhanced `memory_search` to extract and strip optional `days` and `limit`.
+- Added 2 direct unit tests.
+
+**Next Steps (Part 522):**
+1. Review remaining missing routes (e.g., `chart_from_data` with complex data, `email_configured` with more patterns).
+2. Consider adding route for `echo` (test-only, skip it).
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*
