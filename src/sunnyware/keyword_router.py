@@ -423,6 +423,22 @@ def keyword_route(prompt: str) -> Optional[dict]:
                                "list my sql sandbox", "show sql sandbox"]):
         return {"tool": "sql_sandbox_list", "args": {}}
 
+    # --- webhook_delete ---
+    if any(kw in p for kw in ["delete webhook", "remove webhook"]):
+        import re as _re_wd
+        m = _re_wd.search(r'(?:delete|remove)\s+webhook\s+(wh_[a-zA-Z0-9_]+)', prompt, _re_wd.IGNORECASE)
+        if m:
+            return {"tool": "webhook_delete", "args": {"token": m.group(1)}}
+        return None
+
+    # --- webhook_events ---
+    if any(kw in p for kw in ["webhook events", "events for webhook"]):
+        import re as _re_we
+        m = _re_we.search(r'(?:for|webhook)\s+(wh_[a-zA-Z0-9_]+)', prompt, _re_we.IGNORECASE)
+        if m:
+            return {"tool": "webhook_events", "args": {"token": m.group(1)}}
+        return None
+
     # --- webhook_list ---
     if any(kw in p for kw in ["list my webhook", "list all webhook", "show my webhook"]):
         return {"tool": "webhook_list", "args": {}}

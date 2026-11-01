@@ -65,3 +65,14 @@ def test_schedule_run_now_routing():
     """'run schedule X now' routes to schedule_run_now."""
     result = keyword_route("run schedule my_task now")
     assert result == {"tool": "schedule_run_now", "args": {"name": "my_task"}}
+
+def test_webhook_delete_routing():
+    """'delete webhook X' routes to webhook_delete."""
+    result = keyword_route("delete webhook wh_12345")
+    assert result == {"tool": "webhook_delete", "args": {"token": "wh_12345"}}
+
+
+def test_webhook_events_routing():
+    """'webhook events for X' routes to webhook_events."""
+    result = keyword_route("webhook events for wh_12345")
+    assert result == {"tool": "webhook_events", "args": {"token": "wh_12345"}}

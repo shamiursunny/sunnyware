@@ -1793,3 +1793,15 @@ me the exact git commands to commit + push both remotes."
 - **Full test suite:** 111 passing, 1 skipped.
 
 *Part 502 logged: 2026-11-01*
+
+---
+
+### Part 504 Update (2026-11-01): Webhook Delete & Events Routes Added
+
+- **Added** 2 keyword routes for webhooks:
+  - `"delete webhook wh_..."` / `"remove webhook wh_..."` → `webhook_delete(token)`
+  - `"webhook events for wh_..."` → `webhook_events(token)`
+- **Added** 2 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Full test suite:** 113 passing, 1 skipped.
+
+*Part 504 logged: 2026-11-01*

@@ -3258,3 +3258,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Consider adding `email_list_sent` and `webhook_events` routes.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 504 Update (2026-11-01): Ready for Part 505
+
+**Status:** 2 new webhook routes added, full suite 113 passing.
+
+**What was done:**
+- Added `webhook_delete` and `webhook_events` keyword routes.
+- Added 2 direct unit tests.
+- Confirmed full suite passes.
+
+**Next Steps (Part 505):**
+1. Add keyword route for `kpi_watch_add`.
+2. Add tests for that route.
+3. Consider adding `email_list_sent` and `list_files` (already exists) routes.
+
+*Handoff updated: 2026-11-01*

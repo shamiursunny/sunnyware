@@ -2138,3 +2138,13 @@ Verifies `run_agent` direct answer path with mocked LLM.
 `schedule_add` remains LLM-only (requires complex arguments).
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 504 Update (2026-11-01): Webhook Delete & Events Routes
+
+**New routes:**
+- `"delete webhook wh_..."` → `webhook_delete(token)`
+- `"webhook events for wh_..."` → `webhook_events(token)`
+
+*Workflow updated: 2026-11-01*
