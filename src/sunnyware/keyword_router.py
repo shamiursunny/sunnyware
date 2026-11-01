@@ -907,10 +907,33 @@ def keyword_route(prompt: str) -> Optional[dict]:
             return {"tool": "webhook_add", "args": {"name": name}}
         return None  # No name detected — LLM handles
 
-    # --- schedule_add (schedule/create task) ---
+    # --- schedule_add ---
     if any(kw in p for kw in ["schedule a task", "schedule task", "set reminder",
                                "recurring job", "schedule every"]):
-        return None  # Need name/interval extraction
+        import re as _re_sa
+        # Extract name (after "named" or "called" or "for")
+        name_m = _re_sa.search(r'(?:named|called|for)\s+["\']?([a-z_][a-z0-9_]*)["\']?', prompt, _re_sa.IGNORECASE)
+        if not name_m:
+            return None  # No name detected — LLM handles
+        name = name_m.group(1).strip()
+        # Extract interval: "every 60 seconds" / "every hour" / "every 5 minutes" / "every day"
+        interval = 3600  # default 1 hour
+        im = _re_sa.search(r'every\s+(\d+)?\s*(seconds?|minutes?|hours?|days?)', prompt, _re_sa.IGNORECASE)
+        if im:
+            val = int(im.group(1)) if im.group(1) else 1
+            unit = im.group(2).lower()
+            if unit.startswith('second'): interval = val
+            elif unit.startswith('minute'): interval = val * 60
+            elif unit.startswith('hour'): interval = val * 3600
+            elif unit.startswith('day'): interval = val * 86400
+        # Extract prompt: everything after the interval phrase
+        # Build agent prompt by removing the interval phrase from the original prompt
+        agent_prompt = _re_sa.sub(r'(?:every\s+(?:\d+\s*)?(?:seconds?|minutes?|hours?|days?))\b', '', prompt, flags=_re_sa.IGNORECASE).strip()
+        return {"tool": "schedule_add", "args": {
+            "name": name,
+            "prompt": agent_prompt,
+            "interval_seconds": interval,
+        }}
 
     # --- document_library (list action only; add/save needs LLM) ---
     if any(w in p for w in ["list library", "list documents", "show library documents",

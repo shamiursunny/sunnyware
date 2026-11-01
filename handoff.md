@@ -3542,3 +3542,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 520 Update (2026-11-01): Ready for Part 521
+
+**Status:** `schedule_add` route added, fast suite 70 passing.
+
+**What was done:**
+- Added `schedule_add` keyword route with interval parsing.
+- Added 3 direct unit tests.
+
+**Next Steps (Part 521):**
+1. Review remaining missing routes (e.g., `echo` — test-only, skip it; `chart_from_data` with more complex data).
+2. Consider adding routes for `memory_search` with days (similar to `recall_history`).
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*

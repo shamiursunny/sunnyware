@@ -350,3 +350,21 @@ def test_webhook_add_simple_routing():
 def test_webhook_add_no_name_returns_none():
     result = keyword_route("create a webhook")
     assert result is None
+
+def test_schedule_add_hourly_routing():
+    result = keyword_route("schedule a task named daily_check every hour to check email")
+    assert result["tool"] == "schedule_add"
+    assert result["args"]["name"] == "daily_check"
+    assert result["args"]["interval_seconds"] == 3600
+
+def test_schedule_add_minutes_routing():
+    result = keyword_route("schedule task for test every 5 minutes")
+    assert result["tool"] == "schedule_add"
+    assert result["args"]["name"] == "test"
+    assert result["args"]["interval_seconds"] == 300
+
+def test_schedule_add_daily_routing():
+    result = keyword_route("set reminder named daily every day to review reports")
+    assert result["tool"] == "schedule_add"
+    assert result["args"]["name"] == "daily"
+    assert result["args"]["interval_seconds"] == 86400

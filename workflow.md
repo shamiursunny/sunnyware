@@ -2324,3 +2324,14 @@ Fixed regex for conversation/discussion matching.
 - `"create a webhook"` → `None` (no name, LLM handles)
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 520 Update (2026-11-01): `schedule_add` Route
+
+**New route:**
+- `"schedule a task named X every hour to Y"` → `schedule_add(name=X, prompt=Y, interval_seconds=3600)`
+- `"schedule task for X every 5 minutes"` → `schedule_add(name=X, prompt='', interval_seconds=300)`
+- `"set reminder named X every day to Y"` → `schedule_add(name=X, prompt=Y, interval_seconds=86400)`
+
+*Workflow updated: 2026-11-01*

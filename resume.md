@@ -2031,3 +2031,16 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 67 passing in 0.48s.
 
 *Part 519 logged: 2026-11-01*
+
+---
+
+### Part 520 Update (2026-11-01): `schedule_add` Keyword Route Added
+
+- **Added** `schedule_add` route:
+  - `"schedule a task named X every hour to Y"` → `schedule_add(name=X, prompt=Y, interval_seconds=3600)`
+  - Supports minutes, hours, days as units; defaults to 3600 seconds.
+  - Strips the interval phrase from the prompt.
+- **Added** 3 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 70 passing in 0.52s.
+
+*Part 520 logged: 2026-11-01*
