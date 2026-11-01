@@ -3276,3 +3276,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Consider adding `email_list_sent` and `list_files` (already exists) routes.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 505 Update (2026-11-01): Ready for Part 506
+
+**Status:** `kpi_watch_add` route added, full suite 116 passing.
+
+**What was done:**
+- Added `kpi_watch_add` keyword route with operator mapping.
+- Added 3 direct unit tests.
+- Confirmed full suite passes.
+
+**Next Steps (Part 506):**
+1. Add keyword route for `email_list_sent`.
+2. Consider adding routes for `list_files` (already exists) and `delete_file`.
+3. Review missing tool routes and prioritize.
+
+*Handoff updated: 2026-11-01*

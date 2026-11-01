@@ -76,3 +76,30 @@ def test_webhook_events_routing():
     """'webhook events for X' routes to webhook_events."""
     result = keyword_route("webhook events for wh_12345")
     assert result == {"tool": "webhook_events", "args": {"token": "wh_12345"}}
+
+def test_kpi_watch_add_routing_lt():
+    """'alert me when X < Y' routes to kpi_watch_add with lt."""
+    result = keyword_route("alert me when daily_burn_rate < 1000")
+    assert result["tool"] == "kpi_watch_add"
+    assert result["args"] == {
+        "kpi_name": "daily_burn_rate",
+        "check_prompt": "What is the current daily_burn_rate?",
+        "comparison": "lt",
+        "threshold_value": 1000.0,
+    }
+
+
+def test_kpi_watch_add_routing_gt():
+    """'add kpi watch X > Y' routes to kpi_watch_add with gt."""
+    result = keyword_route("add kpi watch revenue > 50000")
+    assert result["tool"] == "kpi_watch_add"
+    assert result["args"]["comparison"] == "gt"
+    assert result["args"]["threshold_value"] == 50000.0
+
+
+def test_kpi_watch_add_routing_ge():
+    """'watch kpi X >= Y' routes to kpi_watch_add with ge."""
+    result = keyword_route("watch kpi user_count >= 100")
+    assert result["tool"] == "kpi_watch_add"
+    assert result["args"]["comparison"] == "ge"
+    assert result["args"]["threshold_value"] == 100.0

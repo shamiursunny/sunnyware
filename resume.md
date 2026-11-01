@@ -1805,3 +1805,17 @@ me the exact git commands to commit + push both remotes."
 - **Full test suite:** 113 passing, 1 skipped.
 
 *Part 504 logged: 2026-11-01*
+
+---
+
+### Part 505 Update (2026-11-01): `kpi_watch_add` Keyword Route Added
+
+- **Added** `kpi_watch_add` route for natural language alerts:
+  - `"alert me when X < Y"` → `kpi_watch_add(kpi_name=X, comparison='lt', threshold_value=Y)`
+  - `"add kpi watch X > Y"` → `kpi_watch_add(kpi_name=X, comparison='gt', threshold_value=Y)`
+  - `"watch kpi X >= Y"` → `kpi_watch_add(kpi_name=X, comparison='ge', threshold_value=Y)`
+- **Automatically builds `check_prompt`** as `"What is the current X?"`.
+- **Added** 3 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Full test suite:** 116 passing, 1 skipped.
+
+*Part 505 logged: 2026-11-01*

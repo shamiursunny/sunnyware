@@ -469,6 +469,32 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if "email configured" in p or "is my email" in p:
         return {"tool": "email_configured", "args": {}}
 
+    # --- kpi_watch_add ---
+    if any(kw in p for kw in ["alert me when", "create kpi watch", "add kpi watch", "watch kpi"]):
+        import re as _re_kpi
+        m = _re_kpi.search(
+            r'(?:alert me when|create kpi watch|add kpi watch|watch kpi)\s+'
+            r'([a-z_][a-z0-9_]*)\s*(<|>|<=|>=|==|!=)\s*(\d+(?:\.\d+)?)',
+            prompt, _re_kpi.IGNORECASE
+        )
+        if m:
+            kpi_name = m.group(1)
+            op = m.group(2)
+            threshold = float(m.group(3))
+            comp_map = {"<": "lt", ">": "gt", "<=": "le", ">=": "ge", "==": "eq", "!=": "ne"}
+            comparison = comp_map.get(op, "lt")
+            check_prompt = f"What is the current {kpi_name}?"
+            return {
+                "tool": "kpi_watch_add",
+                "args": {
+                    "kpi_name": kpi_name,
+                    "check_prompt": check_prompt,
+                    "comparison": comparison,
+                    "threshold_value": threshold,
+                }
+            }
+        return None
+
     # --- kpi_watch_list ---
     if any(kw in p for kw in ["list kpi", "my kpi", "show kpi", "kpi watches", "what kpis"]):
         return {"tool": "kpi_watch_list", "args": {}}

@@ -2148,3 +2148,14 @@ Verifies `run_agent` direct answer path with mocked LLM.
 - `"webhook events for wh_..."` → `webhook_events(token)`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 505 Update (2026-11-01): `kpi_watch_add` Route
+
+**New route:**
+- `"alert me when X < Y"` → `kpi_watch_add(kpi_name=X, check_prompt="What is the current X?", comparison="lt", threshold_value=Y)`
+- `"add kpi watch X > Y"` → `kpi_watch_add(..., comparison="gt")`
+- `"watch kpi X >= Y"` → `kpi_watch_add(..., comparison="ge")`
+
+*Workflow updated: 2026-11-01*
