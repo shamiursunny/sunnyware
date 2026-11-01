@@ -3732,3 +3732,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 532 Update (2026-11-02): Ready for Part 533
+
+**Status:** Session summarization helper added, fast suite 92 passing.
+
+**What was done:**
+- Added `_summarize_old_events` and `summarize_session`.
+- Added 6 direct unit tests.
+
+**Next Steps (Part 533):**
+1. Optionally wire `summarize_session` into the orchestrator for very long chats.
+2. Consider context pruning or smarter retrieval.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-02*

@@ -2164,3 +2164,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 86 passing (83 keyword + 3 memory).
 
 *Part 531 logged: 2026-11-01*
+
+---
+
+### Part 532 Update (2026-11-02): Session Summarization Helper
+
+- **Added** `memory._summarize_old_events(rows)` — pure function that builds a short summary from old user messages (capped per snippet and total length).
+- **Added** async `memory.summarize_session(session_uuid, keep_recent=6)` — returns `{summary, recent}` for long conversations.
+- **Added** 6 direct unit tests in `tests/test_memory_summarize.py`.
+- **Fast suite:** 92 passing (83 keyword + 3 memory + 6 summarize).
+
+*Part 532 logged: 2026-11-02*

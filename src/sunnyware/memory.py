@@ -169,6 +169,72 @@ async def build_context(session_uuid: str, max_turns: int = 6) -> list:
         return []
 
 
+
+# ── Part 532: session summarization (for long conversations) ─────────────────
+
+def _summarize_old_events(rows: list, max_chars: int = 300) -> str:
+    """Pure function: build a short summary from old user_message rows.
+
+    Args:
+        rows: list of dicts with 'event_type' and 'payload' keys
+    Returns:
+        str: summary like "Earlier in this conversation, the user asked about: foo; bar; baz"
+    """
+    user_prompts = []
+    for r in rows:
+        event_type = r.get("event_type") if isinstance(r, dict) else r["event_type"]
+        payload = r.get("payload") if isinstance(r, dict) else r["payload"]
+        if event_type == "user_message":
+            content = _extract_content(payload)
+            if content:
+                snippet = str(content).strip().replace("\n", " ")[:80]
+                user_prompts.append(snippet)
+    if not user_prompts:
+        return ""
+    joined = "; ".join(user_prompts)
+    if len(joined) > max_chars:
+        joined = joined[:max_chars] + "..."
+    return "Earlier in this conversation, the user asked about: " + joined
+
+
+async def summarize_session(session_uuid: str, keep_recent: int = 6) -> dict:
+    """Summarize old turns of a session and return summary + recent messages.
+
+    Args:
+        session_uuid: session UUID
+        keep_recent: number of recent TURNS (user+assistant pairs) to keep unsummarized
+    Returns:
+        {'summary': str, 'recent': list[dict]}
+        'summary' is empty if there's not enough history to summarize.
+    """
+    pool = app_state.get_pool()
+    if pool is None or not session_uuid:
+        return {"summary": "", "recent": []}
+    try:
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                """
+                SELECT event_type, payload
+                FROM events
+                WHERE session_id = $1::uuid
+                  AND event_type IN ('user_message', 'assistant_message')
+                ORDER BY id ASC
+                """,
+                session_uuid,
+            )
+        if not rows:
+            return {"summary": "", "recent": []}
+        keep_recent_count = keep_recent * 2
+        if len(rows) <= keep_recent_count:
+            return {"summary": "", "recent": [dict(r) for r in rows]}
+        old_rows = list(rows[:-keep_recent_count])
+        recent_rows = list(rows[-keep_recent_count:])
+        summary = _summarize_old_events(old_rows)
+        return {"summary": summary, "recent": [dict(r) for r in recent_rows]}
+    except Exception:
+        return {"summary": "", "recent": []}
+
+
 # ── Part 8: cross-session memory selection ──────────────────────────────────
 
 _STOPWORDS = {

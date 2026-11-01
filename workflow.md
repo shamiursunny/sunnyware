@@ -2425,3 +2425,11 @@ Fixed regex for conversation/discussion matching.
 **Memory change:** `write_memory` now accepts `ttl` and `list_memory` returns all non-expired entries.
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 532 Update (2026-11-02): Session Summarization
+
+**Memory change:** `summarize_session()` condenses old turns into a short text and returns recent messages.
+
+*Workflow updated: 2026-11-02*
