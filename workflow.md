@@ -2376,3 +2376,12 @@ Fixed regex for conversation/discussion matching.
 - `"show files under /data"` → `list_files(path='/data')`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 526 Update (2026-11-01): Enhanced email_send Body Extraction
+
+**Enhanced route:**
+- `"send an email to bob@example.com about lunch"` → `email_send(to='bob@example.com', body='about lunch')`
+
+*Workflow updated: 2026-11-01*

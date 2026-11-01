@@ -3628,3 +3628,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 526 Update (2026-11-01): Ready for Part 527
+
+**Status:** `email_send` body extraction improved, fast suite 83 passing.
+
+**What was done:**
+- Enhanced `email_send` to strip command prefix and email from body.
+- Added 2 direct unit tests.
+
+**Next Steps (Part 527):**
+1. Review remaining missing routes (e.g., `echo` — test-only, skip it).
+2. Consider adding routes for `webhook_list` (already done) or other list tools.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*

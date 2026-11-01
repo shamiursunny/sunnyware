@@ -263,10 +263,15 @@ def keyword_route(prompt: str) -> Optional[dict]:
             import os as _os_e
             if not _os_e.getenv("RESEND_API_KEY"):
                 return {"tool": "email_configured", "args": {}}
+            # Strip command prefix and email from the body
+            body = prompt
+            body = _re_e.sub(r'(?:send\s+(?:an\s+)?email\s+to\s+|email\s+to\s+|mail\s+to\s+)', '', body, flags=_re_e.IGNORECASE)
+            body = _re_e.sub(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', '', body)
+            body = body.strip().strip('.,;:') or prompt
             return {"tool": "email_send", "args": {
                 "to": to_match.group(1),
                 "subject": subject,
-                "body": prompt,
+                "body": body,
             }}
 
 

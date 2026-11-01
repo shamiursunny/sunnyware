@@ -414,3 +414,18 @@ def test_list_files_subpath_routing():
 def test_list_files_under_routing():
     result = keyword_route("show files under /data")
     assert result == {"tool": "list_files", "args": {"path": "/data"}}
+
+def test_email_send_body_stripped():
+    import os
+    os.environ['RESEND_API_KEY'] = 'dummy'
+    result = keyword_route("send an email to bob@example.com about lunch saying hello")
+    assert result["tool"] == "email_send"
+    assert result["args"]["to"] == "bob@example.com"
+    assert "hello" in result["args"]["body"]
+
+def test_email_send_to_extracted():
+    import os
+    os.environ['RESEND_API_KEY'] = 'dummy'
+    result = keyword_route("send email to alice@test.com regarding project update")
+    assert result["tool"] == "email_send"
+    assert result["args"]["to"] == "alice@test.com"

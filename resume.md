@@ -2096,3 +2096,15 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 81 passing in 0.54s.
 
 *Part 524 logged: 2026-11-01*
+
+---
+
+### Part 526 Update (2026-11-01): Enhanced `email_send` Body Extraction
+
+- **Enhanced** `email_send` to strip the command prefix and email address from the body:
+  - Before: `"send an email to bob@example.com about lunch"` → body = full prompt
+  - After: → body = `"about lunch"`
+- **Added** 2 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 83 passing in 0.58s.
+
+*Part 526 logged: 2026-11-01*
