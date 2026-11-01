@@ -2186,3 +2186,12 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 93 passing.
 
 *Part 533 logged: 2026-11-02*
+
+---
+
+### Part 534 Update (2026-11-02): Wire Summarization into Streaming Endpoint
+
+- **Updated** `routes/agent.py` to use `build_context_with_summary()` for the tool-aware streaming path (`/api/agent/stream`).
+- **Fast suite:** 93 passing.
+
+*Part 534 logged: 2026-11-02*

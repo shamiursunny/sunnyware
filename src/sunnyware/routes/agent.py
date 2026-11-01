@@ -556,7 +556,7 @@ async def run_agent_stream(req: Request):
             pass
     history = []
     if session_uuid:
-        history = await memory_store.build_context(session_uuid, max_turns=5)
+        history = await memory_store.build_context_with_summary(session_uuid, max_turns=5)
         await memory_store.log_event(
             session_uuid, "user_message",
             {"content": prompt, "model": model or "default", "streaming": True},

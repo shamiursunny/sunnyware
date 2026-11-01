@@ -3767,3 +3767,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 534 Update (2026-11-02): Ready for Part 535
+
+**Status:** Streaming endpoint now uses summarization, fast suite 93 passing.
+
+**What was done:**
+- Updated `routes/agent.py` to use `build_context_with_summary()`.
+
+**Next Steps (Part 535):**
+1. Add a `/api/memory/list` endpoint to expose `list_memory()`.
+2. Consider context pruning or smarter retrieval.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-02*

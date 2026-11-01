@@ -2441,3 +2441,11 @@ Fixed regex for conversation/discussion matching.
 **Integration:** `run_agent()` now automatically summarizes long session histories.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 534 Update (2026-11-02): Streaming Endpoint Summarization
+
+**Integration:** `/api/agent/stream` now uses the same summarization logic for long sessions.
+
+*Workflow updated: 2026-11-02*
