@@ -2005,3 +2005,16 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 62 passing in 0.57s.
 
 *Part 517 logged: 2026-11-01*
+
+---
+
+### Part 518 Update (2026-11-01): `memory_search` Enhanced with `limit` Extraction
+
+- **Enhanced** `memory_search` to extract optional `limit` from prompts:
+  - `"search memory for python limit 5"` → `memory_search(query='python', limit=5)`
+  - `"memory search for python top 10"` → `memory_search(query='python', limit=10)`
+  - The extracted `limit` is **stripped from the query**.
+- **Added** 2 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 64 passing in 0.64s.
+
+*Part 518 logged: 2026-11-01*

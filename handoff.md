@@ -3508,3 +3508,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 518 Update (2026-11-01): Ready for Part 519
+
+**Status:** `memory_search` enhanced with `limit` extraction, fast suite 64 passing.
+
+**What was done:**
+- Enhanced `memory_search` to extract and strip optional `limit`.
+- Added 2 direct unit tests.
+
+**Next Steps (Part 519):**
+1. Review remaining missing routes (e.g., `echo`, `schedule_add`, `chart_from_data` with complex data).
+2. Consider adding routes for `webhook_add` (create webhook).
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*

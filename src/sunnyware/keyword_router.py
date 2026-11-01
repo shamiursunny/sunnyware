@@ -225,7 +225,15 @@ def keyword_route(prompt: str) -> Optional[dict]:
             prompt, _re_ms.IGNORECASE
         )
         if m:
-            return {"tool": "memory_search", "args": {"query": m.group(1).strip()}}
+            query = m.group(1).strip()
+            args = {"query": query}
+            # Extract optional limit: "limit 5" / "top 5"
+            lm = _re_ms.search(r'(?:limit|top)\s+(\d+)', prompt, _re_ms.IGNORECASE)
+            if lm:
+                args["limit"] = int(lm.group(1))
+                query = _re_ms.sub(r'(?:limit|top)\s+\d+', '', query, flags=_re_ms.IGNORECASE).strip()
+            args["query"] = query
+            return {"tool": "memory_search", "args": args}
         return None
 
     # --- weather (1-3 word cities + accents) ---

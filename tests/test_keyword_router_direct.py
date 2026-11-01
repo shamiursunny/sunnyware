@@ -330,3 +330,11 @@ def test_fmp_dcf_routing():
 def test_fmp_ratios_routing():
     result = keyword_route("get financial ratios for MSFT")
     assert result == {"tool": "fmp_fundamentals", "args": {"action": "ratios", "ticker": "MSFT"}}
+
+def test_memory_search_with_limit():
+    result = keyword_route("search memory for python limit 5")
+    assert result == {"tool": "memory_search", "args": {"query": "python", "limit": 5}}
+
+def test_memory_search_with_top():
+    result = keyword_route("memory search for python top 10")
+    assert result == {"tool": "memory_search", "args": {"query": "python", "limit": 10}}

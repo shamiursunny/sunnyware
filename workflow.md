@@ -2303,3 +2303,13 @@ Fixed regex for conversation/discussion matching.
 - `"get financial ratios for MSFT"` → `fmp_fundamentals(action='ratios', ticker='MSFT')`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 518 Update (2026-11-01): `memory_search` Enhanced with `limit`
+
+**Enhanced routes:**
+- `"search memory for python limit 5"` → `memory_search(query='python', limit=5)`
+- `"memory search for python top 10"` → `memory_search(query='python', limit=10)`
+
+*Workflow updated: 2026-11-01*
