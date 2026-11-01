@@ -3525,3 +3525,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 519 Update (2026-11-01): Ready for Part 520
+
+**Status:** `webhook_add` route verified, fast suite 67 passing.
+
+**What was done:**
+- Verified existing `webhook_add` route (already working).
+- Added 3 direct unit tests.
+
+**Next Steps (Part 520):**
+1. Review remaining missing routes (e.g., `schedule_add` — complex but could use a default interval).
+2. Consider adding routes for `echo` (test-only, skip it).
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*

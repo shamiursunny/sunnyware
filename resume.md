@@ -2018,3 +2018,16 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 64 passing in 0.64s.
 
 *Part 518 logged: 2026-11-01*
+
+---
+
+### Part 519 Update (2026-11-01): `webhook_add` Route Verified & Tested
+
+- **Verified** existing `webhook_add` route:
+  - `"create webhook named myhook"` → `webhook_add(name='myhook')`
+  - `"add webhook myhook"` → `webhook_add(name='myhook')`
+  - `"create a webhook"` → returns `None` (no name detected, LLM handles)
+- **Added** 3 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 67 passing in 0.48s.
+
+*Part 519 logged: 2026-11-01*

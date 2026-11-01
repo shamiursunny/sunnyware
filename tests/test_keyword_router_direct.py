@@ -338,3 +338,15 @@ def test_memory_search_with_limit():
 def test_memory_search_with_top():
     result = keyword_route("memory search for python top 10")
     assert result == {"tool": "memory_search", "args": {"query": "python", "limit": 10}}
+
+def test_webhook_add_named_routing():
+    result = keyword_route("create webhook named myhook")
+    assert result == {"tool": "webhook_add", "args": {"name": "myhook"}}
+
+def test_webhook_add_simple_routing():
+    result = keyword_route("add webhook myhook")
+    assert result == {"tool": "webhook_add", "args": {"name": "myhook"}}
+
+def test_webhook_add_no_name_returns_none():
+    result = keyword_route("create a webhook")
+    assert result is None

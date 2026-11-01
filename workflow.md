@@ -2313,3 +2313,14 @@ Fixed regex for conversation/discussion matching.
 - `"memory search for python top 10"` → `memory_search(query='python', limit=10)`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 519 Update (2026-11-01): `webhook_add` Route Verified
+
+**Verified routes:**
+- `"create webhook named X"` → `webhook_add(name=X)`
+- `"add webhook X"` → `webhook_add(name=X)`
+- `"create a webhook"` → `None` (no name, LLM handles)
+
+*Workflow updated: 2026-11-01*
