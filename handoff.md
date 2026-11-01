@@ -3800,3 +3800,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 536 Update (2026-11-02): Ready for Part 537
+
+**Status:** `/api/memory/write` endpoint added, fast suite 93 passing.
+
+**What was done:**
+- Added `POST /api/memory/write` endpoint.
+- No new tests (delegates to tested `write_memory()`).
+
+**Next Steps (Part 537):**
+1. Add a `/api/memory/delete` endpoint for clearing a key.
+2. Consider context pruning or smarter retrieval.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-02*

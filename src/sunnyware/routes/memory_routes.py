@@ -43,3 +43,18 @@ async def memory_list():
         "entries": agent_memory.list_memory(),
     }
 
+@router.post("/api/memory/write")
+async def memory_write(request: dict):
+    """Write a key-value pair to shared agent memory.
+
+    Body: {"key": str, "value": any, "ttl": int (optional)}
+    """
+    key = request.get("key")
+    value = request.get("value")
+    ttl = int(request.get("ttl", 0))
+    if not key:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="missing key")
+    agent_memory.write_memory(key, value, ttl=ttl)
+    return {"ok": True, "key": key, "ttl": ttl}
+

@@ -2457,3 +2457,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `GET /api/memory/list` exposes shared agent memory entries.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 536 Update (2026-11-02): `/api/memory/write` Endpoint
+
+**API change:** `POST /api/memory/write` allows programmatic memory writes with optional TTL.
+
+*Workflow updated: 2026-11-02*

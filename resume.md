@@ -2205,3 +2205,12 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 93 passing.
 
 *Part 535 logged: 2026-11-02*
+
+---
+
+### Part 536 Update (2026-11-02): Add `/api/memory/write` Endpoint
+
+- **Added** `POST /api/memory/write` endpoint in `memory_routes.py` — writes a key-value pair to shared agent memory with optional `ttl`.
+- **Fast suite:** 93 passing.
+
+*Part 536 logged: 2026-11-02*
