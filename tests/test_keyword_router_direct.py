@@ -266,3 +266,27 @@ def test_fred_search_routing():
 def test_fred_popular_routing():
     result = keyword_route("list popular economic indicators")
     assert result == {"tool": "fred_economic", "args": {"action": "popular"}}
+
+def test_tiingo_eod_routing():
+    result = keyword_route("historical prices for AAPL")
+    assert result == {"tool": "tiingo_prices", "args": {"action": "eod", "ticker": "AAPL"}}
+
+def test_tiingo_intraday_routing():
+    result = keyword_route("intraday prices for MSFT")
+    assert result == {"tool": "tiingo_prices", "args": {"action": "intraday", "ticker": "MSFT"}}
+
+def test_twelvedata_quote_routing():
+    result = keyword_route("market quote for BTC/USD")
+    assert result == {"tool": "twelvedata_prices", "args": {"action": "quote", "symbol": "BTC/USD"}}
+
+def test_twelvedata_time_series_routing():
+    result = keyword_route("time series for AAPL")
+    assert result == {"tool": "twelvedata_prices", "args": {"action": "time_series", "symbol": "AAPL"}}
+
+def test_twelvedata_rsi_routing():
+    result = keyword_route("rsi for AAPL")
+    assert result == {"tool": "twelvedata_prices", "args": {"action": "rsi", "symbol": "AAPL"}}
+
+def test_marketaux_news_routing():
+    result = keyword_route("news for AAPL,MSFT")
+    assert result == {"tool": "marketaux_news", "args": {"symbols": "AAPL,MSFT"}}

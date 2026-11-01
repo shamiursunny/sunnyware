@@ -1942,3 +1942,21 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 46 passing in 0.56s.
 
 *Part 513 logged: 2026-11-01*
+
+---
+
+### Part 514 Update (2026-11-01): Remaining Financial API Routes Added
+
+- **Added** `tiingo_prices` routes:
+  - `"historical prices for X"` → `tiingo_prices(action='eod', ticker=X)`
+  - `"intraday prices for X"` → `tiingo_prices(action='intraday', ticker=X)`
+- **Added** `twelvedata_prices` routes:
+  - `"market quote for X"` → `twelvedata_prices(action='quote', symbol=X)`
+  - `"time series for X"` → `twelvedata_prices(action='time_series', symbol=X)`
+  - `"rsi for X"` → `twelvedata_prices(action='rsi', symbol=X)`
+- **Added** `marketaux_news` route:
+  - `"news for X"` → `marketaux_news(symbols=X)`
+- **Added** 6 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 52 passing in 1.05s.
+
+*Part 514 logged: 2026-11-01*

@@ -3439,3 +3439,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 514 Update (2026-11-01): Ready for Part 515
+
+**Status:** Remaining financial API routes added, fast suite 52 passing.
+
+**What was done:**
+- Added `tiingo_prices`, `twelvedata_prices`, and `marketaux_news` keyword routes.
+- Added 6 direct unit tests.
+
+**Next Steps (Part 515):**
+1. Review remaining missing routes (e.g., `earnings_call`, `edgar_fundamentals`, `eulerpool_data`).
+2. Consider adding routes for `fmp_fundamentals` (other actions like `dcf`, `ratios`).
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*

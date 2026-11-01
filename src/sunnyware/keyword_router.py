@@ -273,6 +273,37 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if any(kw in p for kw in ["popular economic indicators", "list popular economic indicators"]):
         return {"tool": "fred_economic", "args": {"action": "popular"}}
 
+    # --- tiingo_prices ---
+    if any(kw in p for kw in ["historical prices for", "intraday prices for", "ticker info for"]):
+        import re as _re_ti
+        action = "eod"
+        if "intraday" in p: action = "intraday"
+        elif "ticker info" in p: action = "meta"
+        m = _re_ti.search(r'(?:historical prices for|intraday prices for|ticker info for)\s+([A-Z]{1,5})', prompt)
+        if m:
+            return {"tool": "tiingo_prices", "args": {"action": action, "ticker": m.group(1)}}
+        return None
+
+    # --- twelvedata_prices ---
+    if any(kw in p for kw in ["market quote for", "time series for", "rsi for", "macd for"]):
+        import re as _re_td
+        action = "quote"
+        if "time series" in p: action = "time_series"
+        elif "rsi" in p: action = "rsi"
+        elif "macd" in p: action = "macd"
+        m = _re_td.search(r'(?:market quote for|time series for|rsi for|macd for)\s+([A-Z0-9/]+)', prompt)
+        if m:
+            return {"tool": "twelvedata_prices", "args": {"action": action, "symbol": m.group(1)}}
+        return None
+
+    # --- marketaux_news ---
+    if any(kw in p for kw in ["news for", "financial news for", "news about"]):
+        import re as _re_mn
+        m = _re_mn.search(r'(?:news for|financial news for|news about)\s+([A-Z,]+)', prompt)
+        if m:
+            return {"tool": "marketaux_news", "args": {"symbols": m.group(1)}}
+        return None
+
     # --- web_search ---
     if any(kw in p for kw in ["search the web", "search web", "google ", "look up online", "search online"]):
         import re as _re_ws

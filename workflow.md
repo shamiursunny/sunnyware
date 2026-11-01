@@ -2253,3 +2253,17 @@ Fixed regex for conversation/discussion matching.
 - `"list popular economic indicators"` → `fred_economic(action='popular')`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 514 Update (2026-11-01): Remaining Financial API Routes
+
+**New routes:**
+- `"historical prices for X"` → `tiingo_prices(action='eod', ticker=X)`
+- `"intraday prices for X"` → `tiingo_prices(action='intraday', ticker=X)`
+- `"market quote for X"` → `twelvedata_prices(action='quote', symbol=X)`
+- `"time series for X"` → `twelvedata_prices(action='time_series', symbol=X)`
+- `"rsi for X"` → `twelvedata_prices(action='rsi', symbol=X)`
+- `"news for X"` → `marketaux_news(symbols=X)`
+
+*Workflow updated: 2026-11-01*
