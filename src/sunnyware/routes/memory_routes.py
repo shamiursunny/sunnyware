@@ -7,6 +7,7 @@ from fastapi import APIRouter
 from ..runtime import ensure_pool
 from .. import sessions as sessions_store
 from .. import memory as memory_store
+from .. import agent_memory
 
 
 router = APIRouter()
@@ -33,3 +34,12 @@ async def memory_context(q: str, session_id: str = None):
         "events": events,
         "formatted_context": formatted,
     }
+
+@router.get("/api/memory/list")
+async def memory_list():
+    """Return all non-expired entries from shared agent memory."""
+    return {
+        "count": len(agent_memory.list_memory()),
+        "entries": agent_memory.list_memory(),
+    }
+

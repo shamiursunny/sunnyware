@@ -2449,3 +2449,11 @@ Fixed regex for conversation/discussion matching.
 **Integration:** `/api/agent/stream` now uses the same summarization logic for long sessions.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 535 Update (2026-11-02): `/api/memory/list` Endpoint
+
+**API change:** `GET /api/memory/list` exposes shared agent memory entries.
+
+*Workflow updated: 2026-11-02*

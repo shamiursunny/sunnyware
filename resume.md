@@ -2195,3 +2195,13 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 93 passing.
 
 *Part 534 logged: 2026-11-02*
+
+---
+
+### Part 535 Update (2026-11-02): Add `/api/memory/list` Endpoint
+
+- **Added** `GET /api/memory/list` endpoint in `memory_routes.py` — returns all non-expired entries from shared agent memory via `agent_memory.list_memory()`.
+- Router already included in `main.py` (line 181).
+- **Fast suite:** 93 passing.
+
+*Part 535 logged: 2026-11-02*
