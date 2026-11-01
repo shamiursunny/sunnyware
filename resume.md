@@ -2131,3 +2131,13 @@ me the exact git commands to commit + push both remotes."
 - **No new tests** (UI-only change), fast suite still 83 passing.
 
 *Part 528 logged: 2026-11-01*
+
+---
+
+### Part 529 Update (2026-11-01): Add Progress Spinner for Tool Calls
+
+- **Added** a CSS spinner (`.tool-spinner`) that appears between `tool_call` and `tool_result` events in the chat UI.
+- Improves user feedback for long-running tools.
+- No new tests (UI-only change), fast suite still 83 passing.
+
+*Part 529 logged: 2026-11-01*

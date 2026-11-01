@@ -2401,3 +2401,11 @@ Fixed regex for conversation/discussion matching.
 **UI change:** Chat now shows tool arguments and result summaries for better transparency.
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 529 Update (2026-11-01): Progress Spinner for Tool Calls
+
+**UI change:** A spinner appears while tools are running, disappearing on result.
+
+*Workflow updated: 2026-11-01*

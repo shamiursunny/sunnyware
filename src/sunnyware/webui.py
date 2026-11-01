@@ -1273,6 +1273,18 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     user-select: none;
   }
 
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .tool-spinner {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: var(--accent, #4a90e2);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 4px 0 4px 8px;
+    vertical-align: middle;
+  }
 </style>
 </head>
 <body>
@@ -2064,7 +2076,15 @@ window.fetch = function(url, options) {
                 } catch (e) {}
               }
               addMsg('[tool] ' + toolName + proto + argsText, 'step');
+              // Part 529: show spinner while tool runs
+              if (window.activeToolSpinner) { window.activeToolSpinner.remove(); }
+              window.activeToolSpinner = document.createElement('div');
+              window.activeToolSpinner.className = 'tool-spinner';
+              chat.appendChild(window.activeToolSpinner);
+              chat.scrollTop = chat.scrollHeight;
             } else if (type === 'tool_result') {
+              // Part 529: remove spinner
+              if (window.activeToolSpinner) { window.activeToolSpinner.remove(); window.activeToolSpinner = null; }
               // Part 528: show a short result summary
               const _r = data.result || {};
               let summary = '';

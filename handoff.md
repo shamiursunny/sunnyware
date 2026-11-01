@@ -3679,3 +3679,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 529 Update (2026-11-01): Ready for Part 530
+
+**Status:** Tool-call spinner added, fast suite 83 passing.
+
+**What was done:**
+- Added CSS spinner for tool calls in `webui.py`.
+- No new tests (UI-only change).
+
+**Next Steps (Part 530):**
+1. Test the spinner manually in the chat.
+2. Consider adding inline error display with retry suggestions.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*
