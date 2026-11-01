@@ -3714,3 +3714,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 531 Update (2026-11-01): Ready for Part 532
+
+**Status:** Agent memory enhanced with TTL and listing, fast suite 86 passing.
+
+**What was done:**
+- Added TTL support to `agent_memory.py`.
+- Added `list_memory()` for introspection.
+- Added 3 direct unit tests.
+
+**Next Steps (Part 532):**
+1. Consider using TTL in orchestrator for ephemeral context.
+2. Improve session summarization or context pruning.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*

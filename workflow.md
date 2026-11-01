@@ -2417,3 +2417,11 @@ Fixed regex for conversation/discussion matching.
 **UI change:** Error bubbles now show a "Retry" button that resends the last user message.
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 531 Update (2026-11-01): Enhanced Agent Memory with TTL
+
+**Memory change:** `write_memory` now accepts `ttl` and `list_memory` returns all non-expired entries.
+
+*Workflow updated: 2026-11-01*

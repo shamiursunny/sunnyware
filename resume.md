@@ -2152,3 +2152,15 @@ me the exact git commands to commit + push both remotes."
 - No new tests (UI-only change), fast suite still 83 passing.
 
 *Part 530 logged: 2026-11-01*
+
+---
+
+### Part 531 Update (2026-11-01): Enhanced Agent Memory with TTL and Listing
+
+- **Added** TTL support to `agent_memory.write_memory(key, value, ttl=0)` — entries expire after `ttl` seconds.
+- **Added** `agent_memory.list_memory()` — returns all non-expired entries as `{key, value, ts, expires_at}`.
+- **Backward compatible** — existing calls to `write_memory` and `read_memory` unchanged.
+- **Added** 3 direct unit tests in `tests/test_agent_memory_direct.py`.
+- **Fast suite:** 86 passing (83 keyword + 3 memory).
+
+*Part 531 logged: 2026-11-01*
