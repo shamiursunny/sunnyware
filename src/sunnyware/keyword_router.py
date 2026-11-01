@@ -659,7 +659,12 @@ def keyword_route(prompt: str) -> Optional[dict]:
         import re as _re_we
         m = _re_we.search(r'(?:for|webhook)\s+(wh_[a-zA-Z0-9_]+)', prompt, _re_we.IGNORECASE)
         if m:
-            return {"tool": "webhook_events", "args": {"token": m.group(1)}}
+            args = {"token": m.group(1)}
+            # Extract optional limit: "limit 5" / "top 10"
+            lm = _re_we.search(r'(?:limit|top)\s+(\d+)', prompt, _re_we.IGNORECASE)
+            if lm:
+                args["limit"] = int(lm.group(1))
+            return {"tool": "webhook_events", "args": args}
         return None
 
     # --- webhook_list ---

@@ -3594,3 +3594,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 523 Update (2026-11-01): Ready for Part 524
+
+**Status:** `webhook_events` enhanced with limit extraction, fast suite 78 passing.
+
+**What was done:**
+- Enhanced `webhook_events` to extract and strip optional `limit`.
+- Added 2 direct unit tests.
+
+**Next Steps (Part 524):**
+1. Review remaining missing routes (e.g., `echo` — test-only, skip it).
+2. Consider adding routes for `list_files` with subpath filtering.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*

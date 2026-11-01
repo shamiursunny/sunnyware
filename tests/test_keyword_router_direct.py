@@ -394,3 +394,11 @@ def test_chart_donut_routing():
     result = keyword_route("plot a donut chart with 1, 2, 3")
     assert result["tool"] == "chart_from_data"
     assert result["args"]["chart_type"] == "pie"
+
+def test_webhook_events_with_limit_routing():
+    result = keyword_route("webhook events for wh_12345 limit 5")
+    assert result == {"tool": "webhook_events", "args": {"token": "wh_12345", "limit": 5}}
+
+def test_webhook_events_with_top_routing():
+    result = keyword_route("events for webhook wh_abc top 10")
+    assert result == {"tool": "webhook_events", "args": {"token": "wh_abc", "limit": 10}}

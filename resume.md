@@ -2072,3 +2072,15 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 76 passing in 0.50s.
 
 *Part 522 logged: 2026-11-01*
+
+---
+
+### Part 523 Update (2026-11-01): Enhanced `webhook_events` with `limit` Extraction
+
+- **Enhanced** `webhook_events` to extract optional `limit`:
+  - `"webhook events for wh_12345 limit 5"` → `webhook_events(token='wh_12345', limit=5)`
+  - `"events for webhook wh_abc top 10"` → `webhook_events(token='wh_abc', limit=10)`
+- **Added** 2 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 78 passing in 1.19s.
+
+*Part 523 logged: 2026-11-01*

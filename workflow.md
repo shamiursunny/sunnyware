@@ -2356,3 +2356,13 @@ Fixed regex for conversation/discussion matching.
 - `"plot a donut chart with 1, 2, 3"` → `chart_from_data(chart_type='pie')`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 523 Update (2026-11-01): Enhanced webhook_events with limit
+
+**Enhanced routes:**
+- `"webhook events for wh_12345 limit 5"` → `webhook_events(token='wh_12345', limit=5)`
+- `"events for webhook wh_abc top 10"` → `webhook_events(token='wh_abc', limit=10)`
+
+*Workflow updated: 2026-11-01*
