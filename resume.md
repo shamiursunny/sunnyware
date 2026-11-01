@@ -2108,3 +2108,15 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 83 passing in 0.58s.
 
 *Part 526 logged: 2026-11-01*
+
+---
+
+### Part 527 Update (2026-11-01): Final Keyword Router Coverage
+
+- **83 total tools**; **70 have keyword routes** (84% coverage).
+- **13 tools without routes** are complex (require structured data) or test-only (`echo`):
+  - browser_click, browser_extract, browser_fill_submit, delegate_to_agent, earnings_call, echo, excel_write, metrics_batch, narrate_table, pdf_report, report_batch, script_registry, workflow_registry.
+- These are **intentionally left to the LLM** because they need multi-field structured input that cannot be reliably extracted from natural language.
+- **Fast test suite:** 83 passing.
+
+*Part 527 logged: 2026-11-01*

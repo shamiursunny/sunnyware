@@ -3645,3 +3645,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 527 Update (2026-11-01): Ready for Part 528
+
+**Status:** Keyword router coverage is complete for feasible tools, fast suite 83 passing.
+
+**What was done:**
+- Final coverage check: 70 routed, 13 left to LLM.
+- 83 direct unit tests.
+
+**Next Steps (Part 528):**
+1. Address any remaining high-value tools (e.g., `browser_click`, `browser_extract` if feasible).
+2. Consider moving to a different area: UI improvements, memory enhancements, or streaming.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*
