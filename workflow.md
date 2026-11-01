@@ -2473,3 +2473,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `DELETE /api/memory/delete/{key}` removes a key from shared memory.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 538 Update (2026-11-02): `/api/memory/stats` Endpoint
+
+**API change:** `GET /api/memory/stats` returns memory usage summary (total, with_expiry, without_expiry).
+
+*Workflow updated: 2026-11-02*

@@ -2223,3 +2223,12 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 93 passing.
 
 *Part 537 logged: 2026-11-02*
+
+---
+
+### Part 538 Update (2026-11-02): Add `/api/memory/stats` Endpoint
+
+- **Added** `GET /api/memory/stats` endpoint in `memory_routes.py` — returns total entries, count with expiry, and count without expiry.
+- **Fast suite:** 93 passing.
+
+*Part 538 logged: 2026-11-02*
