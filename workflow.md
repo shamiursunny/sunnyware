@@ -2393,3 +2393,11 @@ Fixed regex for conversation/discussion matching.
 **83 tools total, 70 routed (84%).** The 13 without routes are either complex (require structured data) or test-only (`echo`).
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 528 Update (2026-11-01): Enhanced Tool-Call Display
+
+**UI change:** Chat now shows tool arguments and result summaries for better transparency.
+
+*Workflow updated: 2026-11-01*

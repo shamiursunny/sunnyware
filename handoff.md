@@ -3662,3 +3662,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 528 Update (2026-11-01): Ready for Part 529
+
+**Status:** Tool-call display enhanced in chat UI, fast suite 83 passing.
+
+**What was done:**
+- Enhanced `webui.py` to show tool args and result summaries.
+- No new tests (UI-only change).
+
+**Next Steps (Part 529):**
+1. Test the UI change manually in the chat (send a calculator prompt).
+2. Consider adding a progress spinner for long-running tools.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*

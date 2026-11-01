@@ -2056,10 +2056,30 @@ window.fetch = function(url, options) {
             } else if (type === 'tool_call') {
               const toolName = data.tool || '?';
               const proto = data.protocol ? (' (' + data.protocol + ')') : '';
-              addMsg('[tool] ' + toolName + proto, 'step');
+              let argsText = '';
+              if (data.args) {
+                try {
+                  const s = JSON.stringify(data.args);
+                  argsText = ' -> ' + (s.length > 80 ? s.slice(0, 77) + '...' : s);
+                } catch (e) {}
+              }
+              addMsg('[tool] ' + toolName + proto + argsText, 'step');
             } else if (type === 'tool_result') {
-              // Part 98c: render image_base64 results inline
+              // Part 528: show a short result summary
               const _r = data.result || {};
+              let summary = '';
+              if (_r.error) {
+                summary = 'error: ' + String(_r.error).slice(0, 60);
+              } else if (typeof _r === 'object') {
+                const keys = Object.keys(_r).filter(k => k !== 'image_base64' && k !== 'image_format');
+                if (keys.length) {
+                  const first = keys[0];
+                  const val = _r[first];
+                  summary = first + '=' + String(val).slice(0, 60);
+                }
+              }
+              if (summary) addMsg('[result] ' + summary, 'step');
+              // Part 98c: render image_base64 results inline
               if (_r.image_base64 && _r.image_format) {
                 const _img = document.createElement('img');
                 _img.src = 'data:image/' + _r.image_format + ';base64,' + _r.image_base64;

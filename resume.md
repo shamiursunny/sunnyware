@@ -2120,3 +2120,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 83 passing.
 
 *Part 527 logged: 2026-11-01*
+
+---
+
+### Part 528 Update (2026-11-01): Enhanced Tool-Call Display in Chat UI
+
+- **Enhanced** `webui.py` to show **tool arguments** (truncated to 80 chars) and a **result summary** (first key/value or error) in the chat stream.
+- Previously, only the tool name was shown (e.g., `[tool] calculator`).
+- Now shows: `[tool] calculator -> {"expression": "123 * 456"}` and `[result] result=56088`.
+- **No new tests** (UI-only change), fast suite still 83 passing.
+
+*Part 528 logged: 2026-11-01*
