@@ -650,6 +650,39 @@ def keyword_route(prompt: str) -> Optional[dict]:
         return None
 
 
+    # --- insurance_data (simple actions) ---
+    if any(kw in p for kw in ["insurance data states", "list insurance states", "which insurance states"]):
+        return {"tool": "insurance_data", "args": {"action": "states"}}
+
+    if any(kw in p for kw in ["insurance data discover", "discover insurance data", "find insurance dataset"]):
+        import re as _re_id
+        m = _re_id.search(r'(?:discover insurance data|find insurance dataset|insurance data discover)\s+(.+)', prompt, _re_id.IGNORECASE)
+        if m:
+            return {"tool": "insurance_data", "args": {"action": "discover", "query": m.group(1).strip()}}
+        return None
+
+    # --- insurance_research (simple actions) ---
+    if any(kw in p for kw in ["insurance research filings", "search insurance filings", "insurance sec filings"]):
+        import re as _re_ir
+        m = _re_ir.search(r'(?:insurance research filings|search insurance filings|insurance sec filings)\s+(.+)', prompt, _re_ir.IGNORECASE)
+        if m:
+            return {"tool": "insurance_research", "args": {"action": "search_filings", "query": m.group(1).strip()}}
+        return None
+
+    if any(kw in p for kw in ["insurance fred search", "fred insurance search"]):
+        import re as _re_if
+        m = _re_if.search(r'(?:insurance fred search|fred insurance search)\s+(.+)', prompt, _re_if.IGNORECASE)
+        if m:
+            return {"tool": "insurance_research", "args": {"action": "fred_search", "query": m.group(1).strip()}}
+        return None
+
+    if any(kw in p for kw in ["insurance fred series", "fred insurance series"]):
+        import re as _re_is
+        m = _re_is.search(r'(?:insurance fred series|fred insurance series)\s+([A-Z0-9]+)', prompt, _re_is.IGNORECASE)
+        if m:
+            return {"tool": "insurance_research", "args": {"action": "fred_series", "series_id": m.group(1).upper()}}
+        return None
+
     # --- research_search (must have "research" or "investigate", not delegate) ---
     if any(kw in p for kw in ["research the topic", "investigate topic",
                                "do research", "deep research",

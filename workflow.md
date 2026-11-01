@@ -2226,3 +2226,16 @@ Fixed regex for conversation/discussion matching.
 - `"auditor full spec"` → `auditor_full_spec()`
 
 *Workflow updated: 2026-11-01*
+
+---
+
+### Part 512 Update (2026-11-01): Insurance Routes
+
+**New routes:**
+- `"insurance data states"` → `insurance_data(action='states')`
+- `"discover insurance data for X"` → `insurance_data(action='discover', query='for X')`
+- `"insurance research filings X"` → `insurance_research(action='search_filings', query=X)`
+- `"insurance fred search X"` → `insurance_research(action='fred_search', query=X)`
+- `"insurance fred series X"` → `insurance_research(action='fred_series', series_id=X)`
+
+*Workflow updated: 2026-11-01*

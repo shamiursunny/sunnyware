@@ -222,3 +222,23 @@ def test_forecast_arima_periods_routing():
 def test_auditor_full_spec_routing():
     result = keyword_route("auditor full spec")
     assert result == {"tool": "auditor_full_spec", "args": {}}
+
+def test_insurance_data_states_routing():
+    result = keyword_route("insurance data states")
+    assert result == {"tool": "insurance_data", "args": {"action": "states"}}
+
+def test_insurance_data_discover_routing():
+    result = keyword_route("discover insurance data for complaints")
+    assert result == {"tool": "insurance_data", "args": {"action": "discover", "query": "for complaints"}}
+
+def test_insurance_research_filings_routing():
+    result = keyword_route("insurance research filings IBNR")
+    assert result == {"tool": "insurance_research", "args": {"action": "search_filings", "query": "IBNR"}}
+
+def test_insurance_fred_search_routing():
+    result = keyword_route("insurance fred search premium")
+    assert result == {"tool": "insurance_research", "args": {"action": "fred_search", "query": "premium"}}
+
+def test_insurance_fred_series_routing():
+    result = keyword_route("insurance fred series CCSA")
+    assert result == {"tool": "insurance_research", "args": {"action": "fred_series", "series_id": "CCSA"}}

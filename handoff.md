@@ -3403,3 +3403,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-01*
+
+---
+
+### Part 512 Update (2026-11-01): Ready for Part 513
+
+**Status:** Insurance routes added, fast suite 40 passing.
+
+**What was done:**
+- Added insurance_data and insurance_research keyword routes.
+- Moved blocks before research_search.
+- Added 5 direct unit tests.
+
+**Next Steps (Part 513):**
+1. Review remaining missing routes (financial APIs, etc.) and prioritize.
+2. Consider adding routes for `finnhub_quote`, `fmp_fundamentals`, `fred_economic`.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-01*

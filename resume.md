@@ -1905,3 +1905,20 @@ me the exact git commands to commit + push both remotes."
 - **Fast test suite:** 35 passing in 0.30s.
 
 *Part 511 logged: 2026-11-01*
+
+---
+
+### Part 512 Update (2026-11-01): Insurance Routes Added
+
+- **Added** `insurance_data` routes:
+  - `"insurance data states"` → `insurance_data(action='states')`
+  - `"discover insurance data for X"` → `insurance_data(action='discover', query='for X')`
+- **Added** `insurance_research` routes:
+  - `"insurance research filings X"` → `insurance_research(action='search_filings', query=X)`
+  - `"insurance fred search X"` → `insurance_research(action='fred_search', query=X)`
+  - `"insurance fred series X"` → `insurance_research(action='fred_series', series_id=X)`
+- **Moved** insurance blocks before `research_search` to avoid interception.
+- **Added** 5 direct unit tests to `tests/test_keyword_router_direct.py`.
+- **Fast test suite:** 40 passing in 0.40s.
+
+*Part 512 logged: 2026-11-01*
