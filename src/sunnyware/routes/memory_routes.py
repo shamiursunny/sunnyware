@@ -58,3 +58,22 @@ async def memory_write(request: dict):
     agent_memory.write_memory(key, value, ttl=ttl)
     return {"ok": True, "key": key, "ttl": ttl}
 
+@router.delete("/api/memory/delete/{key}")
+async def memory_delete(key: str):
+    """Delete a key from shared agent memory."""
+    import json, os
+    deleted = False
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        with agent_memory._lock:
+            try:
+                with open(agent_memory.MEMORY_FILE, "r") as f:
+                    data = json.load(f)
+                if key in data:
+                    del data[key]
+                    with open(agent_memory.MEMORY_FILE, "w") as f:
+                        json.dump(data, f)
+                    deleted = True
+            except Exception:
+                pass
+    return {"ok": True, "key": key, "deleted": deleted}
+

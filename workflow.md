@@ -2465,3 +2465,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `POST /api/memory/write` allows programmatic memory writes with optional TTL.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 537 Update (2026-11-02): `/api/memory/delete` Endpoint
+
+**API change:** `DELETE /api/memory/delete/{key}` removes a key from shared memory.
+
+*Workflow updated: 2026-11-02*

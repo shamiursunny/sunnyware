@@ -2214,3 +2214,12 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 93 passing.
 
 *Part 536 logged: 2026-11-02*
+
+---
+
+### Part 537 Update (2026-11-02): Add `/api/memory/delete` Endpoint
+
+- **Added** `DELETE /api/memory/delete/{key}` endpoint in `memory_routes.py` — removes a key from shared agent memory.
+- **Fast suite:** 93 passing.
+
+*Part 537 logged: 2026-11-02*
