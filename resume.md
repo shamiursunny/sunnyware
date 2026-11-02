@@ -2396,3 +2396,12 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 112 passing.
 
 *Part 554 logged: 2026-11-02*
+
+---
+
+### Part 555 Update (2026-11-02): Add `/api/memory/count` Endpoint
+
+- **Added** `GET /api/memory/count` — returns total, live, and expired entry counts.
+- **Fast suite:** 112 passing.
+
+*Part 555 logged: 2026-11-02*
