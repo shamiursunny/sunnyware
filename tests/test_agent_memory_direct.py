@@ -58,3 +58,14 @@ def test_clear_memory():
     assert len(agent_memory.list_memory()) == 2
     agent_memory.clear_memory()
     assert len(agent_memory.list_memory()) == 0
+
+def test_rename_memory():
+    import tempfile, os
+    agent_memory.MEMORY_FILE = os.path.join(tempfile.gettempdir(), "test_agent_mem_rename.json")
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        os.remove(agent_memory.MEMORY_FILE)
+    agent_memory.write_memory("old_name", "value123")
+    assert agent_memory.rename_memory("old_name", "new_name") is True
+    assert agent_memory.read_memory("old_name") is None
+    assert agent_memory.read_memory("new_name") == "value123"
+    assert agent_memory.rename_memory("nonexistent", "nope") is False

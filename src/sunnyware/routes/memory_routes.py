@@ -134,3 +134,17 @@ async def memory_keys():
     entries = agent_memory.list_memory()
     return {"count": len(entries), "keys": [e["key"] for e in entries]}
 
+@router.post("/api/memory/rename")
+async def memory_rename(request: dict):
+    """Rename a key in shared agent memory.
+
+    Body: {"old_key": str, "new_key": str}
+    """
+    old_key = request.get("old_key")
+    new_key = request.get("new_key")
+    if not old_key or not new_key:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="missing old_key or new_key")
+    renamed = agent_memory.rename_memory(old_key, new_key)
+    return {"ok": True, "old_key": old_key, "new_key": new_key, "renamed": renamed}
+

@@ -113,3 +113,13 @@ def clear_memory() -> None:
             except Exception:
                 pass
 
+def rename_memory(old_key: str, new_key: str) -> bool:
+    """Rename a key in shared memory. Returns True if successful."""
+    with _lock:
+        data = _load()
+        if old_key not in data:
+            return False
+        data[new_key] = data.pop(old_key)
+        _save(data)
+        return True
+

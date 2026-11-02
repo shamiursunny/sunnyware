@@ -2288,3 +2288,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 95 passing.
 
 *Part 544 logged: 2026-11-02*
+
+---
+
+### Part 545 Update (2026-11-02): Add Rename Helper and Endpoint
+
+- **Added** `agent_memory.rename_memory(old_key, new_key)` — renames a key in shared memory.
+- **Added** `POST /api/memory/rename` endpoint in `memory_routes.py`.
+- **Added** 1 direct unit test (96 total).
+- **Fast suite:** 96 passing.
+
+*Part 545 logged: 2026-11-02*

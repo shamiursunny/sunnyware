@@ -2529,3 +2529,11 @@ Fixed regex for conversation/discussion matching.
 **Refactor:** `delete_memory()` and `clear_memory()` are now reusable helpers in `agent_memory.py`.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 545 Update (2026-11-02): Rename Memory
+
+**API change:** `POST /api/memory/rename` renames a key in shared memory.
+
+*Workflow updated: 2026-11-02*
