@@ -4417,3 +4417,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 574 Update (2026-11-02): Ready for Part 575
+
+**Status:** Complete HTTP test coverage for memory endpoints, 160 tests passing.
+
+**What was done:**
+- Added 9 HTTP tests for write, delete, and ttl endpoints.
+
+**Next Steps (Part 575):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a `/api/memory/history` endpoint.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

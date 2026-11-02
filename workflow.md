@@ -2747,3 +2747,11 @@ Fixed regex for conversation/discussion matching.
 **Fix:** `/api/memory/cleanup` now uses `get_memory_stats()` for accurate before counts.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 574 Update (2026-11-02): Complete HTTP Test Coverage
+
+**Tests added:** `POST /api/memory/write`, `DELETE /api/memory/delete/{key}`, `POST /api/memory/ttl`.
+
+*Workflow updated: 2026-11-02*

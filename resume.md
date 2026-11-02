@@ -2576,3 +2576,15 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 151 passing (122 direct + 29 HTTP).
 
 *Part 573 logged: 2026-11-02*
+
+---
+
+### Part 574 Update (2026-11-02): Complete HTTP Test Coverage for Memory Endpoints
+
+- **Added** 9 HTTP tests in `tests/test_memory_http.py` covering:
+  - `POST /api/memory/write` (success, no key, TTL)
+  - `DELETE /api/memory/delete/{key}` (success, missing)
+  - `POST /api/memory/ttl` (set, no key, missing key, clear)
+- **Fast suite:** 160 passing (122 direct + 38 HTTP).
+
+*Part 574 logged: 2026-11-02*

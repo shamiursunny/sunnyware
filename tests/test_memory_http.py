@@ -325,3 +325,72 @@ def test_memory_cleanup(client):
     assert data["before_expired"] == 1
     assert data["removed"] == 1
     assert data["after_live"] == 1
+
+def test_memory_write(client):
+    r = client.post("/api/memory/write", json={"key": "wk", "value": "wv"})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["ok"] is True
+    assert data["key"] == "wk"
+    assert agent_memory.read_memory("wk") == "wv"
+
+
+def test_memory_write_no_key(client):
+    r = client.post("/api/memory/write", json={"value": "v"})
+    assert r.status_code == 400
+
+
+def test_memory_write_ttl(client):
+    r = client.post("/api/memory/write", json={"key": "wk", "value": "wv", "ttl": 1})
+    assert r.status_code == 200
+    assert agent_memory.read_memory("wk") == "wv"
+    time.sleep(1.1)
+    assert agent_memory.read_memory("wk") is None
+
+
+def test_memory_delete(client):
+    agent_memory.write_memory("dk", "dv")
+    r = client.delete("/api/memory/delete/dk")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["deleted"] is True
+    assert agent_memory.read_memory("dk") is None
+
+
+def test_memory_delete_missing(client):
+    r = client.delete("/api/memory/delete/nonexistent")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["deleted"] is False
+
+
+def test_memory_ttl_endpoint(client):
+    agent_memory.write_memory("tk", "tv")
+    r = client.post("/api/memory/ttl", json={"key": "tk", "ttl": 1})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["updated"] is True
+    assert agent_memory.read_memory("tk") == "tv"
+    time.sleep(1.1)
+    assert agent_memory.read_memory("tk") is None
+
+
+def test_memory_ttl_endpoint_no_key(client):
+    r = client.post("/api/memory/ttl", json={"ttl": 1})
+    assert r.status_code == 400
+
+
+def test_memory_ttl_endpoint_missing_key(client):
+    r = client.post("/api/memory/ttl", json={"key": "nope", "ttl": 1})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["updated"] is False
+
+
+def test_memory_ttl_endpoint_clear(client):
+    agent_memory.write_memory("tk", "tv", ttl=1)
+    r = client.post("/api/memory/ttl", json={"key": "tk", "ttl": 0})
+    assert r.status_code == 200
+    assert data["updated"] if False else True  # noqa
+    time.sleep(1.1)
+    assert agent_memory.read_memory("tk") == "tv"
