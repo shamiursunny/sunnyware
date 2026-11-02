@@ -164,7 +164,7 @@ def load_providers(reload: bool = False) -> List[Provider]:
         try:
             from . import llm_dashboard_store as _lds
             _cfg = _lds.get_provider_config(name)
-            if _cfg.get("enabled") is False:
+            if name != "local" and _cfg.get("enabled") is False:
                 continue
         except Exception:
             pass
