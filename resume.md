@@ -2846,3 +2846,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 235 passing (233 + 2 new).
 
 *Part 597 logged: 2026-11-02*
+
+---
+
+### Part 598 Update (2026-11-02): Add `/api/rag/delete` Endpoint
+
+- **Added** `FPAVectorStore.delete_source(source)` — rebuilds the FAISS index excluding chunks with matching source.
+- **Added** `DELETE /api/rag/delete?source=...` — removes all chunks for a given document source.
+- **Added** 3 HTTP tests (missing source, nonexistent, after upload).
+- **Fast suite:** 238 passing (235 + 3 new).
+
+*Part 598 logged: 2026-11-02*

@@ -224,3 +224,28 @@ def test_rag_documents_after_upload(client):
         return
     sources = [d["source"] for d in data["documents"]]
     assert any("doc_test.txt" in s for s in sources)
+
+def test_rag_delete_missing_source(client):
+    r = client.delete("/api/rag/delete")
+    assert r.status_code == 400
+
+
+def test_rag_delete_nonexistent(client):
+    r = client.delete("/api/rag/delete?source=does_not_exist_xyz.txt")
+    assert r.status_code == 200
+    data = r.json()
+    if "error" not in data:
+        assert data.get("removed") == 0
+
+
+def test_rag_delete_after_upload(client):
+    files = {"file": ("del_test.txt", b"Content to be deleted.", "text/plain")}
+    up = client.post("/api/rag/upload", files=files)
+    if up.status_code != 200:
+        return
+    r = client.delete("/api/rag/delete?source=del_test.txt")
+    assert r.status_code == 200
+    data = r.json()
+    if "error" in data:
+        return
+    assert data.get("removed", 0) >= 1

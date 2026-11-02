@@ -4821,3 +4821,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 598 Update (2026-11-02): Ready for Part 599
+
+**Status:** RAG delete endpoint added, 238 tests passing.
+
+**What was done:**
+- Added `delete_source()` to `FPAVectorStore`.
+- Added `DELETE /api/rag/delete` endpoint.
+- Added 3 HTTP tests.
+
+**Next Steps (Part 599):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a RAG UI upload widget to the chat interface.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

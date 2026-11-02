@@ -2940,3 +2940,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `GET /api/rag/documents` lists unique document sources with chunk counts.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 598 Update (2026-11-02): RAG Document Delete
+
+**API change:** `DELETE /api/rag/delete?source=...` removes all chunks for a given source from the vector store.
+
+*Workflow updated: 2026-11-02*

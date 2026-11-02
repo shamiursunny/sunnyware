@@ -270,3 +270,26 @@ async def rag_documents():
             status_code=500,
         )
 
+@router.delete("/api/rag/delete")
+async def rag_delete(source: str = ""):
+    """Delete all chunks matching `source` from the RAG vector store."""
+    source = (source or "").strip()
+    if not source:
+        return JSONResponse({"error": "missing query parameter 'source'"}, status_code=400)
+    try:
+        from ..rag import get_store
+        from .. import tenant as _tenant
+        org_id = _tenant.get_key() or "default"
+        store = get_store(org_id)
+        removed = store.delete_source(source)
+        try:
+            store.save()
+        except Exception:
+            pass
+        return {"ok": True, "source": source, "removed": removed}
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+

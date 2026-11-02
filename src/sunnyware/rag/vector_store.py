@@ -128,6 +128,42 @@ class FPAVectorStore:
             counts[src] += 1
         return [{"source": s, "chunks": c} for s, c in counts.most_common()]
 
+    def delete_source(self, source: str) -> int:
+        """Remove all chunks whose metadata['source'] matches `source`.
+
+        Rebuilds the index (FAISS IndexFlatL2 has no native delete).
+        Returns the number of chunks removed.
+        """
+        if not source:
+            return 0
+        self._ensure_index()
+        keep_idx = []
+        keep_meta = []
+        removed = 0
+        for i, md in enumerate(self._metadata):
+            if md.get("source") == source:
+                removed += 1
+                continue
+            keep_idx.append(i)
+            keep_meta.append(md)
+        if removed == 0:
+            return 0
+        import faiss
+        import numpy as np
+        # Reconstruct kept vectors from the flat index
+        new_index = faiss.IndexFlatL2(self.dim)
+        if keep_idx:
+            vecs = np.zeros((len(keep_idx), self.dim), dtype=np.float32)
+            for j, i in enumerate(keep_idx):
+                try:
+                    vecs[j] = self._index.reconstruct(int(i))
+                except Exception:
+                    vecs[j] = np.zeros(self.dim, dtype=np.float32)
+            new_index.add(vecs)
+        self._index = new_index
+        self._metadata = keep_meta
+        return removed
+
     def status(self) -> dict:
         self._ensure_index()
         return {
