@@ -2873,6 +2873,15 @@ async function refreshLlmLogs() {
 }
 
 async function saveProviderConfig(provider, field, value) {
+  // Handle boolean toggles (e.g. 'enabled')
+  if (typeof value === 'boolean') {
+    try {
+      await api('/api/llm-dashboard/configs/' + encodeURIComponent(provider), 'POST', { [field]: value });
+      toast('Updated ' + provider + ' ' + field + ' to ' + value, 'success');
+    } catch (e) { toast('Failed: ' + e.message, 'error'); }
+    return;
+  }
+  // Handle numeric values (limits)
   const num = parseInt(value, 10);
   if (isNaN(num) || num < 0) return;
   try {
