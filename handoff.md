@@ -4300,3 +4300,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 565 Update (2026-11-02): Ready for Part 566
+
+**Status:** `export_memory` edge-case test added, 120 tests passing.
+
+**What was done:**
+- Added a mixed-format export test (legacy plain + new dict entries).
+
+**Next Steps (Part 566):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a `/api/memory/import` edge-case test (pure helper style).
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

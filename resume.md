@@ -2502,3 +2502,12 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 119 passing.
 
 *Part 564 logged: 2026-11-02*
+
+---
+
+### Part 565 Update (2026-11-02): Edge-Case Test for `export_memory`
+
+- **Added** a test that verifies `export_memory` handles mixed legacy (plain value) and new (dict with TTL) formats correctly.
+- **Fast suite:** 120 passing.
+
+*Part 565 logged: 2026-11-02*

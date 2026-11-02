@@ -257,3 +257,35 @@ def test_set_all_memory_ttl():
     assert agent_memory.set_all_memory_ttl(ttl=0) == 1
     time.sleep(1.1)
     assert agent_memory.read_memory("c") == 3
+
+def test_export_memory_mixed_formats():
+    import tempfile, os, time, json
+    # Simulate a file with both legacy plain values and new dict entries
+    agent_memory.MEMORY_FILE = os.path.join(tempfile.gettempdir(), "test_agent_mem_export_mixed.json")
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        os.remove(agent_memory.MEMORY_FILE)
+    now = time.time()
+    # legacy_plain -> plain value
+    # new_live -> dict with no expiry
+    # new_expired -> dict already expired
+    with open(agent_memory.MEMORY_FILE, "w") as f:
+        json.dump({
+            "legacy_plain": "plain_val",
+            "new_live": {"value": "live_val", "ts": now},
+            "new_expired": {"value": "expired_val", "ts": now - 10, "expires_at": now - 5},
+        }, f)
+    live_data = agent_memory.export_memory("live")
+    assert "legacy_plain" in live_data
+    assert live_data["legacy_plain"] == "plain_val"
+    assert "new_live" in live_data
+    assert live_data["new_live"] == "live_val"
+    assert "new_expired" not in live_data
+    expired_data = agent_memory.export_memory("expired")
+    assert "new_expired" in expired_data
+    assert expired_data["new_expired"] == "expired_val"
+    assert "legacy_plain" not in expired_data
+    assert "new_live" not in expired_data
+    all_data = agent_memory.export_memory("all")
+    assert "legacy_plain" in all_data
+    assert "new_live" in all_data
+    assert "new_expired" in all_data

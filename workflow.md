@@ -2689,3 +2689,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `POST /api/memory/ttl-all` sets or clears TTL on all live entries.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 565 Update (2026-11-02): Export Edge Cases
+
+**Test added:** `export_memory` mixed-format handling (legacy plain + new dict entries).
+
+*Workflow updated: 2026-11-02*
