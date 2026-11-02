@@ -2617,3 +2617,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `GET /api/memory/count` returns live/expired counts.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 556 Update (2026-11-02): Cleanup Endpoint
+
+**API change:** `POST /api/memory/cleanup` prunes expired entries with stats.
+
+*Workflow updated: 2026-11-02*

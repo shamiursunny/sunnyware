@@ -2405,3 +2405,12 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 112 passing.
 
 *Part 555 logged: 2026-11-02*
+
+---
+
+### Part 556 Update (2026-11-02): Add `/api/memory/cleanup` Endpoint
+
+- **Added** `POST /api/memory/cleanup` — prunes expired entries and returns before/after counts.
+- **Fast suite:** 112 passing.
+
+*Part 556 logged: 2026-11-02*
