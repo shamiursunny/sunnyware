@@ -2705,3 +2705,12 @@ Fixed regex for conversation/discussion matching.
 **Test added:** `import_memory` idempotency, overwrite, TTL, and empty dict.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 567 Update (2026-11-02): HTTP Tests and Count Fix
+
+**Test added:** `tests/test_memory_http.py` covering stats, count, keys, and entries endpoints.
+**Fix:** `/api/memory/count` now uses `get_memory_stats()` to properly include expired entries.
+
+*Workflow updated: 2026-11-02*

@@ -223,13 +223,11 @@ async def memory_expired():
 @router.get("/api/memory/count")
 async def memory_count():
     """Return quick counts: total, live, and expired entries."""
-    entries = agent_memory.list_memory()
-    expired = agent_memory.list_expired_memory()
-    total = len(entries) + len(expired)
+    stats = agent_memory.get_memory_stats()
     return {
-        "total": total,
-        "live": len(entries),
-        "expired": len(expired),
+        "total": stats["total_live"] + stats["total_expired"],
+        "live": stats["total_live"],
+        "expired": stats["total_expired"],
     }
 
 @router.post("/api/memory/cleanup")

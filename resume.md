@@ -2520,3 +2520,13 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 121 passing.
 
 *Part 566 logged: 2026-11-02*
+
+---
+
+### Part 567 Update (2026-11-02): HTTP-Level Memory Tests & Count Fix
+
+- **Added** `tests/test_memory_http.py` — 5 HTTP tests covering `/api/memory/stats`, `/api/memory/count`, `/api/memory/keys`, and `/api/memory/entries`.
+- **Fixed** `/api/memory/count` to use `get_memory_stats()` — previously it could miss expired entries because `list_memory()` auto-cleans them before counting.
+- **Fast suite:** 126 passing (121 direct + 5 HTTP).
+
+*Part 567 logged: 2026-11-02*

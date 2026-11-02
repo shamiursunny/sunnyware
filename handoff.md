@@ -4332,3 +4332,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 567 Update (2026-11-02): Ready for Part 568
+
+**Status:** HTTP-level memory tests added, count endpoint fixed, 126 tests passing.
+
+**What was done:**
+- Added `tests/test_memory_http.py` with 5 HTTP tests.
+- Fixed `/api/memory/count` to use `get_memory_stats()` (was missing expired entries).
+- Ran full direct suite: 126 passed.
+
+**Next Steps (Part 568):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding HTTP tests for `/api/memory/export` and `/api/memory/import`.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*
