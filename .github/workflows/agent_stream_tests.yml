@@ -21,9 +21,15 @@ jobs:
         pip install pytest fastapi httpx fastapi-testclient starlette
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Run deterministic unit tests
+      env:
+        # Prevent tests from trying to reach a real DB / network
+        NEON_DATABASE_URL: ""
+        SUNNYWARE_DISABLE_SCHEDULER: "1"
+        HF_HOME: /tmp/huggingface
       run: |
         # Run all tests EXCEPT the ones that require real LLM network access
-        pytest tests/ -v --ignore=tests/test_agent_stream.py
+        # and skip the flaky DB health check (requires a live Neon DB)
+        pytest tests/ -v --ignore=tests/test_agent_stream.py -k "not test_health_ready"
 
   fast-tests:
     runs-on: ubuntu-latest
