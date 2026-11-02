@@ -2632,3 +2632,15 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 172 passing (171 + 1 new).
 
 *Part 578 logged: 2026-11-02*
+
+---
+
+### Part 579 Update (2026-11-02): Sentence-Aware Chunking for RAG
+
+- **Added** `_split_at_sentence(text, max_chars)` helper in `rag/chunker.py` — splits at sentence boundaries (`.`, `!`, `?`, newlines) while respecting the size cap; falls back to hard character split for very long sentences.
+- **Updated** `chunk_text()` to use sentence-aware chunking instead of arbitrary character offsets.
+- **Preserved** backward compatibility: same return format (`chunk_id`, `source`, `char_start`, `char_end`, `text`).
+- **Added** 7 direct unit tests (179 total).
+- **Fast suite:** 179 passing.
+
+*Part 579 logged: 2026-11-02*

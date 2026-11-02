@@ -4502,3 +4502,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 579 Update (2026-11-02): Ready for Part 580
+
+**Status:** Sentence-aware chunking added, 179 tests passing.
+
+**What was done:**
+- Added `_split_at_sentence()` helper and updated `chunk_text()` in `rag/chunker.py`.
+- Added 7 direct unit tests.
+
+**Next Steps (Part 580):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider improving `vector_store.search()` with hybrid scoring or reranking.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

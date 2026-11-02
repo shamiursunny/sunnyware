@@ -2788,3 +2788,11 @@ Fixed regex for conversation/discussion matching.
 **Test added:** `/health/ready` HTTP-level test.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 579 Update (2026-11-02): Sentence-Aware Chunking
+
+**RAG change:** `chunk_text()` now prefers sentence boundaries, improving retrieval quality by avoiding mid-sentence splits.
+
+*Workflow updated: 2026-11-02*
