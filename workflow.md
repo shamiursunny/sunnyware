@@ -2697,3 +2697,11 @@ Fixed regex for conversation/discussion matching.
 **Test added:** `export_memory` mixed-format handling (legacy plain + new dict entries).
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 566 Update (2026-11-02): Import Edge Cases
+
+**Test added:** `import_memory` idempotency, overwrite, TTL, and empty dict.
+
+*Workflow updated: 2026-11-02*

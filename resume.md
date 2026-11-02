@@ -2511,3 +2511,12 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 120 passing.
 
 *Part 565 logged: 2026-11-02*
+
+---
+
+### Part 566 Update (2026-11-02): Import Edge-Case Tests
+
+- **Added** a test for `import_memory` covering: skip existing keys, overwrite mode, TTL import, and empty input.
+- **Fast suite:** 121 passing.
+
+*Part 566 logged: 2026-11-02*

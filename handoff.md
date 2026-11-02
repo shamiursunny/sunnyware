@@ -4316,3 +4316,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 566 Update (2026-11-02): Ready for Part 567
+
+**Status:** Import edge-case tests added, 121 tests passing.
+
+**What was done:**
+- Added a comprehensive `import_memory` edge-case test.
+
+**Next Steps (Part 567):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a `/api/memory/stats` endpoint test (HTTP-level).
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

@@ -289,3 +289,31 @@ def test_export_memory_mixed_formats():
     assert "legacy_plain" in all_data
     assert "new_live" in all_data
     assert "new_expired" in all_data
+
+def test_import_memory_edge_cases():
+    import tempfile, os, time
+    agent_memory.MEMORY_FILE = os.path.join(tempfile.gettempdir(), "test_agent_mem_import_edge.json")
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        os.remove(agent_memory.MEMORY_FILE)
+    # Seed one key
+    agent_memory.write_memory("seed", "old")
+    # 1) No overwrite: skip existing, import new
+    r = agent_memory.import_memory({"seed": "new", "fresh": 1})
+    assert r["imported"] == 1
+    assert r["skipped"] == 1
+    assert agent_memory.read_memory("seed") == "old"
+    # 2) Overwrite: replace existing
+    r = agent_memory.import_memory({"seed": "new"}, overwrite=True)
+    assert r["imported"] == 1
+    assert r["skipped"] == 0
+    assert agent_memory.read_memory("seed") == "new"
+    # 3) Import with TTL
+    r = agent_memory.import_memory({"temp": "val"}, ttl=1)
+    assert r["imported"] == 1
+    assert agent_memory.read_memory("temp") == "val"
+    time.sleep(1.1)
+    assert agent_memory.read_memory("temp") is None
+    # 4) Import empty dict
+    r = agent_memory.import_memory({})
+    assert r["imported"] == 0
+    assert r["skipped"] == 0
