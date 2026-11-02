@@ -2585,3 +2585,11 @@ Fixed regex for conversation/discussion matching.
 **Memory change:** `select_relevant_events` now uses weighted keyword scoring (longer keywords count more).
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 552 Update (2026-11-02): Set TTL Endpoint
+
+**API change:** `POST /api/memory/ttl` sets or removes the TTL of a key.
+
+*Workflow updated: 2026-11-02*

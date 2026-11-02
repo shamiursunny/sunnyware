@@ -179,3 +179,24 @@ def prune_expired_memory() -> int:
             _save(data)
         return len(expired_keys)
 
+def set_memory_ttl(key: str, ttl: int = 0) -> bool:
+    """Set or change the TTL of an existing key without modifying its value.
+
+    ttl=0 removes the expiry (persistent).
+    Returns False if the key does not exist.
+    """
+    with _lock:
+        data = _load()
+        entry = data.get(key)
+        if entry is None:
+            return False
+        if not isinstance(entry, dict) or "value" not in entry:
+            entry = {"value": entry}
+        if ttl > 0:
+            entry["expires_at"] = time.time() + ttl
+        else:
+            entry.pop("expires_at", None)
+        data[key] = entry
+        _save(data)
+        return True
+

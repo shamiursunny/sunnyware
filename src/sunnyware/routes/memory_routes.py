@@ -180,3 +180,17 @@ async def memory_prune():
     removed = agent_memory.prune_expired_memory()
     return {"ok": True, "removed": removed}
 
+@router.post("/api/memory/ttl")
+async def memory_set_ttl(request: dict):
+    """Set or change the TTL of an existing key without modifying its value.
+
+    Body: {"key": str, "ttl": int}   (ttl=0 removes expiry)
+    """
+    key = request.get("key")
+    ttl = int(request.get("ttl", 0))
+    if not key:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="missing key")
+    updated = agent_memory.set_memory_ttl(key, ttl=ttl)
+    return {"ok": True, "key": key, "ttl": ttl, "updated": updated}
+

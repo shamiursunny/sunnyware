@@ -2365,3 +2365,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 110 passing.
 
 *Part 551 logged: 2026-11-02*
+
+---
+
+### Part 552 Update (2026-11-02): Add TTL Endpoint for Memory Keys
+
+- **Added** `agent_memory.set_memory_ttl(key, ttl=0)` — sets or clears the expiry of an existing key without changing its value.
+- **Added** `POST /api/memory/ttl` endpoint in `memory_routes.py`.
+- **Added** 1 direct unit test (111 total).
+- **Fast suite:** 111 passing.
+
+*Part 552 logged: 2026-11-02*

@@ -110,3 +110,22 @@ def test_prune_expired_memory():
     assert agent_memory.read_memory("short_ttl") is None
     assert agent_memory.read_memory("no_ttl") == "val2"
     assert agent_memory.read_memory("long_ttl") == "val3"
+
+def test_set_memory_ttl():
+    import tempfile, os, time
+    agent_memory.MEMORY_FILE = os.path.join(tempfile.gettempdir(), "test_agent_mem_ttl.json")
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        os.remove(agent_memory.MEMORY_FILE)
+    agent_memory.write_memory("ttlkey", "ttlval")
+    # Add a TTL
+    assert agent_memory.set_memory_ttl("ttlkey", ttl=1) is True
+    # Expire it
+    time.sleep(1.1)
+    assert agent_memory.read_memory("ttlkey") is None
+    # Re-write and clear TTL
+    agent_memory.write_memory("ttlkey2", "val2", ttl=1)
+    assert agent_memory.set_memory_ttl("ttlkey2", ttl=0) is True
+    time.sleep(1.1)
+    assert agent_memory.read_memory("ttlkey2") == "val2"
+    # Missing key
+    assert agent_memory.set_memory_ttl("missing", ttl=5) is False

@@ -4073,3 +4073,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 552 Update (2026-11-02): Ready for Part 553
+
+**Status:** TTL endpoint added, 111 tests passing.
+
+**What was done:**
+- Added `set_memory_ttl` helper.
+- Added `POST /api/memory/ttl` endpoint.
+- Added 1 direct unit test.
+
+**Next Steps (Part 553):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a `/api/memory/entries` endpoint for paginated listing.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*
