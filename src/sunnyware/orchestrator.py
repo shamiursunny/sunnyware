@@ -558,6 +558,11 @@ async def _execute_tool_impl(tool_name: str, tool_args: dict) -> dict:
             pass
 
 
+def _build_iteration_event(n: int, max_iter: int) -> dict:
+    """Build the SSE event dict for iteration progress."""
+    return {"type": "iteration", "n": int(n), "max": int(max_iter)}
+
+
 async def _emit(on_event, event: dict) -> None:
     """Fire event callback if provided (best-effort)."""
     if on_event is None:
@@ -860,12 +865,8 @@ async def _run_agent_body(
         pass  # Jarvis disabled / model not loaded - fall through
 
     for iteration in range(MAX_ITERATIONS):
-        # Part 585: emit iteration progress
-        await _emit(on_event, {
-            "type": "iteration",
-            "n": iteration + 1,
-            "max": MAX_ITERATIONS,
-        })
+        # Part 585/589: emit iteration progress
+        await _emit(on_event, _build_iteration_event(iteration + 1, MAX_ITERATIONS))
         result = await llm_client.chat(
             prompt if iteration == 0 else "Continue.",
             model=model,

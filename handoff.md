@@ -4668,3 +4668,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 589 Update (2026-11-02): Ready for Part 590
+
+**Status:** Iteration event builder extracted, 229 tests passing.
+
+**What was done:**
+- Added `_build_iteration_event()` helper.
+- Added 4 direct unit tests.
+
+**Next Steps (Part 590):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Move to another feature area — streaming improvements or further UI polish.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

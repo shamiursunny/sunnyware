@@ -2749,3 +2749,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 225 passing (UI-only change, no new tests).
 
 *Part 588 logged: 2026-11-02*
+
+---
+
+### Part 589 Update (2026-11-02): Extract Iteration Event Builder
+
+- **Added** `_build_iteration_event(n, max_iter)` pure helper in `orchestrator.py`.
+- **Updated** the ReAct loop to use the new helper instead of an inline dict.
+- **Added** 4 direct unit tests for the builder (229 total).
+- **Fast suite:** 229 passing.
+
+*Part 589 logged: 2026-11-02*
