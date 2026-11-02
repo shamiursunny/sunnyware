@@ -2989,3 +2989,13 @@ Fixed regex for conversation/discussion matching.
 **UI**: Added embedder status badge in the topbar. **API**: New `/api/embedder/status` endpoint.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 605 Update (2026-11-02): Local Ollama Fallback
+
+**New fallback**: `groq` → `gemini` → `openrouter` → `ollama` (Qwen2.5-0.5B).
+**Env**: Added `OLLAMA_*` config to `.env`.
+**Safety**: `supports_tools=False` for local models.
+
+*Workflow updated: 2026-11-02*

@@ -4932,3 +4932,22 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 605 Update (2026-11-02): Ready for Part 606
+
+**Status:** Ollama local fallback (Qwen2.5-0.5B) added as final provider. 239 tests passing (1 flaky DB test).
+
+**What was done:**
+- Added Ollama as final fallback in `LLM_PROVIDERS`.
+- Configured `OLLAMA_*` env vars in `.env`.
+- Set `supports_tools=False` for Ollama/local to prevent schema errors.
+- Verified fallback with `2+2 = 4` test.
+
+**Next Steps (Part 606):**
+1. Run the full test suite in CI.
+2. Add a "Local Model" status badge in the Chat UI.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

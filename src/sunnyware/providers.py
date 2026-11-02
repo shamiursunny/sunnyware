@@ -112,6 +112,7 @@ def load_providers(reload: bool = False) -> List[Provider]:
         "mistral": 32000,
         "nvidia": 8000,
         "local": 0,            # in-process, no HTTP limits
+        "ollama": 4000,        # Qwen2.5-0.5B works best under 4k prompt
     }
 
     out: List[Provider] = []
@@ -151,6 +152,9 @@ def load_providers(reload: bool = False) -> List[Provider]:
         # Part 152: Pollinations free tier rejects requests with
         # OpenAI-style tool schemas. Treat as tools-unsupported.
         supports_tools = True
+        if name in ("ollama", "local"):
+            # Tiny local models can't reliably emit valid tool calls
+            supports_tools = False
         out.append(Provider(
             name=name,
             base_url=base_url.rstrip("/"),

@@ -2916,3 +2916,15 @@ me the exact git commands to commit + push both remotes."
 - **Admin Panel**: Already checks `embeddings.is_loaded()` via `/api/rag-admin/stats`.
 
 *Part 604 logged: 2026-11-02*
+
+---
+
+### Part 605 Update (2026-11-02): Local Ollama Fallback (Qwen2.5-0.5B)
+
+- **New Provider**: Added Ollama as the final fallback provider using `qwen2.5-0.5b-tuned-stable`.
+- **Configuration**: `OLLAMA_BASE_URL`, `OLLAMA_API_KEY`, `OLLAMA_MODEL` added to `.env`.
+- **Fallback Chain**: `groq` → `gemini` → `openrouter` → `ollama`.
+- **Tool Safety**: Ollama's `supports_tools=False` prevents it from receiving tool schemas it can't handle.
+- **Verified**: Direct test returned `2+2 = 4` from the local model.
+
+*Part 605 logged: 2026-11-02*
