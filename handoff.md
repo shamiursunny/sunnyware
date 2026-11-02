@@ -3208,7 +3208,7 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 
 ---
 
-### ��� Part 500 Milestone (2026-11-01): Ready for Part 501
+### ��� Part 500 Milestone (2026-11-01): Ready for Part 501
 
 **Status:** Orchestrator unit test added, full suite now 105 passing.
 
@@ -5077,5 +5077,53 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 1. Move to another feature area — session management, analytics, or backend optimizations.
 2. Run the full test suite to confirm all changes.
 3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-03*
+
+---
+
+### Part 615 Update (2026-11-03): Local Model Loaded on HF Spaces
+
+**Status:** The local Qwen2.5-0.5B model preloads and answers correctly on HF Spaces.
+
+**What was done:**
+- Replaced the broken `llama-cpp-python` install with a `manylinux_2_17_x86_64` wheel (hosted at `Zap11/llama-cpp-python-wheels`).
+- Removed `PIP_NO_BINARY` and `CMAKE_ARGS` from HF Space settings to prevent source builds.
+- Removed the `if False` guard in `main.py` lifespan so `_jarvis_local.preload()` runs.
+- Verified `What is 2+2?` → `4` with the **Local: Ready** badge.
+
+*Handoff updated: 2026-11-03*
+
+---
+
+### Part 616 Update (2026-11-03): Local Provider in Admin Dashboard
+
+**Status:** All providers (including `local`) stay visible in the Admin dashboard even when disabled.
+
+**What was done:**
+- Added `enabled: bool = True` to the `Provider` dataclass.
+- `load_providers()` no longer `continue`s on disabled providers; sets `enabled=False` instead.
+- `llm.py` routing loop skips `enabled=False` providers.
+
+**Next Steps (Part 617):** Fix the toggle-persistence bug in the Admin UI.
+
+*Handoff updated: 2026-11-03*
+
+---
+
+### Part 617 Update (2026-11-03): Provider Toggle Persistence
+
+**Status:** Provider toggles now save immediately, show a toast, and persist across page refreshes.
+
+**What was done:**
+- Found the root cause in `static/admin-v2.html`: `saveProviderConfig` used `parseInt(value, 10)` on booleans → `NaN` → early return.
+- Added a boolean branch that posts the raw `true`/`false` value.
+- Added a toast: "Updated `<provider>` enabled to `<value>`".
+- Verified fallback: with only `local` enabled, the request is handled by the local model.
+
+**Next Steps (Part 618):**
+1. Implement the two unused routing strategies (`Round Robin`, `Fastest Response`) in `llm.py`.
+2. Extend the `Live LLM Log` to show the *fallback path* (e.g., `groq → gemini → local`).
+3. Run the fast test suite locally to confirm no regressions.
 
 *Handoff updated: 2026-11-03*

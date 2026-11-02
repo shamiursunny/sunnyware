@@ -2103,7 +2103,7 @@ All deterministic, no network.
 
 ---
 
-### í¾‰ Part 500 Milestone (2026-11-01): Orchestrator Unit Test & Full Coverage
+### ï¿½ï¿½ï¿½ Part 500 Milestone (2026-11-01): Orchestrator Unit Test & Full Coverage
 
 **New file:** `tests/test_orchestrator_execute.py`
 
@@ -3053,5 +3053,29 @@ Fixed regex for conversation/discussion matching.
 ### Part 614 Update (2026-11-03): Local Model Status
 
 **Fix**: Status endpoint triggers load; badge shows Error/Ready instead of stuck Loading.
+
+*Workflow updated: 2026-11-03*
+
+---
+
+### Part 615 Update (2026-11-03): Local Model on HF Spaces
+
+**Fix**: Use `manylinux_2_17_x86_64` wheel for `llama-cpp-python` (no more `libc.musl`). Remove `if False` guard so the local model preloads on Space startup.
+
+*Workflow updated: 2026-11-03*
+
+---
+
+### Part 616 Update (2026-11-03): Provider `enabled` Field
+
+**Fix**: `providers.py` keeps disabled providers in the list with `enabled=False`; `llm.py` skips them at routing time.
+
+*Workflow updated: 2026-11-03*
+
+---
+
+### Part 617 Update (2026-11-03): Provider Toggle Persistence
+
+**Fix**: `saveProviderConfig` in `static/admin-v2.html` now handles booleans separately (was failing on `parseInt`). Toasts confirm the save and toggles persist across refreshes.
 
 *Workflow updated: 2026-11-03*

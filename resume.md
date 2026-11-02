@@ -1753,7 +1753,7 @@ me the exact git commands to commit + push both remotes."
 
 ---
 
-### í¾‰ Part 500 Milestone (2026-11-01): Orchestrator Unit Test & Full Coverage
+### ï¿½ï¿½ï¿½ Part 500 Milestone (2026-11-01): Orchestrator Unit Test & Full Coverage
 
 - **Added** `tests/test_orchestrator_execute.py` â€” verifies the direct answer path of `orchestrator.run_agent` (no tool calls, returns answer, `_execute_tool` not invoked).
 - **Full test suite:** 105 passing (104 original + 1 orchestrator test), 1 skipped.
@@ -3003,3 +3003,35 @@ me the exact git commands to commit + push both remotes."
 - **Windows**: `llama_cpp` DLL limitation causes "Local: Error" (expected); works on HF Spaces.
 
 *Part 614 logged: 2026-11-03*
+
+---
+
+### Part 615 Update (2026-11-03): Local Model Loaded on HF Spaces
+
+- **Wheel Fix**: Pinned `llama-cpp-python` to a `manylinux_2_17_x86_64` wheel hosted on HuggingFace (`Zap11/llama-cpp-python-wheels`) â€” fixes `libc.musl` error on Debian.
+- **Preload Enabled**: Removed the hardcoded `if False` guard in `main.py` lifespan; the local Qwen2.5-0.5B model now preloads on Space startup.
+- **Verified**: Chat returns "4" for "What is 2+2?" with the local model; badge shows **Local: Ready** (green).
+
+*Part 615 logged: 2026-11-03*
+
+---
+
+### Part 616 Update (2026-11-03): Local Provider in Admin Dashboard
+
+- **Backend**: Added an `enabled: bool = True` field to the `Provider` dataclass in `providers.py`.
+- **Load Logic**: `load_providers()` no longer skips disabled providers â€” it sets `enabled=False` and keeps them in the list so the UI can manage them.
+- **Routing**: `llm.py` now skips `enabled=False` providers during fallback iteration.
+- **Result**: The `local` provider (and all others) stay visible in the Admin dashboard after being toggled off.
+
+*Part 616 logged: 2026-11-03*
+
+---
+
+### Part 617 Update (2026-11-03): Provider Toggle Persistence Fix
+
+- **Frontend Bug**: `saveProviderConfig` was calling `parseInt(value)` on booleans, producing `NaN` and returning early without ever hitting the API.
+- **Fix**: Added a `typeof value === 'boolean'` branch that posts `{field: value}` directly.
+- **Toast Notifications**: Toggle changes now show "Updated `<provider>` enabled to `<true|false>`".
+- **Verified**: Toggles persist after a page refresh; with all cloud providers disabled, the local model handles the request.
+
+*Part 617 logged: 2026-11-03*
