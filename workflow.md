@@ -2553,3 +2553,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `GET /api/memory/get?key=...` returns a single memory entry with metadata.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 548 Update (2026-11-02): Context Pruning
+
+**Memory change:** `build_context()` now skips very short or low-value messages (e.g., "ok", "thanks", "yes").
+
+*Workflow updated: 2026-11-02*

@@ -54,3 +54,29 @@ def test_build_context_with_summary_no_pool():
     from sunnyware.memory import build_context_with_summary
     result = asyncio.run(build_context_with_summary("", max_turns=4))
     assert result == []
+
+def test_should_skip_message_empty():
+    from sunnyware.memory import _should_skip_message
+    assert _should_skip_message("") is True
+    assert _should_skip_message("   ") is True
+
+
+def test_should_skip_message_short():
+    from sunnyware.memory import _should_skip_message
+    assert _should_skip_message("ok") is True
+    assert _should_skip_message("yes") is True
+    assert _should_skip_message("no") is True
+
+
+def test_should_skip_message_low_value():
+    from sunnyware.memory import _should_skip_message
+    assert _should_skip_message("thanks") is True
+    assert _should_skip_message("got it") is True
+    assert _should_skip_message("sure") is True
+
+
+def test_should_not_skip_substantive():
+    from sunnyware.memory import _should_skip_message
+    assert _should_skip_message("what is AAPL price") is False
+    assert _should_skip_message("AAPL price") is False
+    assert _should_skip_message("MSFT earnings report") is False

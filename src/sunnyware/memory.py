@@ -12,6 +12,15 @@ from . import state as app_state
 MAX_LOG_CONTENT_CHARS = 2000        # cap at write time
 MAX_HISTORY_CONTENT_CHARS = 800     # cap at read time (build_context)
 MAX_CONTEXT_CONTENT_CHARS = 200     # cap for cross-session context
+
+# Part 548: context pruning — skip very short or low-value messages
+MIN_HISTORY_CONTENT_CHARS = 4       # skip messages shorter than this
+_LOW_VALUE_PHRASES = frozenset({
+    "ok", "okay", "k", "kk", "thanks", "thank you", "thx", "ty",
+    "yes", "no", "yep", "nope", "sure", "y", "n",
+    "got it", "cool", "nice", "great", "good", "fine",
+    "lol", "haha", "hi", "hello", "hey", "bye", "goodbye",
+})
 # Base64 heuristic: long run with MIXED char classes (uppercase + lowercase + digit
 # OR +/= padding). Pure-lowercase/uppercase runs (e.g. "xxxxxx") are NOT redacted
 # because they're common in legitimate text and hash prefixes.
@@ -130,6 +139,18 @@ def _extract_content(payload) -> str:
     return ""
 
 
+def _should_skip_message(content: str) -> bool:
+    """Part 548: Return True if the message is too short or low-value."""
+    if not content:
+        return True
+    stripped = content.strip().lower()
+    if len(stripped) < MIN_HISTORY_CONTENT_CHARS:
+        return True
+    if stripped in _LOW_VALUE_PHRASES:
+        return True
+    return False
+
+
 async def build_context(session_uuid: str, max_turns: int = 6) -> list:
     """Build OpenAI-format messages array from session history.
 
@@ -160,6 +181,9 @@ async def build_context(session_uuid: str, max_turns: int = 6) -> list:
                 continue
             # Part 31E: cap replay size — belt & suspenders
             content = _sanitize_content(content, MAX_HISTORY_CONTENT_CHARS)
+            # Part 548: skip very short or low-value messages
+            if _should_skip_message(content):
+                continue
             if r["event_type"] == "user_message":
                 messages.append({"role": "user", "content": content})
             elif r["event_type"] == "assistant_message":

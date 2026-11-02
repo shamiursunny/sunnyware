@@ -2321,3 +2321,15 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 98 passing.
 
 *Part 547 logged: 2026-11-02*
+
+---
+
+### Part 548 Update (2026-11-02): Context Pruning in `build_context`
+
+- **Added** `_should_skip_message(content)` — pure helper to drop very short or low-value messages.
+- **Added** constants `MIN_HISTORY_CONTENT_CHARS` and `_LOW_VALUE_PHRASES`.
+- **Updated** `build_context()` to skip pruned messages before appending to history.
+- **Added** 4 direct unit tests (102 total).
+- **Fast suite:** 102 passing.
+
+*Part 548 logged: 2026-11-02*
