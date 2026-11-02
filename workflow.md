@@ -2545,3 +2545,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `POST /api/memory/touch` refreshes a key's timestamp and optionally extends TTL.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 547 Update (2026-11-02): Get Memory Entry
+
+**API change:** `GET /api/memory/get?key=...` returns a single memory entry with metadata.
+
+*Workflow updated: 2026-11-02*

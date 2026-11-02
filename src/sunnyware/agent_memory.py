@@ -140,3 +140,25 @@ def touch_memory(key: str, ttl: int = 0) -> bool:
         _save(data)
         return True
 
+def get_memory_entry(key: str) -> dict | None:
+    """Return a single entry with metadata, or None if missing/expired."""
+    with _lock:
+        data = _load()
+        entry = data.get(key)
+        if entry is None:
+            return None
+        if not isinstance(entry, dict) or "value" not in entry:
+            # Legacy plain-value format
+            return {"key": key, "value": entry, "ts": None, "expires_at": None}
+        expires = entry.get("expires_at")
+        if expires and time.time() > expires:
+            data.pop(key, None)
+            _save(data)
+            return None
+        return {
+            "key": key,
+            "value": entry["value"],
+            "ts": entry.get("ts"),
+            "expires_at": expires,
+        }
+

@@ -3984,3 +3984,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 547 Update (2026-11-02): Ready for Part 548
+
+**Status:** Get helper and endpoint added, 98 tests passing.
+
+**What was done:**
+- Added `get_memory_entry` helper in `agent_memory.py`.
+- Added `GET /api/memory/get` endpoint.
+- Added 1 direct unit test.
+
+**Next Steps (Part 548):**
+1. Consider context pruning or smarter retrieval.
+2. Run the full test suite in CI to confirm all changes integrate cleanly.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

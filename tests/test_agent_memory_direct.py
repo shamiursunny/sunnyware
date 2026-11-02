@@ -82,3 +82,16 @@ def test_touch_memory():
     assert agent_memory.touch_memory("tkey", ttl=20) is True
     assert agent_memory.read_memory("tkey") == "tval"
     assert agent_memory.touch_memory("missing", ttl=5) is False
+
+def test_get_memory_entry():
+    import tempfile, os
+    agent_memory.MEMORY_FILE = os.path.join(tempfile.gettempdir(), "test_agent_mem_get.json")
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        os.remove(agent_memory.MEMORY_FILE)
+    agent_memory.write_memory("gkey", "gval")
+    entry = agent_memory.get_memory_entry("gkey")
+    assert entry is not None
+    assert entry["key"] == "gkey"
+    assert entry["value"] == "gval"
+    assert entry["ts"] is not None
+    assert agent_memory.get_memory_entry("missing") is None

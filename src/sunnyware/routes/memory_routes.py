@@ -162,3 +162,15 @@ async def memory_touch(request: dict):
     touched = agent_memory.touch_memory(key, ttl=ttl)
     return {"ok": True, "key": key, "touched": touched, "ttl": ttl}
 
+@router.get("/api/memory/get")
+async def memory_get(key: str = ""):
+    """Return a single memory entry with metadata, or 404 if missing."""
+    if not key:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="missing key")
+    entry = agent_memory.get_memory_entry(key)
+    if entry is None:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="key not found or expired")
+    return entry
+

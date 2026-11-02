@@ -2310,3 +2310,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 97 passing.
 
 *Part 546 logged: 2026-11-02*
+
+---
+
+### Part 547 Update (2026-11-02): Add Get Helper and Endpoint
+
+- **Added** `agent_memory.get_memory_entry(key)` — returns a single entry with metadata or None.
+- **Added** `GET /api/memory/get?key=...` endpoint in `memory_routes.py`.
+- **Added** 1 direct unit test (98 total).
+- **Fast suite:** 98 passing.
+
+*Part 547 logged: 2026-11-02*
