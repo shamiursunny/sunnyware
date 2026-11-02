@@ -61,20 +61,7 @@ async def memory_write(request: dict):
 @router.delete("/api/memory/delete/{key}")
 async def memory_delete(key: str):
     """Delete a key from shared agent memory."""
-    import json, os
-    deleted = False
-    if os.path.exists(agent_memory.MEMORY_FILE):
-        with agent_memory._lock:
-            try:
-                with open(agent_memory.MEMORY_FILE, "r") as f:
-                    data = json.load(f)
-                if key in data:
-                    del data[key]
-                    with open(agent_memory.MEMORY_FILE, "w") as f:
-                        json.dump(data, f)
-                    deleted = True
-            except Exception:
-                pass
+    deleted = agent_memory.delete_memory(key)
     return {"ok": True, "key": key, "deleted": deleted}
 
 @router.get("/api/memory/stats")
@@ -107,13 +94,7 @@ async def memory_search(q: str = ""):
 @router.delete("/api/memory/clear")
 async def memory_clear():
     """Delete ALL entries from shared agent memory."""
-    import json, os
-    with agent_memory._lock:
-        if os.path.exists(agent_memory.MEMORY_FILE):
-            try:
-                os.remove(agent_memory.MEMORY_FILE)
-            except Exception:
-                pass
+    agent_memory.clear_memory()
     return {"ok": True, "cleared": True}
 
 @router.get("/api/memory/export")

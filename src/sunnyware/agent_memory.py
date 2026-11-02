@@ -89,3 +89,27 @@ def list_memory() -> list:
                 data.pop(k, None)
             _save(data)
         return out
+
+def delete_memory(key: str) -> bool:
+    """Delete a single key from shared memory.
+
+    Returns True if the key existed and was deleted, False otherwise.
+    """
+    with _lock:
+        data = _load()
+        if key not in data:
+            return False
+        del data[key]
+        _save(data)
+        return True
+
+
+def clear_memory() -> None:
+    """Delete ALL entries from shared memory."""
+    with _lock:
+        if os.path.exists(MEMORY_FILE):
+            try:
+                os.remove(MEMORY_FILE)
+            except Exception:
+                pass
+

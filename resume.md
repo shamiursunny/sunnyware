@@ -2277,3 +2277,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 93 passing.
 
 *Part 543 logged: 2026-11-02*
+
+---
+
+### Part 544 Update (2026-11-02): Move Delete/Clear Logic to Helpers
+
+- **Added** `agent_memory.delete_memory(key)` and `agent_memory.clear_memory()`.
+- **Updated** `memory_routes.py` to use these helpers instead of inline logic.
+- **Added** 2 direct unit tests (95 total).
+- **Fast suite:** 95 passing.
+
+*Part 544 logged: 2026-11-02*

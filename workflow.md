@@ -2521,3 +2521,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `GET /api/memory/keys` returns only memory keys.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 544 Update (2026-11-02): Memory Helpers
+
+**Refactor:** `delete_memory()` and `clear_memory()` are now reusable helpers in `agent_memory.py`.
+
+*Workflow updated: 2026-11-02*
