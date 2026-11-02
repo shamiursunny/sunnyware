@@ -287,3 +287,13 @@ async def memory_rename_bulk(request: dict):
     result = agent_memory.bulk_rename_memory(mapping)
     return {"ok": True, **result}
 
+@router.post("/api/memory/ttl-all")
+async def memory_set_all_ttl(request: dict):
+    """Set or clear TTL on all non-expired memory entries.
+
+    Body: {"ttl": int}   (ttl=0 removes expiry)
+    """
+    ttl = int(request.get("ttl", 0))
+    updated = agent_memory.set_all_memory_ttl(ttl=ttl)
+    return {"ok": True, "ttl": ttl, "updated": updated}
+

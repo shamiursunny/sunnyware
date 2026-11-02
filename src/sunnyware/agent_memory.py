@@ -388,3 +388,32 @@ def get_memory_stats() -> dict:
         "newest_ts": max(ts_values) if ts_values else None,
     }
 
+def set_all_memory_ttl(ttl: int = 0) -> int:
+    """Set or clear the TTL on all non-expired entries.
+
+    Args:
+        ttl: seconds; 0 removes expiry from all entries.
+    Returns:
+        Number of entries updated.
+    """
+    with _lock:
+        data = _load()
+        now = time.time()
+        updated = 0
+        for k, entry in data.items():
+            if not isinstance(entry, dict) or "value" not in entry:
+                entry = {"value": entry}
+            else:
+                expires = entry.get("expires_at")
+                if expires and now > expires:
+                    continue  # skip already expired
+            if ttl > 0:
+                entry["expires_at"] = now + ttl
+            else:
+                entry.pop("expires_at", None)
+            data[k] = entry
+            updated += 1
+        if updated:
+            _save(data)
+        return updated
+

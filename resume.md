@@ -2491,3 +2491,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 118 passing.
 
 *Part 563 logged: 2026-11-02*
+
+---
+
+### Part 564 Update (2026-11-02): Add `/api/memory/ttl-all` Endpoint
+
+- **Added** `agent_memory.set_all_memory_ttl(ttl=0)` — sets or clears TTL on all non-expired entries.
+- **Added** `POST /api/memory/ttl-all` endpoint.
+- **Added** 1 direct unit test (119 total).
+- **Fast suite:** 119 passing.
+
+*Part 564 logged: 2026-11-02*

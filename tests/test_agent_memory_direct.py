@@ -241,3 +241,19 @@ def test_get_memory_stats():
     assert stats["avg_ttl_seconds"] > 0
     assert stats["oldest_ts"] is not None
     assert stats["newest_ts"] is not None
+
+def test_set_all_memory_ttl():
+    import tempfile, os, time
+    agent_memory.MEMORY_FILE = os.path.join(tempfile.gettempdir(), "test_agent_mem_ttl_all.json")
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        os.remove(agent_memory.MEMORY_FILE)
+    agent_memory.write_memory("a", 1)
+    agent_memory.write_memory("b", 2)
+    assert agent_memory.set_all_memory_ttl(ttl=1) == 2
+    time.sleep(1.1)
+    assert agent_memory.read_memory("a") is None
+    assert agent_memory.read_memory("b") is None
+    agent_memory.write_memory("c", 3, ttl=1)
+    assert agent_memory.set_all_memory_ttl(ttl=0) == 1
+    time.sleep(1.1)
+    assert agent_memory.read_memory("c") == 3

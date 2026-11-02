@@ -4282,3 +4282,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 564 Update (2026-11-02): Ready for Part 565
+
+**Status:** TTL-all helper and endpoint added, 119 tests passing.
+
+**What was done:**
+- Added `set_all_memory_ttl` helper.
+- Added `POST /api/memory/ttl-all` endpoint.
+- Added 1 direct unit test.
+
+**Next Steps (Part 565):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding an edge-case test for `export_memory` with mixed formats.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

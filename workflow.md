@@ -2681,3 +2681,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `GET /api/memory/stats` returns total live, total expired, average TTL, and timestamps.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 564 Update (2026-11-02): Set TTL on All Entries
+
+**API change:** `POST /api/memory/ttl-all` sets or clears TTL on all live entries.
+
+*Workflow updated: 2026-11-02*
