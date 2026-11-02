@@ -2505,3 +2505,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `GET /api/memory/export` returns a JSON backup of all memory entries.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 542 Update (2026-11-02): `/api/memory/import` Endpoint
+
+**API change:** `POST /api/memory/import` restores memory entries from a JSON backup.
+
+*Workflow updated: 2026-11-02*

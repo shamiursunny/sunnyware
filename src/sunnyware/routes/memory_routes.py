@@ -127,3 +127,23 @@ async def memory_export():
         "data": {e["key"]: e["value"] for e in entries},
     }
 
+@router.post("/api/memory/import")
+async def memory_import(request: dict):
+    """Import memory entries from a JSON backup.
+
+    Accepts either:
+      {"data": {"k1": v1, "k2": v2}, "ttl": 0}
+    or the full export format:
+      {"version": 1, "count": N, "data": {...}}
+    """
+    data = request.get("data") or {}
+    ttl = int(request.get("ttl", 0))
+    if not isinstance(data, dict):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="data must be an object")
+    imported = 0
+    for k, v in data.items():
+        agent_memory.write_memory(k, v, ttl=ttl)
+        imported += 1
+    return {"ok": True, "imported": imported}
+
