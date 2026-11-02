@@ -172,3 +172,20 @@ def test_bulk_write_memory():
     assert agent_memory.read_memory("d") == 4
     time.sleep(1.1)
     assert agent_memory.read_memory("d") is None
+
+def test_bulk_rename_memory():
+    import tempfile, os
+    agent_memory.MEMORY_FILE = os.path.join(tempfile.gettempdir(), "test_agent_mem_bulkrename.json")
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        os.remove(agent_memory.MEMORY_FILE)
+    agent_memory.write_memory("a", 1)
+    agent_memory.write_memory("b", 2)
+    agent_memory.write_memory("c", 3)
+    result = agent_memory.bulk_rename_memory({"a": "x", "c": "z", "missing": "y"})
+    assert sorted(result["renamed"]) == ["a", "c"]
+    assert result["missing"] == ["missing"]
+    assert agent_memory.read_memory("a") is None
+    assert agent_memory.read_memory("x") == 1
+    assert agent_memory.read_memory("b") == 2
+    assert agent_memory.read_memory("c") is None
+    assert agent_memory.read_memory("z") == 3

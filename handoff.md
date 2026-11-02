@@ -4210,3 +4210,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 560 Update (2026-11-02): Ready for Part 561
+
+**Status:** Bulk rename helper and endpoint added, 115 tests passing.
+
+**What was done:**
+- Added `bulk_rename_memory` helper.
+- Added `POST /api/memory/rename-bulk` endpoint.
+- Added 1 direct unit test.
+
+**Next Steps (Part 561):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a filter to `/api/memory/export`.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

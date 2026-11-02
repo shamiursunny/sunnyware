@@ -2649,3 +2649,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `POST /api/memory/import` skips existing keys unless `overwrite=true`.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 560 Update (2026-11-02): Bulk Rename Memory
+
+**API change:** `POST /api/memory/rename-bulk` renames multiple keys in one call.
+
+*Workflow updated: 2026-11-02*

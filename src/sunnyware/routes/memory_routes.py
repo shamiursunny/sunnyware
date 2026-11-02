@@ -284,3 +284,16 @@ async def memory_bulk_write(request: dict):
     written = agent_memory.bulk_write_memory(items, ttl=ttl)
     return {"ok": True, "written": written}
 
+@router.post("/api/memory/rename-bulk")
+async def memory_rename_bulk(request: dict):
+    """Rename multiple keys in one call.
+
+    Body: {"mapping": {"old1": "new1", "old2": "new2"}}
+    """
+    mapping = request.get("mapping") or {}
+    if not isinstance(mapping, dict):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="mapping must be an object")
+    result = agent_memory.bulk_rename_memory(mapping)
+    return {"ok": True, **result}
+

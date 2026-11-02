@@ -2446,3 +2446,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 114 passing.
 
 *Part 559 logged: 2026-11-02*
+
+---
+
+### Part 560 Update (2026-11-02): Add Bulk Rename Helper and Endpoint
+
+- **Added** `agent_memory.bulk_rename_memory(mapping)` — renames multiple keys, returning `{renamed, missing}`.
+- **Added** `POST /api/memory/rename-bulk` endpoint.
+- **Added** 1 direct unit test (115 total).
+- **Fast suite:** 115 passing.
+
+*Part 560 logged: 2026-11-02*

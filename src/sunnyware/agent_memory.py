@@ -259,3 +259,29 @@ def bulk_write_memory(items: dict, ttl: int = 0) -> int:
         _save(data)
         return len(items)
 
+def bulk_rename_memory(mapping: dict) -> dict:
+    """Rename multiple keys in one atomic save.
+
+    Args:
+        mapping: dict of old_key -> new_key
+    Returns:
+        {"renamed": [...], "missing": [...]}
+    """
+    with _lock:
+        data = _load()
+        renamed = []
+        missing = []
+        for old, new in mapping.items():
+            if old not in data:
+                missing.append(old)
+                continue
+            if new in data and new != old:
+                # New key already exists — skip to avoid data loss
+                missing.append(old)
+                continue
+            data[new] = data.pop(old)
+            renamed.append(old)
+        if renamed:
+            _save(data)
+        return {"renamed": renamed, "missing": missing}
+
