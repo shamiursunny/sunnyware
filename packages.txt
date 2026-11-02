@@ -15,3 +15,4 @@ libpango-1.0-0
 libcairo2
 fonts-liberation
 libgomp1
+libopenblas-dev
