@@ -6,9 +6,10 @@
 class RagSearchTool:
     name = "rag_search"
     description = (
-        "Semantic search over documents the user has uploaded to the RAG store. "
-        "Use this to answer questions grounded in uploaded PDFs, DOCX, CSV, XLSX, "
-        "TXT, or MD files. Returns the top matching chunks with source citations."
+        "Semantic search over documents the user has uploaded. "
+        "ALWAYS use this tool when the user asks to check, read, search, or summarize "
+        "an uploaded file, attachment, or document (PDF, DOCX, CSV, XLSX, TXT, MD). "
+        "Returns the top matching chunks with source citations."
     )
     parameters = {
         "query": {

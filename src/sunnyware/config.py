@@ -57,7 +57,7 @@ class Config:
 
 
 def load_config() -> Config:
-    load_dotenv()
+    load_dotenv(override=True)
     path = Path("./config/sunnyware.yaml")
     raw = yaml.safe_load(path.read_text()) if path.exists() else {}
     return Config(raw)

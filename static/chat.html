@@ -2715,6 +2715,13 @@ input.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){ e.preven
 
 sendBtn.onclick=()=>sendMessage();
 
+// Part 601: enable send button when there is text or pending attachment
+document.getElementById('chatInput').addEventListener('input', function() {
+  const btn = document.getElementById('send');
+  if (btn) btn.disabled = false;
+});
+
+
 
 
 let pendingAttach=[];
@@ -2778,7 +2785,7 @@ function sendMessage(textOverride){
 
   saveAll(); renderChatList($('#searchInput').value); renderMessages();
 
-  if(text) streamAI(chat, text);
+  if(text || attachIds.length > 0) streamAI(chat, text || 'Read and summarize the attached files.');
 
 }
 
@@ -2867,7 +2874,8 @@ async function streamAI(chat, prompt) {
   try {
 
     // Collect attachments from pendingAttach
-    const attachedFiles = (pendingAttach || []).map(id => files.find(f => f.id === id)).filter(Boolean);
+    const lastUserMsg = chat.messages.slice().reverse().find(m => m.role === 'user');
+    const attachedFiles = (lastUserMsg && lastUserMsg.attachments ? lastUserMsg.attachments : []).map(id => files.find(f => f.id === id)).filter(Boolean);
     
     const res = await fetch('/api/agent/stream', {
 
@@ -3527,39 +3535,35 @@ mainView.addEventListener('drop',e=>{
 $('#attachBtn').onclick=()=>$('#fileInput').click();
 
 $('#fileInput').onchange=e=>{
-
   const arr=[...e.target.files]; if(!arr.length)return;
-
-  arr.forEach(f=>{
-
-    const entry={id:uid(), name:f.name, type:fileTypeOf(f.name), kind:'upload', size:f.size, date:new Date().toISOString(), mime:f.type||'application/octet-stream'};
-
-    const addChip=()=>{
-
-      pendingAttach.push(entry.id);
-
-      const preview=$('#attachPreview'); preview.classList.remove('hidden');
-
-      const chip=document.createElement('span'); chip.className='attach-chip';
-
-      chip.innerHTML=`${fileIcon(entry.type)}<span class="chip-name">${esc(entry.name)}</span><button>&times;</button>`;
-
-      chip.querySelector('button').onclick=()=>{ pendingAttach=pendingAttach.filter(x=>x!==entry.id); chip.remove(); if(!pendingAttach.length)preview.classList.add('hidden'); };
-
-      preview.appendChild(chip);
-
-    };
-
-    if(f.size<700*1024&&(entry.type==='image'||entry.type==='doc'||entry.type==='code')){
-
-      const r=new FileReader(); r.onload=()=>{ entry.dataUrl=r.result; if(entry.type!=='image')entry.textContent=r.result; files.unshift(entry); saveAll(); addChip(); }; r.readAsDataURL(f);
-
-    } else { files.unshift(entry); saveAll(); addChip(); }
-
+  arr.forEach(async f=>{
+    const formData = new FormData();
+    formData.append('file', f);
+    try {
+      const r = await fetch('/api/rag/upload', { method: 'POST', body: formData });
+      const d = await r.json();
+      if (d.ok) {
+        const entry = { id: uid(), name: d.filename, type: fileTypeOf(f.name), kind: 'upload', size: f.size, date: new Date().toISOString(), mime: f.type||'application/octet-stream', rag: true };
+        files.unshift(entry);
+        saveAll();  // Persist the file so the chip survives refresh
+        pendingAttach.push(entry.id);
+        const preview=$('#attachPreview'); preview.classList.remove('hidden');
+        const chip=document.createElement('span'); chip.className='attach-chip';
+        chip.innerHTML=`${fileIcon(entry.type)}<span class="chip-name">${esc(entry.name)}</span><button>&times;</button>`;
+        chip.querySelector('button').onclick=()=>{ pendingAttach=pendingAttach.filter(x=>x!==entry.id); chip.remove(); if(!pendingAttach.length)preview.classList.add('hidden'); };
+        preview.appendChild(chip);
+        if (typeof sendBtn !== 'undefined') sendBtn.disabled = false;
+        toast('Uploaded to RAG store');
+      } else {
+        console.error('RAG upload failed:', d.error);
+        alert('Upload failed: ' + (d.error || 'unknown'));
+      }
+    } catch(err) {
+      console.error('RAG upload error:', err);
+      alert('Upload error: ' + err.message);
+    }
   });
-
-  e.target.value=''; toast('Attached — will be saved to your Library');
-
+  e.target.value = '';
 };
 
 // Part 197: Tools Dropdown Logic
@@ -4542,6 +4546,7 @@ async function shareImage(src) {
     if (typeof toast === 'function') toast('Share link copied to clipboard!');
   }
 }
+
 </script>
 </body>
 

@@ -105,6 +105,7 @@ class ChartFromDataTool:
     parameters = {
         "data": {
             "type": "array",
+            "items": {"type": "object"},
             "description": "Inline array of row objects (e.g. [{\"x\":1,\"y\":2}, ...])",
             "required": False,
         },

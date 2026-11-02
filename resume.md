@@ -2868,3 +2868,15 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 240 passing (238 + 2 new).
 
 *Part 599 logged: 2026-11-02*
+
+---
+
+### Part 601 Update (2026-11-02): RAG UI Integration
+
+- **File Upload**: Paperclip now uploads to `/api/rag/upload` and persists the filename.
+- **Attachment Chips**: Uploaded files are shown as chips in the composer and history.
+- **Send Button**: Enabled without typing if attachments are present. Default message is "Read and summarize the attached files."
+- **AI Routing**: Added `rag_list` tool and fixed `rag_search` routing.
+- **Bug Fixes**: Fixed JS syntax errors, `attachIds` scoping, `chart_from_data` schema, and `.env` override.
+
+*Part 601 logged: 2026-11-02*

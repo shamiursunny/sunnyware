@@ -4857,3 +4857,22 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 601 Update (2026-11-02): Ready for Part 602
+
+**Status:** RAG UI is fully functional. 239 fast tests pass (1 flaky health check due to DB timeout).
+
+**What was done:**
+- Fixed paperclip upload to send files to RAG store.
+- Enabled Send button for attachments without text.
+- Added `rag_list` tool routing.
+- Fixed JS syntax errors, `attachIds` scoping, `chart_from_data` schema, and `.env` override.
+
+**Next Steps (Part 602):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a "Reading..." indicator while the AI processes attachments.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

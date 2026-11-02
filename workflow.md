@@ -2956,3 +2956,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `DELETE /api/rag/clear` removes all documents from the vector store.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 601 Update (2026-11-02): RAG UI
+
+**UI Change**: Attachments can be sent without text. The AI uses `rag_list`/`rag_search` to access uploaded documents.
+
+*Workflow updated: 2026-11-02*

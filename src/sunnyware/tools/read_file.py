@@ -26,7 +26,11 @@ def _safe_path(rel: str) -> Path:
 
 class ReadFileTool:
     name = "read_file"
-    description = "Read a text file from the workspace. Path is relative to the workspace root."
+    description = (
+        "Read a text file from the server's local workspace (e.g., Python scripts or data files). "
+        "DO NOT use this for user-uploaded attachments. If the user asks to read or check an uploaded file, "
+        "use `rag_search` instead."
+    )
     parameters = {
         "path": {
             "type": "string",
