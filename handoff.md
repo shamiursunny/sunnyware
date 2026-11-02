@@ -4452,3 +4452,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 2. Keep running only fast tests locally; full suite in CI.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 576 Update (2026-11-02): Ready for Part 577
+
+**Status:** Tool error retry logic added, 169 tests passing.
+
+**What was done:**
+- Added `_is_transient_error()` helper and retry loop in `_execute_tool_impl`.
+- Added 9 direct unit tests for the classifier.
+
+**Next Steps (Part 577):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding retry logic for LLM API calls (not just tool calls).
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

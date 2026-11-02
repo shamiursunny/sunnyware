@@ -2599,3 +2599,15 @@ me the exact git commands to commit + push both remotes."
   - Endpoints covered: write, get, delete, ttl, ttl-all, rename, rename-bulk, bulk-delete, bulk-write, list, keys, entries, stats, count, summary, export, import, search, prune, cleanup.
 
 *Part 575 logged: 2026-11-02*
+
+---
+
+### Part 576 Update (2026-11-02): Tool Error Retry Logic
+
+- **Added** `_is_transient_error(err)` helper in `orchestrator.py` — classifies errors as transient (timeout, connection, rate limit, 5xx) vs permanent (`tool_denied`, `approval_timeout`, `schema_violation`, etc.).
+- **Updated** `_execute_tool_impl` to retry transient errors up to 3 attempts with exponential backoff (0.5s, 1s, 1.5s).
+- **Never retries** permanent errors — ensures tool_denied/approval_timeout don't waste cycles.
+- **Added** 9 direct unit tests for the transient error classifier (169 total).
+- **Fast suite:** 169 passing.
+
+*Part 576 logged: 2026-11-02*

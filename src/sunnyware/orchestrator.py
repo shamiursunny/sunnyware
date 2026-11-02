@@ -469,6 +469,26 @@ async def _execute_tool_raw(tool_name: str, tool_args: dict) -> dict:
     return _res
 
 
+# Part 576: retry transient tool errors
+_TRANSIENT_PATTERNS = (
+    "timeout", "timed out", "connection", "rate limit", "429", "503",
+    "502", "500", "connection reset", "temporary", "try again",
+)
+_PERMANENT_ERRORS = {
+    "tool_denied", "approval_timeout", "approval_rejected",
+    "unknown tool", "schema_violation", "circuit_open",
+}
+
+def _is_transient_error(err: str) -> bool:
+    """Return True if the error is likely transient and safe to retry."""
+    if not err:
+        return False
+    low = err.lower()
+    if any(p in low for p in _PERMANENT_ERRORS):
+        return False
+    return any(p in low for p in _TRANSIENT_PATTERNS)
+
+
 async def _execute_tool_impl(tool_name: str, tool_args: dict) -> dict:
     from . import metrics as _metrics
     # Part 31E-ext2: resolve alias -> canonical name
@@ -492,13 +512,30 @@ async def _execute_tool_impl(tool_name: str, tool_args: dict) -> dict:
     _result = None
     _err = None
     try:
-        _result = await tool.run(tool_args)
-        if not isinstance(_result, dict):
-            _result = {"result": _result}
-        return _result
-    except Exception as e:
-        _err = f"{type(e).__name__}: {e}"
-        return {"error": _err}
+        import asyncio as _asyncio
+        _max_attempts = 3
+        _attempt = 0
+        while _attempt < _max_attempts:
+            _attempt += 1
+            try:
+                _result = await tool.run(tool_args)
+                if not isinstance(_result, dict):
+                    _result = {"result": _result}
+                if isinstance(_result, dict) and _result.get("error"):
+                    _err_str = str(_result.get("error"))
+                    if _attempt < _max_attempts and _is_transient_error(_err_str):
+                        await _asyncio.sleep(0.5 * _attempt)
+                        continue
+                return _result
+            except Exception as _e:
+                _err = f"{type(_e).__name__}: {_e}"
+                if _attempt < _max_attempts and _is_transient_error(_err):
+                    await _asyncio.sleep(0.5 * _attempt)
+                    continue
+                return {"error": _err}
+        if _result is not None:
+            return _result
+        return {"error": _err or "unknown error"}
     finally:
         _latency_ms = int((_time.time() - _t0) * 1000)
         try:

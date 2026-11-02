@@ -2764,3 +2764,11 @@ Fixed regex for conversation/discussion matching.
 **Full suite:** 249 passing (excluding external-API tests).
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 576 Update (2026-11-02): Tool Error Retry Logic
+
+**Orchestrator change:** Transient tool errors (timeout, connection, rate limit) are retried up to 3 times with exponential backoff. Permanent errors (tool_denied, approval_timeout, schema_violation) are never retried.
+
+*Workflow updated: 2026-11-02*
