@@ -4600,3 +4600,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 585 Update (2026-11-02): Ready for Part 586
+
+**Status:** Iteration progress added to chat UI, 213 tests passing.
+
+**What was done:**
+- Emitted `iteration` event from orchestrator.
+- Displayed `[step] N/M` in the chat UI.
+- No new tests (UI-only change).
+
+**Next Steps (Part 586):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Add tests for the new iteration event.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

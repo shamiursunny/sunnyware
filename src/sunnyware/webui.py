@@ -2142,6 +2142,10 @@ window.fetch = function(url, options) {
                 chat.appendChild(_img);
                 chat.scrollTop = chat.scrollHeight;
               }
+            } else if (type === 'iteration') {
+              const n = data.n || 0;
+              const max = data.max || 0;
+              if (n && max) addMsg('[step] ' + n + '/' + max, 'step');
             } else if (type === 'budget_exceeded') {
               budgetExceeded = true;  // Part 91: style the final bubble
             } else if (type === 'error') {

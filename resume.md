@@ -2708,3 +2708,13 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 213 passing.
 
 *Part 584 logged: 2026-11-02*
+
+---
+
+### Part 585 Update (2026-11-02): Iteration Progress in Chat UI
+
+- **Added** `iteration` SSE event in the orchestrator's ReAct loop (`{"type": "iteration", "n": iteration+1, "max": MAX_ITERATIONS}`).
+- **Updated** `webui.py` to handle the `iteration` event and display `[step] N/M` in the chat.
+- **Fast suite:** 213 passing (UI-only change, no new tests).
+
+*Part 585 logged: 2026-11-02*

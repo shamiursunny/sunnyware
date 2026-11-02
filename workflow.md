@@ -2836,3 +2836,11 @@ Fixed regex for conversation/discussion matching.
 **Config:** `SUNNYWARE_MAX_ITERATIONS` controls the orchestrator's ReAct loop cap (default 3, clamped to 1–10).
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 585 Update (2026-11-02): Iteration Progress
+
+**UI change:** The chat now shows `[step] N/M` during the agent's ReAct loop, so users see multi-step progress.
+
+*Workflow updated: 2026-11-02*

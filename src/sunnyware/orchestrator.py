@@ -860,6 +860,12 @@ async def _run_agent_body(
         pass  # Jarvis disabled / model not loaded - fall through
 
     for iteration in range(MAX_ITERATIONS):
+        # Part 585: emit iteration progress
+        await _emit(on_event, {
+            "type": "iteration",
+            "n": iteration + 1,
+            "max": MAX_ITERATIONS,
+        })
         result = await llm_client.chat(
             prompt if iteration == 0 else "Continue.",
             model=model,
