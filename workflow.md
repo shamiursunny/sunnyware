@@ -2755,3 +2755,12 @@ Fixed regex for conversation/discussion matching.
 **Tests added:** `POST /api/memory/write`, `DELETE /api/memory/delete/{key}`, `POST /api/memory/ttl`.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 575 Update (2026-11-02): Full Suite Green
+
+**Test isolation fix:** Memory HTTP tests now force auth off in the `client` fixture.
+**Full suite:** 249 passing (excluding external-API tests).
+
+*Workflow updated: 2026-11-02*

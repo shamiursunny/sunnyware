@@ -2588,3 +2588,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 160 passing (122 direct + 38 HTTP).
 
 *Part 574 logged: 2026-11-02*
+
+---
+
+### Part 575 Update (2026-11-02): Full Suite Green & Memory API Complete
+
+- **Fixed** test isolation: `tests/test_memory_http.py` `client` fixture now forces auth off so it doesn't fail when run with the full suite.
+- **Full test suite:** 249 passed (excluding `test_agent_stream.py` which requires external API keys).
+- **Memory API summary:** 38 HTTP tests + 122 direct unit tests = 160 memory-related tests.
+  - Endpoints covered: write, get, delete, ttl, ttl-all, rename, rename-bulk, bulk-delete, bulk-write, list, keys, entries, stats, count, summary, export, import, search, prune, cleanup.
+
+*Part 575 logged: 2026-11-02*

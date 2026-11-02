@@ -40,7 +40,11 @@ def temp_memory_file():
 
 @pytest.fixture(scope="module")
 def client():
-    """Start TestClient with lifespan events."""
+    """Start TestClient with lifespan events and auth disabled."""
+    import os
+    os.environ.pop("SUNNYWARE_API_KEYS", None)
+    from sunnyware import auth as _auth
+    _auth.load_keys(reload=True)
     with TestClient(app) as c:
         yield c
 
