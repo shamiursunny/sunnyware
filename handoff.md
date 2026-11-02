@@ -4193,3 +4193,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 559 Update (2026-11-02): Ready for Part 560
+
+**Status:** Import endpoint is now idempotent, 114 tests passing.
+
+**What was done:**
+- Added `overwrite` flag to `/api/memory/import`.
+- Returns `imported` and `skipped` counts.
+
+**Next Steps (Part 560):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a `/api/memory/rename-bulk` endpoint.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

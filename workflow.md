@@ -2641,3 +2641,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `POST /api/memory/bulk-write` writes multiple entries in one call.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 559 Update (2026-11-02): Idempotent Import
+
+**API change:** `POST /api/memory/import` skips existing keys unless `overwrite=true`.
+
+*Workflow updated: 2026-11-02*

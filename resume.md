@@ -2436,3 +2436,13 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 114 passing.
 
 *Part 558 logged: 2026-11-02*
+
+---
+
+### Part 559 Update (2026-11-02): Idempotent Memory Import
+
+- **Updated** `POST /api/memory/import` to skip existing keys by default (`overwrite=false`).
+- **Added** `overwrite` parameter; returns `imported` and `skipped` counts.
+- **Fast suite:** 114 passing.
+
+*Part 559 logged: 2026-11-02*
