@@ -3914,3 +3914,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 543 Update (2026-11-02): Ready for Part 544
+
+**Status:** `/api/memory/keys` endpoint added, fast suite 93 passing.
+
+**What was done:**
+- Added `GET /api/memory/keys` endpoint.
+
+**Next Steps (Part 544):**
+1. Consider context pruning or smarter retrieval.
+2. Add a `/api/memory/rename` endpoint to rename a key.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-02*

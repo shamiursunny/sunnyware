@@ -2268,3 +2268,12 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 93 passing.
 
 *Part 542 logged: 2026-11-02*
+
+---
+
+### Part 543 Update (2026-11-02): Add `/api/memory/keys` Endpoint
+
+- **Added** `GET /api/memory/keys` endpoint in `memory_routes.py` — returns only the keys from shared agent memory (lightweight listing).
+- **Fast suite:** 93 passing.
+
+*Part 543 logged: 2026-11-02*

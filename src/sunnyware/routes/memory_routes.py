@@ -147,3 +147,9 @@ async def memory_import(request: dict):
         imported += 1
     return {"ok": True, "imported": imported}
 
+@router.get("/api/memory/keys")
+async def memory_keys():
+    """Return only the keys from shared agent memory."""
+    entries = agent_memory.list_memory()
+    return {"count": len(entries), "keys": [e["key"] for e in entries]}
+

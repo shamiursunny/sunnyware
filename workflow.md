@@ -2513,3 +2513,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `POST /api/memory/import` restores memory entries from a JSON backup.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 543 Update (2026-11-02): `/api/memory/keys` Endpoint
+
+**API change:** `GET /api/memory/keys` returns only memory keys.
+
+*Workflow updated: 2026-11-02*
