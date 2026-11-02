@@ -2250,3 +2250,12 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 93 passing.
 
 *Part 540 logged: 2026-11-02*
+
+---
+
+### Part 541 Update (2026-11-02): Add `/api/memory/export` Endpoint
+
+- **Added** `GET /api/memory/export` endpoint in `memory_routes.py` — returns all non-expired memory entries as a JSON object suitable for backup.
+- **Fast suite:** 93 passing.
+
+*Part 541 logged: 2026-11-02*

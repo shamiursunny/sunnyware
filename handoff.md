@@ -3882,3 +3882,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally; full suite runs in CI.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 541 Update (2026-11-02): Ready for Part 542
+
+**Status:** `/api/memory/export` endpoint added, fast suite 93 passing.
+
+**What was done:**
+- Added `GET /api/memory/export` endpoint.
+
+**Next Steps (Part 542):**
+1. Add a `/api/memory/import` endpoint to restore from a JSON backup.
+2. Consider context pruning or smarter retrieval.
+3. Keep running only fast tests locally; full suite runs in CI.
+
+*Handoff updated: 2026-11-02*

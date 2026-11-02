@@ -2497,3 +2497,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `DELETE /api/memory/clear` removes all entries from shared memory.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 541 Update (2026-11-02): `/api/memory/export` Endpoint
+
+**API change:** `GET /api/memory/export` returns a JSON backup of all memory entries.
+
+*Workflow updated: 2026-11-02*
