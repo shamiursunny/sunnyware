@@ -102,3 +102,50 @@ def test_rag_search_chunks(client):
     data = r.json()
     assert "count" in data
     assert "chunks" in data
+
+def test_rag_document_chunks(client):
+    # Create a document first
+    r = client.post("/api/rag-admin/documents", json={
+        "name": "chunks_test.txt",
+        "content": "First sentence. Second sentence. Third sentence. Fourth sentence.",
+    })
+    assert r.status_code == 200
+    doc_id = r.json()["document"]["id"]
+    # Fetch its chunks
+    r2 = client.get(f"/api/rag-admin/documents/{doc_id}/chunks")
+    assert r2.status_code == 200
+    data = r2.json()
+    assert "count" in data
+    assert "chunks" in data
+    assert data["count"] >= 1
+    # Cleanup
+    client.delete(f"/api/rag-admin/documents/{doc_id}")
+
+
+def test_rag_bulk_delete(client):
+    # Create two documents
+    ids = []
+    for i in range(2):
+        r = client.post("/api/rag-admin/documents", json={
+            "name": f"bulk_del_{i}.txt",
+            "content": f"Content for doc {i}. Another sentence.",
+        })
+        assert r.status_code == 200
+        ids.append(r.json()["document"]["id"])
+    # Bulk delete them
+    r = client.post("/api/rag-admin/bulk-delete", json={"doc_ids": ids})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["ok"] is True
+    assert data["deleted"] >= 1
+
+
+def test_rag_bulk_delete_invalid_body(client):
+    r = client.post("/api/rag-admin/bulk-delete", json={"doc_ids": "not-a-list"})
+    assert r.status_code == 400
+    assert "list" in r.json().get("error", "").lower()
+
+
+def test_rag_bulk_delete_invalid_json(client):
+    r = client.post("/api/rag-admin/bulk-delete", content="not json")
+    assert r.status_code == 400

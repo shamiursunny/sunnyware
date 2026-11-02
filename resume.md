@@ -2669,3 +2669,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 194 passing.
 
 *Part 581 logged: 2026-11-02*
+
+---
+
+### Part 582 Update (2026-11-02): Complete RAG Admin HTTP Coverage
+
+- **Added** 4 HTTP tests in `tests/test_rag_admin_http.py`:
+  - `/api/rag-admin/documents/{id}/chunks` (create doc → fetch chunks)
+  - `/api/rag-admin/bulk-delete` (success + invalid body + invalid JSON)
+- **Fast suite:** 198 passing.
+
+*Part 582 logged: 2026-11-02*

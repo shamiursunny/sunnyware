@@ -2812,3 +2812,11 @@ Fixed regex for conversation/discussion matching.
 **Tests added:** `tests/test_rag_admin_http.py` covering stats, documents, and chunks endpoints.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 582 Update (2026-11-02): Complete RAG Admin HTTP Coverage
+
+**Tests added:** `/api/rag-admin/documents/{id}/chunks`, `/api/rag-admin/bulk-delete`.
+
+*Workflow updated: 2026-11-02*

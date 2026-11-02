@@ -4551,3 +4551,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 582 Update (2026-11-02): Ready for Part 583
+
+**Status:** Complete RAG admin HTTP coverage, 198 tests passing.
+
+**What was done:**
+- Added 4 HTTP tests for document chunks and bulk delete.
+
+**Next Steps (Part 583):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Move to UI polish or streaming improvements.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*
