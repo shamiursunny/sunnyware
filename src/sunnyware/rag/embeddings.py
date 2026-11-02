@@ -5,13 +5,32 @@
 import os
 from pathlib import Path
 
-# Redirect model cache to persistent bucket BEFORE importing ST
+# Part 607: Respect pre-set HF_HOME (app.py sets it to /data/huggingface on HF Spaces).
+# Otherwise compute a persistent, writable path.
 try:
-    from .. import paths as _paths
-    hub = str(_paths.data_root() / "hub")
+    _existing = os.getenv("HF_HOME")
+    if _existing:
+        hub = _existing
+    else:
+        _is_hf = bool(os.getenv("SPACE_ID") or os.getenv("HF_SPACE"))
+        hub = None
+        if _is_hf:
+            for _cand in ("/data/huggingface", "/tmp/huggingface"):
+                try:
+                    Path(_cand).mkdir(parents=True, exist_ok=True)
+                    _test = Path(_cand) / ".write_test"
+                    _test.write_text("ok")
+                    _test.unlink()
+                    hub = _cand
+                    break
+                except Exception:
+                    continue
+        if not hub:
+            from .. import paths as _paths
+            hub = str(_paths.data_root() / "hub")
+        os.environ["HF_HOME"] = hub
+        os.environ["SENTENCE_TRANSFORMERS_HOME"] = hub
     Path(hub).mkdir(parents=True, exist_ok=True)
-    os.environ.setdefault("HF_HOME", hub)
-    os.environ.setdefault("SENTENCE_TRANSFORMERS_HOME", hub)
 except Exception:
     pass
 
