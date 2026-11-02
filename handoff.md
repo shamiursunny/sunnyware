@@ -5061,3 +5061,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-03*
+
+---
+
+### Part 614 Update (2026-11-03): Ready for Part 615
+
+**Status:** Local model status endpoint triggers load and reports errors. Badge shows Ready/Error.
+
+**What was done:**
+- `/api/local-model/status` now calls `_ensure_loaded()` if needed.
+- Badge displays "Local: Error" when `load_error` is set.
+- Windows DLL limitation is expected; HF Spaces works.
+
+**Next Steps (Part 615):**
+1. Move to another feature area — session management, analytics, or backend optimizations.
+2. Run the full test suite to confirm all changes.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-03*

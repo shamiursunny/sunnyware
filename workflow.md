@@ -3047,3 +3047,11 @@ Fixed regex for conversation/discussion matching.
 **UI**: Click the "Local" badge to toggle the local fallback model on/off. Persists to `data/llm_provider_configs.json`.
 
 *Workflow updated: 2026-11-03*
+
+---
+
+### Part 614 Update (2026-11-03): Local Model Status
+
+**Fix**: Status endpoint triggers load; badge shows Error/Ready instead of stuck Loading.
+
+*Workflow updated: 2026-11-03*

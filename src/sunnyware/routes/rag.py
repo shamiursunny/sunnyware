@@ -364,7 +364,7 @@ async def embedder_status():
 
 @router.get("/api/local-model/status")
 async def local_model_status():
-    """Return the in-process local LLM status (enabled, loaded, path, errors)."""
+    """Return the in-process local LLM status and trigger a lazy load if needed."""
     try:
         from .. import local_llm
         status = local_llm.status()
@@ -376,6 +376,16 @@ async def local_model_status():
                 status["enabled"] = bool(cfg["enabled"])
         except Exception:
             pass
+
+        # Part 614: If enabled but not loaded and no error, try to load now
+        if status.get("enabled") and not status.get("loaded") and not status.get("load_error"):
+            try:
+                await local_llm._ensure_loaded()
+                status = local_llm.status()
+                if "enabled" in cfg:
+                    status["enabled"] = bool(cfg["enabled"])
+            except Exception as e:
+                status["load_error"] = f"{type(e).__name__}: {e}"
         return status
     except Exception as e:
         return JSONResponse(

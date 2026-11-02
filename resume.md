@@ -2993,3 +2993,13 @@ me the exact git commands to commit + push both remotes."
 - **Verified**: Toggle cycles between "Local: Off" and "Local: Loading...".
 
 *Part 613 logged: 2026-11-03*
+
+---
+
+### Part 614 Update (2026-11-03): Local Model Status Fix
+
+- **Status Endpoint**: Now triggers a lazy load if enabled but not loaded.
+- **Badge**: Shows "Local: Error" when `load_error` is present, "Local: Ready" when loaded.
+- **Windows**: `llama_cpp` DLL limitation causes "Local: Error" (expected); works on HF Spaces.
+
+*Part 614 logged: 2026-11-03*
