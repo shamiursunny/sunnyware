@@ -2738,3 +2738,12 @@ Fixed regex for conversation/discussion matching.
 **API change:** `GET /api/memory/summary` returns a one-line human-readable summary.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 573 Update (2026-11-02): get/prune/cleanup HTTP Tests
+
+**Tests added:** `/api/memory/get`, `/api/memory/prune`, `/api/memory/cleanup`.
+**Fix:** `/api/memory/cleanup` now uses `get_memory_stats()` for accurate before counts.
+
+*Workflow updated: 2026-11-02*

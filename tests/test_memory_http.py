@@ -285,3 +285,43 @@ def test_memory_summary(client):
     data = r.json()
     assert "2 live" in data["summary"]
     assert "avg TTL" in data["summary"]
+
+def test_memory_get(client):
+    agent_memory.write_memory("gkey", "gval")
+    r = client.get("/api/memory/get?key=gkey")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["key"] == "gkey"
+    assert data["value"] == "gval"
+    assert data["ts"] is not None
+
+def test_memory_get_missing(client):
+    r = client.get("/api/memory/get?key=nope")
+    assert r.status_code == 404
+
+def test_memory_get_no_key(client):
+    r = client.get("/api/memory/get")
+    assert r.status_code == 400
+
+def test_memory_prune(client):
+    agent_memory.write_memory("live", 1)
+    agent_memory.write_memory("dead", 2, ttl=1)
+    time.sleep(1.1)
+    r = client.post("/api/memory/prune")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["removed"] == 1
+    assert agent_memory.read_memory("live") == 1
+    assert agent_memory.read_memory("dead") is None
+
+def test_memory_cleanup(client):
+    agent_memory.write_memory("live", 1)
+    agent_memory.write_memory("dead", 2, ttl=1)
+    time.sleep(1.1)
+    r = client.post("/api/memory/cleanup")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["before_live"] == 1
+    assert data["before_expired"] == 1
+    assert data["removed"] == 1
+    assert data["after_live"] == 1

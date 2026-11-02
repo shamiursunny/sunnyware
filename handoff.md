@@ -4400,3 +4400,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 573 Update (2026-11-02): Ready for Part 574
+
+**Status:** get/prune/cleanup HTTP tests added, cleanup endpoint fixed, 151 tests passing.
+
+**What was done:**
+- Added 5 HTTP tests for `/api/memory/get`, `/api/memory/prune`, `/api/memory/cleanup`.
+- Fixed `/api/memory/cleanup` to use `get_memory_stats()` for accurate before counts.
+
+**Next Steps (Part 574):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a `/api/memory/history` endpoint.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

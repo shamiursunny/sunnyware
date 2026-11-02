@@ -233,16 +233,15 @@ async def memory_count():
 @router.post("/api/memory/cleanup")
 async def memory_cleanup():
     """Prune expired entries and return before/after counts."""
-    before_live = len(agent_memory.list_memory())
-    before_expired = len(agent_memory.list_expired_memory())
+    before = agent_memory.get_memory_stats()
     removed = agent_memory.prune_expired_memory()
-    after_live = len(agent_memory.list_memory())
+    after = agent_memory.get_memory_stats()
     return {
         "ok": True,
-        "before_live": before_live,
-        "before_expired": before_expired,
+        "before_live": before["total_live"],
+        "before_expired": before["total_expired"],
         "removed": removed,
-        "after_live": after_live,
+        "after_live": after["total_live"],
     }
 
 @router.post("/api/memory/bulk-delete")

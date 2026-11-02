@@ -2563,3 +2563,16 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 145 passing (122 direct + 23 HTTP).
 
 *Part 571 logged: 2026-11-02*
+
+---
+
+### Part 573 Update (2026-11-02): HTTP Tests for get/prune/cleanup
+
+- **Added** 5 HTTP tests in `tests/test_memory_http.py` covering:
+  - `/api/memory/get` (success, missing key, no key)
+  - `/api/memory/prune`
+  - `/api/memory/cleanup`
+- **Fixed** `/api/memory/cleanup` to use `get_memory_stats()` — previously `before_live` missed expired entries.
+- **Fast suite:** 151 passing (122 direct + 29 HTTP).
+
+*Part 573 logged: 2026-11-02*
