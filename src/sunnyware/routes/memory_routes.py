@@ -131,16 +131,8 @@ async def memory_import(request: dict):
         from fastapi import HTTPException
         raise HTTPException(status_code=400, detail="data must be an object")
 
-    existing = {e["key"] for e in agent_memory.list_memory()}
-    imported = 0
-    skipped = 0
-    for k, v in data.items():
-        if not overwrite and k in existing:
-            skipped += 1
-            continue
-        agent_memory.write_memory(k, v, ttl=ttl)
-        imported += 1
-    return {"ok": True, "imported": imported, "skipped": skipped, "overwrite": overwrite}
+    result = agent_memory.import_memory(data, ttl=ttl, overwrite=overwrite)
+    return {"ok": True, **result, "overwrite": overwrite}
 
 @router.get("/api/memory/keys")
 async def memory_keys():

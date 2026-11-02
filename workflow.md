@@ -2665,3 +2665,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `GET /api/memory/export?status=live|expired|all` filters exported entries.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 562 Update (2026-11-02): Import Helper
+
+**Refactor:** Import logic moved into `agent_memory.import_memory()` for testability.
+
+*Workflow updated: 2026-11-02*

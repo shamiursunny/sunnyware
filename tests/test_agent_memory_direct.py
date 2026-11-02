@@ -207,3 +207,20 @@ def test_export_memory_status():
     all_data = agent_memory.export_memory("all")
     assert "live_key" in all_data
     assert "dead_key" in all_data
+
+def test_import_memory_idempotent():
+    import tempfile, os
+    agent_memory.MEMORY_FILE = os.path.join(tempfile.gettempdir(), "test_agent_mem_import.json")
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        os.remove(agent_memory.MEMORY_FILE)
+    agent_memory.write_memory("existing", "old_val")
+    result = agent_memory.import_memory({"existing": "new_val", "new1": 10, "new2": 20})
+    assert result["imported"] == 2
+    assert result["skipped"] == 1
+    assert agent_memory.read_memory("existing") == "old_val"
+    assert agent_memory.read_memory("new1") == 10
+    assert agent_memory.read_memory("new2") == 20
+    result = agent_memory.import_memory({"existing": "new_val"}, overwrite=True)
+    assert result["imported"] == 1
+    assert result["skipped"] == 0
+    assert agent_memory.read_memory("existing") == "new_val"

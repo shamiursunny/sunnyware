@@ -2469,3 +2469,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 116 passing.
 
 *Part 561 logged: 2026-11-02*
+
+---
+
+### Part 562 Update (2026-11-02): Add `import_memory` Helper and Refactor Route
+
+- **Added** `agent_memory.import_memory(data, ttl=0, overwrite=False)` — pure idempotent import helper.
+- **Updated** `/api/memory/import` to use the new helper.
+- **Added** 1 direct unit test (117 total).
+- **Fast suite:** 117 passing.
+
+*Part 562 logged: 2026-11-02*

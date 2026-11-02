@@ -316,3 +316,36 @@ def export_memory(status: str = "live") -> dict:
         return merged
     return live
 
+def import_memory(data: dict, ttl: int = 0, overwrite: bool = False) -> dict:
+    """Import memory entries idempotently.
+
+    Args:
+        data: dict of key -> value to import
+        ttl: optional TTL applied to all imported entries
+        overwrite: if False (default), skip keys that already exist
+    Returns:
+        {"imported": int, "skipped": int}
+    """
+    with _lock:
+        existing_data = _load()
+        now = time.time()
+        imported = 0
+        skipped = 0
+        for k, v in data.items():
+            if not overwrite and k in existing_data:
+                skipped += 1
+                continue
+            entry = {"value": v, "ts": now}
+            if ttl > 0:
+                entry["expires_at"] = now + ttl
+            existing_data[k] = entry
+            imported += 1
+        # Cap at 50 entries
+        if len(existing_data) > 50:
+            keys = list(existing_data.keys())
+            for k in keys[:-50]:
+                del existing_data[k]
+        if imported:
+            _save(existing_data)
+        return {"imported": imported, "skipped": skipped}
+
