@@ -2730,3 +2730,11 @@ Fixed regex for conversation/discussion matching.
 **Tests added:** `/api/memory/ttl-all`, `/api/memory/search`.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 571 Update (2026-11-02): Memory Summary
+
+**API change:** `GET /api/memory/summary` returns a one-line human-readable summary.
+
+*Workflow updated: 2026-11-02*

@@ -2552,3 +2552,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 144 passing (121 direct + 23 HTTP).
 
 *Part 570 logged: 2026-11-02*
+
+---
+
+### Part 571 Update (2026-11-02): Add `/api/memory/summary` Endpoint
+
+- **Added** `agent_memory.get_memory_summary()` — returns a one-line human-readable summary ("Memory: 2 live, avg TTL 100s.").
+- **Added** `GET /api/memory/summary` endpoint.
+- **Added** 1 direct unit test (145 total).
+- **Fast suite:** 145 passing (122 direct + 23 HTTP).
+
+*Part 571 logged: 2026-11-02*

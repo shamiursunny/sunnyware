@@ -4382,3 +4382,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 571 Update (2026-11-02): Ready for Part 572
+
+**Status:** Memory summary endpoint added, 145 tests passing.
+
+**What was done:**
+- Added `get_memory_summary` helper.
+- Added `GET /api/memory/summary` endpoint.
+- Added 1 direct unit test.
+
+**Next Steps (Part 572):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding HTTP test for `/api/memory/summary`.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

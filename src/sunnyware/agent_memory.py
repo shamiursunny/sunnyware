@@ -417,3 +417,17 @@ def set_all_memory_ttl(ttl: int = 0) -> int:
             _save(data)
         return updated
 
+def get_memory_summary() -> str:
+    """Return a one-line human-readable summary of memory state."""
+    stats = get_memory_stats()
+    live = stats["total_live"]
+    expired = stats["total_expired"]
+    if live == 0 and expired == 0:
+        return "Memory is empty."
+    parts = [f"{live} live"]
+    if expired:
+        parts.append(f"{expired} expired")
+    if stats["avg_ttl_seconds"] > 0:
+        parts.append(f"avg TTL {stats['avg_ttl_seconds']:.0f}s")
+    return "Memory: " + ", ".join(parts) + "."
+

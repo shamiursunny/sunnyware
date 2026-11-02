@@ -317,3 +317,20 @@ def test_import_memory_edge_cases():
     r = agent_memory.import_memory({})
     assert r["imported"] == 0
     assert r["skipped"] == 0
+
+def test_get_memory_summary():
+    import tempfile, os, time
+    agent_memory.MEMORY_FILE = os.path.join(tempfile.gettempdir(), "test_agent_mem_summary.json")
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        os.remove(agent_memory.MEMORY_FILE)
+    assert "empty" in agent_memory.get_memory_summary().lower()
+    agent_memory.write_memory("a", 1)
+    agent_memory.write_memory("b", 2, ttl=100)
+    s = agent_memory.get_memory_summary()
+    assert "2 live" in s
+    assert "avg TTL" in s
+    agent_memory.write_memory("c", 3, ttl=1)
+    time.sleep(1.1)
+    s = agent_memory.get_memory_summary()
+    assert "2 live" in s
+    assert "1 expired" in s

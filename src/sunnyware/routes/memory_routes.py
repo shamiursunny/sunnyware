@@ -295,3 +295,8 @@ async def memory_set_all_ttl(request: dict):
     updated = agent_memory.set_all_memory_ttl(ttl=ttl)
     return {"ok": True, "ttl": ttl, "updated": updated}
 
+@router.get("/api/memory/summary")
+async def memory_summary():
+    """Return a one-line human-readable summary of memory state."""
+    return {"summary": agent_memory.get_memory_summary()}
+
