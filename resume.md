@@ -2739,3 +2739,13 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 225 passing (222 + 3 new).
 
 *Part 587 logged: 2026-11-02*
+
+---
+
+### Part 588 Update (2026-11-02): Memory Summary in Stats Dashboard
+
+- **Added** `renderMemorySummary()` function in `webui.py`.
+- **Updated** `openUsageModal()` to fetch `/api/memory/stats` and `/api/memory/summary` and display memory info in the stats modal.
+- **Fast suite:** 225 passing (UI-only change, no new tests).
+
+*Part 588 logged: 2026-11-02*

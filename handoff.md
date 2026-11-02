@@ -4651,3 +4651,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 588 Update (2026-11-02): Ready for Part 589
+
+**Status:** Memory summary added to stats dashboard, 225 tests passing.
+
+**What was done:**
+- Added `renderMemorySummary()` to `webui.py`.
+- Fetched memory stats and summary in the stats modal.
+
+**Next Steps (Part 589):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding memory entries list to the dashboard.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

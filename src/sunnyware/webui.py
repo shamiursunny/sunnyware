@@ -2376,6 +2376,30 @@ window.fetch = function(url, options) {
     }
   }
 
+  function renderMemorySummary(stats, summary) {
+    const sec = document.createElement('div');
+    sec.className = 'ph-section';
+    const h = document.createElement('div');
+    h.className = 'ph-title';
+    h.textContent = 'Memory';
+    sec.appendChild(h);
+    const p = document.createElement('div');
+    p.className = 'ph-row';
+    p.textContent = (summary && summary.summary) || 'No memory data.';
+    sec.appendChild(p);
+    if (stats && typeof stats === 'object') {
+      const row = document.createElement('div');
+      row.className = 'ph-row';
+      let txt = 'Live: ' + (stats.total_live ?? 0) + ' · Expired: ' + (stats.total_expired ?? 0);
+      if (stats.avg_ttl_seconds) {
+        txt += ' · Avg TTL: ' + Math.round(stats.avg_ttl_seconds) + 's';
+      }
+      row.textContent = txt;
+      sec.appendChild(row);
+    }
+    return sec;
+  }
+
   async function openUsageModal() {
     const modal = document.getElementById('usageModal');
     if (!modal) return;
@@ -2400,6 +2424,14 @@ window.fetch = function(url, options) {
       const ph = renderProviderHealth(metrics);
       body.insertBefore(ph, body.firstChild);
       _startPHRefresh();
+      // Part 588: memory summary
+      try {
+        const [memStats, memSummary] = await Promise.all([
+          fetch('/api/memory/stats').then(r => r.json()),
+          fetch('/api/memory/summary').then(r => r.json()),
+        ]);
+        body.appendChild(renderMemorySummary(memStats, memSummary));
+      } catch (e) {}
     } catch (err) {
       body.innerHTML = '';
       const errDiv = document.createElement('div');

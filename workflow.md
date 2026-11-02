@@ -2860,3 +2860,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `GET /api/rag/search?q=...&k=...` performs semantic search over uploaded documents.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 588 Update (2026-11-02): Memory Summary in Stats Dashboard
+
+**UI change:** The stats modal now shows a Memory section with live/expired counts and a one-line summary.
+
+*Workflow updated: 2026-11-02*
