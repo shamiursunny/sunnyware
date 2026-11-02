@@ -2480,3 +2480,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 117 passing.
 
 *Part 562 logged: 2026-11-02*
+
+---
+
+### Part 563 Update (2026-11-02): Richer Memory Stats
+
+- **Added** `agent_memory.get_memory_stats()` — total live, total expired, average TTL, oldest/newest timestamps.
+- **Updated** `GET /api/memory/stats` to return the richer stats.
+- **Added** 1 direct unit test (118 total).
+- **Fast suite:** 118 passing.
+
+*Part 563 logged: 2026-11-02*

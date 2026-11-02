@@ -2673,3 +2673,11 @@ Fixed regex for conversation/discussion matching.
 **Refactor:** Import logic moved into `agent_memory.import_memory()` for testability.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 563 Update (2026-11-02): Richer Memory Stats
+
+**API change:** `GET /api/memory/stats` returns total live, total expired, average TTL, and timestamps.
+
+*Workflow updated: 2026-11-02*

@@ -66,15 +66,8 @@ async def memory_delete(key: str):
 
 @router.get("/api/memory/stats")
 async def memory_stats():
-    """Return summary statistics for shared agent memory."""
-    entries = agent_memory.list_memory()
-    total = len(entries)
-    with_expiry = sum(1 for e in entries if e.get("expires_at"))
-    return {
-        "total_entries": total,
-        "with_expiry": with_expiry,
-        "without_expiry": total - with_expiry,
-    }
+    """Return summary statistics about shared memory."""
+    return agent_memory.get_memory_stats()
 
 @router.get("/api/memory/search")
 async def memory_search(q: str = ""):

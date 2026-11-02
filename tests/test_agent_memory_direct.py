@@ -224,3 +224,20 @@ def test_import_memory_idempotent():
     assert result["imported"] == 1
     assert result["skipped"] == 0
     assert agent_memory.read_memory("existing") == "new_val"
+
+def test_get_memory_stats():
+    import tempfile, os, time
+    agent_memory.MEMORY_FILE = os.path.join(tempfile.gettempdir(), "test_agent_mem_stats.json")
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        os.remove(agent_memory.MEMORY_FILE)
+    agent_memory.write_memory("live1", "v1", ttl=100)
+    agent_memory.write_memory("live2", "v2", ttl=200)
+    agent_memory.write_memory("live_no_ttl", "v3")
+    agent_memory.write_memory("expired", "v4", ttl=1)
+    time.sleep(1.1)
+    stats = agent_memory.get_memory_stats()
+    assert stats["total_live"] == 3
+    assert stats["total_expired"] == 1
+    assert stats["avg_ttl_seconds"] > 0
+    assert stats["oldest_ts"] is not None
+    assert stats["newest_ts"] is not None

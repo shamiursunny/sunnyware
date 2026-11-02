@@ -349,3 +349,42 @@ def import_memory(data: dict, ttl: int = 0, overwrite: bool = False) -> dict:
             _save(existing_data)
         return {"imported": imported, "skipped": skipped}
 
+def get_memory_stats() -> dict:
+    """Return summary statistics about shared memory.
+
+    Returns:
+        dict with:
+          total_live: count of non-expired entries
+          total_expired: count of expired entries
+          avg_ttl_seconds: average remaining TTL of live entries with a TTL
+          oldest_ts: earliest timestamp among live entries (or None)
+          newest_ts: latest timestamp among live entries (or None)
+    """
+    with _lock:
+        data = _load()
+        now = time.time()
+        live = []
+        expired_count = 0
+        ttl_values = []
+        for k, entry in data.items():
+            if not isinstance(entry, dict) or "value" not in entry:
+                # Legacy plain value: treat as live with no TTL
+                live.append({"ts": None, "expires_at": None})
+                continue
+            expires = entry.get("expires_at")
+            if expires and now > expires:
+                expired_count += 1
+                continue
+            live.append({"ts": entry.get("ts"), "expires_at": expires})
+            if expires:
+                ttl_values.append(expires - now)
+
+    ts_values = [e["ts"] for e in live if e["ts"] is not None]
+    return {
+        "total_live": len(live),
+        "total_expired": expired_count,
+        "avg_ttl_seconds": sum(ttl_values) / len(ttl_values) if ttl_values else 0.0,
+        "oldest_ts": min(ts_values) if ts_values else None,
+        "newest_ts": max(ts_values) if ts_values else None,
+    }
+
