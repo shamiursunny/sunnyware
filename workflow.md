@@ -2796,3 +2796,11 @@ Fixed regex for conversation/discussion matching.
 **RAG change:** `chunk_text()` now prefers sentence boundaries, improving retrieval quality by avoiding mid-sentence splits.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 580 Update (2026-11-02): Vector Store Result Enrichment
+
+**RAG change:** Search results now include a normalized `score` (0–1) and `rank`, improving downstream ranking.
+
+*Workflow updated: 2026-11-02*

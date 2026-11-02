@@ -2644,3 +2644,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 179 passing.
 
 *Part 579 logged: 2026-11-02*
+
+---
+
+### Part 580 Update (2026-11-02): Enrich Vector Store Search Results
+
+- **Added** `_format_search_result(distance, metadata, rank)` helper in `rag/vector_store.py` — normalizes L2 distance into a `score` (1/(1+distance), higher = better) and adds a zero-based `rank`.
+- **Updated** `FPAVectorStore.search()` to return enriched results while preserving the original `distance` and `metadata` fields (backward compatible).
+- **Added** 6 direct unit tests (185 total).
+- **Fast suite:** 185 passing.
+
+*Part 580 logged: 2026-11-02*

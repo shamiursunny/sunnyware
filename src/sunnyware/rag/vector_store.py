@@ -9,6 +9,22 @@ from typing import List, Dict
 import numpy as np
 
 
+def _format_search_result(distance: float, metadata: Dict, rank: int) -> Dict:
+    """Format a single search hit.
+
+    Adds a normalized `score` (1 / (1 + distance), higher = better) and a
+    zero-based `rank` so callers don't need to infer ordering themselves.
+    """
+    dist = float(distance)
+    score = 1.0 / (1.0 + dist) if dist >= 0 else 0.0
+    return {
+        "rank": int(rank),
+        "score": round(score, 6),
+        "distance": dist,
+        "metadata": metadata,
+    }
+
+
 class FPAVectorStore:
     """Local FAISS index. Persists to /data/vector_store/{org_id}/."""
 
@@ -68,13 +84,12 @@ class FPAVectorStore:
         q = np.asarray([query_vector], dtype=np.float32)
         distances, indices = self._index.search(q, min(k, self._index.ntotal))
         out = []
+        rank = 0
         for dist, idx in zip(distances[0], indices[0]):
             if idx < 0 or idx >= len(self._metadata):
                 continue
-            out.append({
-                "distance": float(dist),
-                "metadata": self._metadata[idx],
-            })
+            out.append(_format_search_result(dist, self._metadata[idx], rank))
+            rank += 1
         return out
 
     def save(self):

@@ -4519,3 +4519,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 580 Update (2026-11-02): Ready for Part 581
+
+**Status:** Vector store search results enriched, 185 tests passing.
+
+**What was done:**
+- Added `_format_search_result()` helper and updated `FPAVectorStore.search()`.
+
+**Next Steps (Part 581):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Add HTTP tests for RAG admin endpoints (`/api/rag-admin/stats`, etc.).
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*
