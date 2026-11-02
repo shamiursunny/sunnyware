@@ -2623,3 +2623,12 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 171 passing.
 
 *Part 577 logged: 2026-11-02*
+
+---
+
+### Part 578 Update (2026-11-02): HTTP Test for Health Endpoint
+
+- **Added** `tests/test_health_http.py` — HTTP test for `/health/ready` endpoint.
+- **Fast suite:** 172 passing (171 + 1 new).
+
+*Part 578 logged: 2026-11-02*

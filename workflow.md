@@ -2780,3 +2780,11 @@ Fixed regex for conversation/discussion matching.
 **LLM change:** Transient HTTP errors (5xx, connection timeouts) are retried up to 3 times. 429 still fails fast; 400 errors keep their tool-specific retries.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 578 Update (2026-11-02): Health HTTP Test
+
+**Test added:** `/health/ready` HTTP-level test.
+
+*Workflow updated: 2026-11-02*

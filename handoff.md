@@ -4486,3 +4486,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 578 Update (2026-11-02): Ready for Part 579
+
+**Status:** Health endpoint HTTP test added, 172 tests passing.
+
+**What was done:**
+- Added `tests/test_health_http.py`.
+
+**Next Steps (Part 579):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Move to a new feature area — UI polish, RAG enhancements, or streaming improvements.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*
