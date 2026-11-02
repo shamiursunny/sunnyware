@@ -2948,3 +2948,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `DELETE /api/rag/delete?source=...` removes all chunks for a given source from the vector store.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 599 Update (2026-11-02): RAG Clear All
+
+**API change:** `DELETE /api/rag/clear` removes all documents from the vector store.
+
+*Workflow updated: 2026-11-02*

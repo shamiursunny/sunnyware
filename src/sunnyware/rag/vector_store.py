@@ -164,6 +164,15 @@ class FPAVectorStore:
         self._metadata = keep_meta
         return removed
 
+    def clear_all(self) -> int:
+        """Wipe the entire index and metadata. Returns number of chunks removed."""
+        self._ensure_index()
+        removed = int(self._index.ntotal)
+        import faiss
+        self._index = faiss.IndexFlatL2(self.dim)
+        self._metadata = []
+        return removed
+
     def status(self) -> dict:
         self._ensure_index()
         return {

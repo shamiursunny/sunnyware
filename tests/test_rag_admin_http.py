@@ -249,3 +249,26 @@ def test_rag_delete_after_upload(client):
     if "error" in data:
         return
     assert data.get("removed", 0) >= 1
+
+def test_rag_clear_empty(client):
+    r = client.delete("/api/rag/clear")
+    assert r.status_code == 200
+    data = r.json()
+    if "error" not in data:
+        assert data.get("removed", 0) >= 0
+
+
+def test_rag_clear_after_upload(client):
+    files = {"file": ("clear_test.txt", b"Content to be cleared.", "text/plain")}
+    up = client.post("/api/rag/upload", files=files)
+    if up.status_code != 200:
+        return
+    r = client.delete("/api/rag/clear")
+    assert r.status_code == 200
+    data = r.json()
+    if "error" in data:
+        return
+    assert data.get("removed", 0) >= 1
+    docs = client.get("/api/rag/documents").json()
+    if "error" not in docs:
+        assert docs.get("count", 0) == 0

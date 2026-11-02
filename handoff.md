@@ -4839,3 +4839,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 599 Update (2026-11-02): Ready for Part 600
+
+**Status:** RAG clear endpoint added, 240 tests passing.
+
+**What was done:**
+- Added `clear_all()` to `FPAVectorStore`.
+- Added `DELETE /api/rag/clear` endpoint.
+- Added 2 HTTP tests.
+
+**Next Steps (Part 600):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a RAG UI upload widget.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

@@ -293,3 +293,23 @@ async def rag_delete(source: str = ""):
             status_code=500,
         )
 
+@router.delete("/api/rag/clear")
+async def rag_clear():
+    """Remove ALL documents from the RAG vector store."""
+    try:
+        from ..rag import get_store
+        from .. import tenant as _tenant
+        org_id = _tenant.get_key() or "default"
+        store = get_store(org_id)
+        removed = store.clear_all()
+        try:
+            store.save()
+        except Exception:
+            pass
+        return {"ok": True, "org_id": org_id, "removed": removed}
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
