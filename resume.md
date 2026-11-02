@@ -2938,3 +2938,14 @@ me the exact git commands to commit + push both remotes."
 - **Polling**: Status refreshes every 5s while loading.
 
 *Part 608 logged: 2026-11-03*
+
+---
+
+### Part 609 Update (2026-11-03): Local Model Toggle in Admin
+
+- **Admin Toggle**: The LLM Dashboard now has a working on/off toggle for the `local` provider.
+- **Cache Invalidation**: After updating a provider config, the provider cache is invalidated so changes take effect immediately.
+- **Direct Env Assignment**: `app.py` uses direct assignment for `LOCAL_MODEL_*` vars to override stale `.env` values.
+- **Verified**: Disabling `local` removes it from the provider chain; re-enabling restores it.
+
+*Part 609 logged: 2026-11-03*

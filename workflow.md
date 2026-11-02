@@ -3007,3 +3007,11 @@ Fixed regex for conversation/discussion matching.
 **UI**: New local model badge. **API**: `/api/local-model/status`.
 
 *Workflow updated: 2026-11-03*
+
+---
+
+### Part 609 Update (2026-11-03): Local Model Toggle
+
+**Admin**: Local model can be toggled on/off from the LLM Dashboard. Cache invalidates immediately.
+
+*Workflow updated: 2026-11-03*

@@ -160,6 +160,15 @@ def load_providers(reload: bool = False) -> List[Provider]:
         if name in ("ollama", "local"):
             # Tiny local models can't reliably emit valid tool calls
             supports_tools = False
+        # Part 609: Skip provider if admin disabled it via dashboard
+        try:
+            from . import llm_dashboard_store as _lds
+            _cfg = _lds.get_provider_config(name)
+            if _cfg.get("enabled") is False:
+                continue
+        except Exception:
+            pass
+
         out.append(Provider(
             name=name,
             base_url=base_url.rstrip("/"),

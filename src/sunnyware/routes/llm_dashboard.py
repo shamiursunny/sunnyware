@@ -71,6 +71,12 @@ async def update_config(provider: str, req: Request):
     allowed = {"limit_per_min", "limit_per_hour", "limit_per_day", "enabled", "model_override"}
     patch = {k: v for k, v in body.items() if k in allowed}
     cfg = _lds.set_provider_config(provider, patch)
+    # Part 609: Invalidate cached providers so the toggle takes effect immediately
+    try:
+        from .. import providers as _prov
+        _prov._PROVIDERS = None
+    except Exception:
+        pass
     return {"ok": True, "config": cfg}
 
 

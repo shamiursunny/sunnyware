@@ -4970,3 +4970,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-03*
+
+---
+
+### Part 609 Update (2026-11-03): Ready for Part 610
+
+**Status:** Local model toggle works in admin panel; stale env override fixed. 239 tests passing.
+
+**What was done:**
+- Wired admin toggle to `providers.py` — disabled providers are skipped.
+- Invalidated provider cache after config update in `llm_dashboard.py`.
+- Used direct env assignment in `app.py` to override old `.env` values.
+
+**Next Steps (Part 610):**
+1. Run the full test suite in CI.
+2. Add local model override in `model_resolver.py` to show correct model name.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-03*

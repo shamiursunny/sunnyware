@@ -48,11 +48,11 @@ def _apply_paths():
     os.environ["HF_HOME"] = str(HF_HOME_DIR)
     os.environ["SENTENCE_TRANSFORMERS_HOME"] = str(HF_HOME_DIR)
     os.environ["LOCAL_MODEL_PATH"] = str(GGUF_PATH)
-    os.environ.setdefault("LOCAL_MODEL_ENABLED", "1")
-    os.environ.setdefault("LOCAL_MODEL_CTX", "2048")
-    os.environ.setdefault("LOCAL_MODEL_BASE_URL", "in-process")
-    os.environ.setdefault("LOCAL_MODEL_API_KEY", "local")
-    os.environ.setdefault("LOCAL_MODEL", "qwen2.5-0.5b-instruct")
+    os.environ["LOCAL_MODEL_ENABLED"] = "1"
+    os.environ["LOCAL_MODEL_CTX"] = "2048"
+    os.environ["LOCAL_MODEL_BASE_URL"] = "in-process"
+    os.environ["LOCAL_MODEL_API_KEY"] = "local"
+    os.environ["LOCAL_MODEL"] = "qwen2.5-0.5b-instruct"
 
     # Ensure "local" in providers; drop "ollama" on HF Spaces
     _orig = (os.getenv("LLM_PROVIDERS") or "").strip()
