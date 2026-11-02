@@ -333,7 +333,7 @@ except Exception:
 # Part 284: Start Jarvis preload for HF Spaces (lifespan is skipped)
 try:
     from . import local_llm as _jarvis_local
-    if False and _jarvis_local.is_enabled():
+    if _jarvis_local.is_enabled():
         import threading as _threading
         import asyncio as _aio
         
