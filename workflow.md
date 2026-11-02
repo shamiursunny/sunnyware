@@ -2489,3 +2489,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `GET /api/memory/search?q=...` searches memory entries.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 540 Update (2026-11-02): `/api/memory/clear` Endpoint
+
+**API change:** `DELETE /api/memory/clear` removes all entries from shared memory.
+
+*Workflow updated: 2026-11-02*

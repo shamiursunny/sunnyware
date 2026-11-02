@@ -104,3 +104,15 @@ async def memory_search(q: str = ""):
             matches.append(e)
     return {"query": q, "count": len(matches), "entries": matches}
 
+@router.delete("/api/memory/clear")
+async def memory_clear():
+    """Delete ALL entries from shared agent memory."""
+    import json, os
+    with agent_memory._lock:
+        if os.path.exists(agent_memory.MEMORY_FILE):
+            try:
+                os.remove(agent_memory.MEMORY_FILE)
+            except Exception:
+                pass
+    return {"ok": True, "cleared": True}
+
