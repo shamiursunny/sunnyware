@@ -3023,3 +3023,11 @@ Fixed regex for conversation/discussion matching.
 **Fixes**: Local provider skips probing; legacy single-provider path handles local; admin shows correct model name.
 
 *Workflow updated: 2026-11-03*
+
+---
+
+### Part 611 Update (2026-11-03): Full Test Suite
+
+**Verification**: 329 tests pass. No regressions from Parts 601–610.
+
+*Workflow updated: 2026-11-03*

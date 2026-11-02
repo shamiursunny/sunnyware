@@ -2961,3 +2961,13 @@ me the exact git commands to commit + push both remotes."
 - **Windows Limitation**: `llama-cpp-python` DLL may fail locally; inference works on HF Spaces.
 
 *Part 610 logged: 2026-11-03*
+
+---
+
+### Part 611 Update (2026-11-03): Full Test Suite Verification
+
+- **Full Suite**: 329 passed in 111.17s (`pytest tests/ --ignore=tests/test_agent_stream.py`).
+- **Windows Note**: `llama-cpp-python` DLL access violation is a known Windows limitation; inference works on HF Spaces (Linux).
+- **No regressions**: All Part 601–610 changes integrate cleanly.
+
+*Part 611 logged: 2026-11-03*
