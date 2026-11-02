@@ -162,3 +162,60 @@ def test_memory_import_ttl(client):
 def test_memory_import_invalid_body(client):
     r = client.post("/api/memory/import", json={"data": "not-a-dict"})
     assert r.status_code == 400
+
+def test_memory_bulk_delete(client):
+    agent_memory.write_memory("a", 1)
+    agent_memory.write_memory("b", 2)
+    agent_memory.write_memory("c", 3)
+    r = client.post("/api/memory/bulk-delete", json={"keys": ["a", "c", "missing"]})
+    assert r.status_code == 200
+    data = r.json()
+    assert sorted(data["deleted"]) == ["a", "c"]
+    assert data["missing"] == ["missing"]
+    assert agent_memory.read_memory("a") is None
+    assert agent_memory.read_memory("b") == 2
+
+
+def test_memory_bulk_delete_invalid_body(client):
+    r = client.post("/api/memory/bulk-delete", json={"keys": "not-a-list"})
+    assert r.status_code == 400
+
+
+def test_memory_bulk_write(client):
+    r = client.post("/api/memory/bulk-write", json={"items": {"a": 1, "b": 2}})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["written"] == 2
+    assert agent_memory.read_memory("a") == 1
+    assert agent_memory.read_memory("b") == 2
+
+
+def test_memory_bulk_write_ttl(client):
+    r = client.post("/api/memory/bulk-write", json={"items": {"tmp": "v"}, "ttl": 1})
+    assert r.status_code == 200
+    assert agent_memory.read_memory("tmp") == "v"
+    time.sleep(1.1)
+    assert agent_memory.read_memory("tmp") is None
+
+
+def test_memory_bulk_write_invalid_body(client):
+    r = client.post("/api/memory/bulk-write", json={"items": "not-a-dict"})
+    assert r.status_code == 400
+
+
+def test_memory_rename_bulk(client):
+    agent_memory.write_memory("old1", 1)
+    agent_memory.write_memory("old2", 2)
+    r = client.post("/api/memory/rename-bulk", json={"mapping": {"old1": "new1", "old2": "new2", "missing": "x"}})
+    assert r.status_code == 200
+    data = r.json()
+    assert sorted(data["renamed"]) == ["old1", "old2"]
+    assert data["missing"] == ["missing"]
+    assert agent_memory.read_memory("old1") is None
+    assert agent_memory.read_memory("new1") == 1
+    assert agent_memory.read_memory("new2") == 2
+
+
+def test_memory_rename_bulk_invalid_body(client):
+    r = client.post("/api/memory/rename-bulk", json={"mapping": "not-a-dict"})
+    assert r.status_code == 400
