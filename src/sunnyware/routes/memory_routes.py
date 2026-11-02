@@ -215,3 +215,9 @@ async def memory_entries(offset: int = 0, limit: int = 50):
         "entries": page,
     }
 
+@router.get("/api/memory/expired")
+async def memory_expired():
+    """List all expired entries (without removing them)."""
+    entries = agent_memory.list_expired_memory()
+    return {"count": len(entries), "entries": entries}
+

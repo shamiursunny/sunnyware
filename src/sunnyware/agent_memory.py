@@ -200,3 +200,21 @@ def set_memory_ttl(key: str, ttl: int = 0) -> bool:
         _save(data)
         return True
 
+def list_expired_memory() -> list:
+    """Return entries whose TTL has passed, without removing them."""
+    with _lock:
+        data = _load()
+        now = time.time()
+        out = []
+        for k, entry in data.items():
+            if isinstance(entry, dict):
+                expires = entry.get("expires_at")
+                if expires and now > expires:
+                    out.append({
+                        "key": k,
+                        "value": entry.get("value"),
+                        "ts": entry.get("ts"),
+                        "expires_at": expires,
+                    })
+        return out
+

@@ -4107,3 +4107,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 554 Update (2026-11-02): Ready for Part 555
+
+**Status:** Expired memory endpoint added, 112 tests passing.
+
+**What was done:**
+- Added `list_expired_memory` helper.
+- Added `GET /api/memory/expired` endpoint.
+- Added 1 direct unit test.
+
+**Next Steps (Part 555):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a `/api/memory/count` endpoint.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

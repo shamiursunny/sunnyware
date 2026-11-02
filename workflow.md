@@ -2601,3 +2601,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `GET /api/memory/entries` returns a paginated list of memory entries.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 554 Update (2026-11-02): Expired Memory Endpoint
+
+**API change:** `GET /api/memory/expired` lists expired keys without removing them.
+
+*Workflow updated: 2026-11-02*

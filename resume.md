@@ -2385,3 +2385,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 111 passing.
 
 *Part 553 logged: 2026-11-02*
+
+---
+
+### Part 554 Update (2026-11-02): Add `/api/memory/expired` Endpoint
+
+- **Added** `agent_memory.list_expired_memory()` — returns entries whose TTL has passed without deleting them.
+- **Added** `GET /api/memory/expired` endpoint in `memory_routes.py`.
+- **Added** 1 direct unit test (112 total).
+- **Fast suite:** 112 passing.
+
+*Part 554 logged: 2026-11-02*

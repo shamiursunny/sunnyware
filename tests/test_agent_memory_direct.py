@@ -129,3 +129,16 @@ def test_set_memory_ttl():
     assert agent_memory.read_memory("ttlkey2") == "val2"
     # Missing key
     assert agent_memory.set_memory_ttl("missing", ttl=5) is False
+
+def test_list_expired_memory():
+    import tempfile, os, time
+    agent_memory.MEMORY_FILE = os.path.join(tempfile.gettempdir(), "test_agent_mem_expired.json")
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        os.remove(agent_memory.MEMORY_FILE)
+    agent_memory.write_memory("live_key", "live_val", ttl=3600)
+    agent_memory.write_memory("dead_key", "dead_val", ttl=1)
+    time.sleep(1.1)
+    expired = agent_memory.list_expired_memory()
+    assert len(expired) == 1
+    assert expired[0]["key"] == "dead_key"
+    assert agent_memory.read_memory("live_key") == "live_val"
