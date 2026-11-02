@@ -72,7 +72,7 @@ async def _preload_local_task():
 async def lifespan(app):
     try:
         from . import local_llm as _jarvis_local
-        if False and _jarvis_local.is_enabled():
+        if _jarvis_local.is_enabled():
             import asyncio as _aio
             _aio.create_task(_jarvis_local.preload())
             print("[jarvis] Background preload started", flush=True)
