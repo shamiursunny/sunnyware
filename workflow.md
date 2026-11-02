@@ -2772,3 +2772,11 @@ Fixed regex for conversation/discussion matching.
 **Orchestrator change:** Transient tool errors (timeout, connection, rate limit) are retried up to 3 times with exponential backoff. Permanent errors (tool_denied, approval_timeout, schema_violation) are never retried.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 577 Update (2026-11-02): LLM API Retry Logic
+
+**LLM change:** Transient HTTP errors (5xx, connection timeouts) are retried up to 3 times. 429 still fails fast; 400 errors keep their tool-specific retries.
+
+*Workflow updated: 2026-11-02*

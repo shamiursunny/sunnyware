@@ -88,6 +88,11 @@ async def health_check(timeout: float = 5.0) -> dict:
         return {"status": "error", "error": f"{type(e).__name__}: {e}"}
 
 
+def _is_transient_http_status(status_code: int) -> bool:
+    """Return True if the HTTP status is likely transient and safe to retry."""
+    return status_code in (500, 502, 503, 504)
+
+
 async def _chat_single(
     prompt: str,
     base_url: str,
@@ -177,14 +182,33 @@ async def _chat_single(
                 payload["messages"] = messages
 
         async with httpx.AsyncClient(timeout=timeout) as client:
-            r = await client.post(
-                f"{base_url}/chat/completions",
-                json=payload,
-                headers={
-                    "Authorization": f"Bearer {api_key}",
-                    "Content-Type": "application/json",
-                },
-            )
+            # Part 577: retry transient HTTP errors (5xx, connection)
+            import httpx as _httpx
+            _max_attempts = 3
+            _attempt = 0
+            r = None
+            while _attempt < _max_attempts:
+                _attempt += 1
+                try:
+                    r = await client.post(
+                        f"{base_url}/chat/completions",
+                        json=payload,
+                        headers={
+                            "Authorization": f"Bearer {api_key}",
+                            "Content-Type": "application/json",
+                        },
+                    )
+                    if not _is_transient_http_status(r.status_code):
+                        break
+                except (_httpx.TimeoutException, _httpx.ConnectError, _httpx.ReadTimeout) as _e:
+                    if _attempt >= _max_attempts:
+                        raise
+                    await asyncio.sleep(0.5 * _attempt)
+                    continue
+                if _attempt < _max_attempts:
+                    await asyncio.sleep(0.5 * _attempt)
+            if r is None:
+                raise _httpx.ConnectError("no response after retries")
             latency_ms = int((time.time() - start) * 1000)
 
             if r.status_code != 200:

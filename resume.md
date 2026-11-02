@@ -2611,3 +2611,15 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 169 passing.
 
 *Part 576 logged: 2026-11-02*
+
+---
+
+### Part 577 Update (2026-11-02): LLM API Retry Logic for Transient Errors
+
+- **Added** `_is_transient_http_status(status_code)` helper in `llm.py` — returns True for 500/502/503/504.
+- **Updated** `_chat_single` to retry transient HTTP errors (5xx, connection timeouts) up to 3 attempts with exponential backoff (0.5s, 1s, 1.5s).
+- **Preserved** existing behavior: 429 still fails fast (no retry), 400 errors still use the existing tool-specific retries.
+- **Added** 2 direct unit tests for the status classifier (171 total).
+- **Fast suite:** 171 passing.
+
+*Part 577 logged: 2026-11-02*

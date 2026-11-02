@@ -4469,3 +4469,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 577 Update (2026-11-02): Ready for Part 578
+
+**Status:** LLM API retry logic added, 171 tests passing.
+
+**What was done:**
+- Added `_is_transient_http_status` helper and retry loop in `_chat_single`.
+- Added 2 direct unit tests for the classifier.
+
+**Next Steps (Part 578):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a `/api/llm/health` endpoint test.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*
