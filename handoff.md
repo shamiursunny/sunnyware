@@ -4618,3 +4618,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 586 Update (2026-11-02): Ready for Part 587
+
+**Status:** Memory content helper tests added, 222 tests passing.
+
+**What was done:**
+- Added 9 pure unit tests for `_extract_content()` and `_sanitize_content()`.
+
+**Next Steps (Part 587):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Move to UI polish or streaming improvements.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

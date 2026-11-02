@@ -288,3 +288,65 @@ def test_format_context_unknown_event_type():
     ]
     result = format_context(events)
     assert result == "[assistant] misc"
+
+def test_extract_content_dict():
+    from sunnyware.memory import _extract_content
+    assert _extract_content({"content": "hello"}) == "hello"
+    assert _extract_content({"content": ""}) == ""
+    assert _extract_content({}) == ""
+    assert _extract_content({"other": "x"}) == ""
+
+
+def test_extract_content_string():
+    from sunnyware.memory import _extract_content
+    import json
+    assert _extract_content(json.dumps({"content": "from string"})) == "from string"
+    assert _extract_content('{"content": "nested"}') == "nested"
+
+
+def test_extract_content_invalid_string():
+    from sunnyware.memory import _extract_content
+    assert _extract_content("not json") == ""
+    assert _extract_content("") == ""
+
+
+def test_extract_content_none():
+    from sunnyware.memory import _extract_content
+    assert _extract_content(None) == ""
+    assert _extract_content(123) == ""
+
+
+def test_sanitize_content_empty():
+    from sunnyware.memory import _sanitize_content
+    assert _sanitize_content("", 100) == ""
+    assert _sanitize_content(None, 100) == ""
+
+
+def test_sanitize_content_short():
+    from sunnyware.memory import _sanitize_content
+    result = _sanitize_content("hello world", 100)
+    assert result == "hello world"
+
+
+def test_sanitize_content_truncates():
+    from sunnyware.memory import _sanitize_content
+    result = _sanitize_content("x" * 200, 50)
+    assert result.startswith("x" * 50)
+    assert "[truncated, orig 200 chars]" in result
+
+
+def test_sanitize_content_redacts_base64():
+    from sunnyware.memory import _sanitize_content
+    # Create a 600-char base64-ish string with uppercase, lowercase, and digit
+    b64 = "A" * 200 + "a" * 200 + "1" * 200
+    result = _sanitize_content(b64, 5000)
+    assert "[redacted:" in result
+    assert len(result) < len(b64)
+
+
+def test_sanitize_content_does_not_redact_short_runs():
+    from sunnyware.memory import _sanitize_content
+    text = "Hello World 123"
+    result = _sanitize_content(text, 1000)
+    assert "redacted" not in result
+    assert result == text

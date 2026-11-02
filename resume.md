@@ -2718,3 +2718,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 213 passing (UI-only change, no new tests).
 
 *Part 585 logged: 2026-11-02*
+
+---
+
+### Part 586 Update (2026-11-02): Tests for Memory Content Helpers
+
+- **Added** 9 pure unit tests in `tests/test_memory_summarize.py` for:
+  - `_extract_content()` — dict/str payloads, invalid JSON, None/non-dict inputs
+  - `_sanitize_content()` — empty input, short text, truncation, base64 redaction, short-run safety
+- **Fast suite:** 222 passing (213 + 9 new).
+
+*Part 586 logged: 2026-11-02*

@@ -2844,3 +2844,11 @@ Fixed regex for conversation/discussion matching.
 **UI change:** The chat now shows `[step] N/M` during the agent's ReAct loop, so users see multi-step progress.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 586 Update (2026-11-02): Memory Content Helper Tests
+
+**Tests added:** 9 pure unit tests for `_extract_content()` and `_sanitize_content()`.
+
+*Workflow updated: 2026-11-02*
