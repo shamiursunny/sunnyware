@@ -2714,3 +2714,11 @@ Fixed regex for conversation/discussion matching.
 **Fix:** `/api/memory/count` now uses `get_memory_stats()` to properly include expired entries.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 568 Update (2026-11-02): Export/Import HTTP Tests
+
+**Tests added:** `/api/memory/export` and `/api/memory/import` HTTP-level tests.
+
+*Workflow updated: 2026-11-02*

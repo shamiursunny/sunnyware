@@ -107,3 +107,58 @@ def test_memory_entries_pagination(client):
     assert data["limit"] == 2
     assert data["count"] == 2
     assert len(data["entries"]) == 2
+
+def test_memory_export(client):
+    agent_memory.write_memory("a", 1)
+    agent_memory.write_memory("b", 2)
+    r = client.get("/api/memory/export")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["status"] == "live"
+    assert data["count"] == 2
+    assert data["data"] == {"a": 1, "b": 2}
+
+
+def test_memory_export_expired(client):
+    agent_memory.write_memory("live", 1)
+    agent_memory.write_memory("dead", 2, ttl=1)
+    time.sleep(1.1)
+    r = client.get("/api/memory/export?status=expired")
+    assert r.status_code == 200
+    data = r.json()
+    assert "dead" in data["data"]
+    assert "live" not in data["data"]
+
+
+def test_memory_import_idempotent(client):
+    agent_memory.write_memory("existing", "old")
+    r = client.post("/api/memory/import", json={"data": {"existing": "new", "new_key": 42}})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["imported"] == 1
+    assert data["skipped"] == 1
+    assert agent_memory.read_memory("existing") == "old"
+    assert agent_memory.read_memory("new_key") == 42
+
+
+def test_memory_import_overwrite(client):
+    agent_memory.write_memory("existing", "old")
+    r = client.post("/api/memory/import", json={"data": {"existing": "new"}, "overwrite": True})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["imported"] == 1
+    assert data["skipped"] == 0
+    assert agent_memory.read_memory("existing") == "new"
+
+
+def test_memory_import_ttl(client):
+    r = client.post("/api/memory/import", json={"data": {"temp": "val"}, "ttl": 1})
+    assert r.status_code == 200
+    assert agent_memory.read_memory("temp") == "val"
+    time.sleep(1.1)
+    assert agent_memory.read_memory("temp") is None
+
+
+def test_memory_import_invalid_body(client):
+    r = client.post("/api/memory/import", json={"data": "not-a-dict"})
+    assert r.status_code == 400

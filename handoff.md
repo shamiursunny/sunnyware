@@ -4350,3 +4350,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 568 Update (2026-11-02): Ready for Part 569
+
+**Status:** Export/import HTTP tests added, 132 tests passing.
+
+**What was done:**
+- Added 6 HTTP tests for `/api/memory/export` and `/api/memory/import`.
+
+**Next Steps (Part 569):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding HTTP tests for bulk operations (`bulk-delete`, `bulk-write`, `rename-bulk`).
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

@@ -2530,3 +2530,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 126 passing (121 direct + 5 HTTP).
 
 *Part 567 logged: 2026-11-02*
+
+---
+
+### Part 568 Update (2026-11-02): HTTP Tests for Export/Import
+
+- **Added** 6 HTTP tests in `tests/test_memory_http.py` covering:
+  - `/api/memory/export` (live and expired status)
+  - `/api/memory/import` (idempotent skip, overwrite, TTL, invalid body)
+- **Fast suite:** 132 passing (121 direct + 11 HTTP).
+
+*Part 568 logged: 2026-11-02*
