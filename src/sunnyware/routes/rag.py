@@ -362,3 +362,15 @@ async def embedder_status():
             status_code=500,
         )
 
+@router.get("/api/local-model/status")
+async def local_model_status():
+    """Return the in-process local LLM status (enabled, loaded, path, errors)."""
+    try:
+        from .. import local_llm
+        return local_llm.status()
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+

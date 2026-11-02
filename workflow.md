@@ -2999,3 +2999,11 @@ Fixed regex for conversation/discussion matching.
 **Safety**: `supports_tools=False` for local models.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 608 Update (2026-11-03): Local Model Status
+
+**UI**: New local model badge. **API**: `/api/local-model/status`.
+
+*Workflow updated: 2026-11-03*

@@ -2928,3 +2928,13 @@ me the exact git commands to commit + push both remotes."
 - **Verified**: Direct test returned `2+2 = 4` from the local model.
 
 *Part 605 logged: 2026-11-02*
+
+---
+
+### Part 608 Update (2026-11-03): Local Model Status Endpoint & Badge
+
+- **New Endpoint**: `/api/local-model/status` returns `{enabled, path, loaded, load_error}`.
+- **Chat UI**: Added "Local Model" badge in the topbar (green = ready, yellow = loading, red = error, gray = off).
+- **Polling**: Status refreshes every 5s while loading.
+
+*Part 608 logged: 2026-11-03*

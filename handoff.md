@@ -4951,3 +4951,22 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 608 Update (2026-11-03): Ready for Part 609
+
+**Status:** Local model status endpoint and UI badge added. 239 tests passing (1 flaky DB test).
+
+**What was done:**
+- Added `/api/local-model/status` endpoint.
+- Added "Local Model" badge to Chat UI topbar.
+- Status polls every 5s while loading.
+- Confirmed GGUF + embedder persist on `/data` (no re-download on restart).
+
+**Next Steps (Part 609):**
+1. Run the full test suite in CI.
+2. Add local model toggle to admin panel.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-03*
