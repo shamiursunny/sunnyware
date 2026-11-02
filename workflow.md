@@ -2804,3 +2804,11 @@ Fixed regex for conversation/discussion matching.
 **RAG change:** Search results now include a normalized `score` (0–1) and `rank`, improving downstream ranking.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 581 Update (2026-11-02): RAG Admin HTTP Tests
+
+**Tests added:** `tests/test_rag_admin_http.py` covering stats, documents, and chunks endpoints.
+
+*Workflow updated: 2026-11-02*

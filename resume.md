@@ -2655,3 +2655,17 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 185 passing.
 
 *Part 580 logged: 2026-11-02*
+
+---
+
+### Part 581 Update (2026-11-02): HTTP Tests for RAG Admin Endpoints
+
+- **Added** `tests/test_rag_admin_http.py` — 9 HTTP tests covering:
+  - `/api/rag-admin/stats` (basic shape)
+  - `/api/rag-admin/documents` (list)
+  - `/api/rag-admin/documents` (add validation: missing name/content, invalid JSON, oversized content)
+  - `/api/rag-admin/documents` (add success + cleanup)
+  - `/api/rag-admin/chunks` (empty list and search)
+- **Fast suite:** 194 passing.
+
+*Part 581 logged: 2026-11-02*

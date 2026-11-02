@@ -4535,3 +4535,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 581 Update (2026-11-02): Ready for Part 582
+
+**Status:** RAG admin HTTP tests added, 194 tests passing.
+
+**What was done:**
+- Added `tests/test_rag_admin_http.py` (9 tests).
+
+**Next Steps (Part 582):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a `/api/rag-admin/documents/{id}/chunks` HTTP test.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*
