@@ -219,3 +219,55 @@ def test_memory_rename_bulk(client):
 def test_memory_rename_bulk_invalid_body(client):
     r = client.post("/api/memory/rename-bulk", json={"mapping": "not-a-dict"})
     assert r.status_code == 400
+
+def test_memory_ttl_all(client):
+    agent_memory.write_memory("a", 1)
+    agent_memory.write_memory("b", 2)
+    r = client.post("/api/memory/ttl-all", json={"ttl": 1})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["updated"] == 2
+    assert data["ttl"] == 1
+    time.sleep(1.1)
+    assert agent_memory.read_memory("a") is None
+    assert agent_memory.read_memory("b") is None
+
+
+def test_memory_ttl_all_clear(client):
+    agent_memory.write_memory("c", 3, ttl=1)
+    r = client.post("/api/memory/ttl-all", json={"ttl": 0})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["updated"] == 1
+    time.sleep(1.1)
+    assert agent_memory.read_memory("c") == 3
+
+
+def test_memory_search(client):
+    agent_memory.write_memory("apple", "red fruit")
+    agent_memory.write_memory("banana", "yellow fruit")
+    agent_memory.write_memory("carrot", "orange veggie")
+    r = client.get("/api/memory/search?q=fruit")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["count"] == 2
+    keys = {e["key"] for e in data["entries"]}
+    assert keys == {"apple", "banana"}
+
+
+def test_memory_search_empty(client):
+    agent_memory.write_memory("apple", "red fruit")
+    r = client.get("/api/memory/search?q=zzz")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["count"] == 0
+    assert data["entries"] == []
+
+
+def test_memory_search_case_insensitive(client):
+    agent_memory.write_memory("Apple", "RED Fruit")
+    r = client.get("/api/memory/search?q=red")
+    assert r.status_code == 200
+    data = r.json()
+    assert data["count"] == 1
+    assert data["entries"][0]["key"] == "Apple"

@@ -2541,3 +2541,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 132 passing (121 direct + 11 HTTP).
 
 *Part 568 logged: 2026-11-02*
+
+---
+
+### Part 570 Update (2026-11-02): HTTP Tests for TTL-All and Search
+
+- **Added** 5 HTTP tests in `tests/test_memory_http.py` covering:
+  - `/api/memory/ttl-all` (set and clear TTL)
+  - `/api/memory/search` (match, empty, case-insensitive)
+- **Fast suite:** 144 passing (121 direct + 23 HTTP).
+
+*Part 570 logged: 2026-11-02*

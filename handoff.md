@@ -4366,3 +4366,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 570 Update (2026-11-02): Ready for Part 571
+
+**Status:** TTL-all and search HTTP tests added, 144 tests passing.
+
+**What was done:**
+- Added 5 HTTP tests for `/api/memory/ttl-all` and `/api/memory/search`.
+
+**Next Steps (Part 571):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a `/api/memory/summary` endpoint.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

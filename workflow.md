@@ -2722,3 +2722,11 @@ Fixed regex for conversation/discussion matching.
 **Tests added:** `/api/memory/export` and `/api/memory/import` HTTP-level tests.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 570 Update (2026-11-02): TTL-All and Search HTTP Tests
+
+**Tests added:** `/api/memory/ttl-all`, `/api/memory/search`.
+
+*Workflow updated: 2026-11-02*
