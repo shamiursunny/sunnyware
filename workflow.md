@@ -2908,3 +2908,11 @@ Fixed regex for conversation/discussion matching.
 **UI change:** Each tool result now has a collapsible "Full result" section showing the complete JSON.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 594 Update (2026-11-02): Memory Entries Pagination
+
+**UI change:** The memory entries list in the stats dashboard now has prev/next pagination with a range indicator.
+
+*Workflow updated: 2026-11-02*

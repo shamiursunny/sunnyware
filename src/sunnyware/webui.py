@@ -2483,27 +2483,72 @@ window.fetch = function(url, options) {
       const list = document.createElement('div');
       list.className = 'ph-row';
       const title = document.createElement('div');
-      title.textContent = 'Recent entries:';
+      title.textContent = 'Entries:';
       title.style.marginTop = '4px';
       title.style.fontWeight = '600';
       list.appendChild(title);
+
       const ul = document.createElement('ul');
       ul.style.margin = '4px 0 0 16px';
       ul.style.padding = '0';
       ul.style.fontSize = '12px';
-      for (const e of entries) {
-        const li = document.createElement('li');
-        const key = e.key || '?';
-        let val = e.value;
-        if (typeof val !== 'string') {
-          try { val = JSON.stringify(val); } catch (err) { val = String(val); }
-        }
-        val = String(val).slice(0, 80);
-        li.textContent = key + ': ' + val;
-        ul.appendChild(li);
-      }
       list.appendChild(ul);
+
+      const nav = document.createElement('div');
+      nav.style.cssText = 'margin-top:6px;display:flex;gap:8px;align-items:center;font-size:11px;';
+      const prevBtn = document.createElement('button');
+      prevBtn.textContent = '← Prev';
+      const nextBtn = document.createElement('button');
+      nextBtn.textContent = 'Next →';
+      const label = document.createElement('span');
+      label.style.color = 'var(--text-mute)';
+      nav.appendChild(prevBtn);
+      nav.appendChild(label);
+      nav.appendChild(nextBtn);
+      list.appendChild(nav);
       sec.appendChild(list);
+
+      var _entriesOffset = 0;
+      var _entriesLimit = entries.length;
+
+      function _renderEntries(page, total) {
+        ul.innerHTML = '';
+        for (const e of page) {
+          const li = document.createElement('li');
+          const key = e.key || '?';
+          let val = e.value;
+          if (typeof val !== 'string') {
+            try { val = JSON.stringify(val); } catch (err) { val = String(val); }
+          }
+          val = String(val).slice(0, 80);
+          li.textContent = key + ': ' + val;
+          ul.appendChild(li);
+        }
+        const start = total === 0 ? 0 : _entriesOffset + 1;
+        const end = _entriesOffset + page.length;
+        label.textContent = start + '–' + end + ' of ' + total;
+        prevBtn.disabled = _entriesOffset <= 0;
+        nextBtn.disabled = end >= total;
+      }
+
+      async function _loadEntries(offset) {
+        try {
+          const r = await fetch('/api/memory/entries?offset=' + offset + '&limit=' + _entriesLimit);
+          const data = await r.json();
+          _entriesOffset = offset;
+          _renderEntries(data.entries || [], data.total || 0);
+        } catch (e) {}
+      }
+
+      prevBtn.onclick = function () {
+        const off = Math.max(0, _entriesOffset - _entriesLimit);
+        _loadEntries(off);
+      };
+      nextBtn.onclick = function () {
+        _loadEntries(_entriesOffset + _entriesLimit);
+      };
+
+      _renderEntries(entries, (stats && stats.total_live != null) ? stats.total_live : entries.length);
     }
     return sec;
   }

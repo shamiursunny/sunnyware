@@ -2803,3 +2803,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 229 passing (UI-only change, no new tests).
 
 *Part 593 logged: 2026-11-02*
+
+---
+
+### Part 594 Update (2026-11-02): Memory Entries Pagination UI
+
+- **Added** prev/next pagination controls to the memory entries list in the stats dashboard.
+- **Displays** a range indicator (e.g., "1–10 of 25").
+- **Lazy loads** pages via `/api/memory/entries?offset=N&limit=M`.
+- **Fast suite:** 229 passing (UI-only change, no new tests).
+
+*Part 594 logged: 2026-11-02*
