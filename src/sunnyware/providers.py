@@ -111,7 +111,7 @@ def load_providers(reload: bool = False) -> List[Provider]:
         "pollinations": 32000,
         "mistral": 32000,
         "nvidia": 8000,
-        "local": 0,            # in-process, no HTTP limits
+        "local": 2048,         # matches LOCAL_MODEL_CTX
         "ollama": 4000,        # Qwen2.5-0.5B works best under 4k prompt
     }
 
@@ -123,6 +123,11 @@ def load_providers(reload: bool = False) -> List[Provider]:
             base_url = (os.getenv("LLM_BASE_URL") or os.getenv("GROQ_BASE_URL") or "").strip()
             api_key = (os.getenv("LLM_API_KEY") or os.getenv("CFO_LLM_API_KEY") or os.getenv("GROQ_API_KEY") or "").strip()
             model = (os.getenv("LLM_MODEL") or os.getenv("GROQ_MODEL") or "").strip()
+        elif name == "local":
+            # In-process llama-cpp-python — no HTTP URL needed
+            base_url = (os.getenv("LOCAL_MODEL_BASE_URL") or "in-process").strip() or "in-process"
+            api_key = (os.getenv("LOCAL_MODEL_API_KEY") or "local").strip() or "local"
+            model = (os.getenv("LOCAL_MODEL") or "qwen2.5-0.5b-instruct").strip() or "qwen2.5-0.5b-instruct"
         else:
             base_url = (os.getenv(f"{prefix}_BASE_URL") or "").strip()
             api_key = (os.getenv(f"{prefix}_API_KEY") or "").strip()
