@@ -174,3 +174,9 @@ async def memory_get(key: str = ""):
         raise HTTPException(status_code=404, detail="key not found or expired")
     return entry
 
+@router.post("/api/memory/prune")
+async def memory_prune():
+    """Remove all expired entries from shared memory and return the count."""
+    removed = agent_memory.prune_expired_memory()
+    return {"ok": True, "removed": removed}
+

@@ -95,3 +95,18 @@ def test_get_memory_entry():
     assert entry["value"] == "gval"
     assert entry["ts"] is not None
     assert agent_memory.get_memory_entry("missing") is None
+
+def test_prune_expired_memory():
+    import tempfile, os, time
+    agent_memory.MEMORY_FILE = os.path.join(tempfile.gettempdir(), "test_agent_mem_prune.json")
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        os.remove(agent_memory.MEMORY_FILE)
+    agent_memory.write_memory("short_ttl", "val1", ttl=1)
+    agent_memory.write_memory("no_ttl", "val2")
+    agent_memory.write_memory("long_ttl", "val3", ttl=3600)
+    time.sleep(1.1)
+    removed = agent_memory.prune_expired_memory()
+    assert removed == 1
+    assert agent_memory.read_memory("short_ttl") is None
+    assert agent_memory.read_memory("no_ttl") == "val2"
+    assert agent_memory.read_memory("long_ttl") == "val3"

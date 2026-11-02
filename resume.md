@@ -2343,3 +2343,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 103 passing.
 
 *Part 549 logged: 2026-11-02*
+
+---
+
+### Part 550 Update (2026-11-02): Add Prune Helper and Endpoint
+
+- **Added** `agent_memory.prune_expired_memory()` — removes all expired entries and returns the count.
+- **Added** `POST /api/memory/prune` endpoint in `memory_routes.py`.
+- **Added** 1 direct unit test (104 total).
+- **Fast suite:** 104 passing.
+
+*Part 550 logged: 2026-11-02*

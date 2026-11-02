@@ -2569,3 +2569,11 @@ Fixed regex for conversation/discussion matching.
 **Config:** `SUNNYWARE_MIN_HISTORY_CHARS` now controls the minimum message length for context inclusion.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 550 Update (2026-11-02): Prune Expired Memory
+
+**API change:** `POST /api/memory/prune` removes all expired entries from shared memory.
+
+*Workflow updated: 2026-11-02*

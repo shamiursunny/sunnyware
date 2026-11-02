@@ -162,3 +162,20 @@ def get_memory_entry(key: str) -> dict | None:
             "expires_at": expires,
         }
 
+def prune_expired_memory() -> int:
+    """Remove all expired entries from the memory file. Returns count removed."""
+    with _lock:
+        data = _load()
+        now = time.time()
+        expired_keys = []
+        for k, entry in data.items():
+            if isinstance(entry, dict):
+                expires = entry.get("expires_at")
+                if expires and now > expires:
+                    expired_keys.append(k)
+        for k in expired_keys:
+            data.pop(k, None)
+        if expired_keys:
+            _save(data)
+        return len(expired_keys)
+

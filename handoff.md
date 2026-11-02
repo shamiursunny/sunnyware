@@ -4037,3 +4037,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 550 Update (2026-11-02): Ready for Part 551
+
+**Status:** Prune helper and endpoint added, 104 tests passing.
+
+**What was done:**
+- Added `prune_expired_memory` helper in `agent_memory.py`.
+- Added `POST /api/memory/prune` endpoint.
+- Added 1 direct unit test.
+
+**Next Steps (Part 551):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider improving `select_relevant_events` with better keyword scoring.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*
