@@ -98,14 +98,19 @@ async def memory_clear():
     return {"ok": True, "cleared": True}
 
 @router.get("/api/memory/export")
-async def memory_export():
-    """Export all non-expired memory entries as a JSON object."""
-    entries = agent_memory.list_memory()
+async def memory_export(status: str = "live"):
+    """Export memory entries as a JSON object.
+
+    Query params:
+        status: 'live' (default), 'expired', or 'all'
+    """
+    data = agent_memory.export_memory(status=status)
     return {
         "version": 1,
         "exported_at": __import__("time").time(),
-        "count": len(entries),
-        "data": {e["key"]: e["value"] for e in entries},
+        "status": status,
+        "count": len(data),
+        "data": data,
     }
 
 @router.post("/api/memory/import")

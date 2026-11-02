@@ -285,3 +285,34 @@ def bulk_rename_memory(mapping: dict) -> dict:
             _save(data)
         return {"renamed": renamed, "missing": missing}
 
+def export_memory(status: str = "live") -> dict:
+    """Export memory entries as a dictionary without cleaning up expired keys.
+
+    Args:
+        status: 'live' (default), 'expired', or 'all'
+    Returns:
+        dict of key -> value for the selected status.
+    """
+    with _lock:
+        data = _load()
+        now = time.time()
+        live = {}
+        expired = {}
+        for k, entry in data.items():
+            if not isinstance(entry, dict) or "value" not in entry:
+                live[k] = entry
+                continue
+            expires = entry.get("expires_at")
+            if expires and now > expires:
+                expired[k] = entry["value"]
+            else:
+                live[k] = entry["value"]
+
+    if status == "expired":
+        return expired
+    if status == "all":
+        merged = dict(expired)
+        merged.update(live)  # live wins if duplicate
+        return merged
+    return live
+

@@ -189,3 +189,21 @@ def test_bulk_rename_memory():
     assert agent_memory.read_memory("b") == 2
     assert agent_memory.read_memory("c") is None
     assert agent_memory.read_memory("z") == 3
+
+def test_export_memory_status():
+    import tempfile, os, time
+    agent_memory.MEMORY_FILE = os.path.join(tempfile.gettempdir(), "test_agent_mem_export.json")
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        os.remove(agent_memory.MEMORY_FILE)
+    agent_memory.write_memory("live_key", "live_val", ttl=3600)
+    agent_memory.write_memory("dead_key", "dead_val", ttl=1)
+    time.sleep(1.1)
+    live_data = agent_memory.export_memory("live")
+    assert "live_key" in live_data
+    assert "dead_key" not in live_data
+    expired_data = agent_memory.export_memory("expired")
+    assert "dead_key" in expired_data
+    assert "live_key" not in expired_data
+    all_data = agent_memory.export_memory("all")
+    assert "live_key" in all_data
+    assert "dead_key" in all_data

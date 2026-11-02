@@ -2657,3 +2657,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `POST /api/memory/rename-bulk` renames multiple keys in one call.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 561 Update (2026-11-02): Export Filter
+
+**API change:** `GET /api/memory/export?status=live|expired|all` filters exported entries.
+
+*Workflow updated: 2026-11-02*

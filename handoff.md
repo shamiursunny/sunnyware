@@ -4228,3 +4228,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 561 Update (2026-11-02): Ready for Part 562
+
+**Status:** Export status filter added, 116 tests passing.
+
+**What was done:**
+- Added `export_memory(status)` helper.
+- Updated `GET /api/memory/export` with `status` param.
+- Added 1 direct unit test.
+
+**Next Steps (Part 562):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a `/api/memory/stats` endpoint with richer stats.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

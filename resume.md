@@ -2457,3 +2457,15 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 115 passing.
 
 *Part 560 logged: 2026-11-02*
+
+---
+
+### Part 561 Update (2026-11-02): Add Status Filter to `/api/memory/export`
+
+- **Added** `agent_memory.export_memory(status="live")` — exports live, expired, or all entries without auto-cleanup.
+- **Updated** `GET /api/memory/export` to accept `status` query param (`live`, `expired`, `all`).
+- **Fixed** an issue where `list_memory()` auto-cleanup prevented expired entries from being exported.
+- **Added** 1 direct unit test (116 total).
+- **Fast suite:** 116 passing.
+
+*Part 561 logged: 2026-11-02*
