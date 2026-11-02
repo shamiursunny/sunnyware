@@ -54,7 +54,7 @@ def native_prompt(context: str = "") -> str:
         "DO NOT call any tool. Never call echo for user input.\n"
         "2. TOOL USE: Call a tool ONLY when the user's request requires "
         "live data (search, weather), computation (calculator, python_eval), "
-        "file/document access (read_file, rag_search), or an action "
+        "file/document access (use `rag_search` for uploaded documents, `read_file` for local files), or an action "
         "(write_file, mkdir, email_send, sql_sandbox_execute). Do not call "
         "tools for greetings, opinions, or general knowledge.\n"
         "3a. NO PREFLIGHT LISTS: If the user names a specific resource "

@@ -1169,7 +1169,10 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
 }
 .composer-input #input {
   flex: 1; width: 100%;
-  padding-left: 46px;
+  padding-left: 82px;
+}
+#docsBtn.attach-btn {
+  left: 42px;
 }
 .attach-btn {
   position: absolute; left: 5px; top: 50%;
@@ -1199,7 +1202,8 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
 @media (max-width: 480px) {
   .attach-btn { width: 30px; height: 30px; left: 4px; }
   .attach-btn svg { width: 16px; height: 16px; }
-  .composer-input #input { padding-left: 40px; }
+  #docsBtn.attach-btn { left: 38px; }
+  .composer-input #input { padding-left: 74px; }
 }
 
 
@@ -1341,6 +1345,18 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
     </div>
   </div>
 </div>
+<div id="docsModal" class="modal-overlay" style="display:none">
+  <div class="modal-panel">
+    <div class="modal-hdr">
+      <span>Uploaded Documents</span>
+      <button id="docsClose" class="icon-btn" type="button" title="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <div id="docsLoading" style="color:var(--text-muted); padding:8px 0;">Loading…</div>
+      <div id="docsList"></div>
+    </div>
+  </div>
+</div>
 <div class="overlay-backdrop" id="overlayBackdrop"></div>
 <div id="layout">
   <aside id="sidebar">
@@ -1397,7 +1413,10 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
             <span class="pill-badge" id="docCount" aria-hidden="true"></span>
           </a>
-          <input type="text" id="input" placeholder="Ask anything..." autocomplete="off" required>
+          <a href="#" id="docsBtn" class="attach-btn" title="Manage Documents" aria-label="Manage Documents">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+          </a>
+          <input type="text" id="input" placeholder="Ask anything..." autocomplete="off">
         </div>
         <button type="button" id="micBtn" title="Voice input (click to start/stop)">\U0001F3A4</button>
         <button type="submit" id="send">Send</button>
@@ -1438,6 +1457,7 @@ window.fetch = function(url, options) {
   const sidEl = document.getElementById('sid');
   const latEl = document.getElementById('latency');
   const clearBtn = document.getElementById('clear') || document.getElementById('newChatBtn');
+  const attachedFiles = [];  // Part 601: track uploaded filenames
 
   // Part 35: multi-session storage
   const SESS_KEY = 'sunnyware_sessions_v2';
@@ -2820,9 +2840,11 @@ window.fetch = function(url, options) {
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     const text = input.value.trim();
-    if (!text) return;
+    // Part 601: allow sending if there are attachments even if text is empty
+    if (!text && (!attachedFiles || attachedFiles.length === 0)) return;
     input.value = '';
-    sendMessage(text);
+    sendMessage(text || "Check the attached files.");
+    attachedFiles.length = 0;  // Part 601: clear after sending
   });
 
   if (clearBtn) {
@@ -2928,10 +2950,9 @@ window.fetch = function(url, options) {
         const d = await r.json();
         if (d.ok) {
           okCount++;
-          totalChunks += d.chunks_added || 0;
-          addMsg('  \u2713 ' + d.filename + ' \u2014 ' + d.chunks_added +
-                 ' chunks \u00b7 ' + d.total_count + ' total \u00b7 ' +
-                 d.elapsed_ms + ' ms', 'upload-ok');
+          totalChunks += d.chunks || 0;
+          attachedFiles.push(d.filename);
+          addMsg('  \u2713 ' + d.filename + ' \u2014 ' + d.chunks + ' chunks', 'upload-ok');
         } else {
           failCount++;
           let msg = '  \u2717 ' + f.name + ' failed: ' + (d.error || 'unknown');
@@ -3174,6 +3195,90 @@ window.fetch = function(url, options) {
   var clTarget = document.getElementById('newChatBtn') || document.getElementById('clear');
   if (clMobile && clTarget) { clMobile.addEventListener('click', function (e) { e.preventDefault(); clTarget.click(); closePanel(); }); }
 })();
+
+
+// Part 601: Documents panel
+function showDocsPanel() {
+  const modal = document.getElementById('docsModal');
+  modal.style.display = 'flex';
+  renderDocsList();
+}
+
+function hideDocsPanel() {
+  document.getElementById('docsModal').style.display = 'none';
+}
+
+async function renderDocsList() {
+  const listEl = document.getElementById('docsList');
+  const loadingEl = document.getElementById('docsLoading');
+  listEl.innerHTML = '';
+  loadingEl.style.display = 'block';
+  try {
+    const r = await fetch('/api/rag/documents');
+    const d = await r.json();
+    loadingEl.style.display = 'none';
+    if (d.error) {
+      listEl.innerHTML = '<div style="color:var(--danger);">Error: ' + d.error + '</div>';
+      return;
+    }
+    if (!d.documents || d.documents.length === 0) {
+      listEl.innerHTML = '<div style="color:var(--text-muted);">No documents uploaded yet.</div>';
+      return;
+    }
+    d.documents.forEach(doc => {
+      const div = document.createElement('div');
+      div.style.cssText = 'display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid var(--border);';
+      const span = document.createElement('span');
+      span.textContent = doc.source + ' (' + doc.chunks + ' chunks)';
+      const btn = document.createElement('button');
+      btn.textContent = 'Delete';
+      btn.className = 'icon-btn';
+      btn.style.cssText = 'font-size:0.8em; padding:2px 8px; margin-left:8px;';
+      btn.onclick = async () => {
+        const res = await fetch('/api/rag/delete?source=' + encodeURIComponent(doc.source), { method: 'DELETE' });
+        const j = await res.json();
+        if (j.ok) {
+          refreshDocCount();
+          renderDocsList();
+        } else {
+          alert('Delete failed: ' + (j.error || 'unknown'));
+        }
+      };
+      div.appendChild(span);
+      div.appendChild(btn);
+      listEl.appendChild(div);
+    });
+    // Clear all button
+    const clearDiv = document.createElement('div');
+    clearDiv.style.cssText = 'margin-top:12px; text-align:right;';
+    const clearBtn = document.createElement('button');
+    clearBtn.textContent = 'Clear All';
+    clearBtn.className = 'icon-btn';
+    clearBtn.style.cssText = 'background:var(--danger); color:#fff; border:none; padding:6px 12px; border-radius:4px; cursor:pointer;';
+    clearBtn.onclick = async () => {
+      if (!confirm('Remove all documents?')) return;
+      const res = await fetch('/api/rag/clear', { method: 'DELETE' });
+      const j = await res.json();
+      if (j.ok) {
+        refreshDocCount();
+        renderDocsList();
+      } else {
+        alert('Clear failed: ' + (j.error || 'unknown'));
+      }
+    };
+    clearDiv.appendChild(clearBtn);
+    listEl.appendChild(clearDiv);
+  } catch (e) {
+    loadingEl.style.display = 'none';
+    listEl.innerHTML = '<div style="color:var(--danger);">Error: ' + e.message + '</div>';
+  }
+}
+
+document.getElementById('docsBtn').addEventListener('click', (e) => {
+  e.preventDefault();
+  showDocsPanel();
+});
+document.getElementById('docsClose').addEventListener('click', hideDocsPanel);
 
 // Part 67: sync mobile meta
 (function syncMeta67() {

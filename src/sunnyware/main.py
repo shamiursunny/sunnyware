@@ -82,20 +82,22 @@ async def lifespan(app):
         print(f"[jarvis] Preload failed: {_e}", flush=True)
     init_state()
     # Part 26: ensure scheduler running inside the live event loop
-    try:
-        from . import scheduler as _sched
-        _ok = _sched.start()
-        log.info("scheduler_lifespan_start", ok=_ok)
-    except Exception as e:
-        log.error("scheduler_lifespan_error", err=f"{type(e).__name__}: {e}")
-    # Part 81: bootstrap dynamic schedules from Neon
-    try:
-        from . import dynamic_schedule as _dsched
-        import asyncio as _aio
-        _boot = await _aio.wait_for(_dsched.bootstrap(), timeout=10)
-        log.info("dynamic_schedule_bootstrap", result=_boot)
-    except Exception as e:
-        log.error("dynamic_schedule_bootstrap_error", err=f"{type(e).__name__}: {e}")
+    import os
+    if not os.getenv("SUNNYWARE_DISABLE_SCHEDULER"):
+        try:
+            from . import scheduler as _sched
+            _ok = _sched.start()
+            log.info("scheduler_lifespan_start", ok=_ok)
+        except Exception as e:
+            log.error("scheduler_lifespan_error", err=f"{type(e).__name__}: {e}")
+        # Part 81: bootstrap dynamic schedules from Neon
+        try:
+            from . import dynamic_schedule as _dsched
+            import asyncio as _aio
+            _boot = await _aio.wait_for(_dsched.bootstrap(), timeout=10)
+            log.info("dynamic_schedule_bootstrap", result=_boot)
+        except Exception as e:
+            log.error("dynamic_schedule_bootstrap_error", err=f"{type(e).__name__}: {e}")
     # Part 32: kick off local_llm preload in background (fire-and-forget)
     try:
         from . import local_llm as _local_llm
