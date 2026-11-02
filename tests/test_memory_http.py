@@ -271,3 +271,17 @@ def test_memory_search_case_insensitive(client):
     data = r.json()
     assert data["count"] == 1
     assert data["entries"][0]["key"] == "Apple"
+
+def test_memory_summary(client):
+    r = client.get("/api/memory/summary")
+    assert r.status_code == 200
+    data = r.json()
+    assert "summary" in data
+    assert "empty" in data["summary"].lower()
+
+    agent_memory.write_memory("a", 1)
+    agent_memory.write_memory("b", 2, ttl=100)
+    r = client.get("/api/memory/summary")
+    data = r.json()
+    assert "2 live" in data["summary"]
+    assert "avg TTL" in data["summary"]
