@@ -237,6 +237,11 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
         print("[jarvis] Skipping tool routing for greeting/simple chat", flush=True)
         return None
 
+    # Part 602: Bypass keyword router when forced tool instruction is present
+    if prompt.startswith("IMPORTANT SYSTEM INSTRUCTION:"):
+        print("[jarvis] Forced tool instruction detected, skipping keyword router", flush=True)
+        return None
+
     # STAGE 0: Deterministic keyword router (100% accurate, 0ms)
     try:
         from .keyword_router import keyword_route

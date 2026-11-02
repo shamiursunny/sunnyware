@@ -2880,3 +2880,14 @@ me the exact git commands to commit + push both remotes."
 - **Bug Fixes**: Fixed JS syntax errors, `attachIds` scoping, `chart_from_data` schema, and `.env` override.
 
 *Part 601 logged: 2026-11-02*
+
+---
+
+### Part 602 Update (2026-11-02): Reading Indicator & Forced RAG Search
+
+- **UI**: "Reading attached files..." indicator while the AI processes attachments.
+- **Routing**: Forced `rag_search` when attachments are present, bypassing keyword router.
+- **AI**: Successfully reads and summarizes uploaded document content.
+- **Tests**: 239 passed (1 flaky health check due to DB timeout).
+
+*Part 602 logged: 2026-11-02*

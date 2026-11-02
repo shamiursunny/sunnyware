@@ -4876,3 +4876,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 602 Update (2026-11-02): Ready for Part 603
+
+**Status:** Reading indicator and forced RAG search implemented. AI successfully reads and summarizes uploaded files. 239 tests passing (1 flaky health check).
+
+**What was done:**
+- Added "Reading attached files..." indicator.
+- Forced `rag_search` when attachments are present.
+- Bypassed keyword router for forced tool instructions.
+
+**Next Steps (Part 603):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a "Download" button for RAG documents.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

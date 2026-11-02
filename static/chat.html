@@ -2785,7 +2785,10 @@ function sendMessage(textOverride){
 
   saveAll(); renderChatList($('#searchInput').value); renderMessages();
 
-  if(text || attachIds.length > 0) streamAI(chat, text || 'Read and summarize the attached files.');
+  if(text || attachIds.length > 0) {
+    if (attachIds.length > 0) _forcedTool = 'rag_search';
+    streamAI(chat, text || 'Read and summarize the attached files.');
+  }
 
 }
 
@@ -2855,12 +2858,17 @@ async function streamAI(chat, prompt) {
 
 
 
+  // Part 602: compute attached files and show reading indicator
+  const lastUserMsg = chat.messages.slice().reverse().find(m => m.role === 'user');
+  const attachedFiles = (lastUserMsg && lastUserMsg.attachments ? lastUserMsg.attachments : []).map(id => files.find(f => f.id === id)).filter(Boolean);
+
   const typing = document.createElement('div');
-
   typing.className = 'typing';
-
-  typing.innerHTML = '<span></span><span></span><span></span>';
-
+  if (attachedFiles.length > 0) {
+    typing.innerHTML = '<span style="width:auto;border-radius:4px;background:transparent;color:var(--text-mute);font-size:12px;margin-right:6px;">Reading attached files...</span><span></span><span></span><span></span>';
+  } else {
+    typing.innerHTML = '<span></span><span></span><span></span>';
+  }
   textEl.replaceChildren(typing);
 
 
@@ -2873,9 +2881,6 @@ async function streamAI(chat, prompt) {
 
   try {
 
-    // Collect attachments from pendingAttach
-    const lastUserMsg = chat.messages.slice().reverse().find(m => m.role === 'user');
-    const attachedFiles = (lastUserMsg && lastUserMsg.attachments ? lastUserMsg.attachments : []).map(id => files.find(f => f.id === id)).filter(Boolean);
     
     const res = await fetch('/api/agent/stream', {
 

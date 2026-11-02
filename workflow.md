@@ -2964,3 +2964,11 @@ Fixed regex for conversation/discussion matching.
 **UI Change**: Attachments can be sent without text. The AI uses `rag_list`/`rag_search` to access uploaded documents.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 602 Update (2026-11-02): Reading Indicator
+
+**UI Change**: Shows "Reading attached files..." while the AI processes attachments. Forces `rag_search` when attachments are present.
+
+*Workflow updated: 2026-11-02*
