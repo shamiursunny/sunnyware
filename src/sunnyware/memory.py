@@ -347,6 +347,25 @@ def _extract_keywords(query: str, max_keywords: int = 5) -> list:
     return out
 
 
+def _score_event_text(text: str, keywords: list) -> float:
+    """Score a piece of text against keywords.
+
+    Longer keywords carry more weight (they're more specific).
+    Each occurrence contributes, but repeated hits give diminishing returns.
+    """
+    if not text:
+        return 0.0
+    text_l = text.lower()
+    score = 0.0
+    for kw in keywords:
+        count = text_l.count(kw)
+        if count:
+            # Each occurrence adds len(kw) * (1 / (occurrence index))
+            for i in range(count):
+                score += len(kw) / (i + 1)
+    return score
+
+
 async def select_relevant_events(
     query: str,
     exclude_session_uuid: Optional[str] = None,
@@ -400,11 +419,11 @@ async def select_relevant_events(
     except Exception:
         return []
 
-    # Score: keyword hit count (desc), then recency (desc by id)
+    # Score: weighted keyword match (desc), then recency (desc by id)
     scored = []
     for r in rows:
-        text = str(r["payload"]).lower()
-        score = sum(1 for k in keywords if k in text)
+        text = str(r["payload"])
+        score = _score_event_text(text, keywords)
         scored.append((score, r["id"], r))
 
     scored.sort(key=lambda x: (-x[0], -x[1]))

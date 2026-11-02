@@ -4055,3 +4055,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 551 Update (2026-11-02): Ready for Part 552
+
+**Status:** Relevance scoring improved, 110 tests passing.
+
+**What was done:**
+- Added `_score_event_text` helper.
+- Updated `select_relevant_events` to use it.
+- Added 6 direct unit tests.
+
+**Next Steps (Part 552):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a `/api/memory/ttl` endpoint.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

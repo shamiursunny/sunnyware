@@ -92,3 +92,37 @@ def test_pruning_threshold_env_override():
     os.environ.pop("SUNNYWARE_MIN_HISTORY_CHARS", None)
     importlib.reload(m)
     assert m.MIN_HISTORY_CONTENT_CHARS == 4
+
+def test_score_event_empty():
+    from sunnyware.memory import _score_event_text
+    assert _score_event_text("", ["ai"]) == 0.0
+
+
+def test_score_event_no_match():
+    from sunnyware.memory import _score_event_text
+    assert _score_event_text("hello world", ["xyz"]) == 0.0
+
+
+def test_score_event_single_match():
+    from sunnyware.memory import _score_event_text
+    score = _score_event_text("what is AI", ["ai"])
+    assert score == 2.0
+
+
+def test_score_event_multiple_matches():
+    from sunnyware.memory import _score_event_text
+    score = _score_event_text("ai and ai", ["ai"])
+    assert score == 3.0
+
+
+def test_score_longer_keyword_weighted():
+    from sunnyware.memory import _score_event_text
+    score_short = _score_event_text("machine", ["ai"])
+    score_long = _score_event_text("machine", ["machine"])
+    assert score_long > score_short
+
+
+def test_score_two_keywords():
+    from sunnyware.memory import _score_event_text
+    score = _score_event_text("ai and machine", ["ai", "machine"])
+    assert score == 9.0

@@ -2354,3 +2354,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 104 passing.
 
 *Part 550 logged: 2026-11-02*
+
+---
+
+### Part 551 Update (2026-11-02): Improve `select_relevant_events` Scoring
+
+- **Added** `_score_event_text(text, keywords)` — pure helper that weights longer keywords more and counts occurrences with diminishing returns.
+- **Updated** `select_relevant_events` to use the new scoring.
+- **Added** 6 direct unit tests (110 total).
+- **Fast suite:** 110 passing.
+
+*Part 551 logged: 2026-11-02*

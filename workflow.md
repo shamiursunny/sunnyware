@@ -2577,3 +2577,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `POST /api/memory/prune` removes all expired entries from shared memory.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 551 Update (2026-11-02): Improved Relevance Scoring
+
+**Memory change:** `select_relevant_events` now uses weighted keyword scoring (longer keywords count more).
+
+*Workflow updated: 2026-11-02*
