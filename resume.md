@@ -2697,3 +2697,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 207 passing (198 + 9 new).
 
 *Part 583 logged: 2026-11-02*
+
+---
+
+### Part 584 Update (2026-11-02): Configurable Orchestrator Iteration Cap
+
+- **Made** `MAX_ITERATIONS` configurable via `SUNNYWARE_MAX_ITERATIONS` environment variable (default 3, clamped to [1, 10]).
+- **Added** `_effective_max_iterations(base=None)` pure helper.
+- **Added** 6 direct unit tests (213 total).
+- **Fast suite:** 213 passing.
+
+*Part 584 logged: 2026-11-02*

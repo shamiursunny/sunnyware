@@ -2828,3 +2828,11 @@ Fixed regex for conversation/discussion matching.
 **Tests added:** 9 pure unit tests for `memory.format_context()`.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 584 Update (2026-11-02): Configurable Iteration Cap
+
+**Config:** `SUNNYWARE_MAX_ITERATIONS` controls the orchestrator's ReAct loop cap (default 3, clamped to 1–10).
+
+*Workflow updated: 2026-11-02*

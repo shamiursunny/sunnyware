@@ -17,7 +17,21 @@ from . import tools as tools_registry
 # least 3 iterations (delegate, sub-delegate, worker answer) before
 # returning; any retry blows past 3. Wall-clock timeout remains the
 # real guard (SUNNYWARE_AGENT_TIMEOUT; 600s for cfo/cdo roles).
-MAX_ITERATIONS = 3  # Part 257: lowered 10 -> 5 (protect tokens from runaway loops)
+import os as _os584
+
+def _effective_max_iterations(base: int = None) -> int:
+    """Return the configured iteration cap.
+
+    Reads SUNNYWARE_MAX_ITERATIONS, clamps to [1, 10], defaults to 3.
+    """
+    if base is None:
+        try:
+            base = int(_os584.getenv("SUNNYWARE_MAX_ITERATIONS", "3"))
+        except Exception:
+            base = 3
+    return max(1, min(int(base), 10))
+
+MAX_ITERATIONS = _effective_max_iterations()  # Part 584: configurable via env var
 
 # Part 90: per-request token budget guard
 MAX_REQUEST_TOKENS = 15000

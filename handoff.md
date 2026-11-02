@@ -4583,3 +4583,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 584 Update (2026-11-02): Ready for Part 585
+
+**Status:** Configurable iteration cap added, 213 tests passing.
+
+**What was done:**
+- Made `MAX_ITERATIONS` configurable via env var.
+- Added `_effective_max_iterations()` helper and 6 tests.
+
+**Next Steps (Part 585):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Move to UI polish or streaming improvements.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*
