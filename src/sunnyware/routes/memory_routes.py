@@ -261,3 +261,17 @@ async def memory_bulk_delete(request: dict):
     result = agent_memory.bulk_delete_memory(keys)
     return {"ok": True, **result}
 
+@router.post("/api/memory/bulk-write")
+async def memory_bulk_write(request: dict):
+    """Write multiple key-value pairs in one call.
+
+    Body: {"items": {"k1": v1, "k2": v2}, "ttl": int (optional)}
+    """
+    items = request.get("items") or {}
+    ttl = int(request.get("ttl", 0))
+    if not isinstance(items, dict):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="items must be an object")
+    written = agent_memory.bulk_write_memory(items, ttl=ttl)
+    return {"ok": True, "written": written}
+

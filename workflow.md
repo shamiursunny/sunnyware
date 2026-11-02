@@ -2633,3 +2633,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `POST /api/memory/bulk-delete` removes multiple keys in one call.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 558 Update (2026-11-02): Bulk Write Memory
+
+**API change:** `POST /api/memory/bulk-write` writes multiple entries in one call.
+
+*Workflow updated: 2026-11-02*

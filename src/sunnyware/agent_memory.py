@@ -234,3 +234,28 @@ def bulk_delete_memory(keys: list) -> dict:
             _save(data)
         return {"deleted": deleted, "missing": missing}
 
+def bulk_write_memory(items: dict, ttl: int = 0) -> int:
+    """Write multiple key-value pairs in a single atomic save.
+
+    Args:
+        items: dict of key -> value
+        ttl: optional TTL applied to all entries
+    Returns:
+        Number of entries written.
+    """
+    with _lock:
+        data = _load()
+        now = time.time()
+        for k, v in items.items():
+            entry = {"value": v, "ts": now}
+            if ttl > 0:
+                entry["expires_at"] = now + ttl
+            data[k] = entry
+        # Cap at 50 entries
+        if len(data) > 50:
+            keys = list(data.keys())
+            for k in keys[:-50]:
+                del data[k]
+        _save(data)
+        return len(items)
+

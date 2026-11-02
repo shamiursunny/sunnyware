@@ -157,3 +157,18 @@ def test_bulk_delete_memory():
     assert agent_memory.read_memory("a") is None
     assert agent_memory.read_memory("b") == 2
     assert agent_memory.read_memory("c") is None
+
+def test_bulk_write_memory():
+    import tempfile, os, time
+    agent_memory.MEMORY_FILE = os.path.join(tempfile.gettempdir(), "test_agent_mem_bulkwrite.json")
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        os.remove(agent_memory.MEMORY_FILE)
+    written = agent_memory.bulk_write_memory({"a": 1, "b": 2, "c": 3})
+    assert written == 3
+    assert agent_memory.read_memory("a") == 1
+    assert agent_memory.read_memory("b") == 2
+    assert agent_memory.read_memory("c") == 3
+    agent_memory.bulk_write_memory({"d": 4}, ttl=1)
+    assert agent_memory.read_memory("d") == 4
+    time.sleep(1.1)
+    assert agent_memory.read_memory("d") is None

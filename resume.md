@@ -2425,3 +2425,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 113 passing.
 
 *Part 557 logged: 2026-11-02*
+
+---
+
+### Part 558 Update (2026-11-02): Add Bulk Write Helper and Endpoint
+
+- **Added** `agent_memory.bulk_write_memory(items, ttl=0)` — writes multiple key-value pairs in a single atomic save.
+- **Added** `POST /api/memory/bulk-write` endpoint.
+- **Added** 1 direct unit test (114 total).
+- **Fast suite:** 114 passing.
+
+*Part 558 logged: 2026-11-02*
