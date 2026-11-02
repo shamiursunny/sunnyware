@@ -2333,3 +2333,13 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 102 passing.
 
 *Part 548 logged: 2026-11-02*
+
+---
+
+### Part 549 Update (2026-11-02): Configurable Pruning Threshold
+
+- **Made** `MIN_HISTORY_CONTENT_CHARS` configurable via `SUNNYWARE_MIN_HISTORY_CHARS` environment variable (default 4).
+- **Added** 1 direct unit test (103 total).
+- **Fast suite:** 103 passing.
+
+*Part 549 logged: 2026-11-02*

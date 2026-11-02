@@ -80,3 +80,15 @@ def test_should_not_skip_substantive():
     assert _should_skip_message("what is AAPL price") is False
     assert _should_skip_message("AAPL price") is False
     assert _should_skip_message("MSFT earnings report") is False
+
+def test_pruning_threshold_env_override():
+    import os, importlib
+    os.environ["SUNNYWARE_MIN_HISTORY_CHARS"] = "10"
+    import sunnyware.memory as m
+    importlib.reload(m)
+    assert m.MIN_HISTORY_CONTENT_CHARS == 10
+    assert m._should_skip_message("short") is True
+    assert m._should_skip_message("this is long enough") is False
+    os.environ.pop("SUNNYWARE_MIN_HISTORY_CHARS", None)
+    importlib.reload(m)
+    assert m.MIN_HISTORY_CONTENT_CHARS == 4

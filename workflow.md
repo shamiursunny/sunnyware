@@ -2561,3 +2561,11 @@ Fixed regex for conversation/discussion matching.
 **Memory change:** `build_context()` now skips very short or low-value messages (e.g., "ok", "thanks", "yes").
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 549 Update (2026-11-02): Configurable Pruning Threshold
+
+**Config:** `SUNNYWARE_MIN_HISTORY_CHARS` now controls the minimum message length for context inclusion.
+
+*Workflow updated: 2026-11-02*

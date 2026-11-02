@@ -4020,3 +4020,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 549 Update (2026-11-02): Ready for Part 550
+
+**Status:** Pruning threshold configurable, 103 tests passing.
+
+**What was done:**
+- Made `MIN_HISTORY_CONTENT_CHARS` configurable via env var.
+- Added 1 direct unit test.
+
+**Next Steps (Part 550):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a `/api/memory/prune` endpoint for manual pruning.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

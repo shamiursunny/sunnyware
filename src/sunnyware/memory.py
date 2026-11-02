@@ -13,8 +13,9 @@ MAX_LOG_CONTENT_CHARS = 2000        # cap at write time
 MAX_HISTORY_CONTENT_CHARS = 800     # cap at read time (build_context)
 MAX_CONTEXT_CONTENT_CHARS = 200     # cap for cross-session context
 
-# Part 548: context pruning — skip very short or low-value messages
-MIN_HISTORY_CONTENT_CHARS = 4       # skip messages shorter than this
+# Part 548/549: context pruning — skip very short or low-value messages
+import os as _os_549
+MIN_HISTORY_CONTENT_CHARS = int(_os_549.getenv("SUNNYWARE_MIN_HISTORY_CHARS", "4"))
 _LOW_VALUE_PHRASES = frozenset({
     "ok", "okay", "k", "kk", "thanks", "thank you", "thx", "ty",
     "yes", "no", "yep", "nope", "sure", "y", "n",
