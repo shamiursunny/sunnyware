@@ -2537,3 +2537,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `POST /api/memory/rename` renames a key in shared memory.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 546 Update (2026-11-02): Touch Memory
+
+**API change:** `POST /api/memory/touch` refreshes a key's timestamp and optionally extends TTL.
+
+*Workflow updated: 2026-11-02*

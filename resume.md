@@ -2299,3 +2299,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 96 passing.
 
 *Part 545 logged: 2026-11-02*
+
+---
+
+### Part 546 Update (2026-11-02): Add Touch Helper and Endpoint
+
+- **Added** `agent_memory.touch_memory(key, ttl=0)` — refreshes the timestamp and optionally extends TTL without changing the value.
+- **Added** `POST /api/memory/touch` endpoint in `memory_routes.py`.
+- **Added** 1 direct unit test (97 total).
+- **Fast suite:** 97 passing.
+
+*Part 546 logged: 2026-11-02*

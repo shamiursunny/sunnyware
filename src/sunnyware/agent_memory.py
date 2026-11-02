@@ -123,3 +123,20 @@ def rename_memory(old_key: str, new_key: str) -> bool:
         _save(data)
         return True
 
+def touch_memory(key: str, ttl: int = 0) -> bool:
+    """Refresh timestamp and optionally extend TTL of an existing key without changing its value."""
+    with _lock:
+        data = _load()
+        entry = data.get(key)
+        if entry is None:
+            return False
+        # Ensure stored format is dict-like
+        if not isinstance(entry, dict) or "value" not in entry:
+            entry = {"value": entry}
+        entry["ts"] = time.time()
+        if ttl > 0:
+            entry["expires_at"] = time.time() + ttl
+        data[key] = entry
+        _save(data)
+        return True
+

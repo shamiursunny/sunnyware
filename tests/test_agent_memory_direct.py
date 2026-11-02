@@ -69,3 +69,16 @@ def test_rename_memory():
     assert agent_memory.read_memory("old_name") is None
     assert agent_memory.read_memory("new_name") == "value123"
     assert agent_memory.rename_memory("nonexistent", "nope") is False
+
+def test_touch_memory():
+    import tempfile, os, time
+    agent_memory.MEMORY_FILE = os.path.join(tempfile.gettempdir(), "test_agent_mem_touch.json")
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        os.remove(agent_memory.MEMORY_FILE)
+    agent_memory.write_memory("tkey", "tval", ttl=10)
+    first = agent_memory.read_memory("tkey")
+    assert first == "tval"
+    time.sleep(0.05)
+    assert agent_memory.touch_memory("tkey", ttl=20) is True
+    assert agent_memory.read_memory("tkey") == "tval"
+    assert agent_memory.touch_memory("missing", ttl=5) is False

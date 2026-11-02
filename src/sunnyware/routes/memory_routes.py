@@ -148,3 +148,17 @@ async def memory_rename(request: dict):
     renamed = agent_memory.rename_memory(old_key, new_key)
     return {"ok": True, "old_key": old_key, "new_key": new_key, "renamed": renamed}
 
+@router.post("/api/memory/touch")
+async def memory_touch(request: dict):
+    """Refresh timestamp and optionally extend TTL of a key without changing its value.
+
+    Body: {"key": str, "ttl": int (optional)}
+    """
+    key = request.get("key")
+    ttl = int(request.get("ttl", 0))
+    if not key:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="missing key")
+    touched = agent_memory.touch_memory(key, ttl=ttl)
+    return {"ok": True, "key": key, "touched": touched, "ttl": ttl}
+
