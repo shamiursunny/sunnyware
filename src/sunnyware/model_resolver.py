@@ -122,6 +122,10 @@ async def resolve(provider_name, base_url, api_key, configured_model):
     """Returns dict with model, source, available, error."""
     name = (provider_name or "default").lower()
 
+    # Part 610: Skip probing for local/in-process providers — they don't have HTTP /models
+    if name in ("local", "ollama") or "in-process" in (base_url or ""):
+        return {"model": configured_model, "source": "local", "available": 1, "error": ""}
+
     if not _enabled():
         return {"model": configured_model, "source": "disabled",
                 "available": 0, "error": ""}

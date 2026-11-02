@@ -4988,3 +4988,22 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-03*
+
+---
+
+### Part 610 Update (2026-11-03): Ready for Part 611
+
+**Status:** Model resolver skips local probing; legacy path handles local; admin shows correct model name. Routing verified.
+
+**What was done:**
+- `model_resolver.py` skips HTTP probing for `local`/`ollama`.
+- `llm.py` legacy single-provider path handles `provider_type == "local"`.
+- Admin dashboard now shows `qwen2.5-0.5b-instruct` (fixed stale override).
+- Fallback chain verified: invalid providers skipped, `local` chosen.
+
+**Next Steps (Part 611):**
+1. Run the full test suite in CI.
+2. Add `llama-cpp-python` version pin to Windows-friendly wheels.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-03*

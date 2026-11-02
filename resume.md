@@ -2949,3 +2949,15 @@ me the exact git commands to commit + push both remotes."
 - **Verified**: Disabling `local` removes it from the provider chain; re-enabling restores it.
 
 *Part 609 logged: 2026-11-03*
+
+---
+
+### Part 610 Update (2026-11-03): Model Resolver & Legacy Path Fixes
+
+- **Model Resolver**: Skips probing for `local`/`ollama` providers (no HTTP `/models` endpoint).
+- **Legacy Path**: Handles `provider_type == "local"` without attempting an HTTP call.
+- **Admin Dashboard**: Shows correct model name `qwen2.5-0.5b-instruct` for the local provider.
+- **Fallback Chain**: Verified — invalid providers are skipped, `local` is chosen correctly.
+- **Windows Limitation**: `llama-cpp-python` DLL may fail locally; inference works on HF Spaces.
+
+*Part 610 logged: 2026-11-03*

@@ -3015,3 +3015,11 @@ Fixed regex for conversation/discussion matching.
 **Admin**: Local model can be toggled on/off from the LLM Dashboard. Cache invalidates immediately.
 
 *Workflow updated: 2026-11-03*
+
+---
+
+### Part 610 Update (2026-11-03): Model Resolver Fixes
+
+**Fixes**: Local provider skips probing; legacy single-provider path handles local; admin shows correct model name.
+
+*Workflow updated: 2026-11-03*

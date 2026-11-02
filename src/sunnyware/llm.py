@@ -513,12 +513,20 @@ async def chat(
     # Single provider — legacy path, minimal overhead
     if len(provs) == 1:
         p = provs[0]
-        r = await _chat_single(
-            prompt=prompt, base_url=p.base_url, api_key=p.api_key,
-            model=_resolved.get(p.name) or model or p.model, system=system, history=history,
-            tools=(tools if getattr(p, "supports_tools", True) else None),
-            timeout=timeout, _retry_depth=_retry_depth,
-        )
+        # Part 610: Handle local/in-process providers without HTTP
+        if p.provider_type == "local":
+            r = await _local_llm.chat(
+                prompt=prompt, model=p.model, system=system,
+                history=history, tools=(tools if p.supports_tools else None),
+                timeout=min(timeout, 30.0),
+            )
+        else:
+            r = await _chat_single(
+                prompt=prompt, base_url=p.base_url, api_key=p.api_key,
+                model=_resolved.get(p.name) or model or p.model, system=system, history=history,
+                tools=(tools if getattr(p, "supports_tools", True) else None),
+                timeout=timeout, _retry_depth=_retry_depth,
+            )
         r["provider"] = p.name
         r["resolved_model"] = _resolved.get(p.name)
         if r.get("ok"):
