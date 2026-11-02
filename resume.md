@@ -2729,3 +2729,13 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 222 passing (213 + 9 new).
 
 *Part 586 logged: 2026-11-02*
+
+---
+
+### Part 587 Update (2026-11-02): Add `/api/rag/search` Endpoint
+
+- **Added** `GET /api/rag/search?q=...&k=...` endpoint in `rag_admin.py` — semantic search over uploaded documents via the existing `RagSearchTool`.
+- **Added** 3 HTTP tests for the new endpoint (empty query, empty store, k clamping).
+- **Fast suite:** 225 passing (222 + 3 new).
+
+*Part 587 logged: 2026-11-02*

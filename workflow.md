@@ -2852,3 +2852,11 @@ Fixed regex for conversation/discussion matching.
 **Tests added:** 9 pure unit tests for `_extract_content()` and `_sanitize_content()`.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 587 Update (2026-11-02): `/api/rag/search` Endpoint
+
+**API change:** `GET /api/rag/search?q=...&k=...` performs semantic search over uploaded documents.
+
+*Workflow updated: 2026-11-02*

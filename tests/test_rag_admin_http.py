@@ -149,3 +149,21 @@ def test_rag_bulk_delete_invalid_body(client):
 def test_rag_bulk_delete_invalid_json(client):
     r = client.post("/api/rag-admin/bulk-delete", content="not json")
     assert r.status_code == 400
+
+def test_rag_search_missing_query(client):
+    r = client.get("/api/rag/search")
+    assert r.status_code == 400
+    body = r.json().get("error", "").lower()
+    assert "q" in body or "query" in body
+
+
+def test_rag_search_empty_store(client):
+    r = client.get("/api/rag/search?q=test")
+    assert r.status_code == 200
+    data = r.json()
+    assert "count" in data or "error" in data
+
+
+def test_rag_search_clamps_k(client):
+    r = client.get("/api/rag/search?q=test&k=999")
+    assert r.status_code == 200

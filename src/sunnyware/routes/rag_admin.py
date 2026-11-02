@@ -100,3 +100,26 @@ async def bulk_delete(req: Request):
         return JSONResponse({"error": "doc_ids must be list"}, status_code=400)
     count = await asyncio.to_thread(_rag.bulk_delete, doc_ids)
     return {"ok": True, "deleted": count}
+
+@router.get("/api/rag/search")
+async def rag_search(q: str = "", k: int = 3):
+    """Semantic search over uploaded documents via the RAG vector store.
+
+    Query params:
+        q: natural-language search query (required)
+        k: number of chunks to return (default 3, max 10)
+    """
+    q = (q or "").strip()
+    if not q:
+        return JSONResponse({"error": "missing query parameter 'q'"}, status_code=400)
+    k = max(1, min(int(k or 3), 10))
+    try:
+        from ..tools.rag_search import RagSearchTool
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"rag import failed: {type(e).__name__}: {e}"},
+            status_code=500,
+        )
+    result = await RagSearchTool().run({"query": q, "k": k})
+    return result
+
