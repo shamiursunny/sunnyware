@@ -2971,3 +2971,13 @@ me the exact git commands to commit + push both remotes."
 - **No regressions**: All Part 601–610 changes integrate cleanly.
 
 *Part 611 logged: 2026-11-03*
+
+---
+
+### Part 612 Update (2026-11-03): CI Workflow Improvements
+
+- **CI**: Updated `.github/workflows/agent_stream_tests.yml` to skip the flaky `test_health_ready` (requires live DB).
+- **Env**: Added `NEON_DATABASE_URL=""`, `SUNNYWARE_DISABLE_SCHEDULER=1`, `HF_HOME=/tmp/huggingface` to CI.
+- **Full Suite**: 329 passed locally (excluding flaky DB test).
+
+*Part 612 logged: 2026-11-03*

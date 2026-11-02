@@ -3031,3 +3031,11 @@ Fixed regex for conversation/discussion matching.
 **Verification**: 329 tests pass. No regressions from Parts 601–610.
 
 *Workflow updated: 2026-11-03*
+
+---
+
+### Part 612 Update (2026-11-03): CI Workflow
+
+**CI**: Skips flaky DB health check, sets required env vars.
+
+*Workflow updated: 2026-11-03*
