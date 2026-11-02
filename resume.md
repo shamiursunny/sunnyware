@@ -2814,3 +2814,13 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 229 passing (UI-only change, no new tests).
 
 *Part 594 logged: 2026-11-02*
+
+---
+
+### Part 595 Update (2026-11-02): Add `/api/rag/stats` Endpoint
+
+- **Added** `GET /api/rag/stats` — public vector store stats (count, dimension, model, loaded).
+- **Added** 1 HTTP test (17 total in RAG admin HTTP file).
+- **Fast suite:** 230 passing (229 + 1 new).
+
+*Part 595 logged: 2026-11-02*

@@ -123,3 +123,24 @@ async def rag_search(q: str = "", k: int = 3):
     result = await RagSearchTool().run({"query": q, "k": k})
     return result
 
+@router.get("/api/rag/stats")
+async def rag_stats():
+    """Return public RAG vector store stats (count, dimension, model)."""
+    try:
+        from ..rag import embeddings, get_store
+        from .. import tenant as _tenant
+        org_id = _tenant.get_key() or "default"
+        store = get_store(org_id)
+        return {
+            "org_id": org_id,
+            "count": store.count(),
+            "dim": embeddings.dim(),
+            "model": embeddings.model_id(),
+            "loaded": embeddings.is_loaded(),
+        }
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+

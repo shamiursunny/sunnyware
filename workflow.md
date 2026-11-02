@@ -2916,3 +2916,11 @@ Fixed regex for conversation/discussion matching.
 **UI change:** The memory entries list in the stats dashboard now has prev/next pagination with a range indicator.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 595 Update (2026-11-02): RAG Stats Endpoint
+
+**API change:** `GET /api/rag/stats` returns public vector store statistics.
+
+*Workflow updated: 2026-11-02*

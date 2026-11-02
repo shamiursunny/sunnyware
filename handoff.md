@@ -4769,3 +4769,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 595 Update (2026-11-02): Ready for Part 596
+
+**Status:** RAG stats endpoint added, 230 tests passing.
+
+**What was done:**
+- Added `GET /api/rag/stats` endpoint.
+- Added 1 HTTP test.
+
+**Next Steps (Part 596):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Move to another feature area — backend improvements or UI polish.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

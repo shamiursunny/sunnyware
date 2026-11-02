@@ -167,3 +167,13 @@ def test_rag_search_empty_store(client):
 def test_rag_search_clamps_k(client):
     r = client.get("/api/rag/search?q=test&k=999")
     assert r.status_code == 200
+
+def test_rag_stats_public(client):
+    r = client.get("/api/rag/stats")
+    assert r.status_code == 200
+    data = r.json()
+    if "error" not in data:
+        assert "count" in data
+        assert "dim" in data
+        assert "model" in data
+        assert "loaded" in data
