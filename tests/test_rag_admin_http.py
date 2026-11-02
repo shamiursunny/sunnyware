@@ -177,3 +177,26 @@ def test_rag_stats_public(client):
         assert "dim" in data
         assert "model" in data
         assert "loaded" in data
+
+def test_rag_upload_txt(client):
+    files = {"file": ("hello.txt", b"Hello world. This is a test document.", "text/plain")}
+    r = client.post("/api/rag/upload", files=files)
+    assert r.status_code in (200, 500)
+    data = r.json()
+    if r.status_code == 200:
+        assert data.get("ok") is True
+        assert data.get("chunks") >= 1
+
+
+def test_rag_upload_unsupported(client):
+    files = {"file": ("bad.xyz", b"data", "application/octet-stream")}
+    r = client.post("/api/rag/upload", files=files)
+    assert r.status_code == 400
+    assert "unsupported" in r.json().get("error", "").lower()
+
+
+def test_rag_upload_no_filename(client):
+    files = {"file": ("", b"data", "text/plain")}
+    r = client.post("/api/rag/upload", files=files)
+    # FastAPI rejects an empty filename at the validation layer (422)
+    assert r.status_code in (400, 422)

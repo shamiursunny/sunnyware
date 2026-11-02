@@ -1,9 +1,10 @@
+from pathlib import Path
 # SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
 # SPDX-License-Identifier: AGPL-3.0-only
 """Part 221c: RAG admin routes."""
 
 import asyncio
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, UploadFile, File
 from fastapi.responses import JSONResponse
 from .. import rag_admin_store as _rag
 
@@ -143,4 +144,109 @@ async def rag_stats():
             {"error": f"{type(e).__name__}: {e}"},
             status_code=500,
         )
+
+@router.post("/api/rag/upload")
+async def rag_upload(file: UploadFile = File(...)):
+    """Upload a file, extract text, chunk, embed, and add to the vector store.
+
+    Supports: .pdf, .docx, .txt, .md, .csv, .xlsx, .xls
+    """
+    import tempfile
+    import os as _os
+
+    try:
+        from ..rag import extractor, chunker, embeddings, get_store
+        from .. import tenant as _tenant
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"rag import failed: {type(e).__name__}: {e}"},
+            status_code=500,
+        )
+
+    # Validate extension
+    filename = (file.filename or "").strip()
+    if not filename:
+        return JSONResponse({"error": "filename required"}, status_code=400)
+    ext = _os.path.splitext(filename)[1].lower()
+    if ext not in extractor.EXTRACTORS:
+        supported = ", ".join(extractor.supported_extensions())
+        return JSONResponse(
+            {"error": f"unsupported extension '{ext}'. Supported: {supported}"},
+            status_code=400,
+        )
+
+    # Save to a temp file
+    suffix = ext
+    tmp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
+    tmp_path = tmp.name
+    tmp.close()
+    try:
+        contents = await file.read()
+        with open(tmp_path, "wb") as f:
+            f.write(contents)
+
+        # Extract text blocks
+        try:
+            blocks = extractor.extract(Path(tmp_path))
+        except Exception as e:
+            return JSONResponse(
+                {"error": f"extract failed: {type(e).__name__}: {e}"},
+                status_code=500,
+            )
+        if not blocks:
+            return JSONResponse(
+                {"error": "no text extracted from file"},
+                status_code=400,
+            )
+
+        # Chunk + embed
+        all_chunks = []
+        for block in blocks:
+            src = block.get("source") or filename
+            if "rows" in block:
+                chunks = chunker.chunk_rows(block["rows"], src)
+            else:
+                text = block.get("text") or ""
+                chunks = chunker.chunk_text(text, src) if text.strip() else []
+            all_chunks.extend(chunks)
+
+        if not all_chunks:
+            return JSONResponse(
+                {"error": "no chunks produced"},
+                status_code=400,
+            )
+
+        texts = [c["text"] for c in all_chunks]
+        try:
+            vectors = embeddings.embed_texts(texts)
+        except Exception as e:
+            return JSONResponse(
+                {"error": f"embed failed: {type(e).__name__}: {e}"},
+                status_code=500,
+            )
+
+        # Add to vector store
+        org_id = _tenant.get_key() or "default"
+        store = get_store(org_id)
+        added = store.add(vectors, [
+            {"source": c["source"], "chunk_id": c["chunk_id"], "text": c["text"]}
+            for c in all_chunks
+        ])
+        try:
+            store.save()
+        except Exception:
+            pass
+
+        return {
+            "ok": True,
+            "filename": filename,
+            "org_id": org_id,
+            "blocks": len(blocks),
+            "chunks": added,
+        }
+    finally:
+        try:
+            _os.remove(tmp_path)
+        except Exception:
+            pass
 

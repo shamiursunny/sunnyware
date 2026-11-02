@@ -2924,3 +2924,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `GET /api/rag/stats` returns public vector store statistics.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 596 Update (2026-11-02): RAG File Upload
+
+**API change:** `POST /api/rag/upload` accepts a multipart file, extracts text, chunks, embeds, and adds to the vector store.
+
+*Workflow updated: 2026-11-02*

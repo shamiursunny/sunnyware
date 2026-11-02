@@ -4786,3 +4786,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 596 Update (2026-11-02): Ready for Part 597
+
+**Status:** RAG file upload endpoint added, 233 tests passing.
+
+**What was done:**
+- Added `POST /api/rag/upload` endpoint.
+- Added 3 HTTP tests.
+
+**Next Steps (Part 597):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Move to another feature area — UI polish or backend improvements.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

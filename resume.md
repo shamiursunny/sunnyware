@@ -2824,3 +2824,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 230 passing (229 + 1 new).
 
 *Part 595 logged: 2026-11-02*
+
+---
+
+### Part 596 Update (2026-11-02): Add `/api/rag/upload` Endpoint
+
+- **Added** `POST /api/rag/upload` — multipart file upload endpoint that extracts text, chunks, embeds, and stores in the per-tenant vector store.
+- **Supports** `.pdf`, `.docx`, `.txt`, `.md`, `.csv`, `.xlsx`, `.xls`.
+- **Added** 3 HTTP tests (upload txt, unsupported extension, empty filename).
+- **Fast suite:** 233 passing (230 + 3 new).
+
+*Part 596 logged: 2026-11-02*
