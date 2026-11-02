@@ -5042,3 +5042,22 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running fast tests locally.
 
 *Handoff updated: 2026-11-03*
+
+---
+
+### Part 613 Update (2026-11-03): Ready for Part 614
+
+**Status:** Local model toggle in Chat UI works. Persists to config. Verified.
+
+**What was done:**
+- Made the "Local" badge clickable.
+- Added toggle logic using `/api/llm-dashboard/configs/local`.
+- Fixed `llm_dashboard_store` to use `paths.data_root()`.
+- Status endpoint now respects dashboard config.
+
+**Next Steps (Part 614):**
+1. Move to another feature area — session management, analytics, or backend optimizations.
+2. Run the full test suite to confirm all changes.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-03*

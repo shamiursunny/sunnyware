@@ -367,7 +367,16 @@ async def local_model_status():
     """Return the in-process local LLM status (enabled, loaded, path, errors)."""
     try:
         from .. import local_llm
-        return local_llm.status()
+        status = local_llm.status()
+        # Part 613: Override 'enabled' with dashboard config if explicitly set
+        try:
+            from .. import llm_dashboard_store as _lds
+            cfg = _lds.get_provider_config("local")
+            if "enabled" in cfg:
+                status["enabled"] = bool(cfg["enabled"])
+        except Exception:
+            pass
+        return status
     except Exception as e:
         return JSONResponse(
             {"error": f"{type(e).__name__}: {e}"},

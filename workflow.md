@@ -3039,3 +3039,11 @@ Fixed regex for conversation/discussion matching.
 **CI**: Skips flaky DB health check, sets required env vars.
 
 *Workflow updated: 2026-11-03*
+
+---
+
+### Part 613 Update (2026-11-03): Chat UI Local Model Toggle
+
+**UI**: Click the "Local" badge to toggle the local fallback model on/off. Persists to `data/llm_provider_configs.json`.
+
+*Workflow updated: 2026-11-03*

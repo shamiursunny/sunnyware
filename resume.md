@@ -2981,3 +2981,15 @@ me the exact git commands to commit + push both remotes."
 - **Full Suite**: 329 passed locally (excluding flaky DB test).
 
 *Part 612 logged: 2026-11-03*
+
+---
+
+### Part 613 Update (2026-11-03): Clickable Local Model Toggle in Chat UI
+
+- **Chat UI**: The "Local" badge in the topbar is now clickable to toggle the local model on/off.
+- **Persistence**: Toggles are saved to `data/llm_provider_configs.json`.
+- **API**: The `/api/local-model/status` endpoint now respects dashboard config.
+- **Fixed**: `llm_dashboard_store` now uses `paths.data_root()` (was `/data` on Windows).
+- **Verified**: Toggle cycles between "Local: Off" and "Local: Loading...".
+
+*Part 613 logged: 2026-11-03*
