@@ -2905,3 +2905,14 @@ me the exact git commands to commit + push both remotes."
 - **Keyword Routing**: Prefers `rag_search` for document reads; added `tip`/`percent` to calculator.
 
 *Part 603 logged: 2026-11-02*
+
+---
+
+### Part 604 Update (2026-11-02): Embedder Consistency & Status Badge
+
+- **New Endpoint**: `/api/embedder/status` force-loads the embedding model and returns its status.
+- **Chat UI**: Added an embedder status badge in the topbar (green = loaded, yellow = loading, red = error).
+- **Slack/Jarvis**: Already use the same embedder instance via `run_agent()`.
+- **Admin Panel**: Already checks `embeddings.is_loaded()` via `/api/rag-admin/stats`.
+
+*Part 604 logged: 2026-11-02*

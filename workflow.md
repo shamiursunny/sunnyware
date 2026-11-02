@@ -2981,3 +2981,11 @@ Fixed regex for conversation/discussion matching.
 **Library**: Added Workspace and Sandbox tabs, merged RAG documents.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 604 Update (2026-11-02): Embedder Status
+
+**UI**: Added embedder status badge in the topbar. **API**: New `/api/embedder/status` endpoint.
+
+*Workflow updated: 2026-11-02*

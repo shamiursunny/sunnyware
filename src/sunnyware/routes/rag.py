@@ -341,3 +341,24 @@ async def rag_reset():
             {"error": f"{type(e).__name__}: {e}"}, status_code=500
         )
     return {"ok": True, "org_id": org_id, "count": store.count()}
+
+@router.get("/api/embedder/status")
+async def embedder_status():
+    """Return the embedding model status. Forces a load if not already loaded."""
+    try:
+        from ..rag import embeddings
+        # Force-load the model if it isn't already
+        try:
+            embeddings._load()
+        except Exception as e:
+            return JSONResponse(
+                {"error": f"Embedder load failed: {type(e).__name__}: {e}"},
+                status_code=500,
+            )
+        return embeddings.status()
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
+

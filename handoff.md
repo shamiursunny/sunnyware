@@ -4914,3 +4914,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 604 Update (2026-11-02): Ready for Part 605
+
+**Status:** Embedder status endpoint added, Chat UI shows status badge. 239 tests passing (1 flaky DB test).
+
+**What was done:**
+- Added `/api/embedder/status` endpoint.
+- Added embedder status badge to Chat UI topbar.
+- Verified Jarvis and Slack already use the same embedder.
+
+**Next Steps (Part 605):**
+1. Run the full test suite in CI.
+2. Add embedder status to the Slack bot response.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

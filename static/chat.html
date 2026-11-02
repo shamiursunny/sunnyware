@@ -952,6 +952,8 @@ input,textarea{font-family:inherit}
 
       </div>
 
+      <span id="embedderBadge" class="provider-badge" title="Embedding model status" style="margin-left:12px; font-size:11px; padding:2px 10px; border-radius:99px; background:var(--bg-tertiary); color:var(--text-secondary); border:1px solid var(--border);"></span>
+
       <div class="topbar-spacer"></div>
 
       <!-- Chat options dropdown -->
@@ -1610,6 +1612,36 @@ if (!_apiKey) {
     showLoginModal();
   }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Part 604: embedder status badge
+  (async function updateEmbedderBadge() {
+    const badge = document.getElementById('embedderBadge');
+    if (!badge) return;
+    try {
+      const r = await fetch('/api/embedder/status');
+      const d = await r.json();
+      if (d.error) {
+        badge.textContent = 'Embedder: Error';
+        badge.style.background = 'var(--danger)';
+        badge.style.color = '#fff';
+      } else if (d.loaded) {
+        badge.textContent = 'Embedder: ' + (d.model || '').split('/').pop();
+        badge.style.background = 'var(--success)';
+        badge.style.color = '#fff';
+      } else {
+        badge.textContent = 'Embedder: Loading...';
+        badge.style.background = 'var(--warn)';
+        badge.style.color = '#000';
+        setTimeout(updateEmbedderBadge, 3000);
+      }
+    } catch (e) {
+      badge.textContent = 'Embedder: Offline';
+      badge.style.background = 'var(--danger)';
+      badge.style.color = '#fff';
+    }
+  })();
+});
 
 const _originalFetch = window.fetch;
 
