@@ -2376,7 +2376,7 @@ window.fetch = function(url, options) {
     }
   }
 
-  function renderMemorySummary(stats, summary) {
+  function renderMemorySummary(stats, summary, entries) {
     const sec = document.createElement('div');
     sec.className = 'ph-section';
     const h = document.createElement('div');
@@ -2396,6 +2396,32 @@ window.fetch = function(url, options) {
       }
       row.textContent = txt;
       sec.appendChild(row);
+    }
+    if (entries && entries.length) {
+      const list = document.createElement('div');
+      list.className = 'ph-row';
+      const title = document.createElement('div');
+      title.textContent = 'Recent entries:';
+      title.style.marginTop = '4px';
+      title.style.fontWeight = '600';
+      list.appendChild(title);
+      const ul = document.createElement('ul');
+      ul.style.margin = '4px 0 0 16px';
+      ul.style.padding = '0';
+      ul.style.fontSize = '12px';
+      for (const e of entries) {
+        const li = document.createElement('li');
+        const key = e.key || '?';
+        let val = e.value;
+        if (typeof val !== 'string') {
+          try { val = JSON.stringify(val); } catch (err) { val = String(val); }
+        }
+        val = String(val).slice(0, 80);
+        li.textContent = key + ': ' + val;
+        ul.appendChild(li);
+      }
+      list.appendChild(ul);
+      sec.appendChild(list);
     }
     return sec;
   }
@@ -2424,13 +2450,14 @@ window.fetch = function(url, options) {
       const ph = renderProviderHealth(metrics);
       body.insertBefore(ph, body.firstChild);
       _startPHRefresh();
-      // Part 588: memory summary
+      // Part 588/590: memory summary and entries
       try {
-        const [memStats, memSummary] = await Promise.all([
+        const [memStats, memSummary, memEntries] = await Promise.all([
           fetch('/api/memory/stats').then(r => r.json()),
           fetch('/api/memory/summary').then(r => r.json()),
+          fetch('/api/memory/entries?limit=10').then(r => r.json()),
         ]);
-        body.appendChild(renderMemorySummary(memStats, memSummary));
+        body.appendChild(renderMemorySummary(memStats, memSummary, memEntries.entries));
       } catch (e) {}
     } catch (err) {
       body.innerHTML = '';

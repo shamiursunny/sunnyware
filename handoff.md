@@ -4685,3 +4685,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 590 Update (2026-11-02): Ready for Part 591
+
+**Status:** Memory entries list added to stats dashboard, 229 tests passing.
+
+**What was done:**
+- Updated `renderMemorySummary()` to render entries.
+- Fetched `/api/memory/entries?limit=10` in the stats modal.
+
+**Next Steps (Part 591):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Move to streaming improvements or another feature area.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

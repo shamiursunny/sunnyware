@@ -2760,3 +2760,13 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 229 passing.
 
 *Part 589 logged: 2026-11-02*
+
+---
+
+### Part 590 Update (2026-11-02): Memory Entries List in Stats Dashboard
+
+- **Updated** `renderMemorySummary()` in `webui.py` to display recent memory entries (key-value pairs) below the summary.
+- **Updated** `openUsageModal()` to fetch `/api/memory/entries?limit=10`.
+- **Fast suite:** 229 passing (UI-only change, no new tests).
+
+*Part 590 logged: 2026-11-02*

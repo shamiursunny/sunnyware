@@ -2876,3 +2876,11 @@ Fixed regex for conversation/discussion matching.
 **Refactor:** The iteration SSE event is now built by a pure helper, making it testable.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 590 Update (2026-11-02): Memory Entries List
+
+**UI change:** The stats modal now shows a list of recent memory entries (key-value pairs) under the Memory section.
+
+*Workflow updated: 2026-11-02*
