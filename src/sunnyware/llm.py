@@ -553,6 +553,8 @@ async def chat(
 
     last_err = ""
     for p in provs:
+        if not getattr(p, "enabled", True):
+            continue
         if p.is_cooling():
             continue
         if (

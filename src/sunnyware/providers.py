@@ -45,6 +45,7 @@ class Provider:
     success_count: int = 0
     fail_count: int = 0
     last_success_ts: float = 0.0
+    enabled: bool = True
 
     def is_cooling(self) -> bool:
         return time.time() < self.cooldown_until
@@ -67,6 +68,7 @@ class Provider:
     def status(self) -> dict:
         return {
             "name": self.name,
+            "enabled": self.enabled,
             "type": self.provider_type,
             "supports_tools": self.supports_tools,
             "model": self.model,
@@ -161,11 +163,12 @@ def load_providers(reload: bool = False) -> List[Provider]:
             # Tiny local models can't reliably emit valid tool calls
             supports_tools = False
         # Part 609: Skip provider if admin disabled it via dashboard
+        enabled = True
         try:
             from . import llm_dashboard_store as _lds
             _cfg = _lds.get_provider_config(name)
-            if name != "local" and _cfg.get("enabled") is False:
-                continue
+            if _cfg.get("enabled") is False:
+                enabled = False
         except Exception:
             pass
 
@@ -173,6 +176,7 @@ def load_providers(reload: bool = False) -> List[Provider]:
             name=name,
             base_url=base_url.rstrip("/"),
             api_key=api_key or "local",
+            enabled=enabled,
             model=model,
             max_prompt_tokens=max_pt,
             provider_type=ptype,
