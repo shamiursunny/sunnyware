@@ -202,7 +202,7 @@ async def rag_upload(file: UploadFile = File(...)):
         # Chunk + embed
         all_chunks = []
         for block in blocks:
-            src = block.get("source") or filename
+            src = filename  # use original filename, not temp path
             if "rows" in block:
                 chunks = chunker.chunk_rows(block["rows"], src)
             else:
@@ -249,4 +249,24 @@ async def rag_upload(file: UploadFile = File(...)):
             _os.remove(tmp_path)
         except Exception:
             pass
+
+@router.get("/api/rag/documents")
+async def rag_documents():
+    """List unique document sources in the RAG vector store."""
+    try:
+        from ..rag import get_store
+        from .. import tenant as _tenant
+        org_id = _tenant.get_key() or "default"
+        store = get_store(org_id)
+        sources = store.list_sources()
+        return {
+            "org_id": org_id,
+            "count": len(sources),
+            "documents": sources,
+        }
+    except Exception as e:
+        return JSONResponse(
+            {"error": f"{type(e).__name__}: {e}"},
+            status_code=500,
+        )
 

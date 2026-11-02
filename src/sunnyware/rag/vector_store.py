@@ -118,6 +118,16 @@ class FPAVectorStore:
         self._index = faiss.IndexFlatL2(self.dim)
         self._metadata = []
 
+    def list_sources(self) -> list:
+        """Return unique sources from metadata with chunk counts."""
+        from collections import Counter
+        self._ensure_index()
+        counts = Counter()
+        for md in self._metadata:
+            src = md.get("source") or "unknown"
+            counts[src] += 1
+        return [{"source": s, "chunks": c} for s, c in counts.most_common()]
+
     def status(self) -> dict:
         self._ensure_index()
         return {

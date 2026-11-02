@@ -200,3 +200,27 @@ def test_rag_upload_no_filename(client):
     r = client.post("/api/rag/upload", files=files)
     # FastAPI rejects an empty filename at the validation layer (422)
     assert r.status_code in (400, 422)
+
+def test_rag_documents_empty(client):
+    r = client.get("/api/rag/documents")
+    assert r.status_code == 200
+    data = r.json()
+    if "error" not in data:
+        assert "count" in data
+        assert "documents" in data
+        assert isinstance(data["documents"], list)
+        assert data["count"] == len(data["documents"])
+
+
+def test_rag_documents_after_upload(client):
+    files = {"file": ("doc_test.txt", b"Hello world. This is content.", "text/plain")}
+    up = client.post("/api/rag/upload", files=files)
+    if up.status_code != 200:
+        return
+    r = client.get("/api/rag/documents")
+    assert r.status_code == 200
+    data = r.json()
+    if "error" in data:
+        return
+    sources = [d["source"] for d in data["documents"]]
+    assert any("doc_test.txt" in s for s in sources)

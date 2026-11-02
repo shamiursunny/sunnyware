@@ -2932,3 +2932,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `POST /api/rag/upload` accepts a multipart file, extracts text, chunks, embeds, and adds to the vector store.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 597 Update (2026-11-02): RAG Documents Endpoint
+
+**API change:** `GET /api/rag/documents` lists unique document sources with chunk counts.
+
+*Workflow updated: 2026-11-02*

@@ -2835,3 +2835,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 233 passing (230 + 3 new).
 
 *Part 596 logged: 2026-11-02*
+
+---
+
+### Part 597 Update (2026-11-02): Add `/api/rag/documents` Endpoint
+
+- **Added** `FPAVectorStore.list_sources()` — returns unique sources with chunk counts.
+- **Added** `GET /api/rag/documents` — public list of document sources in the vector store.
+- **Added** 2 HTTP tests (empty store and after upload).
+- **Fast suite:** 235 passing (233 + 2 new).
+
+*Part 597 logged: 2026-11-02*

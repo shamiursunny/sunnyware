@@ -4803,3 +4803,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 597 Update (2026-11-02): Ready for Part 598
+
+**Status:** RAG documents endpoint added, 235 tests passing.
+
+**What was done:**
+- Added `list_sources()` to `FPAVectorStore`.
+- Added `GET /api/rag/documents` endpoint.
+- Added 2 HTTP tests.
+
+**Next Steps (Part 598):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Move to another feature area — UI polish or backend improvements.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*
