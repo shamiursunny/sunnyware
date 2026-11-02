@@ -4567,3 +4567,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 583 Update (2026-11-02): Ready for Part 584
+
+**Status:** `format_context` tests added, 207 tests passing.
+
+**What was done:**
+- Added 9 pure unit tests for `memory.format_context()`.
+
+**Next Steps (Part 584):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Move to UI polish or streaming improvements.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

@@ -2820,3 +2820,11 @@ Fixed regex for conversation/discussion matching.
 **Tests added:** `/api/rag-admin/documents/{id}/chunks`, `/api/rag-admin/bulk-delete`.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 583 Update (2026-11-02): `format_context` Tests
+
+**Tests added:** 9 pure unit tests for `memory.format_context()`.
+
+*Workflow updated: 2026-11-02*

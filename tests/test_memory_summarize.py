@@ -126,3 +126,165 @@ def test_score_two_keywords():
     from sunnyware.memory import _score_event_text
     score = _score_event_text("ai and machine", ["ai", "machine"])
     assert score == 9.0
+
+def test_format_context_empty():
+    from sunnyware.memory import format_context
+    assert format_context([]) == ""
+
+
+def test_format_context_single_event():
+    from sunnyware.memory import format_context
+    events = [
+        {"event_type": "user_message", "payload": {"content": "hello world"}},
+    ]
+    result = format_context(events)
+    assert result == "[user] hello world"
+
+
+def test_format_context_assistant_role():
+    from sunnyware.memory import format_context
+    events = [
+        {"event_type": "assistant_message", "payload": {"content": "hi there"}},
+    ]
+    result = format_context(events)
+    assert result == "[assistant] hi there"
+
+
+def test_format_context_string_payload():
+    from sunnyware.memory import format_context
+    import json
+    events = [
+        {"event_type": "user_message", "payload": json.dumps({"content": "from string"})},
+    ]
+    result = format_context(events)
+    assert "[user] from string" in result
+
+
+def test_format_context_multiple_events():
+    from sunnyware.memory import format_context
+    events = [
+        {"event_type": "user_message", "payload": {"content": "first"}},
+        {"event_type": "assistant_message", "payload": {"content": "second"}},
+    ]
+    result = format_context(events)
+    assert result == "[user] first\n[assistant] second"
+
+
+def test_format_context_skips_empty_content():
+    from sunnyware.memory import format_context
+    events = [
+        {"event_type": "user_message", "payload": {"content": ""}},
+        {"event_type": "user_message", "payload": {"content": "real content"}},
+    ]
+    result = format_context(events)
+    assert "real content" in result
+    assert result.count("[user]") == 1
+
+
+def test_format_context_truncates_long_content():
+    from sunnyware.memory import format_context
+    long_text = "x" * 500
+    events = [
+        {"event_type": "user_message", "payload": {"content": long_text}},
+    ]
+    result = format_context(events, max_chars_per_event=50)
+    assert len(result) < 100
+
+
+def test_format_context_replaces_newlines():
+    from sunnyware.memory import format_context
+    events = [
+        {"event_type": "user_message", "payload": {"content": "line1\nline2"}},
+    ]
+    result = format_context(events)
+    assert "\n" not in result.replace("[user] ", "")
+
+
+def test_format_context_unknown_event_type():
+    from sunnyware.memory import format_context
+    events = [
+        {"event_type": "other_event", "payload": {"content": "misc"}},
+    ]
+    result = format_context(events)
+    assert result == "[assistant] misc"
+
+def test_format_context_empty():
+    from sunnyware.memory import format_context
+    assert format_context([]) == ""
+
+
+def test_format_context_single_event():
+    from sunnyware.memory import format_context
+    events = [
+        {"event_type": "user_message", "payload": {"content": "hello world"}},
+    ]
+    result = format_context(events)
+    assert result == "[user] hello world"
+
+
+def test_format_context_assistant_role():
+    from sunnyware.memory import format_context
+    events = [
+        {"event_type": "assistant_message", "payload": {"content": "hi there"}},
+    ]
+    result = format_context(events)
+    assert result == "[assistant] hi there"
+
+
+def test_format_context_string_payload():
+    from sunnyware.memory import format_context
+    import json
+    events = [
+        {"event_type": "user_message", "payload": json.dumps({"content": "from string"})},
+    ]
+    result = format_context(events)
+    assert "[user] from string" in result
+
+
+def test_format_context_multiple_events():
+    from sunnyware.memory import format_context
+    events = [
+        {"event_type": "user_message", "payload": {"content": "first"}},
+        {"event_type": "assistant_message", "payload": {"content": "second"}},
+    ]
+    result = format_context(events)
+    assert result == "[user] first\n[assistant] second"
+
+
+def test_format_context_skips_empty_content():
+    from sunnyware.memory import format_context
+    events = [
+        {"event_type": "user_message", "payload": {"content": ""}},
+        {"event_type": "user_message", "payload": {"content": "real content"}},
+    ]
+    result = format_context(events)
+    assert "real content" in result
+    assert result.count("[user]") == 1
+
+
+def test_format_context_truncates_long_content():
+    from sunnyware.memory import format_context
+    long_text = "x" * 500
+    events = [
+        {"event_type": "user_message", "payload": {"content": long_text}},
+    ]
+    result = format_context(events, max_chars_per_event=50)
+    assert len(result) < 100
+
+
+def test_format_context_replaces_newlines():
+    from sunnyware.memory import format_context
+    events = [
+        {"event_type": "user_message", "payload": {"content": "line1\nline2"}},
+    ]
+    result = format_context(events)
+    assert "\n" not in result.replace("[user] ", "")
+
+
+def test_format_context_unknown_event_type():
+    from sunnyware.memory import format_context
+    events = [
+        {"event_type": "other_event", "payload": {"content": "misc"}},
+    ]
+    result = format_context(events)
+    assert result == "[assistant] misc"

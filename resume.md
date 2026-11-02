@@ -2680,3 +2680,20 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 198 passing.
 
 *Part 582 logged: 2026-11-02*
+
+---
+
+### Part 583 Update (2026-11-02): Tests for `format_context`
+
+- **Added** 9 pure unit tests in `tests/test_memory_summarize.py` for `memory.format_context()`:
+  - Empty input
+  - Single/multiple events
+  - User vs assistant role labels
+  - String vs dict payload formats
+  - Empty content skipping
+  - Truncation of long content
+  - Newline replacement
+  - Unknown event type fallback
+- **Fast suite:** 207 passing (198 + 9 new).
+
+*Part 583 logged: 2026-11-02*
