@@ -194,3 +194,24 @@ async def memory_set_ttl(request: dict):
     updated = agent_memory.set_memory_ttl(key, ttl=ttl)
     return {"ok": True, "key": key, "ttl": ttl, "updated": updated}
 
+@router.get("/api/memory/entries")
+async def memory_entries(offset: int = 0, limit: int = 50):
+    """Return a paginated list of memory entries.
+
+    Query params:
+        offset: number of entries to skip (default 0)
+        limit: maximum entries to return (default 50, max 200)
+    """
+    if limit > 200:
+        limit = 200
+    entries = agent_memory.list_memory()
+    total = len(entries)
+    page = entries[offset:offset + limit]
+    return {
+        "total": total,
+        "offset": offset,
+        "limit": limit,
+        "count": len(page),
+        "entries": page,
+    }
+

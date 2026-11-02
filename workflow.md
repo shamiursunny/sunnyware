@@ -2593,3 +2593,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `POST /api/memory/ttl` sets or removes the TTL of a key.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 553 Update (2026-11-02): Paginated Memory Entries
+
+**API change:** `GET /api/memory/entries` returns a paginated list of memory entries.
+
+*Workflow updated: 2026-11-02*

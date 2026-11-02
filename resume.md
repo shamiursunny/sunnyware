@@ -2376,3 +2376,12 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 111 passing.
 
 *Part 552 logged: 2026-11-02*
+
+---
+
+### Part 553 Update (2026-11-02): Add Paginated `/api/memory/entries` Endpoint
+
+- **Added** `GET /api/memory/entries?offset=0&limit=50` — paginated listing of memory entries (max 200 per page).
+- **Fast suite:** 111 passing.
+
+*Part 553 logged: 2026-11-02*
