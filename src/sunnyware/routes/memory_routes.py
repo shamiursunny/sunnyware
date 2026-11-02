@@ -248,3 +248,16 @@ async def memory_cleanup():
         "after_live": after_live,
     }
 
+@router.post("/api/memory/bulk-delete")
+async def memory_bulk_delete(request: dict):
+    """Delete multiple keys in one call.
+
+    Body: {"keys": ["k1", "k2", ...]}
+    """
+    keys = request.get("keys") or []
+    if not isinstance(keys, list):
+        from fastapi import HTTPException
+        raise HTTPException(status_code=400, detail="keys must be a list")
+    result = agent_memory.bulk_delete_memory(keys)
+    return {"ok": True, **result}
+

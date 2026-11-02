@@ -4157,3 +4157,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 557 Update (2026-11-02): Ready for Part 558
+
+**Status:** Bulk delete helper and endpoint added, 113 tests passing.
+
+**What was done:**
+- Added `bulk_delete_memory` helper.
+- Added `POST /api/memory/bulk-delete` endpoint.
+- Added 1 direct unit test.
+
+**Next Steps (Part 558):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Consider adding a `/api/memory/bulk-write` endpoint.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

@@ -2625,3 +2625,11 @@ Fixed regex for conversation/discussion matching.
 **API change:** `POST /api/memory/cleanup` prunes expired entries with stats.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 557 Update (2026-11-02): Bulk Delete Memory
+
+**API change:** `POST /api/memory/bulk-delete` removes multiple keys in one call.
+
+*Workflow updated: 2026-11-02*

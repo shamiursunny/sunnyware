@@ -142,3 +142,18 @@ def test_list_expired_memory():
     assert len(expired) == 1
     assert expired[0]["key"] == "dead_key"
     assert agent_memory.read_memory("live_key") == "live_val"
+
+def test_bulk_delete_memory():
+    import tempfile, os
+    agent_memory.MEMORY_FILE = os.path.join(tempfile.gettempdir(), "test_agent_mem_bulkdel.json")
+    if os.path.exists(agent_memory.MEMORY_FILE):
+        os.remove(agent_memory.MEMORY_FILE)
+    agent_memory.write_memory("a", 1)
+    agent_memory.write_memory("b", 2)
+    agent_memory.write_memory("c", 3)
+    result = agent_memory.bulk_delete_memory(["a", "c", "missing"])
+    assert sorted(result["deleted"]) == ["a", "c"]
+    assert result["missing"] == ["missing"]
+    assert agent_memory.read_memory("a") is None
+    assert agent_memory.read_memory("b") == 2
+    assert agent_memory.read_memory("c") is None

@@ -218,3 +218,19 @@ def list_expired_memory() -> list:
                     })
         return out
 
+def bulk_delete_memory(keys: list) -> dict:
+    """Delete multiple keys in one call. Returns {"deleted": [...], "missing": [...]}."""
+    with _lock:
+        data = _load()
+        deleted = []
+        missing = []
+        for k in keys:
+            if k in data:
+                data.pop(k)
+                deleted.append(k)
+            else:
+                missing.append(k)
+        if deleted:
+            _save(data)
+        return {"deleted": deleted, "missing": missing}
+

@@ -2414,3 +2414,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 112 passing.
 
 *Part 556 logged: 2026-11-02*
+
+---
+
+### Part 557 Update (2026-11-02): Add Bulk Delete Helper and Endpoint
+
+- **Added** `agent_memory.bulk_delete_memory(keys)` — deletes multiple keys and returns `{deleted, missing}`.
+- **Added** `POST /api/memory/bulk-delete` endpoint.
+- **Added** 1 direct unit test (113 total).
+- **Fast suite:** 113 passing.
+
+*Part 557 logged: 2026-11-02*
