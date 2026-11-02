@@ -2000,6 +2000,33 @@ window.fetch = function(url, options) {
     attachRetry(el);
   }
 
+  function addToolResultDetails(result) {
+    if (!result || typeof result !== 'object') return;
+    let json;
+    try {
+      json = JSON.stringify(result, null, 2);
+    } catch (e) {
+      return;
+    }
+    const maxLen = 2000;
+    if (json.length > maxLen) {
+      json = json.slice(0, maxLen) + '\n... (truncated)';
+    }
+    const details = document.createElement('details');
+    details.className = 'tool-result-details';
+    details.style.cssText = 'margin:4px 0 8px 16px;font-size:11px;';
+    const summary = document.createElement('summary');
+    summary.textContent = 'Full result';
+    summary.style.cssText = 'cursor:pointer;color:var(--text-mute);';
+    details.appendChild(summary);
+    const pre = document.createElement('pre');
+    pre.textContent = json;
+    pre.style.cssText = 'margin:4px 0;padding:6px;background:var(--bg-code,#1e1e1e);border-radius:4px;overflow:auto;max-height:300px;white-space:pre-wrap;word-break:break-word;';
+    details.appendChild(pre);
+    chat.appendChild(details);
+    chat.scrollTop = chat.scrollHeight;
+  }
+
   function addMsg(text, cls, persist) {
     if (persist === undefined) persist = true;
     const d = document.createElement('div');
@@ -2176,6 +2203,8 @@ window.fetch = function(url, options) {
                 }
               }
               if (summary) addMsg('[result] ' + summary, 'step');
+              // Part 593: collapsible full result
+              addToolResultDetails(_r);
               // Part 98c: render image_base64 results inline
               if (_r.image_base64 && _r.image_format) {
                 const _img = document.createElement('img');

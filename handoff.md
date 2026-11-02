@@ -4736,3 +4736,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 593 Update (2026-11-02): Ready for Part 594
+
+**Status:** Collapsible tool result details added, 229 tests passing.
+
+**What was done:**
+- Added `addToolResultDetails()` helper.
+- Integrated with the `tool_result` handler.
+
+**Next Steps (Part 594):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Move to another feature area — UI polish, RAG enhancements, or backend improvements.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

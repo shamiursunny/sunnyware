@@ -2900,3 +2900,11 @@ Fixed regex for conversation/discussion matching.
 **UI change:** A "Stop" button appears while streaming and aborts the request when clicked.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 593 Update (2026-11-02): Collapsible Tool Results
+
+**UI change:** Each tool result now has a collapsible "Full result" section showing the complete JSON.
+
+*Workflow updated: 2026-11-02*

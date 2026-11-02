@@ -2793,3 +2793,13 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 229 passing (UI-only change, no new tests).
 
 *Part 592 logged: 2026-11-02*
+
+---
+
+### Part 593 Update (2026-11-02): Collapsible Tool Result Details
+
+- **Added** `addToolResultDetails(result)` helper in `webui.py` — renders a collapsible `<details>` element with the full JSON (truncated to 2000 chars).
+- **Updated** the `tool_result` handler to call the helper after the short summary.
+- **Fast suite:** 229 passing (UI-only change, no new tests).
+
+*Part 593 logged: 2026-11-02*
