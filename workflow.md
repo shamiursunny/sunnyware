@@ -2892,3 +2892,11 @@ Fixed regex for conversation/discussion matching.
 **UI change:** A live elapsed-time counter now appears while the agent is streaming and is removed on completion/error.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 592 Update (2026-11-02): Cancel Streaming
+
+**UI change:** A "Stop" button appears while streaming and aborts the request when clicked.
+
+*Workflow updated: 2026-11-02*

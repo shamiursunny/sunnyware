@@ -2781,3 +2781,15 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 229 passing (UI-only change, no new tests).
 
 *Part 591 logged: 2026-11-02*
+
+---
+
+### Part 592 Update (2026-11-02): Cancel Button for Streaming
+
+- **Added** a "Stop" button (`#cancelStream`) next to the Send button, hidden by default.
+- **Wired** an `AbortController` to the streaming `fetch` call.
+- **Cancellation** aborts the request, shows `[stopped] Stream canceled by user.`, and resets the UI.
+- **Cleanup**: button hidden and timer stopped in the `finally` block.
+- **Fast suite:** 229 passing (UI-only change, no new tests).
+
+*Part 592 logged: 2026-11-02*

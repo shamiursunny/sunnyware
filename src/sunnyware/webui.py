@@ -1401,6 +1401,7 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
         </div>
         <button type="button" id="micBtn" title="Voice input (click to start/stop)">\U0001F3A4</button>
         <button type="submit" id="send">Send</button>
+        <button type="button" id="cancelStream" title="Stop streaming" style="display:none;margin-left:4px;">Stop</button>
       </form>
       <div class="footer-info">Powered by sunnyware · <span id="latency">—</span></div>
     </footer>
@@ -2020,6 +2021,15 @@ window.fetch = function(url, options) {
     lastUserText = text;
     addMsg(text, 'user');
     send.disabled = true;
+    // Part 592: cancel support
+    var _abortCtrl = new AbortController();
+    var _cancelBtn = document.getElementById('cancelStream');
+    if (_cancelBtn) {
+      _cancelBtn.style.display = '';
+      _cancelBtn.onclick = function() {
+        try { _abortCtrl.abort(); } catch (e) {}
+      };
+    }
     const t0 = performance.now();
     let agentBubble = null;
     let agentText = '';
@@ -2076,6 +2086,7 @@ window.fetch = function(url, options) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ input: text, session_id: getSession(), role: getRole() }),
+        signal: _abortCtrl.signal,
       });
 
       if (!r.ok) {
@@ -2295,9 +2306,14 @@ window.fetch = function(url, options) {
       }
     } catch (e) {
       _stopElapsedTimer();
-      showErrorWithRetry('network error: ' + e.message);
+      if (e && e.name === 'AbortError') {
+        addMsg('[stopped] Stream canceled by user.', 'step');
+      } else {
+        showErrorWithRetry('network error: ' + e.message);
+      }
     } finally {
       _stopElapsedTimer();
+      if (_cancelBtn) _cancelBtn.style.display = 'none';
       send.disabled = false;
       input.focus();
     }

@@ -4719,3 +4719,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 592 Update (2026-11-02): Ready for Part 593
+
+**Status:** Cancel button for streaming added, 229 tests passing.
+
+**What was done:**
+- Added a "Stop" button with `AbortController` integration.
+- Canceled stream shows a clear message and resets UI.
+
+**Next Steps (Part 593):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Move to another feature area — UI polish, RAG enhancements, or streaming improvements.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*
