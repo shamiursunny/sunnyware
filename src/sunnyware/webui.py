@@ -2028,6 +2028,37 @@ window.fetch = function(url, options) {
     let lastProvider = '';       // Part 105: track provider for the trailing chip
     let lastAttachments = [];    // Part 106c: track attachment refs for storage
 
+    // Part 591: elapsed timer during streaming
+    var _elapsedTimer = null;
+    var _elapsedStart = 0;
+
+    function _startElapsedTimer() {
+      _stopElapsedTimer();
+      _elapsedStart = performance.now();
+      var el = document.getElementById('elapsedTimer');
+      if (!el) {
+        el = document.createElement('div');
+        el.id = 'elapsedTimer';
+        el.className = 'elapsed-timer';
+        el.style.cssText = 'font-size:11px;color:var(--text-mute);margin-top:4px;';
+        chat.appendChild(el);
+      }
+      el.textContent = '0.0s';
+      _elapsedTimer = setInterval(function () {
+        var sec = ((performance.now() - _elapsedStart) / 1000).toFixed(1);
+        el.textContent = sec + 's';
+      }, 100);
+    }
+
+    function _stopElapsedTimer() {
+      if (_elapsedTimer) {
+        clearInterval(_elapsedTimer);
+        _elapsedTimer = null;
+      }
+      var el = document.getElementById('elapsedTimer');
+      if (el) el.remove();
+    }
+
     function ensureBubble() {
       if (!agentBubble) {
         agentBubble = document.createElement('div');
@@ -2053,6 +2084,8 @@ window.fetch = function(url, options) {
         return;
       }
 
+      // Part 591: start elapsed timer
+      _startElapsedTimer();
       const reader = r.body.getReader();
       const decoder = new TextDecoder('utf-8');
       let buffer = '';
@@ -2183,6 +2216,8 @@ window.fetch = function(url, options) {
         }
       }
 
+      // Part 591: stop elapsed timer
+      _stopElapsedTimer();
       const ms = Math.round(performance.now() - t0);
       latEl.textContent = ms + ' ms';
 
@@ -2259,8 +2294,10 @@ window.fetch = function(url, options) {
         renderSidebar();
       }
     } catch (e) {
+      _stopElapsedTimer();
       showErrorWithRetry('network error: ' + e.message);
     } finally {
+      _stopElapsedTimer();
       send.disabled = false;
       input.focus();
     }

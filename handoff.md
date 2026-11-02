@@ -4702,3 +4702,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 591 Update (2026-11-02): Ready for Part 592
+
+**Status:** Streaming elapsed timer added, 229 tests passing.
+
+**What was done:**
+- Added `_startElapsedTimer()` / `_stopElapsedTimer()`.
+- Timer clears on success, error, and in `finally`.
+
+**Next Steps (Part 592):**
+1. Run the full test suite in CI to confirm all changes integrate cleanly.
+2. Move to another feature area — UI polish, RAG enhancements, or streaming improvements.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

@@ -2884,3 +2884,11 @@ Fixed regex for conversation/discussion matching.
 **UI change:** The stats modal now shows a list of recent memory entries (key-value pairs) under the Memory section.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 591 Update (2026-11-02): Streaming Elapsed Timer
+
+**UI change:** A live elapsed-time counter now appears while the agent is streaming and is removed on completion/error.
+
+*Workflow updated: 2026-11-02*

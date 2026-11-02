@@ -2770,3 +2770,14 @@ me the exact git commands to commit + push both remotes."
 - **Fast suite:** 229 passing (UI-only change, no new tests).
 
 *Part 590 logged: 2026-11-02*
+
+---
+
+### Part 591 Update (2026-11-02): Elapsed Time Counter During Streaming
+
+- **Added** `_startElapsedTimer()` / `_stopElapsedTimer()` helpers in `webui.py`.
+- **Updated** the streaming loop to show a live elapsed-time indicator (e.g., "2.3s") while the agent is working.
+- **Timer is cleared** on completion, error, and in the `finally` block to prevent leaks.
+- **Fast suite:** 229 passing (UI-only change, no new tests).
+
+*Part 591 logged: 2026-11-02*
