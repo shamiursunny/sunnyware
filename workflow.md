@@ -2972,3 +2972,12 @@ Fixed regex for conversation/discussion matching.
 **UI Change**: Shows "Reading attached files..." while the AI processes attachments. Forces `rag_search` when attachments are present.
 
 *Workflow updated: 2026-11-02*
+
+---
+
+### Part 603 Update (2026-11-02): Slack & Library
+
+**Slack**: Now uses orchestrator with keyword routing and tools.
+**Library**: Added Workspace and Sandbox tabs, merged RAG documents.
+
+*Workflow updated: 2026-11-02*

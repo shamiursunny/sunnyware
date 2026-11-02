@@ -100,3 +100,48 @@ async def delete_file(file_id: str):
     async with pool.acquire() as conn:
         res = await conn.execute("DELETE FROM library_files WHERE id = $1::uuid AND owner_key = $2", file_id, owner)
         return {"deleted": res.startswith("DELETE 1")}
+
+from datetime import datetime
+
+@router.get("/api/workspace/files")
+async def list_workspace_files():
+    """List files in the agent workspace directory."""
+    from .. import paths
+    ws = paths.workspace()
+    if not ws.exists():
+        return {"files": []}
+    out = []
+    for f in ws.iterdir():
+        if not f.is_file():
+            continue
+        stat = f.stat()
+        out.append({
+            "name": f.name,
+            "size": stat.st_size,
+            "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+            "type": f.suffix.lstrip(".").lower() or "file",
+        })
+    out.sort(key=lambda x: x["modified"], reverse=True)
+    return {"files": out}
+
+@router.get("/api/sandbox/files")
+async def list_sandbox_files():
+    """List files in the agent sandbox directory."""
+    from .. import paths
+    sb = paths.sandbox()
+    if not sb.exists():
+        return {"files": []}
+    out = []
+    for f in sb.iterdir():
+        if not f.is_file():
+            continue
+        stat = f.stat()
+        out.append({
+            "name": f.name,
+            "size": stat.st_size,
+            "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+            "type": f.suffix.lstrip(".").lower() or "file",
+        })
+    out.sort(key=lambda x: x["modified"], reverse=True)
+    return {"files": out}
+

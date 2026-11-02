@@ -4894,3 +4894,23 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Keep running only fast tests locally.
 
 *Handoff updated: 2026-11-02*
+
+---
+
+### Part 603 Update (2026-11-02): Ready for Part 604
+
+**Status:** Slack bot integrated with orchestrator, Library tabs added, RAG documents merged. 239 tests passing (1 flaky DB test).
+
+**What was done:**
+- Slack bot now uses `run_agent()` instead of `_llm.chat()`.
+- Added Workspace and Sandbox tabs to Library.
+- Merged RAG documents into Uploaded tab.
+- Fixed date display and config paths.
+- Fixed keyword routing for document reads and calculator.
+
+**Next Steps (Part 604):**
+1. Run the full test suite in CI.
+2. Add Slack event handler for mentions.
+3. Keep running only fast tests locally.
+
+*Handoff updated: 2026-11-02*

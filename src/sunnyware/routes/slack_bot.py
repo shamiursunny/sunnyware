@@ -116,14 +116,15 @@ async def _process_command(user: str, channel: str, prompt: str, response_url: s
     response_text = ""
     ok = False
     try:
-        from .. import llm as _llm
-        result = await _llm.chat(
-            prompt=prompt,
+        from ..orchestrator import run_agent
+        result = await run_agent(
+            prompt,
+            session_uuid=None,
             system="You are Sunnyware, a helpful AI assistant. Keep responses concise and format for Slack (no markdown headers, use bold for emphasis).",
-            timeout=60.0,
+            role="general",
         )
         if result.get("ok"):
-            response_text = result.get("content", "") or "(empty response)"
+            response_text = result.get("answer", "") or "(empty response)"
             ok = True
         else:
             response_text = "⚠️ Error: " + str(result.get("error", "unknown"))

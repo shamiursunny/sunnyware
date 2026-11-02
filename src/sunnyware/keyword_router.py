@@ -160,9 +160,27 @@ def keyword_route(prompt: str) -> Optional[dict]:
         if all(c in '0123456789+-*/%^() .' for c in expr):
             return {"tool": "calculator", "args": {"expression": expr}}
 
+    # --- Tip / percent calculation ---
+    import re as _re_tip
+    m_tip = _re_tip.search(r'(\d+(?:\.\d+)?)\s*%\s*(?:tip\s+)?(?:on|of)\s*(\d+(?:\.\d+)?)', prompt.lower())
+    if m_tip:
+        pct = float(m_tip.group(1))
+        base = float(m_tip.group(2))
+        expr = f"{base} * {pct} / 100"
+        return {"tool": "calculator", "args": {"expression": expr}}
+
+    # Generic percent word ("18 percent tip on 85")
+    m_pct = _re_tip.search(r'(\d+(?:\.\d+)?)\s*(?:percent|%)\s+(?:tip|of)\s+(\d+(?:\.\d+)?)', prompt.lower())
+    if m_pct:
+        pct = float(m_pct.group(1))
+        base = float(m_pct.group(2))
+        expr = f"{base} * {pct} / 100"
+        return {"tool": "calculator", "args": {"expression": expr}}
+
 # --- calculator ---
     calc_keywords = ["calculate", "compute", "math", "square root", "sqrt",
-                     "multiply", "divide", "what is", "how much is"]
+                     "multiply", "divide", "what is", "how much is",
+                     "tip", "percent", "percentage", "split", "average"]
     if any(kw in p for kw in calc_keywords):
         expr = _extract_number(prompt)
         if expr:
@@ -582,8 +600,14 @@ def keyword_route(prompt: str) -> Optional[dict]:
             # Fall through to LLM for complex SQL
             return None
 
-    # --- read_file (must have .txt) ---
-    if ".txt" in p:
+    # --- rag_search for document reads (RAG store has priority over local read_file) ---
+    if ".txt" in p or ".pdf" in p or ".md" in p or ".csv" in p or ".docx" in p:
+        fname = _extract_filename(prompt, ["txt", "pdf", "md", "csv", "docx"])
+        if fname and any(w in p for w in ["read", "open", "contents", "show", "summarize", "check", "search"]):
+            return {"tool": "rag_search", "args": {"query": fname}}
+
+    # --- read_file for explicit local workspace reads (only if "workspace" or "local" is mentioned) ---
+    if ".txt" in p and ("workspace" in p or "local" in p):
         fname = _extract_filename(prompt, ["txt"])
         if fname and any(w in p for w in ["read", "open", "contents", "show"]):
             return {"tool": "read_file", "args": {"path": fname}}

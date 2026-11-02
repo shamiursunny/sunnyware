@@ -51,6 +51,11 @@ def workspace() -> Path:
     return _resolve("SUNNYWARE_WORKSPACE", "workspace")
 
 
+def sandbox() -> Path:
+    """Agent sandbox — for user-visible intermediate files, scripts, and outputs."""
+    return _resolve("SUNNYWARE_SANDBOX", "sandbox")
+
+
 def logs_dir() -> Path:
     """Log directory — persists across HF restarts when bucket mounted."""
     return _resolve("SUNNYWARE_LOGS", "logs")

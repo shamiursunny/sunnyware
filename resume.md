@@ -2891,3 +2891,17 @@ me the exact git commands to commit + push both remotes."
 - **Tests**: 239 passed (1 flaky health check due to DB timeout).
 
 *Part 602 logged: 2026-11-02*
+
+---
+
+### Part 603 Update (2026-11-02): Slack Bot Integration & Library Tabs
+
+- **Slack Bot**: Now uses `orchestrator.run_agent()` with full keyword routing, tools, and RAG.
+- **Library**: Added **Workspace** and **Sandbox** tabs.
+- **Uploaded Tab**: Now merges RAG documents with Library uploads.
+- **AI Generated Tab**: Shows generated files from workspace.
+- **Dates**: Fixed "Invalid Date" for workspace/sandbox files.
+- **Config Path**: Fixed `slack_store.py` to use `paths.data_root()`.
+- **Keyword Routing**: Prefers `rag_search` for document reads; added `tip`/`percent` to calculator.
+
+*Part 603 logged: 2026-11-02*

@@ -21,10 +21,14 @@ DEFAULT_CONFIG = {
 
 
 def _base() -> Path:
-    data = Path("/data")
-    if data.exists() and os.access(str(data), os.W_OK):
-        return data
-    return Path("data")
+    try:
+        from . import paths as _paths
+        return _paths.data_root()
+    except Exception:
+        data = Path("/data")
+        if data.exists() and os.access(str(data), os.W_OK):
+            return data
+        return Path("data")
 
 
 def _load(name: str) -> dict:

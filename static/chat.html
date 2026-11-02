@@ -1036,6 +1036,10 @@ input,textarea{font-family:inherit}
 
             <button class="lib-tab active" data-kind="upload">Uploaded</button>
 
+            <button class="lib-tab" data-kind="workspace" id="workspaceTab">Workspace</button>
+
+            <button class="lib-tab" data-kind="sandbox" id="sandboxTab">Sandbox</button>
+
             <button class="lib-tab" data-kind="generated" id="aiGeneratedTab">AI Generated</button>
 
           </div>
@@ -1101,6 +1105,7 @@ input,textarea{font-family:inherit}
             </div>
           </div>
           <button class="icon-btn" id="attachBtn" title="Attach files (saved to Library)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg></button>
+          <button class="icon-btn" id="docsBtn" title="Manage uploaded documents"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></button>
 
           <input type="file" id="fileInput" multiple hidden>
 
@@ -1125,6 +1130,17 @@ input,textarea{font-family:inherit}
 
 
 <!-- ============ CONFIRM MODAL ============ -->
+
+<div class="modal-overlay" id="docsModal">
+  <div class="modal" style="max-width:520px">
+    <h3>Uploaded Documents</h3>
+    <div id="docsList" style="max-height:340px;overflow-y:auto;margin:12px 0"></div>
+    <div class="modal-actions">
+      <button class="btn-secondary" id="docsCloseBtn">Close</button>
+      <button class="btn-danger" id="docsClearBtn">Clear All</button>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="confirmModal">
 
@@ -1632,6 +1648,22 @@ let chats=[], files=[], activeChatId=null, isGenerating=false, editingId=null;
 let view='chat';                    // 'chat' | 'library'
 
 let libKind='upload';               // library tab
+let workspaceFiles = []; // cached workspace files
+let sandboxFiles = []; // cached sandbox files
+async function loadSandboxFiles() {
+  try {
+    const r = await fetch('/api/sandbox/files');
+    const d = await r.json();
+    if(d && d.files) sandboxFiles = d.files;
+  } catch(e) { console.error('Sandbox load failed', e); }
+}
+async function loadWorkspaceFiles() {
+  try {
+    const r = await fetch('/api/workspace/files');
+    const d = await r.json();
+    if(d && d.files) workspaceFiles = d.files;
+  } catch(e) { console.error('Workspace load failed', e); }
+}
 
 let selectMode=false; const selected=new Set();
 
@@ -2024,14 +2056,27 @@ function loadAll(){
 
   try{ chats=JSON.parse(localStorage.getItem(LS_CHATS))||[]; }catch(e){ chats=[]; }
 
-  // Load Library files from backend
+  // Load Library files from backend, then merge RAG documents
   fetch('/api/library/files').then(r=>r.json()).then(data=>{
     if(data && data.files) {
       files = data.files.map(f => ({
         id: f.id, name: f.name, type: f.type, size: f.size, kind: f.kind,
         date: f.created_at, mime: f.type, dataUrl: f.content, textContent: f.kind !== 'image' ? f.content : ''
       }));
-      try { renderLibrary(); } catch(e) {}
+      // Merge RAG documents
+      fetch('/api/rag/documents').then(r2=>r2.json()).then(ragData=>{
+        if(ragData && ragData.documents) {
+          ragData.documents.forEach(doc => {
+            if(!files.some(f => f.name === doc.source)) {
+              files.push({
+                id: 'rag:' + doc.source, name: doc.source, type: 'doc', size: 0, kind: 'rag',
+                date: new Date().toISOString(), mime: 'text/plain', dataUrl: null, textContent: ''
+              });
+            }
+          });
+        }
+        try { loadWorkspaceFiles().then(()=>renderLibrary()); } catch(e) {}
+      }).catch(e=>console.error('RAG merge failed', e));
     }
   }).catch(e=>console.error('Library load failed', e));
 
@@ -2163,6 +2208,63 @@ $('#confirmCancel').onclick=()=>$('#confirmModal').classList.remove('open');
 $('#confirmModal').onclick=e=>{ if(e.target.id==='confirmModal') e.target.classList.remove('open'); };
 
 $('#confirmOk').onclick=()=>{ $('#confirmModal').classList.remove('open'); if(confirmCallback) confirmCallback(); };
+
+/* ==================== DOCS MODAL ==================== */
+document.getElementById('docsBtn').onclick = () => {
+  document.getElementById('docsModal').classList.add('open');
+  loadDocsList();
+};
+document.getElementById('docsCloseBtn').onclick = () => document.getElementById('docsModal').classList.remove('open');
+document.getElementById('docsModal').onclick = e => { if (e.target.id === 'docsModal') e.target.classList.remove('open'); };
+
+async function loadDocsList() {
+  const listEl = document.getElementById('docsList');
+  listEl.innerHTML = '<div style="color:var(--text-secondary);padding:8px 0">Loading…</div>';
+  try {
+    const r = await fetch('/api/rag/documents');
+    const d = await r.json();
+    if (d.error) { listEl.innerHTML = '<div style="color:var(--danger)">Error: ' + d.error + '</div>'; return; }
+    if (!d.documents || d.documents.length === 0) {
+      listEl.innerHTML = '<div style="color:var(--text-secondary);padding:8px 0">No documents uploaded yet.</div>';
+      return;
+    }
+    listEl.innerHTML = '';
+    d.documents.forEach(doc => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px';
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = doc.source;
+      const countSpan = document.createElement('span');
+      countSpan.textContent = doc.chunks + ' chunks';
+      countSpan.style.cssText = 'color:var(--text-tertiary);font-size:11px;margin-left:8px';
+      const delBtn = document.createElement('button');
+      delBtn.textContent = 'Delete';
+      delBtn.className = 'btn-secondary';
+      delBtn.style.cssText = 'margin-left:12px;padding:2px 8px;font-size:11px;border-radius:4px';
+      delBtn.onclick = async () => {
+        const res = await fetch('/api/rag/delete?source=' + encodeURIComponent(doc.source), { method: 'DELETE' });
+        const j = await res.json();
+        if (j.ok) loadDocsList(); else alert('Delete failed: ' + (j.error || 'unknown'));
+      };
+      const left = document.createElement('div');
+      left.appendChild(nameSpan);
+      left.appendChild(countSpan);
+      row.appendChild(left);
+      row.appendChild(delBtn);
+      listEl.appendChild(row);
+    });
+  } catch (e) {
+    listEl.innerHTML = '<div style="color:var(--danger)">Error: ' + e.message + '</div>';
+  }
+}
+
+document.getElementById('docsClearBtn').onclick = async () => {
+  if (!confirm('Remove all documents from the RAG store?')) return;
+  const res = await fetch('/api/rag/clear', { method: 'DELETE' });
+  const j = await res.json();
+  if (j.ok) loadDocsList(); else alert('Clear failed: ' + (j.error || 'unknown'));
+};
+
 
 
 
@@ -3330,7 +3432,10 @@ document.querySelectorAll('.lib-tab').forEach(t=>t.onclick=()=>{
 
   document.querySelectorAll('.lib-tab').forEach(x=>x.classList.remove('active')); t.classList.add('active');
 
-  libKind=t.dataset.kind; exitSelectMode(); renderLibrary();
+  libKind=t.dataset.kind; exitSelectMode(); 
+  if(libKind==='workspace' || libKind==='generated') { loadWorkspaceFiles().then(()=>renderLibrary()); }
+  else if(libKind==='sandbox') { loadSandboxFiles().then(()=>renderLibrary()); }
+  else { renderLibrary(); }
 
 });
 
@@ -3393,7 +3498,19 @@ function renderLibrary(){
 
   const grid=$('#libGrid');
 
-  const items=files.filter(f=>f.kind===libKind);
+  let items;
+  if(libKind==='upload') {
+    items = files.filter(f => f.kind === 'upload' || f.kind === 'rag');
+  } else if(libKind==='workspace') {
+    items = workspaceFiles || [];
+  } else if(libKind==='sandbox') {
+    items = sandboxFiles || [];
+  } else if(libKind==='generated') {
+    const genExts = ['png','jpg','jpeg','gif','pdf','csv','xlsx','json','svg'];
+    items = (workspaceFiles || []).filter(f => genExts.includes(f.type));
+  } else {
+    items = files.filter(f=>f.kind===libKind);
+  }
 
   $('#libCount').textContent=items.length+' file'+(items.length===1?'':'s');
 
@@ -3443,7 +3560,7 @@ function renderLibrary(){
 
       <div class="file-thumb">${thumb}<span class="file-type">${f.type}</span><span class="file-kind">${fileKindLabel(f.kind)}</span></div>
 
-      <div class="file-info"><div class="file-name">${esc(f.name)}</div><div class="file-meta">${fmtSize(f.size)} · ${fmtDate(f.date)}</div></div>
+      <div class="file-info"><div class="file-name">${esc(f.name)}</div><div class="file-meta">${fmtSize(f.size)} · ${fmtDate(f.date || f.modified)}</div></div>
 
       <div class="file-hover-actions">
 
