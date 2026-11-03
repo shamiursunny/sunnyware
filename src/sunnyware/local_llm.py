@@ -67,10 +67,15 @@ def _load_sync():
         _LOAD_ERROR = "llama_cpp import failed: " + type(e).__name__ + ": " + str(e)
         raise ImportError(_LOAD_ERROR) from e
     try:
+        # Part 623: use all available cores for faster generation
+        import os as _os
+        _n_threads = int(_os.getenv("LOCAL_MODEL_N_THREADS", "0")) or min(8, _os.cpu_count() or 4)
+        print(f"[local_llm] Loading Qwen2.5 with n_threads={_n_threads}", flush=True)
         _MODEL = Llama(
             model_path=path,
             n_ctx=min(int(os.getenv("LOCAL_MODEL_CTX", "2048")), 2048),
-            n_threads=2,
+            n_threads=_n_threads,
+            n_batch=512,
             
             
             use_mlock=False,
@@ -120,8 +125,8 @@ async def chat(
         system = system[:2000] + "... [truncated]"
     if prompt and len(prompt) > 2000:
         prompt = prompt[:2000] + "... [truncated]"
-    if history and len(history) > 1:
-        history = history[-1:]
+    if history and len(history) > 2:
+        history = history[-2:]  # Part 623: keep 2 msgs for coherence
     if tools:
         tools = [t for t in tools if isinstance(t, dict)][:5]
 
@@ -149,9 +154,10 @@ async def chat(
                 "messages": messages,
                 "temperature": 0.1,
                 "stream": False,
-                "max_tokens": 1024,
+                "max_tokens": 256,
                 "top_p": 0.95,
-                "repeat_penalty": 1.0, # Force JSON output instantly
+                "repeat_penalty": 1.1,
+                "stop": ["<|im_end|>", "<|endoftext|>"],
             }
             if tools:
                 import json
