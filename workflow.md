@@ -3095,3 +3095,11 @@ Fixed regex for conversation/discussion matching.
 **Success**: "hi" → "Hello! How can I assist you today?" in 129.2s. Local model is a slow but functional fallback.
 
 *Workflow updated: 2026-11-03*
+
+---
+
+### Part 632 Update (2026-11-03): Hardcoded n_ctx=512
+
+**Fix**: `n_ctx` is hardcoded to 512 (ignoring `LOCAL_MODEL_CTX` env var), `n_batch=512`. Confirms `llama_context: n_ctx_per_seq (512)`.
+
+*Workflow updated: 2026-11-03*

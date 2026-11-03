@@ -3056,3 +3056,14 @@ me the exact git commands to commit + push both remotes."
 - **Architecture**: Local model is a **slow last-resort fallback**. Cloud providers (Groq, Gemini, Pollinations, OpenRouter) are the primary fast path.
 
 *Part 629 logged: 2026-11-03*
+
+---
+
+### Part 632 Update (2026-11-03): Hardcoded n_ctx=512 for Local Model
+
+- **Hardcoded Context**: `n_ctx` is now hardcoded to **512** in `local_llm.py`, ignoring the `LOCAL_MODEL_CTX` env var (which was still set to 2048 in HF Space settings).
+- **Restored Batch Size**: `n_batch=512` for faster prompt evaluation.
+- **Impact**: Confirmed `llama_context: n_ctx_per_seq (512)` in startup logs (was 2048). Should significantly reduce generation time.
+- **Test Connection**: The **Test** button per provider is fully functional — `groq` (264ms), `pollinations` (1481ms), `gemini` (432ms), `openrouter` (324ms) all passed.
+
+*Part 632 logged: 2026-11-03*

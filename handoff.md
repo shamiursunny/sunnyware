@@ -5167,3 +5167,27 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Consider HF Spaces paid tier (2 vCPU → 8 vCPU) if local speed becomes important.
 
 *Handoff updated: 2026-11-03*
+
+---
+
+### Part 632 Update (2026-11-03): Hardcoded n_ctx=512
+
+**Status:** `n_ctx=512` is now hardcoded (was still 2048 from env var). Local model should be faster.
+
+**What was done:**
+- `local_llm.py`: `n_ctx=512` hardcoded (ignores `LOCAL_MODEL_CTX` env var).
+- `n_batch=512` restored for prompt eval.
+- Confirmed in startup log: `llama_context: n_ctx_per_seq (512)`.
+
+**Test Connection Results:**
+- groq: 264ms ✅
+- pollinations: 1481ms ✅
+- gemini: 432ms ✅
+- openrouter: 324ms ✅
+- local: 60s timeout (before n_ctx hardcode)
+
+**Next Steps (Part 633):**
+1. Re-test local with `n_ctx=512` — expect <60s.
+2. Focus on cloud provider reliability — local is a slow fallback.
+
+*Handoff updated: 2026-11-03*
