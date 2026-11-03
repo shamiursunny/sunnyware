@@ -140,12 +140,12 @@ def load_providers(reload: bool = False) -> List[Provider]:
             # Part 638: Cerebras free tier — ultra-fast inference
             base_url = "https://api.cerebras.ai/v1"
             api_key = (os.getenv("CEREBRAS_API_KEY") or "").strip()
-            model = (os.getenv("CEREBRAS_MODEL") or "llama3.1-8b").strip()
+            model = (os.getenv("CEREBRAS_MODEL") or "gpt-oss-120b").strip()
         elif name == "sambanova":
             # Part 638: SambaNova free tier — very fast inference
             base_url = "https://api.sambanova.ai/v1"
             api_key = (os.getenv("SAMBANOVA_API_KEY") or "").strip()
-            model = (os.getenv("SAMBANOVA_MODEL") or "Meta-Llama-3.1-8B-Instruct").strip()
+            model = (os.getenv("SAMBANOVA_MODEL") or "Meta-Llama-3.3-70B-Instruct").strip()
         elif name == "together":
             # Part 638: Together AI free tier — fast, robust models
             base_url = "https://api.together.xyz/v1"
