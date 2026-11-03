@@ -595,7 +595,7 @@ async def chat(
             _t0 = time.time()
             r = await _local_llm.chat(
                 prompt=prompt, model=p.model, system=system,
-                history=history, tools=tools, timeout=min(timeout, 30.0),  # Part 268: Cap HTTP timeout to prevent long hangs
+                history=history, tools=None, timeout=min(timeout, 15.0),  # Part 619: Never pass tools to local (crashes llama.cpp)
             )
             _elapsed = time.time() - _t0
             if r.get("ok") and _is_empty_response(r):
