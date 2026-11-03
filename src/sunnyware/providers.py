@@ -45,6 +45,7 @@ class Provider:
     success_count: int = 0
     fail_count: int = 0
     last_success_ts: float = 0.0
+    last_latency: float = 0.0
     enabled: bool = True
 
     def is_cooling(self) -> bool:
@@ -56,9 +57,10 @@ class Provider:
     def mark_cooldown(self, seconds: float) -> None:
         self.cooldown_until = time.time() + seconds
 
-    def record_success(self) -> None:
+    def record_success(self, latency: float = 0.0) -> None:
         self.success_count += 1
         self.last_success_ts = time.time()
+        self.last_latency = latency
         self.last_error = ""
 
     def record_failure(self, err: str) -> None:

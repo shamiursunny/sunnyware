@@ -536,6 +536,24 @@ async def chat(
         return r
 
     # Multi-provider router
+    # Part 618: Apply the selected routing strategy
+    from . import llm_dashboard_store as _lds
+    _orch_cfg = _lds.get_orchestrator_config()
+    _strategy = _orch_cfg.get("routing_strategy", "fallback")
+
+    # Filter out disabled providers first
+    provs = [p for p in provs if getattr(p, "enabled", True)]
+
+    if _strategy == "round_robin":
+        import sunnyware.llm as _self_mod
+        if not hasattr(_self_mod, "_rr_counter"):
+            _self_mod._rr_counter = 0
+        shift = _self_mod._rr_counter % max(1, len(provs))
+        provs = provs[shift:] + provs[:shift]
+        _self_mod._rr_counter += 1
+    elif _strategy == "fastest":
+        provs = sorted(provs, key=lambda p: p.last_latency if p.last_latency > 0 else 999.0)
+
     # Part 99: pre-filter providers whose max_prompt_tokens would reject
     # this request (e.g. Groq 413 on >8k input). Falls back to trying all
     # non-cooling providers if the size filter would exclude everything.

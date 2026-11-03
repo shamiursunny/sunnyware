@@ -474,7 +474,7 @@ class _MetricsMiddleware:
                     from . import api_keys_store as _ks
                     from . import rate_limiter as _rl
                     # Find the key record to get the RPM limit
-                    keys = _ks._load(_ks.KEYS_FILE) if hasattr(_ks, "_load") else {}
+                    keys = _ks._load() if hasattr(_ks, "_load") else {}
                     matched = next((k for k, v in keys.items() if v.get("key") == key and not v.get("revoked")), None)
                     if matched:
                         rpm = keys[matched].get("rate_limit_per_min", 60)
