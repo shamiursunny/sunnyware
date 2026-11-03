@@ -128,11 +128,11 @@ def load_providers(reload: bool = False) -> List[Provider]:
             api_key = (os.getenv("LLM_API_KEY") or os.getenv("CFO_LLM_API_KEY") or os.getenv("GROQ_API_KEY") or "").strip()
             model = (os.getenv("LLM_MODEL") or os.getenv("GROQ_MODEL") or "").strip()
         elif name == "huggingface":
-            # Part 634: Hugging Face Inference Providers (routes to fastest backend)
+            # Part 635: Use a stable model from the HF router
             base_url = "https://router.huggingface.co/v1"  # OpenAI-compatible endpoint
             api_key = (os.getenv("HF_TOKEN") or "").strip()
-            # Use :fastest to auto-select the fastest available provider
-            model = (os.getenv("HUGGINGFACE_MODEL") or "Qwen/Qwen2.5-7B-Instruct:fastest").strip()
+            # Llama-3.3-70B is widely available; no :fastest suffix needed
+            model = (os.getenv("HUGGINGFACE_MODEL") or "meta-llama/Llama-3.3-70B-Instruct").strip()
         elif name == "local":
             # In-process llama-cpp-python — no HTTP URL needed
             base_url = (os.getenv("LOCAL_MODEL_BASE_URL") or "in-process").strip() or "in-process"
