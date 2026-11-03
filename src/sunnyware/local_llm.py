@@ -73,9 +73,9 @@ def _load_sync():
         print(f"[local_llm] Loading Qwen2.5 with n_threads={_n_threads}", flush=True)
         _MODEL = Llama(
             model_path=path,
-            n_ctx=int(os.getenv("LOCAL_MODEL_CTX", "512")) or 512,  # Part 630: smaller ctx = faster
+            n_ctx=512,  # Part 632: hardcoded — ignore LOCAL_MODEL_CTX env var
             n_threads=_n_threads,
-            n_batch=64,  # Part 630
+            n_batch=512,  # Part 632: restore full batch for prompt eval
             
             
             use_mlock=False,
