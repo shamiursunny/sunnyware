@@ -130,19 +130,28 @@ _DIRECT_ANSWER_TOOLS = {"calculator", "current_time", "get_current_time", "time_
 
 
 def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
-    """Part 621: Human-readable answer from a deterministic tool result (no LLM)."""
+    """Part 643: Beautiful, human-readable answer from a deterministic tool result."""
     if not isinstance(tool_result, dict):
         return str(tool_result)
+    # 1. Calculator
     if "expression" in tool_result and "result" in tool_result:
-        return f"{tool_result['expression']} = {tool_result['result']}"
+        return "**%s = %s**" % (tool_result['expression'], tool_result['result'])
+    # 2. Time (current_time tool)
+    if "utc_human" in tool_result:
+        day = tool_result.get("day_of_week", "")
+        day_str = " (%s)" % day if day else ""
+        return "\U0001F552 **Current Time (UTC):** %s%s" % (tool_result['utc_human'], day_str)
+    # 3. General Time/Date
     for key in ("time", "datetime", "current_time", "iso"):
         if key in tool_result:
             tz = tool_result.get("timezone") or tool_result.get("tz") or ""
-            return str(tool_result[key]) + (f" ({tz})" if tz else "")
+            return "\U0001F552 **%s:** %s" % (tz if tz else 'Time', tool_result[key])
+    # 4. Simple Result
     if "result" in tool_result:
         return str(tool_result["result"])
+    # 5. Fallback (Pretty JSON)
     import json as _json
-    return _json.dumps(tool_result)
+    return "```json\n%s\n```" % _json.dumps(tool_result, indent=2)
 
 
 def _truncate_tool_result(tool_result: dict) -> dict:
@@ -887,7 +896,8 @@ async def _run_agent_body(
                         _final_prompt = (
                             "Question: " + prompt + "\n"
                             + "Tool result: " + json.dumps(_tool_result) + "\n\n"
-                            + "Answer the question directly and concisely."
+                            + "Answer the question directly and concisely. "
+                            + "Use beautiful markdown formatting (bullet points, bold text, tables)."
                         )
                         _final_res = await llm_client.chat(
                             prompt=_final_prompt,
