@@ -3,6 +3,8 @@
 """FastAPI entry point — thin wrapper mounting route packages."""
 
 import os
+# Part 646: Force SmolLM path to bypass secret update limits
+os.environ["LOCAL_MODEL_PATH"] = "/data/models/SmolLM-135M-Instruct-Q4_K_M.gguf"
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
