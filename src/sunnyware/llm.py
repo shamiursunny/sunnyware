@@ -601,7 +601,7 @@ async def chat(
                 _mt = int(__import__("os").getenv("LOCAL_MODEL_REASONING_TOKENS", "128"))
             r = await _local_llm.chat(
                 prompt=prompt, model=p.model, system=system,
-                history=history, tools=None, timeout=120.0,  # Part 626: local model needs full 120s on free CPU
+                history=history, tools=None, timeout=200.0,  # Part 629: allow local model to finish generating
                 max_tokens=_mt,
             )
             _elapsed = time.time() - _t0

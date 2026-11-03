@@ -121,7 +121,7 @@ async def chat(
         }
 
     # Part 453: Truncate for local model (context window is 8192)
-    if system and len(system) > 500:
+    if system and len(system) > 200:  # Part 629: shorter system prompt for speed
         system = system[:500] + "... [truncated]"
     if prompt and len(prompt) > 500:
         prompt = prompt[:500] + "... [truncated]"
@@ -150,7 +150,7 @@ async def chat(
             }
 
         def _run():
-            _mt = max_tokens or int(os.getenv("LOCAL_MODEL_MAX_TOKENS", "96"))  # Part 625: cap at 48 default
+            _mt = max_tokens or int(os.getenv("LOCAL_MODEL_MAX_TOKENS", "32"))  # Part 629: keep responses short for speed  # Part 625: cap at 48 default
             kwargs = {
                 "messages": messages,
                 "temperature": 0.1,
