@@ -14,12 +14,17 @@ request at a time.
 """
 
 import asyncio
+import threading
 import os
 import time
 from typing import Optional
 
 _LOCK = asyncio.Lock()
 _LOAD_LOCK = asyncio.Lock()
+
+# Part 620: Serializes native llama.cpp calls so that a timed-out
+# call cannot race with a retry (prevents GGML_ASSERT crash).
+_NATIVE_LOCK = threading.Lock()
 _MODEL = None  # type: ignore
 _LOAD_ERROR: str = ""
 
@@ -162,7 +167,15 @@ async def chat(
                 if clean_tools:
                     kwargs["tools"] = clean_tools
                     kwargs["tool_choice"] = "auto"
-            return llama.create_chat_completion(**kwargs)
+            # Part 620: Non-blocking native lock — if a previous call is
+            # still running (asyncio timeout doesn't kill the C thread),
+            # fail fast instead of crashing llama.cpp with concurrent writes.
+            if not _NATIVE_LOCK.acquire(blocking=False):
+                raise RuntimeError("local model busy (previous call still running)")
+            try:
+                return llama.create_chat_completion(**kwargs)
+            finally:
+                _NATIVE_LOCK.release()
 
         try:
             resp = await asyncio.wait_for(

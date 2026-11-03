@@ -258,18 +258,8 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
         return None
     print(f"[jarvis] Shortlist contains {len(shortlist)} tools", flush=True)
 
-    # STAGE 2: Needle 3 on the shortlist
-    try:
-        from .needle_router import try_needle_route
-        from .needle_tool_loader import build_schema_from_tool
-        shortlist_schemas = [build_schema_from_tool(tool) for tool in shortlist]
-        needle_result = await try_needle_route(prompt, shortlist_schemas)
-        if needle_result:
-            # Part 396: Save tool call to shared memory
-            write_memory("last_tool_execution", needle_result)
-            return needle_result
-    except Exception as e:
-        print(f"[jarvis] Needle skipped: {e}", flush=True)
+    # Part 620: Needle 3 removed (it crashed llama.cpp with GGML_ASSERT).
+    # Falling through to Groq-based routing for tool selection.
 
     # STAGE 3: Fallback to Groq for tool routing (local model disabled)
     # Part 474: Hardcoded fallback for pandas prompts when all providers fail
