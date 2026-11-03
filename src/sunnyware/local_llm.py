@@ -79,7 +79,7 @@ def _load_sync():
             
             
             use_mlock=False,
-            verbose=__import__("os").getenv("LOCAL_MODEL_VERBOSE", "").lower() in ("1", "true", "yes"),
+            verbose=False,  # Part 642: cleanup
         )
         _LOAD_ERROR = ""
         return _MODEL
@@ -175,28 +175,14 @@ async def chat(
                 if clean_tools:
                     kwargs["tools"] = clean_tools
                     kwargs["tool_choice"] = "auto"
-            # Part 627: Diagnostic instrumentation
             import time as _diag_t
             _diag_start = _diag_t.time()
-            _n_msgs = len(kwargs.get("messages", []))
-            _chars = sum(len(str(m.get("content", ""))) for m in kwargs.get("messages", []))
-            print(f"[local_llm.run] START: {_n_msgs} msgs, {_chars} chars, "
-                  f"max_tokens={kwargs.get('max_tokens')}, temp={kwargs.get('temperature')}",
-                  flush=True)
-            # Tokenizer health check
-            try:
-                _test_tokens = llama.tokenize(b"<|im_start|>user\nhi<|im_end|>\n")
-                print(f"[local_llm.run] Tokenizer OK ({len(_test_tokens)} tokens for test)", flush=True)
-            except Exception as _te:
-                print(f"[local_llm.run] TOKENIZER ERROR: {_te}", flush=True)
 
             # Acquire native lock
             if not _NATIVE_LOCK.acquire(blocking=False):
-                print("[local_llm.run] BUSY: native lock held by previous call", flush=True)
                 raise RuntimeError("local model busy (previous call still running)")
 
             try:
-                print(f"[local_llm.run] Calling create_chat_completion...", flush=True)
                 # Part 628: Bypass create_chat_completion — it hangs on the Qwen2.5
                 # chat template in llama-cpp-python 0.3.16. Use manual ChatML instead.
                 _chatml_parts = []
@@ -206,7 +192,6 @@ async def chat(
                     _chatml_parts.append(f"<|im_start|>{_crole}\n{_ccontent}<|im_end|>\n")
                 _chatml_parts.append("<|im_start|>assistant\n")
                 _manual_prompt = "".join(_chatml_parts)
-                print(f"[local_llm.run] PROMPT (first 200): {_manual_prompt[:200]!r}", flush=True)
                 _raw = llama.create_completion(
                     prompt=_manual_prompt,
                     max_tokens=_mt,
@@ -228,20 +213,8 @@ async def chat(
                     }],
                     "usage": _raw.get("usage", {}) or {},
                 }
-                _elapsed = _diag_t.time() - _diag_start
-                _usage = _res.get("usage", {}) or {}
-                _preview = ""
-                try:
-                    _preview = (_res["choices"][0]["message"].get("content") or "")[:80]
-                except Exception:
-                    pass
-                print(f"[local_llm.run] RETURNED in {_elapsed:.1f}s: "
-                      f"prompt_tokens={_usage.get('prompt_tokens', '?')}, "
-                      f"completion_tokens={_usage.get('completion_tokens', '?')}, "
-                      f"content_preview={_preview!r}", flush=True)
                 return _res
             except Exception as _re:
-                print(f"[local_llm.run] ERROR after {_diag_t.time() - _diag_start:.1f}s: {_re}", flush=True)
                 raise
             finally:
                 _NATIVE_LOCK.release()
