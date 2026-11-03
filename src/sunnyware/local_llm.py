@@ -69,13 +69,13 @@ def _load_sync():
     try:
         # Part 623: use all available cores for faster generation
         import os as _os
-        _n_threads = int(_os.getenv("LOCAL_MODEL_N_THREADS", "0")) or min(4, _os.cpu_count() or 2)
+        _n_threads = int(_os.getenv("LOCAL_MODEL_N_THREADS", "2")) or 2  # Part 625: default 2 threads for 2-core HF Spaces
         print(f"[local_llm] Loading Qwen2.5 with n_threads={_n_threads}", flush=True)
         _MODEL = Llama(
             model_path=path,
             n_ctx=min(int(os.getenv("LOCAL_MODEL_CTX", "2048")), 2048),
             n_threads=_n_threads,
-            n_batch=512,
+            n_batch=128,
             
             
             use_mlock=False,
@@ -151,7 +151,7 @@ async def chat(
             }
 
         def _run():
-            _mt = max_tokens or int(os.getenv("LOCAL_MODEL_MAX_TOKENS", "128"))
+            _mt = max_tokens or int(os.getenv("LOCAL_MODEL_MAX_TOKENS", "48"))  # Part 625: cap at 48 default
             kwargs = {
                 "messages": messages,
                 "temperature": 0.1,

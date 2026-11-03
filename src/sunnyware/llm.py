@@ -596,9 +596,9 @@ async def chat(
             # Part 624: Pick max_tokens based on request type
             _is_simple = (not tools) and len(prompt or "") < 100
             if _is_simple:
-                _mt = int(__import__("os").getenv("LOCAL_MODEL_CHAT_TOKENS", "64"))
+                _mt = int(__import__("os").getenv("LOCAL_MODEL_CHAT_TOKENS", "32"))
             else:
-                _mt = int(__import__("os").getenv("LOCAL_MODEL_REASONING_TOKENS", "192"))
+                _mt = int(__import__("os").getenv("LOCAL_MODEL_REASONING_TOKENS", "96"))
             r = await _local_llm.chat(
                 prompt=prompt, model=p.model, system=system,
                 history=history, tools=None, timeout=min(timeout, 20.0),
