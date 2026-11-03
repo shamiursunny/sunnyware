@@ -69,7 +69,7 @@ def _load_sync():
     try:
         # Part 623: use all available cores for faster generation
         import os as _os
-        _n_threads = int(_os.getenv("LOCAL_MODEL_N_THREADS", "0")) or min(8, _os.cpu_count() or 4)
+        _n_threads = int(_os.getenv("LOCAL_MODEL_N_THREADS", "0")) or min(4, _os.cpu_count() or 2)
         print(f"[local_llm] Loading Qwen2.5 with n_threads={_n_threads}", flush=True)
         _MODEL = Llama(
             model_path=path,
@@ -106,6 +106,7 @@ async def chat(
     history: Optional[list] = None,
     tools: Optional[list] = None,
     timeout: float = 120.0,
+    max_tokens: Optional[int] = None,
 ) -> dict:
     """In-process chat completion. Mirrors llm._chat_single() response shape.
 
@@ -121,10 +122,10 @@ async def chat(
         }
 
     # Part 453: Truncate for local model (context window is 8192)
-    if system and len(system) > 2000:
-        system = system[:2000] + "... [truncated]"
-    if prompt and len(prompt) > 2000:
-        prompt = prompt[:2000] + "... [truncated]"
+    if system and len(system) > 500:
+        system = system[:500] + "... [truncated]"
+    if prompt and len(prompt) > 500:
+        prompt = prompt[:500] + "... [truncated]"
     if history and len(history) > 2:
         history = history[-2:]  # Part 623: keep 2 msgs for coherence
     if tools:
@@ -150,14 +151,15 @@ async def chat(
             }
 
         def _run():
+            _mt = max_tokens or int(os.getenv("LOCAL_MODEL_MAX_TOKENS", "128"))
             kwargs = {
                 "messages": messages,
                 "temperature": 0.1,
                 "stream": False,
-                "max_tokens": 256,
+                "max_tokens": _mt,
                 "top_p": 0.95,
                 "repeat_penalty": 1.1,
-                "stop": ["<|im_end|>", "<|endoftext|>"],
+                # No custom "stop" — let Qwen's chat template handle it naturally
             }
             if tools:
                 import json

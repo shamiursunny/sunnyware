@@ -593,9 +593,16 @@ async def chat(
             except Exception:
                 pass
             _t0 = time.time()
+            # Part 624: Pick max_tokens based on request type
+            _is_simple = (not tools) and len(prompt or "") < 100
+            if _is_simple:
+                _mt = int(__import__("os").getenv("LOCAL_MODEL_CHAT_TOKENS", "64"))
+            else:
+                _mt = int(__import__("os").getenv("LOCAL_MODEL_REASONING_TOKENS", "192"))
             r = await _local_llm.chat(
                 prompt=prompt, model=p.model, system=system,
-                history=history, tools=None, timeout=min(timeout, 15.0),  # Part 619: Never pass tools to local (crashes llama.cpp)
+                history=history, tools=None, timeout=min(timeout, 20.0),
+                max_tokens=_mt,
             )
             _elapsed = time.time() - _t0
             if r.get("ok") and _is_empty_response(r):
@@ -725,7 +732,7 @@ async def chat(
         if _min_cool <= _retry_wait_max and not _ready:
             # Wait the full cooldown (+1s safety) so the recursion has a
             # chance to succeed instead of hitting the same wall.
-            _wait = min(_min_cool + 1.0, _retry_wait_max + 5.0)
+            _wait = min(_min_cool + 1.0, _retry_wait_max + 5.0, 3.0)  # Part 624: cap retry at 3s for responsiveness
             try:
                 from . import metrics as _m
                 _m.incr_labeled("llm_request_retried", "once")

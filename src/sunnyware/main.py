@@ -344,6 +344,16 @@ try:
                 # 1. Preload MiniCPM
                 res = _aio.run(_jarvis_local.preload())
                 print(f"[jarvis] Qwen2.5 Preload Status: {res}", flush=True)
+
+                # Part 624: Warm the model with a tiny generation
+                try:
+                    _warm = _aio.run(_jarvis_local.chat(
+                        "Say OK", system="Reply with one word.",
+                        timeout=30.0, max_tokens=4,
+                    ))
+                    print(f"[jarvis] Warmup generation: {_warm.get('ok')} ({_warm.get('latency_ms', 0)}ms)", flush=True)
+                except Exception as _we:
+                    print(f"[jarvis] Warmup failed (non-fatal): {_we}", flush=True)
                 
                 # 2. Preload Embedder only (Part 620)
                 async def _preload_tools():
