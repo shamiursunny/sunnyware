@@ -196,7 +196,37 @@ async def chat(
 
             try:
                 print(f"[local_llm.run] Calling create_chat_completion...", flush=True)
-                _res = llama.create_chat_completion(**kwargs)
+                # Part 628: Bypass create_chat_completion — it hangs on the Qwen2.5
+                # chat template in llama-cpp-python 0.3.16. Use manual ChatML instead.
+                _chatml_parts = []
+                for _cm in messages:
+                    _crole = _cm.get("role", "user")
+                    _ccontent = _cm.get("content", "")
+                    _chatml_parts.append(f"<|im_start|>{_crole}\n{_ccontent}<|im_end|>\n")
+                _chatml_parts.append("<|im_start|>assistant\n")
+                _manual_prompt = "".join(_chatml_parts)
+                print(f"[local_llm.run] PROMPT (first 200): {_manual_prompt[:200]!r}", flush=True)
+                _raw = llama.create_completion(
+                    prompt=_manual_prompt,
+                    max_tokens=_mt,
+                    temperature=0.1,
+                    top_p=0.95,
+                    repeat_penalty=1.0,
+                    stop=["<|im_end|>", "<|endoftext|>"],
+                    echo=False,
+                )
+                _raw_text = ""
+                try:
+                    _raw_text = (_raw["choices"][0].get("text") or "")
+                except Exception:
+                    pass
+                _res = {
+                    "choices": [{
+                        "message": {"role": "assistant", "content": _raw_text, "tool_calls": None},
+                        "finish_reason": (_raw.get("choices") or [{}])[0].get("finish_reason", "stop"),
+                    }],
+                    "usage": _raw.get("usage", {}) or {},
+                }
                 _elapsed = _diag_t.time() - _diag_start
                 _usage = _res.get("usage", {}) or {}
                 _preview = ""
