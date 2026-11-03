@@ -3135,3 +3135,11 @@ Fixed regex for conversation/discussion matching.
 **Verified**: 8-provider fallback chain works perfectly. Cloud providers handle fast queries; local model is the final safety net.
 
 *Workflow updated: 2026-11-03*
+
+---
+
+### Part 649 Update (2026-11-03): Qwen2.5 Restored
+
+**Verified**: Local model is Qwen2.5-0.5B and produces coherent responses (~134s). Cloud providers remain the fast path.
+
+*Workflow updated: 2026-11-03*

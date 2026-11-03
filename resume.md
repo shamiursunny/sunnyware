@@ -3110,3 +3110,13 @@ me the exact git commands to commit + push both remotes."
 - **Tool Fast-Path**: Calculator and time tools bypass LLMs and return instantly with beautiful formatting.
 
 *Part 644 logged: 2026-11-03*
+
+---
+
+### Part 649 Update (2026-11-03): Qwen2.5 Restored & Fallback Verified
+
+- **Coherent Local Model**: The local model is confirmed to be Qwen2.5-0.5B (`n_ctx_train=32768`) and produces coherent greetings ("Hello! How can I assist you today?").
+- **Latency Accepted**: Local model latency is ~134s (expected on 2 vCPU). Cloud providers (Groq, Gemini) handle the fast path (<2s).
+- **Fallback Chain Verified**: Successfully tested that when all cloud providers are disabled, the local model catches the request and responds coherently.
+
+*Part 649 logged: 2026-11-03*

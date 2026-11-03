@@ -5270,3 +5270,25 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. New features from the roadmap.
 
 *Handoff updated: 2026-11-03*
+
+---
+
+### Part 649 Update (2026-11-03): Qwen2.5 Restored & Verified
+
+**Status:** ✅ Local fallback is working correctly with Qwen2.5-0.5B.
+
+**What was done:**
+- Reverted the hardcoded path to `qwen2.5-0.5b-instruct-q4_k_m.gguf`.
+- Confirmed `n_ctx_train (32768)` and a coherent response ("Hello! How can I assist you today?").
+- Latency is ~134s, which is expected for 2 vCPUs.
+
+**Architecture:**
+- Fast path: Cloud providers (<2s).
+- Slow fallback: Qwen2.5-0.5B (~134s), used only when all cloud providers fail.
+- GPU grant application is pending.
+
+**Next Steps (Part 650):**
+1. Clean up stale log labels (e.g., "Qwen2.5 Preload Status" still prints when SmolLM loads - though we reverted, the label is hardcoded in main.py).
+2. Move to a new feature or optimization.
+
+*Handoff updated: 2026-11-03*
