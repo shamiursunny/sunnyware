@@ -5232,3 +5232,22 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Final full-stack test: all providers, fallback chain, tool calling.
 
 *Handoff updated: 2026-11-03*
+
+---
+
+### Part 642 Update (2026-11-03): Log Cleanup
+
+**Status:** HF Space logs are clean. No diagnostic spam from the local model.
+
+**What was done:**
+- Removed all `[local_llm.run]` print statements (28 lines).
+- Hardcoded `verbose=False` in `Llama()` init.
+- Removed orphaned `_preview` block.
+- Kept essential `[local_llm] Loading Qwen2.5...` log.
+
+**Next Steps (Part 643):**
+1. Full-stack test: verify all 6 fast providers + fallback chain.
+2. Consider adding SmolLM-135M as a faster local fallback option.
+3. Address any remaining edge cases.
+
+*Handoff updated: 2026-11-03*

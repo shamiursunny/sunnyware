@@ -3088,3 +3088,14 @@ me the exact git commands to commit + push both remotes."
 - **Provider Lineup**: 6 fast free providers (cerebras, groq, openrouter, gemini, pollinations, sambanova) + huggingface (monthly credit exhausted) + local (slow fallback).
 
 *Part 641 logged: 2026-11-03*
+
+---
+
+### Part 642 Update (2026-11-03): Log Cleanup
+
+- **Removed Diagnostic Spam**: All `[local_llm.run]` print statements (START, Tokenizer OK, PROMPT, RETURNED, ERROR) removed from `local_llm.py` (28 lines deleted).
+- **Hardcoded verbose=False**: `verbose` is now always `False` in the `Llama()` init, stopping C++ log spam regardless of env vars.
+- **Fixed Syntax**: Cleaned up orphaned continuation lines left by the initial line-filter approach.
+- **Kept Essential Log**: `[local_llm] Loading Qwen2.5 with n_threads=2` remains as the only local model log line.
+
+*Part 642 logged: 2026-11-03*

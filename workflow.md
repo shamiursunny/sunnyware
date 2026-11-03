@@ -3119,3 +3119,11 @@ Fixed regex for conversation/discussion matching.
 **Fix**: Cerebras (`gpt-oss-120b`, 137ms) and SambaNova (`Meta-Llama-3.3-70B-Instruct`) added. Together AI skipped (paid-only). 6 fast providers now active.
 
 *Workflow updated: 2026-11-03*
+
+---
+
+### Part 642 Update (2026-11-03): Log Cleanup
+
+**Fix**: Removed `[local_llm.run]` diagnostic logs and hardcoded `verbose=False`. HF Space logs are now clean.
+
+*Workflow updated: 2026-11-03*
