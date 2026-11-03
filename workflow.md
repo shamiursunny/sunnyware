@@ -3103,3 +3103,11 @@ Fixed regex for conversation/discussion matching.
 **Fix**: `n_ctx` is hardcoded to 512 (ignoring `LOCAL_MODEL_CTX` env var), `n_batch=512`. Confirms `llama_context: n_ctx_per_seq (512)`.
 
 *Workflow updated: 2026-11-03*
+
+---
+
+### Part 633 Update (2026-11-03): Local Model Stays Visible
+
+**Decision**: Keep local model visible in Admin Dashboard for future hardware upgrade. No hiding applied.
+
+*Workflow updated: 2026-11-03*

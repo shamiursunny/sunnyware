@@ -5191,3 +5191,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 2. Focus on cloud provider reliability — local is a slow fallback.
 
 *Handoff updated: 2026-11-03*
+
+---
+
+### Part 633 Update (2026-11-03): Local Model Kept Visible for Future Upgrade
+
+**Status:** Local model remains visible in the Admin Dashboard, with Test button available.
+
+**What was done:**
+- **No hiding patch applied** — `local` stays in the provider list.
+- The model is still slow on free tier (~130s for 9 tokens), but will be used after upgrading HF hardware.
+- Future upgrade path: set `n_threads` to match physical cores, enable `use_mlock=True`.
+
+**Next Steps (Part 634):**
+1. Focus on cloud provider reliability — retry logic, cooldown tuning, failover ordering.
+2. Clean up diagnostic logging and duplicate comments.
+3. When upgrading HF tier, revisit local model settings.
+
+*Handoff updated: 2026-11-03*

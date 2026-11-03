@@ -3067,3 +3067,13 @@ me the exact git commands to commit + push both remotes."
 - **Test Connection**: The **Test** button per provider is fully functional — `groq` (264ms), `pollinations` (1481ms), `gemini` (432ms), `openrouter` (324ms) all passed.
 
 *Part 632 logged: 2026-11-03*
+
+---
+
+### Part 633 Update (2026-11-03): Local Model Kept Visible for Future Upgrade
+
+- **Decision**: The local Qwen2.5-0.5B model remains **visible and active** in the Admin Dashboard. It is slow on the free 2-vCPU tier (~130s for 9 tokens), but will be usable when upgraded to a higher HF tier.
+- **No Hiding**: We intentionally did **not** hide the `local` provider from the dashboard. The Test button remains available for all 5 providers.
+- **Future Plan**: When upgrading to an 8-vCPU (or higher) HF tier, adjust `n_threads` to match physical cores and enable `use_mlock=True` to leverage extra RAM.
+
+*Part 633 logged: 2026-11-03*
