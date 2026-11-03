@@ -151,7 +151,7 @@ async def chat(
             }
 
         def _run():
-            _mt = max_tokens or int(os.getenv("LOCAL_MODEL_MAX_TOKENS", "48"))  # Part 625: cap at 48 default
+            _mt = max_tokens or int(os.getenv("LOCAL_MODEL_MAX_TOKENS", "96"))  # Part 625: cap at 48 default
             kwargs = {
                 "messages": messages,
                 "temperature": 0.1,
