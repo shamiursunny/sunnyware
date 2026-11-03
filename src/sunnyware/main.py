@@ -339,7 +339,24 @@ try:
         
         def _run_preload():
             try:
-                print("[jarvis] Starting hard preload of Qwen2.5 and Embedder...", flush=True)
+                # Part 645: Download SmolLM-135M if not already present
+                _smollm_path = "/data/models/smollm-135m-instruct-q4_k_m.gguf"
+                import os as _os
+                if not _os.path.exists(_smollm_path):
+                    try:
+                        from huggingface_hub import hf_hub_download
+                        _os.makedirs("/data/models", exist_ok=True)
+                        print("[start] Downloading SmolLM-135M (first run only)...", flush=True)
+                        _downloaded = hf_hub_download(
+                            repo_id="HuggingFaceTB/SmolLM-135M-Instruct-GGUF",
+                            filename="smollm-135m-instruct-q4_k_m.gguf",
+                            local_dir="/data/models/",
+                        )
+                        print(f"[start] SmolLM downloaded to {_smollm_path}", flush=True)
+                    except Exception as _de:
+                        print(f"[start] SmolLM download failed: {_de}", flush=True)
+
+                print("[jarvis] Starting hard preload of SmolLM-135M and Embedder...", flush=True)
                 
                 # 1. Preload MiniCPM
                 res = _aio.run(_jarvis_local.preload())
