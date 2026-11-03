@@ -123,6 +123,28 @@ _TOOL_RESULT_MAX_CHARS = 1500
 _TOOL_RESULT_B64_FIELDS = ("image_base64", "image_data", "chart_base64")
 
 
+# Part 621: Deterministic tools whose results should NOT be reformatted by an LLM.
+# These tools return exact answers (calculator output, exact time, etc.) and the
+# tiny Qwen2.5-0.5B model cannot reliably format them without hallucinating.
+_DIRECT_ANSWER_TOOLS = {"calculator", "current_time", "get_current_time", "time_now"}
+
+
+def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
+    """Part 621: Human-readable answer from a deterministic tool result (no LLM)."""
+    if not isinstance(tool_result, dict):
+        return str(tool_result)
+    if "expression" in tool_result and "result" in tool_result:
+        return f"{tool_result['expression']} = {tool_result['result']}"
+    for key in ("time", "datetime", "current_time", "iso"):
+        if key in tool_result:
+            tz = tool_result.get("timezone") or tool_result.get("tz") or ""
+            return str(tool_result[key]) + (f" ({tz})" if tz else "")
+    if "result" in tool_result:
+        return str(tool_result["result"])
+    import json as _json
+    return _json.dumps(tool_result)
+
+
 def _truncate_tool_result(tool_result: dict) -> dict:
     """Return a version safe to append to messages / send back to LLM.
 
@@ -993,6 +1015,27 @@ async def _run_agent_body(
                     "result": tool_result,
                     "protocol": "native",
                 })
+                # Part 621: Deterministic tools (calculator, current_time) return
+                # immediately WITHOUT calling an LLM to "format" the answer. This
+                # prevents 15s local timeouts and 28s retry loops on trivial math.
+                if (tool_name in _DIRECT_ANSWER_TOOLS
+                        and isinstance(tool_result, dict)
+                        and not tool_result.get("error")):
+                    _direct = _format_direct_answer(tool_name, tool_result)
+                    try:
+                        await _emit(on_event, {"type": "answer", "content": _direct})
+                    except Exception:
+                        pass
+                    return {
+                        "ok": True,
+                        "content": _direct,
+                        "answer": _direct,
+                        "steps": steps,
+                        "iterations": iteration + 1,
+                        "provider": _last_provider,
+                        "resolved_model": _last_model,
+                        "attachments": _attachments,
+                    }
                 if _dup_streak > 0:
                     messages.append({
                         "role": "tool",
