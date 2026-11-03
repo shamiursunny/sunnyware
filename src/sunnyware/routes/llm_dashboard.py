@@ -140,3 +140,37 @@ async def set_orchestrator(req: Request):
     cfg = _lds.set_orchestrator_config(patch)
     return {"ok": True, "config": cfg}
 
+@router.post("/api/llm-dashboard/test-provider/{provider}")
+async def test_provider(provider: str, req: Request):
+    """Part 630: send a minimal 'Say OK' prompt to a specific provider."""
+    d = _admin_only(req)
+    if d: return d
+    import time as _t
+    from .. import providers as _prov
+    from .. import llm as _llm
+
+    provs = _prov.load_providers()
+    target = next((p for p in provs if p.name == provider), None)
+    if not target:
+        return JSONResponse({"ok": False, "error": "Provider not found"}, status_code=404)
+
+    start = _t.time()
+    try:
+        if target.provider_type == "local":
+            from .. import local_llm as _local_llm
+            res = await _local_llm.chat("Say OK", max_tokens=4, timeout=60.0)
+        else:
+            res = await _llm._chat_single(
+                prompt="Say OK", base_url=target.base_url,
+                api_key=target.api_key, model=target.model,
+                timeout=15.0, _retry_depth=0,
+            )
+        latency = int((_t.time() - start) * 1000)
+        if res.get("ok"):
+            content = (res.get("content") or "").strip()[:50]
+            return {"ok": True, "latency_ms": latency, "content": content}
+        else:
+            return {"ok": False, "error": res.get("error", "Unknown"), "latency_ms": latency}
+    except Exception as e:
+        return {"ok": False, "error": str(e), "latency_ms": int((_t.time() - start) * 1000)}
+

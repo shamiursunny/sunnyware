@@ -73,8 +73,9 @@ def _load_sync():
         print(f"[local_llm] Loading Qwen2.5 with n_threads={_n_threads}", flush=True)
         _MODEL = Llama(
             model_path=path,
-            n_ctx=min(int(os.getenv("LOCAL_MODEL_CTX", "2048")), 2048),
+            n_ctx=int(os.getenv("LOCAL_MODEL_CTX", "512")) or 512,  # Part 630: smaller ctx = faster
             n_threads=_n_threads,
+            n_batch=64,  # Part 630
             
             
             use_mlock=False,
@@ -150,7 +151,7 @@ async def chat(
             }
 
         def _run():
-            _mt = max_tokens or int(os.getenv("LOCAL_MODEL_MAX_TOKENS", "32"))  # Part 629: keep responses short for speed  # Part 625: cap at 48 default
+            _mt = max_tokens or int(os.getenv("LOCAL_MODEL_MAX_TOKENS", "64"))  # Part 630: allow full responses  # Part 625: cap at 48 default
             kwargs = {
                 "messages": messages,
                 "temperature": 0.1,

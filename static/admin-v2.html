@@ -2819,7 +2819,8 @@ async function renderLlmDashboard() {
             <td><input type="number" value="${p.config.limit_per_hour}" style="width:70px;padding:4px;font-size:12px;" onblur="saveProviderConfig('${esc(p.name)}', 'limit_per_hour', this.value)"></td>
             <td><input type="number" value="${p.config.limit_per_day}" style="width:80px;padding:4px;font-size:12px;" onblur="saveProviderConfig('${esc(p.name)}', 'limit_per_day', this.value)"></td>
             <td>${p.is_cooling ? '<span style="color:#f39c12;">' + Math.ceil(p.cooldown_remaining) + 's</span>' : '-'}</td>
-            <td><button class="ghost small" onclick="resetCooldown('${esc(p.name)}')">Reset</button></td>
+            <td><button class="ghost small" onclick="resetCooldown('${esc(p.name)}')">Reset</button>
+                <button class="ghost small" onclick="testProvider('${esc(p.name)}', this)">Test</button></td>
           </tr>
         `).join('')}
       </tbody>
@@ -2902,6 +2903,26 @@ async function moveProvider(provider, direction) {
     toast('Priority updated');
     renderLlmDashboard();
   } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function testProvider(provider, btn) {
+  const orig = btn.innerText;
+  btn.innerText = "Testing...";
+  btn.disabled = true;
+  try {
+    const res = await fetch('/api/llm-dashboard/test-provider/' + encodeURIComponent(provider), { method: 'POST' });
+    const data = await res.json();
+    if (data.ok) {
+      toast(`OK ${provider} (${data.latency_ms}ms): "${data.content}"`, 'success');
+    } else {
+      toast(`FAIL ${provider} (${data.latency_ms || 0}ms): ${data.error}`, 'error');
+    }
+  } catch (e) {
+    toast(`ERROR ${provider}: ${e.message}`, 'error');
+  } finally {
+    btn.innerText = orig;
+    btn.disabled = false;
+  }
 }
 
 async function resetCooldown(provider) {
