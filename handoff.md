@@ -5144,3 +5144,26 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Extend `_DIRECT_ANSWER_TOOLS` to include `hash`, `convert_units`, etc.
 
 *Handoff updated: 2026-11-03*
+
+---
+
+### Part 629 Update (2026-11-03): Local Model Working — Slow Fallback
+
+**Status:** ✅ The local model works. "hi" → "Hello! How can I assist you today?" in 129.2s.
+
+**What was done:**
+- Bypassed `create_chat_completion` with manual ChatML + `create_completion` (the chat template was hanging in llama-cpp-python 0.3.16).
+- Timeout 200s, max_tokens=32, system prompt 200 chars.
+- Confirmed via logs: `RETURNED in 129.2s: prompt_tokens=153, completion_tokens=9`.
+
+**Architecture Decision:**
+- **Primary path**: Cloud providers (Groq, Gemini, Pollinations, OpenRouter) — sub-2s.
+- **Fallback**: Local Qwen2.5 — ~130s per response on free CPU. Used only when all cloud providers fail.
+- **Do not test locally as primary** — it's a resilience layer, not a speed layer.
+
+**Next Steps (Part 630):**
+1. Add a "Test Connection" button per provider in the Admin Dashboard.
+2. Focus on cloud provider reliability — add retry logic, cooldown tuning, failover.
+3. Consider HF Spaces paid tier (2 vCPU → 8 vCPU) if local speed becomes important.
+
+*Handoff updated: 2026-11-03*

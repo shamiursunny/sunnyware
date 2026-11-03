@@ -3044,3 +3044,15 @@ me the exact git commands to commit + push both remotes."
 - **Jarvis Fast-Path**: Added a deterministic fast-path to the Jarvis route in `orchestrator.py`. The `calculator` and `current_time` tools now return immediately without calling any LLM — both in the native tool loop and the Jarvis keyword route.
 
 *Part 622 logged: 2026-11-03*
+
+---
+
+### Part 629 Update (2026-11-03): Local Model Working (Slow Fallback)
+
+- **Confirmed Working**: The local Qwen2.5 model responded to "hi" with "Hello! How can I assist you today?" after 129.2s.
+- **Fix**: Bypassed `create_chat_completion` (which hung) with manual ChatML formatting + `create_completion`.
+- **Tuning**: Timeout 200s, max_tokens=32, system prompt 200 chars.
+- **Latency**: ~1.26 tokens/sec on 2-core HF Spaces free CPU.
+- **Architecture**: Local model is a **slow last-resort fallback**. Cloud providers (Groq, Gemini, Pollinations, OpenRouter) are the primary fast path.
+
+*Part 629 logged: 2026-11-03*

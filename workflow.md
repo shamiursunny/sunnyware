@@ -3087,3 +3087,11 @@ Fixed regex for conversation/discussion matching.
 **Fix**: Math matcher normalizes `×`, `÷`, `−`, etc. to ASCII. Added deterministic fast-path to the Jarvis route so calculator results return instantly without an LLM call.
 
 *Workflow updated: 2026-11-03*
+
+---
+
+### Part 629 Update (2026-11-03): Local Model Confirmed Working
+
+**Success**: "hi" → "Hello! How can I assist you today?" in 129.2s. Local model is a slow but functional fallback.
+
+*Workflow updated: 2026-11-03*
