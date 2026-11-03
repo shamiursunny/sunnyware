@@ -145,7 +145,7 @@ def load_providers(reload: bool = False) -> List[Provider]:
             # Part 638: SambaNova free tier — very fast inference
             base_url = "https://api.sambanova.ai/v1"
             api_key = (os.getenv("SAMBANOVA_API_KEY") or "").strip()
-            model = (os.getenv("SAMBANOVA_MODEL") or "Meta-Llama-3.3-70B-Instruct").strip()
+            model = (os.getenv("SAMBANOVA_MODEL") or "Meta-Llama-3.1-8B-Instruct").strip()
         elif name == "together":
             # Part 638: Together AI free tier — fast, robust models
             base_url = "https://api.together.xyz/v1"
