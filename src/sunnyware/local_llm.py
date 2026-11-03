@@ -34,8 +34,8 @@ def _enabled() -> bool:
 
 
 def _model_path() -> str:
-    # Part 647: Force SmolLM path — bypass env var entirely
-    return "/data/models/SmolLM-135M-Instruct-Q4_K_M.gguf"
+    # Part 648: Revert to Qwen2.5-0.5B — SmolLM-135M is too dumb and hallucinates
+    return "/data/models/qwen2.5-0.5b-instruct-q4_k_m.gguf"
 
 
 def is_enabled() -> bool:
