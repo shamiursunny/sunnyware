@@ -115,6 +115,9 @@ def load_providers(reload: bool = False) -> List[Provider]:
         "pollinations": 32000,
         "mistral": 32000,
         "nvidia": 8000,
+        "cerebras": 8000,       # Part 638
+        "sambanova": 8000,      # Part 638
+        "together": 32000,      # Part 638
         "local": 2048,         # matches LOCAL_MODEL_CTX
         "ollama": 4000,        # Qwen2.5-0.5B works best under 4k prompt
     }
@@ -133,6 +136,21 @@ def load_providers(reload: bool = False) -> List[Provider]:
             api_key = (os.getenv("HF_TOKEN") or "").strip()
             # Llama-3.3-70B is widely available; no :fastest suffix needed
             model = (os.getenv("HUGGINGFACE_MODEL") or "meta-llama/Llama-3.3-70B-Instruct").strip()
+        elif name == "cerebras":
+            # Part 638: Cerebras free tier — ultra-fast inference
+            base_url = "https://api.cerebras.ai/v1"
+            api_key = (os.getenv("CEREBRAS_API_KEY") or "").strip()
+            model = (os.getenv("CEREBRAS_MODEL") or "llama3.1-8b").strip()
+        elif name == "sambanova":
+            # Part 638: SambaNova free tier — very fast inference
+            base_url = "https://api.sambanova.ai/v1"
+            api_key = (os.getenv("SAMBANOVA_API_KEY") or "").strip()
+            model = (os.getenv("SAMBANOVA_MODEL") or "Meta-Llama-3.1-8B-Instruct").strip()
+        elif name == "together":
+            # Part 638: Together AI free tier — fast, robust models
+            base_url = "https://api.together.xyz/v1"
+            api_key = (os.getenv("TOGETHER_API_KEY") or "").strip()
+            model = (os.getenv("TOGETHER_MODEL") or "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo").strip()
         elif name == "local":
             # In-process llama-cpp-python — no HTTP URL needed
             base_url = (os.getenv("LOCAL_MODEL_BASE_URL") or "in-process").strip() or "in-process"
