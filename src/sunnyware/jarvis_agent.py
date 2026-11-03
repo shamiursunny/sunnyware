@@ -219,7 +219,14 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
 
     # Part 473: Math check BEFORE tool_keywords bypass
     import re as _re
-    _math = _re.search(r'(-?\d+(?:\.\d+)?\s*[\+\-\*\/\%\^]\s*-?\d+(?:\.\d+)?)', prompt)
+    # Part 622: Normalize unicode math operators so "5 × 7?" and "10 ÷ 2" match
+    _norm = (
+        prompt.replace("×", "*").replace("✕", "*").replace("⨯", "*")
+              .replace("÷", "/").replace("／", "/")
+              .replace("−", "-").replace("–", "-").replace("—", "-")
+              .replace("＋", "+")
+    )
+    _math = _re.search(r'(-?\d+(?:\.\d+)?\s*[\+\-\*\/\%\^]\s*-?\d+(?:\.\d+)?)', _norm)
     if _math and all(c in "0123456789+-*/%^() ." for c in _math.group(1).strip()):
         print("[jarvis] Math expression detected, routing to calculator", flush=True)
         return {"tool": "calculator", "args": {"expression": _math.group(1).strip()}}

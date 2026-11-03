@@ -857,6 +857,33 @@ async def _run_agent_body(
                             "type": "tool_result", "tool": _tool_name,
                             "result": _tool_result,
                         })
+                        # Part 622: Deterministic tools return instantly without LLM
+                        if (_tool_name in _DIRECT_ANSWER_TOOLS
+                                and isinstance(_tool_result, dict)
+                                and not _tool_result.get("error")):
+                            _direct = _format_direct_answer(_tool_name, _tool_result)
+                            try:
+                                await _emit(on_event, {"type": "answer", "content": _direct})
+                            except Exception:
+                                pass
+                            steps.append({
+                                "iteration": 1,
+                                "tool": _tool_name,
+                                "args": _tool_args,
+                                "result": _tool_result,
+                                "protocol": "jarvis",
+                            })
+                            return {
+                                "ok": True,
+                                "content": _direct,
+                                "answer": _direct,
+                                "steps": steps,
+                                "iterations": 1,
+                                "provider": "none",
+                                "resolved_model": "none",
+                                "attachments": _attachments,
+                            }
+                        # Non-deterministic tools still use the LLM to format
                         _final_prompt = (
                             "Question: " + prompt + "\n"
                             + "Tool result: " + json.dumps(_tool_result) + "\n\n"
