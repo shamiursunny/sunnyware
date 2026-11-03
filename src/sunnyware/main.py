@@ -358,11 +358,11 @@ try:
                     except Exception as _de:
                         print(f"[start] SmolLM download failed: {_de}", flush=True)
 
-                print("[jarvis] Starting hard preload of SmolLM-135M and Embedder...", flush=True)
+                print(f"[jarvis] Starting hard preload of {os.path.basename(_jarvis_local._model_path())} and Embedder...", flush=True)
                 
                 # 1. Preload MiniCPM
                 res = _aio.run(_jarvis_local.preload())
-                print(f"[jarvis] Qwen2.5 Preload Status: {res}", flush=True)
+                print(f"[jarvis] Local Model Preload Status: {res}", flush=True)
 
                 
                 # 2. Preload Embedder only (Part 620)

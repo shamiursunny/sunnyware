@@ -71,7 +71,8 @@ def _load_sync():
         # Part 623: use all available cores for faster generation
         import os as _os
         _n_threads = int(_os.getenv("LOCAL_MODEL_N_THREADS", "2")) or 2  # Part 625: default 2 threads for 2-core HF Spaces
-        print(f"[local_llm] Loading Qwen2.5 with n_threads={_n_threads}", flush=True)
+        _model_name = os.path.basename(path).split('-')[0] or "local"
+        print(f"[local_llm] Loading {_model_name} with n_threads={_n_threads}", flush=True)
         _MODEL = Llama(
             model_path=path,
             n_ctx=512,  # Part 632: hardcoded — ignore LOCAL_MODEL_CTX env var
