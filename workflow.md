@@ -3143,3 +3143,11 @@ Fixed regex for conversation/discussion matching.
 **Verified**: Local model is Qwen2.5-0.5B and produces coherent responses (~134s). Cloud providers remain the fast path.
 
 *Workflow updated: 2026-11-03*
+
+---
+
+### Part 650 Update (2026-11-03): Dynamic Log Labels
+
+**Fix**: Model log labels are now dynamic (read from actual file path). No more hardcoded "SmolLM" or "Qwen2.5".
+
+*Workflow updated: 2026-11-03*

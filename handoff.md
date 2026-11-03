@@ -5292,3 +5292,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 2. Move to a new feature or optimization.
 
 *Handoff updated: 2026-11-03*
+
+---
+
+### Part 650 Update (2026-11-03): Dynamic Log Labels
+
+**Status:** Logs now accurately show the loaded model name.
+
+**What was done:**
+- `main.py`: Preload message uses `os.path.basename(_jarvis_local._model_path())`.
+- `main.py`: Status message is now generic ("Local Model Preload Status").
+- `local_llm.py`: Log uses `_model_name = os.path.basename(path).split('-')[0]`.
+
+**Next Steps (Part 651):**
+1. Cloud provider retry logic (exponential backoff for 5xx).
+2. Or new feature from roadmap.
+
+*Handoff updated: 2026-11-03*

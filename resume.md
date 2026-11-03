@@ -3120,3 +3120,13 @@ me the exact git commands to commit + push both remotes."
 - **Fallback Chain Verified**: Successfully tested that when all cloud providers are disabled, the local model catches the request and responds coherently.
 
 *Part 649 logged: 2026-11-03*
+
+---
+
+### Part 650 Update (2026-11-03): Dynamic Log Labels
+
+- **Fixed Stale Labels**: `main.py` and `local_llm.py` no longer hardcode "SmolLM" or "Qwen2.5" in log messages. The preload message now reads the actual model filename from `_model_path()`.
+- **Dynamic Model Name**: `local_llm.py` derives the model prefix from the file path (`qwen2.5-0.5b-instruct-q4_k_m.gguf` → `qwen2.5`).
+- **Result**: Logs now accurately reflect the loaded model, making future debugging much easier.
+
+*Part 650 logged: 2026-11-03*
