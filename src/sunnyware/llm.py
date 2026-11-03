@@ -521,12 +521,14 @@ async def chat(
                 timeout=min(timeout, 30.0),
             )
         else:
+            _t0 = time.time()
             r = await _chat_single(
                 prompt=prompt, base_url=p.base_url, api_key=p.api_key,
                 model=_resolved.get(p.name) or model or p.model, system=system, history=history,
                 tools=(tools if getattr(p, "supports_tools", True) else None),
                 timeout=timeout, _retry_depth=_retry_depth,
             )
+            _elapsed = time.time() - _t0
         r["provider"] = p.name
         r["resolved_model"] = _resolved.get(p.name)
         if r.get("ok"):
@@ -590,10 +592,12 @@ async def chat(
                 _m.incr_labeled("llm_provider_attempt", p.name)
             except Exception:
                 pass
+            _t0 = time.time()
             r = await _local_llm.chat(
                 prompt=prompt, model=p.model, system=system,
                 history=history, tools=tools, timeout=min(timeout, 30.0),  # Part 268: Cap HTTP timeout to prevent long hangs
             )
+            _elapsed = time.time() - _t0
             if r.get("ok") and _is_empty_response(r):
                 # Part 101: empty response from local model — try next
                 _err = "empty LLM response (no content, no tool calls)"
@@ -607,7 +611,7 @@ async def chat(
                     pass
                 continue
             if r.get("ok"):
-                p.record_success()
+                p.record_success(_elapsed)
                 return r
             p.record_failure(r.get("error", ""))
             last_err = r.get("error", "")
@@ -620,12 +624,14 @@ async def chat(
         except Exception:
             pass
 
+        _t0 = time.time()
         r = await _chat_single(
             prompt=prompt, base_url=p.base_url, api_key=p.api_key,
             model=_resolved.get(p.name) or model or p.model, system=system, history=history,
             tools=(tools if getattr(p, "supports_tools", True) else None),
             timeout=timeout, _retry_depth=0,
         )
+        _elapsed = time.time() - _t0
         r["provider"] = p.name
         r["resolved_model"] = _resolved.get(p.name)
 
@@ -644,7 +650,7 @@ async def chat(
             continue
 
         if r.get("ok"):
-            p.record_success()
+            p.record_success(_elapsed)
             return r
 
         err = r.get("error", "")
