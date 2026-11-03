@@ -3111,3 +3111,11 @@ Fixed regex for conversation/discussion matching.
 **Decision**: Keep local model visible in Admin Dashboard for future hardware upgrade. No hiding applied.
 
 *Workflow updated: 2026-11-03*
+
+---
+
+### Part 641 Update (2026-11-03): Cerebras & SambaNova Added
+
+**Fix**: Cerebras (`gpt-oss-120b`, 137ms) and SambaNova (`Meta-Llama-3.3-70B-Instruct`) added. Together AI skipped (paid-only). 6 fast providers now active.
+
+*Workflow updated: 2026-11-03*

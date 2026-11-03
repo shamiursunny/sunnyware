@@ -5209,3 +5209,26 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. When upgrading HF tier, revisit local model settings.
 
 *Handoff updated: 2026-11-03*
+
+---
+
+### Part 641 Update (2026-11-03): Provider Expansion Complete
+
+**Status:** 6 fast free cloud providers now active + local fallback.
+
+**What was done:**
+- **Cerebras**: `gpt-oss-120b`, working at 137ms.
+- **SambaNova**: `Meta-Llama-3.3-70B-Instruct`, temporarily rate-limited (429) during test but configuration is correct.
+- **Together AI**: Skipped (requires $15 minimum purchase).
+- **HuggingFace**: Out of monthly free credits; remains as fallback for next month.
+
+**Architecture:**
+- 6 fast cloud providers (cerebras 137ms, groq 264ms, openrouter 324ms, gemini 432ms, pollinations 1481ms, sambanova pending).
+- Local Qwen2.5 as slow (~130s) last-resort fallback.
+
+**Next Steps (Part 642):**
+1. Clean up diagnostic logging (`[local_llm.run]`).
+2. Remove `LOCAL_MODEL_VERBOSE=1` from HF settings.
+3. Final full-stack test: all providers, fallback chain, tool calling.
+
+*Handoff updated: 2026-11-03*

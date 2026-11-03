@@ -3077,3 +3077,14 @@ me the exact git commands to commit + push both remotes."
 - **Future Plan**: When upgrading to an 8-vCPU (or higher) HF tier, adjust `n_threads` to match physical cores and enable `use_mlock=True` to leverage extra RAM.
 
 *Part 633 logged: 2026-11-03*
+
+---
+
+### Part 641 Update (2026-11-03): Provider Expansion - Cerebras & SambaNova
+
+- **Cerebras Added**: Working at **137ms** (fastest provider). Model: `gpt-oss-120b`. Free tier: 1M tokens/day.
+- **SambaNova Added**: Configured with `Meta-Llama-3.3-70B-Instruct`. Temporarily rate-limited during testing (HTTP 429) due to free-tier 10 RPM limit, but the configuration is correct and the router handles 429s gracefully.
+- **Together AI**: Skipped — no longer offers free credits ($15 minimum purchase required).
+- **Provider Lineup**: 6 fast free providers (cerebras, groq, openrouter, gemini, pollinations, sambanova) + huggingface (monthly credit exhausted) + local (slow fallback).
+
+*Part 641 logged: 2026-11-03*
