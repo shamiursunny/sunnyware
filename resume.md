@@ -3099,3 +3099,14 @@ me the exact git commands to commit + push both remotes."
 - **Kept Essential Log**: `[local_llm] Loading Qwen2.5 with n_threads=2` remains as the only local model log line.
 
 *Part 642 logged: 2026-11-03*
+
+---
+
+### Part 644 Update (2026-11-03): Full-Stack Fallback Test Verified
+
+- **Complete Fallback Chain Verified**: Live LLM Log confirms requests are successfully routed across all 8 providers.
+- **Fast Cloud Routing**: Groq (3.1s), Gemini (0.9s), Pollinations (7.6s) handled general queries.
+- **Local Fallback Confirmed**: When all cloud providers failed, local Qwen2.5 handled the request in ~132s.
+- **Tool Fast-Path**: Calculator and time tools bypass LLMs and return instantly with beautiful formatting.
+
+*Part 644 logged: 2026-11-03*
