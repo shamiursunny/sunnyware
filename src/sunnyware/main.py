@@ -340,7 +340,7 @@ try:
         def _run_preload():
             try:
                 # Part 645: Download SmolLM-135M if not already present
-                _smollm_path = "/data/models/smollm-135m-instruct-q4_k_m.gguf"
+                _smollm_path = "/data/models/SmolLM-135M-Instruct-Q4_K_M.gguf"
                 import os as _os
                 if not _os.path.exists(_smollm_path):
                     try:
@@ -348,8 +348,8 @@ try:
                         _os.makedirs("/data/models", exist_ok=True)
                         print("[start] Downloading SmolLM-135M (first run only)...", flush=True)
                         _downloaded = hf_hub_download(
-                            repo_id="HuggingFaceTB/SmolLM-135M-Instruct-GGUF",
-                            filename="smollm-135m-instruct-q4_k_m.gguf",
+                            repo_id="second-state/SmolLM-135M-Instruct-GGUF",
+                            filename="SmolLM-135M-Instruct-Q4_K_M.gguf",
                             local_dir="/data/models/",
                         )
                         print(f"[start] SmolLM downloaded to {_smollm_path}", flush=True)
