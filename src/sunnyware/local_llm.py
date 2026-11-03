@@ -34,7 +34,8 @@ def _enabled() -> bool:
 
 
 def _model_path() -> str:
-    return (os.getenv("LOCAL_MODEL_PATH") or "").strip()
+    # Part 647: Force SmolLM path — bypass env var entirely
+    return "/data/models/SmolLM-135M-Instruct-Q4_K_M.gguf"
 
 
 def is_enabled() -> bool:
