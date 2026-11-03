@@ -75,7 +75,6 @@ def _load_sync():
             model_path=path,
             n_ctx=min(int(os.getenv("LOCAL_MODEL_CTX", "2048")), 2048),
             n_threads=_n_threads,
-            n_batch=128,
             
             
             use_mlock=False,
@@ -158,8 +157,8 @@ async def chat(
                 "stream": False,
                 "max_tokens": _mt,
                 "top_p": 0.95,
-                "repeat_penalty": 1.1,
-                # No custom "stop" — let Qwen's chat template handle it naturally
+                "repeat_penalty": 1.0,  # Part 627: revert to working value
+                "stop": ["<|im_end|>", "<|endoftext|>"],  # Part 627: restore working stop tokens
             }
             if tools:
                 import json
