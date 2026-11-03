@@ -5127,3 +5127,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Run the fast test suite locally to confirm no regressions.
 
 *Handoff updated: 2026-11-03*
+
+---
+
+### Part 622 Update (2026-11-03): Unicode Math & Jarvis Fast-Path
+
+**Status:** Both `2+2` and `5 × 7?` return instantly from the calculator with zero LLM calls.
+
+**What was done:**
+- Normalized unicode math operators (`×`, `✕`, `⨯`, `÷`, `−`, `–`, `—`, `＋`) to ASCII before regex matching in `jarvis_agent.py`.
+- Added a `_DIRECT_ANSWER_TOOLS` fast-path to the Jarvis route in `orchestrator.py` — matching the one already in the native tool loop.
+
+**Next Steps (Part 623):**
+1. Investigate the `local model timeout (15s)` seen for "hi" — Qwen2.5-0.5B should respond in ~2s. Possible causes: threads, context size, or system prompt length.
+2. Add a "Test Connection" button per provider in the Admin Dashboard.
+3. Extend `_DIRECT_ANSWER_TOOLS` to include `hash`, `convert_units`, etc.
+
+*Handoff updated: 2026-11-03*

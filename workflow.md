@@ -3079,3 +3079,11 @@ Fixed regex for conversation/discussion matching.
 **Fix**: `saveProviderConfig` in `static/admin-v2.html` now handles booleans separately (was failing on `parseInt`). Toasts confirm the save and toggles persist across refreshes.
 
 *Workflow updated: 2026-11-03*
+
+---
+
+### Part 622 Update (2026-11-03): Unicode Math & Jarvis Fast-Path
+
+**Fix**: Math matcher normalizes `×`, `÷`, `−`, etc. to ASCII. Added deterministic fast-path to the Jarvis route so calculator results return instantly without an LLM call.
+
+*Workflow updated: 2026-11-03*

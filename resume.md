@@ -3035,3 +3035,12 @@ me the exact git commands to commit + push both remotes."
 - **Verified**: Toggles persist after a page refresh; with all cloud providers disabled, the local model handles the request.
 
 *Part 617 logged: 2026-11-03*
+
+---
+
+### Part 622 Update (2026-11-03): Unicode Math & Jarvis Fast-Path
+
+- **Unicode Operators**: The math matcher now normalizes `×`, `✕`, `⨯`, `÷`, `−`, `–`, `—`, `＋` to ASCII before matching. `"5 × 7?"` now routes to `calculator` and returns `"5 * 7 = 35"` instantly.
+- **Jarvis Fast-Path**: Added a deterministic fast-path to the Jarvis route in `orchestrator.py`. The `calculator` and `current_time` tools now return immediately without calling any LLM — both in the native tool loop and the Jarvis keyword route.
+
+*Part 622 logged: 2026-11-03*
