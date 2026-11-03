@@ -2910,8 +2910,8 @@ async function testProvider(provider, btn) {
   btn.innerText = "Testing...";
   btn.disabled = true;
   try {
-    const res = await fetch('/api/llm-dashboard/test-provider/' + encodeURIComponent(provider), { method: 'POST' });
-    const data = await res.json();
+    // Use api() wrapper which automatically adds the X-API-Key
+    const data = await api('/api/llm-dashboard/test-provider/' + encodeURIComponent(provider), 'POST');
     if (data.ok) {
       toast(`OK ${provider} (${data.latency_ms}ms): "${data.content}"`, 'success');
     } else {
