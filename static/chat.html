@@ -138,6 +138,16 @@ body.selection-mode .chat-item .chat-menu-btn{display:none;}
 .chat-item.selected{background:rgba(91,141,239,0.15);}
 .chat-item .chat-actions{display:none;gap:2px}
 .chat-item .chat-menu-btn:hover{background:var(--hover)}
+/* Part 684: Search highlighting & filters */
+.search-clear-btn { position: absolute; right: 28px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-tertiary); cursor: pointer; font-size: 18px; line-height: 1; padding: 0 6px; display: none; }
+.search-clear-btn:hover { color: var(--text); }
+.sidebar-search { position: relative; }
+.search-filters { display: flex; gap: 4px; padding: 6px 14px 8px; flex-wrap: wrap; }
+.search-filter-chip { padding: 3px 10px; border-radius: 99px; border: 1px solid var(--border); background: transparent; color: var(--text-secondary); font-size: 11px; cursor: pointer; transition: all 0.15s ease; }
+.search-filter-chip:hover { background: var(--hover); color: var(--text); }
+.search-filter-chip.active { background: var(--accent); border-color: var(--accent); color: white; }
+mark { background: rgba(91,141,239,0.35); color: inherit; padding: 0 2px; border-radius: 2px; }
+body.light-mode mark { background: rgba(255,235,59,0.6); color: #1a1d26; }
 /* Part 679: DeepSeek-style menu items with icons */
 .chat-dropdown .chat-menu-item {
   display: flex;
@@ -1108,12 +1118,19 @@ body.light-mode .settings-close { border-color: #e2e5ec; color: #1a1d26; }
     </div>
 
     <div class="sidebar-search">
-
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
-
-      <input type="text" id="searchInput" placeholder="Search chats...">
-
+      <input type="text" id="searchInput" placeholder="Search chats..." oninput="onSearchInput(this.value)">
+      <button class="search-clear-btn" id="searchClearBtn" onclick="clearSearch()" title="Clear search" style="display:none;">×</button>
     </div>
+
+    <div class="search-filters" id="searchFilters">
+      <button class="search-filter-chip active" data-filter="all" onclick="setDateFilter('all')">All</button>
+      <button class="search-filter-chip" data-filter="today" onclick="setDateFilter('today')">Today</button>
+      <button class="search-filter-chip" data-filter="yesterday" onclick="setDateFilter('yesterday')">Yesterday</button>
+      <button class="search-filter-chip" data-filter="7days" onclick="setDateFilter('7days')">Last 7 days</button>
+    </div>
+
+    <div id="searchResultCount" style="display:none;padding:2px 14px 6px;font-size:11px;color:var(--text-tertiary);"></div>
 
     <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 14px;font-size:11px;color:var(--text-tertiary);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">
       <span id="chat-list-header-title">Chats</span>
@@ -2752,10 +2769,62 @@ document.getElementById('docsClearBtn').onclick = async () => {
 
 function groupLabel(iso){ const d=(new Date()-new Date(iso))/86400000; if(d<1)return'Today'; if(d<2)return'Yesterday'; if(d<7)return'Previous 7 days'; if(d<30)return'Previous 30 days'; return'Older'; }
 
-function renderChatList(filter=''){
-  console.log('[renderChatList] called, chats.length=', chats.length);
 
-  const filtered=chats.filter(c=>c.title.toLowerCase().includes(filter.toLowerCase()));
+// Part 684: Search highlighting & filters
+let currentDateFilter = 'all';
+function highlightMatch(text, query) {
+  if (!query) return esc(text);
+  const escaped = esc(text);
+  const q = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp('(' + q + ')', 'gi');
+  return escaped.replace(regex, '<mark>$1</mark>');
+}
+function onSearchInput(val) {
+  const clearBtn = document.getElementById('searchClearBtn');
+  if (clearBtn) clearBtn.style.display = val ? 'block' : 'none';
+  renderChatList(val);
+}
+function clearSearch() {
+  const input = document.getElementById('searchInput');
+  if (input) { input.value = ''; onSearchInput(''); input.focus(); }
+}
+function setDateFilter(filter) {
+  currentDateFilter = filter;
+  document.querySelectorAll('.search-filter-chip').forEach(chip => {
+    chip.classList.toggle('active', chip.dataset.filter === filter);
+  });
+  renderChatList($('#searchInput') ? $('#searchInput').value : '');
+}
+function matchesDateFilter(chat) {
+  if (currentDateFilter === 'all') return true;
+  const updated = new Date(chat.updated || chat.created || 0);
+  const now = new Date();
+  const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  if (currentDateFilter === 'today') return updated >= startOfDay;
+  if (currentDateFilter === 'yesterday') { const y = new Date(startOfDay); y.setDate(y.getDate() - 1); return updated >= y && updated < startOfDay; }
+  if (currentDateFilter === '7days') { const w = new Date(startOfDay); w.setDate(w.getDate() - 6); return updated >= w; }
+  return true;
+}
+document.addEventListener('keydown', (e) => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); const inp = document.getElementById('searchInput'); if (inp) { inp.focus(); inp.select(); } }
+});
+
+function renderChatList(filter=''){
+  const filtered = chats.filter(c => {
+    const matchesTitle = c.title.toLowerCase().includes(filter.toLowerCase());
+    const matchesDate = matchesDateFilter(c);
+    return matchesTitle && matchesDate;
+  });
+
+  const countEl = document.getElementById('searchResultCount');
+  if (countEl) {
+    if (filter || currentDateFilter !== 'all') {
+      countEl.style.display = 'block';
+      countEl.textContent = filtered.length + ' result' + (filtered.length === 1 ? '' : 's') + (filter ? ' for "' + filter + '"' : '');
+    } else {
+      countEl.style.display = 'none';
+    }
+  }
 
   chatList.innerHTML='';
 
@@ -2895,7 +2964,7 @@ function chatItemEl(c){
   div.innerHTML=`<input type="checkbox" class="chat-checkbox" ${selectedChats.has(c.id)?'checked':''} onclick="event.stopPropagation(); toggleChatSelection('${c.id}')">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;color:var(--text-tertiary)"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
 
-    <span class="chat-title">${esc(c.title)}</span>
+    <span class="chat-title">${highlightMatch(c.title, document.getElementById("searchInput") ? document.getElementById("searchInput").value : "")}</span>
 
     ${c.branched?'<span class="branch-badge">branch</span>':''}
 
