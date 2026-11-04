@@ -5589,3 +5589,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Verify new features in production.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 669 Update (2026-11-04): Lower Auto-Disable Threshold to 25%
+
+**Status:** ✅ Threshold changed to 25%.
+
+**What was done:**
+- `llm.py`: `(s["ok"] / s["total"]) < 0.25`
+- `llm_dashboard.py`: `(s["ok_1h"] / total_1h) < 0.25`
+- `static/admin-v2.html`: `r.success_pct_1h < 25`
+
+**Next Steps (Part 670):**
+- Verify providers with 25-49% success remain active.
+
+*Handoff updated: 2026-11-04*

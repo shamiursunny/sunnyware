@@ -3293,3 +3293,13 @@ me the exact git commands to commit + push both remotes."
 - **Chat Polish**: Added automatic "Copy" buttons to code blocks in the Chat UI (`static/chat.html`), with a mutation observer to handle dynamically added code blocks.
 
 *Part 668 logged: 2026-11-04*
+
+---
+
+### Part 669 Update (2026-11-04): Lower Auto-Disable Threshold to 25%
+
+- **New Threshold**: The auto-disable logic now triggers only when success rate falls below **25%** (was 50%).
+- **Reason**: A 50% cutoff was too aggressive — providers with 33% or 37% success still serve 1 in 3 requests and shouldn't be disabled.
+- **Files updated**: `llm.py` (routing logic), `llm_dashboard.py` (health endpoint), `static/admin-v2.html` (frontend badge).
+
+*Part 669 logged: 2026-11-04*

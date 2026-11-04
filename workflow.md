@@ -3271,3 +3271,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Cost column in Provider Health (free vs paid). CSS bars in Usage Analytics. Copy buttons on chat code blocks.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 669 Update (2026-11-04): Lower Auto-Disable Threshold to 25%
+
+**Changed**: Auto-disable threshold lowered from 50% to 25% success rate. Providers with 25-49% success remain active.
+
+*Workflow updated: 2026-11-04*
