@@ -3490,3 +3490,15 @@ me the exact git commands to commit + push both remotes."
 - **Ctrl+K shortcut**: Focuses and selects the search box from anywhere in the chat UI.
 
 *Part 684 logged: 2026-11-04*
+
+---
+
+### Part 685 Update (2026-11-04): Public Share Link Endpoint
+
+- **New `/share/{chat_id}` endpoint**: Renders a clean, read-only HTML page with the selected messages.
+- **Message filtering**: The `?msgs=id1,id2` query parameter filters which messages are shown.
+- **Syntax highlighting**: Code blocks use `highlight.js` on the share page.
+- **Back link**: A "← Open Sunnyware" link returns to the chat UI.
+- **Dark theme**: The share page uses the same dark theme as the chat UI.
+
+*Part 685 logged: 2026-11-04*

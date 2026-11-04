@@ -3415,3 +3415,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Text highlighting in chat titles, result count, clear button, date filter chips, and Ctrl+K shortcut.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 685 Update (2026-11-04): Public Share Link Endpoint
+
+**New**: `/share/{chat_id}` endpoint renders selected messages as a read-only HTML page with syntax highlighting and a back link.
+
+*Workflow updated: 2026-11-04*

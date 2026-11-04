@@ -5911,3 +5911,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - All options (A, B, C) now complete.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 685 Update (2026-11-04): Public Share Link Endpoint
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `routes/meta.py`: Added `_find_chat_by_id()`, `_md_lite_share()`, and `share_chat()` endpoint.
+- `routes/meta.py`: The endpoint filters messages by `?msgs=` and renders a read-only HTML page.
+- The page includes syntax highlighting via `highlight.js`, a dark theme, and a "← Open Sunnyware" back link.
+
+**Next Steps (Part 686):**
+- Verify the share link works end-to-end.
+
+*Handoff updated: 2026-11-04*
