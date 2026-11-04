@@ -958,6 +958,98 @@ body.message-selection-mode #messageSelectionBar { display: flex; }
   height: 18px;
 }
 
+
+/* Part 683: Settings Modal + Light Mode */
+:root { --chat-font-size: 14px; }
+.msg-text { font-size: var(--chat-font-size); }
+.settings-modal-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  z-index: 10000;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.settings-modal-backdrop.open { display: flex; }
+.settings-modal {
+  background: #12161f;
+  border: 1px solid #232a38;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 420px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.settings-modal h3 { margin: 0 0 20px; font-size: 18px; color: #e7ecf3; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #1f222b; }
+.settings-row:last-of-type { border-bottom: none; }
+.settings-label { font-size: 14px; color: #e7ecf3; }
+.settings-sublabel { font-size: 11px; color: #8892a6; margin-top: 2px; }
+.settings-toggle-btn {
+  padding: 6px 16px;
+  border-radius: 6px;
+  border: 1px solid #232a38;
+  background: #1a1d26;
+  color: #e7ecf3;
+  cursor: pointer;
+  font-size: 13px;
+}
+.settings-toggle-btn.active { background: #5b8def; border-color: #5b8def; color: white; }
+.settings-slider { width: 140px; accent-color: #5b8def; }
+.settings-danger-btn {
+  padding: 6px 16px;
+  border-radius: 6px;
+  border: 1px solid #ef5b5b;
+  background: transparent;
+  color: #ef5b5b;
+  cursor: pointer;
+  font-size: 13px;
+}
+.settings-danger-btn:hover { background: rgba(239,91,91,0.12); }
+.settings-close {
+  margin-top: 20px;
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: 1px solid #232a38;
+  background: transparent;
+  color: #e7ecf3;
+  cursor: pointer;
+  font-size: 14px;
+}
+.settings-close:hover { background: rgba(255,255,255,0.05); }
+
+/* Light mode overrides */
+body.light-mode {
+  --bg: #f8f9fb;
+  --sidebar: #ffffff;
+  --panel: #ffffff;
+  --border: #e2e5ec;
+  --text: #1a1d26;
+  --muted: #6b7280;
+  --hover: #f0f2f5;
+  --active: #e8ebf0;
+  --sidebar-bg: #ffffff;
+  --text-tertiary: #8892a6;
+  --bg-tertiary: #f0f2f5;
+  background: #f8f9fb;
+  color: #1a1d26;
+}
+body.light-mode .sidebar { background: #ffffff; }
+body.light-mode .msg-text code { background: #f0f2f5; }
+body.light-mode .code-block { background: #f8f9fb; border-color: #e2e5ec; }
+body.light-mode .code-head { background: #f0f2f5; color: #6b7280; }
+body.light-mode .settings-modal { background: #ffffff; border-color: #e2e5ec; }
+body.light-mode .settings-row { border-color: #e8ebf0; }
+body.light-mode .settings-label { color: #1a1d26; }
+body.light-mode .settings-sublabel { color: #6b7280; }
+body.light-mode .settings-toggle-btn { background: #f0f2f5; border-color: #e2e5ec; color: #1a1d26; }
+body.light-mode .settings-close { border-color: #e2e5ec; color: #1a1d26; }
+
 </style>
 
 
@@ -5307,7 +5399,102 @@ window.addEventListener('resize', () => {
   document.querySelectorAll('.chat-dropdown').forEach(d => { d.style.display = 'none'; d.classList.remove('open'); });
 }, { passive: true });
 
+
+// Part 683: Settings modal
+function openSettingsModal() {
+  document.getElementById('settingsModalBackdrop').classList.add('open');
+  loadSettings();
+}
+function closeSettingsModal() {
+  document.getElementById('settingsModalBackdrop').classList.remove('open');
+}
+function setTheme(theme) {
+  if (theme === 'light') {
+    document.body.classList.add('light-mode');
+    localStorage.setItem('sunny_theme', 'light');
+  } else {
+    document.body.classList.remove('light-mode');
+    localStorage.setItem('sunny_theme', 'dark');
+  }
+  updateThemeButtons();
+}
+function updateThemeButtons() {
+  const isLight = document.body.classList.contains('light-mode');
+  const darkBtn = document.getElementById('themeDarkBtn');
+  const lightBtn = document.getElementById('themeLightBtn');
+  if (darkBtn) darkBtn.classList.toggle('active', !isLight);
+  if (lightBtn) lightBtn.classList.toggle('active', isLight);
+}
+function updateFontSize(val) {
+  document.documentElement.style.setProperty('--chat-font-size', val + 'px');
+  localStorage.setItem('sunny_font_size', val);
+  const label = document.getElementById('fontSizeLabel');
+  if (label) label.textContent = val + 'px';
+}
+function clearLocalHistory() {
+  if (!confirm('Clear all local chats and files? This cannot be undone.')) return;
+  localStorage.removeItem('sunny_chats');
+  localStorage.removeItem('sunny_files');
+  localStorage.removeItem('sunny_active');
+  chats = [];
+  files = [];
+  activeChatId = null;
+  renderChatList('');
+  renderMessages();
+  toast('Local history cleared');
+}
+function loadSettings() {
+  const theme = localStorage.getItem('sunny_theme') || 'dark';
+  if (theme === 'light') document.body.classList.add('light-mode');
+  updateThemeButtons();
+  const fs = localStorage.getItem('sunny_font_size') || '14';
+  document.documentElement.style.setProperty('--chat-font-size', fs + 'px');
+  const slider = document.getElementById('fontSizeSlider');
+  if (slider) slider.value = fs;
+  const label = document.getElementById('fontSizeLabel');
+  if (label) label.textContent = fs + 'px';
+}
+// Wire up the user pill button
+document.addEventListener('DOMContentLoaded', () => {
+  const userPill = document.getElementById('userPillBtn');
+  if (userPill) userPill.onclick = openSettingsModal;
+  loadSettings();
+});
 </script>
+
+<div class="settings-modal-backdrop" id="settingsModalBackdrop">
+  <div class="settings-modal">
+    <h3>Settings</h3>
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Theme</div>
+        <div class="settings-sublabel">Switch between dark and light mode</div>
+      </div>
+      <div style="display:flex;gap:6px;">
+        <button class="settings-toggle-btn" id="themeDarkBtn" onclick="setTheme('dark')">Dark</button>
+        <button class="settings-toggle-btn" id="themeLightBtn" onclick="setTheme('light')">Light</button>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Font Size</div>
+        <div class="settings-sublabel">Chat message font size</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <input type="range" min="12" max="20" value="14" class="settings-slider" id="fontSizeSlider" oninput="updateFontSize(this.value)">
+        <span id="fontSizeLabel" style="font-size:12px;color:#8892a6;">14px</span>
+      </div>
+    </div>
+    <div class="settings-row">
+      <div>
+        <div class="settings-label">Clear Local History</div>
+        <div class="settings-sublabel">Remove chats and files stored in this browser</div>
+      </div>
+      <button class="settings-danger-btn" onclick="clearLocalHistory()">Clear</button>
+    </div>
+    <button class="settings-close" onclick="closeSettingsModal()">Close</button>
+  </div>
+</div>
 </body>
 
 </html>
