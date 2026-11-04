@@ -3722,6 +3722,9 @@ function downloadCode(block) {
   if (codeEl && codeEl.querySelector('code')) {
     const codeTag = codeEl.querySelector('code');
     lang = codeTag.className.replace('language-', '').split(' ')[0] || 'txt';
+    // Map full language names to file extensions
+    const extMap = { 'python': 'py', 'javascript': 'js', 'typescript': 'ts', 'markdown': 'md', 'plaintext': 'txt', 'c++': 'cpp', 'csharp': 'cs' };
+    lang = extMap[lang.toLowerCase()] || lang;
     code = codeTag.innerText; // Get clean code without button text
   } else if (block.querySelector('.code-head span')) {
     lang = block.querySelector('.code-head span').innerText;
