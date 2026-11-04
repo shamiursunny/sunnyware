@@ -1752,6 +1752,25 @@ const LS_CHATS='sunny_chats_v2', LS_FILES='sunny_files_v1', LS_THEME='sunny_them
 
 let chats=[], files=[], activeChatId=null, isGenerating=false, editingId=null;
 
+// Part 673: Load chats from server (fallback for Incognito)
+async function loadChatsFromServer() {
+  try {
+    const res = await fetch('/api/chats', { headers: { 'X-User-Id': localStorage.getItem('sunny_user_id') || 'anonymous' } });
+    const data = await res.json();
+    if (data.ok && Array.isArray(data.chats) && data.chats.length > 0) {
+      if (chats.length === 0) {
+        chats = data.chats;
+        saveAll();
+        renderChatList($('#searchInput') ? $('#searchInput').value : '');
+        console.log('[chat] Loaded', chats.length, 'chats from server');
+      }
+    }
+  } catch (e) {
+    console.warn('[chat] Server load failed:', e);
+  }
+}
+window.addEventListener('load', () => { setTimeout(loadChatsFromServer, 500); });
+
 let view='chat';                    // 'chat' | 'library'
 
 let libKind='upload';               // library tab
@@ -2066,7 +2085,15 @@ document.addEventListener('click', function(e) {
 
 /* ==================== STORAGE ==================== */
 
-function saveAll(){ try{ localStorage.setItem(LS_CHATS,JSON.stringify(chats)); localStorage.setItem(LS_FILES,JSON.stringify(files)); }catch(e){ toast('Storage full — large files kept for this session only'); } }
+function saveAll(){
+  try{ localStorage.setItem(LS_CHATS,JSON.stringify(chats)); localStorage.setItem(LS_FILES,JSON.stringify(files)); }catch(e){ toast('Storage full — large files kept for this session only'); }
+  // Part 673: Also save to server (fire-and-forget)
+  fetch('/api/chats', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-User-Id': localStorage.getItem('sunny_user_id') || 'anonymous' },
+    body: JSON.stringify({ chats: chats })
+  }).catch(() => {});
+}
 
 function loadAll(){
 
@@ -2390,6 +2417,7 @@ document.getElementById('docsClearBtn').onclick = async () => {
 function groupLabel(iso){ const d=(new Date()-new Date(iso))/86400000; if(d<1)return'Today'; if(d<2)return'Yesterday'; if(d<7)return'Previous 7 days'; if(d<30)return'Previous 30 days'; return'Older'; }
 
 function renderChatList(filter=''){
+  console.log('[renderChatList] called, chats.length=', chats.length);
 
   const filtered=chats.filter(c=>c.title.toLowerCase().includes(filter.toLowerCase()));
 

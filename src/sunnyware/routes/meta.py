@@ -314,6 +314,38 @@ async def web_ui():
         return _HR(p.read_text(encoding="utf-8"))
     return _HR("<h1>Chat UI not found</h1>")
 
+# Part 673: Server-side chat persistence (for Incognito / cross-browser)
+import json as _json
+from pathlib import Path as _Path
+from fastapi import Request as _Request
+
+_CHAT_STORE_DIR = _Path("/data/chat_history")
+_CHAT_STORE_DIR.mkdir(parents=True, exist_ok=True)
+
+def _chat_store_path(user_id: str) -> _Path:
+    import hashlib
+    safe = hashlib.sha256(user_id.encode()).hexdigest()[:16]
+    return _CHAT_STORE_DIR / f"chats_{safe}.json"
+
+@router.get("/api/chats")
+async def load_chats(req: _Request):
+    user = req.headers.get("x-user-id") or "anonymous"
+    path = _chat_store_path(user)
+    if path.exists():
+        try:
+            return {"ok": True, "chats": _json.loads(path.read_text())}
+        except Exception:
+            pass
+    return {"ok": True, "chats": []}
+
+@router.post("/api/chats")
+async def save_chats(req: _Request):
+    body = await req.json()
+    user = req.headers.get("x-user-id") or "anonymous"
+    path = _chat_store_path(user)
+    path.write_text(_json.dumps(body.get("chats", [])))
+    return {"ok": True}
+
 @router.get("/api/firewall/status")
 async def firewall_status():
     """Inspect IP allowlist + security header configuration."""
