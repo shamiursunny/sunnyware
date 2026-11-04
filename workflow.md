@@ -3247,3 +3247,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Added "Recover" button to Provider Settings. Sets a 1h `force_recover_until` override to immediately un-disable a provider.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 666 Update (2026-11-04): Auto-Recovery & Toast Notifications
+
+**New**: Background loop pings disabled providers every 15 min and force-recovers them on success. Toast notifications on state change. Lazy startup for HF Spaces.
+
+*Workflow updated: 2026-11-04*

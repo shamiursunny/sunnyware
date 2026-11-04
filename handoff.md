@@ -5539,3 +5539,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Or move to a new feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 666 Update (2026-11-04): Auto-Recovery & Toast Notifications
+
+**Status:** ✅ Auto-recovery background loop and toast notifications implemented.
+
+**What was done:**
+- `llm.py`: Added `_auto_recover_loop()` and `_ensure_auto_recover_loop()` for lazy startup.
+- `llm.py`: Hooked `_ensure_auto_recover_loop()` into `_auto_disabled_providers()`.
+- `main.py`: Added `_ensure_auto_recover_loop()` to the lifespan (for local dev).
+- `static/admin-v2.html`: Added `prevAutoDisabled` tracker and toast notifications in the health table map.
+
+**Next Steps (Part 667):**
+- Verify toast notifications and auto-recovery in production.
+- Or move to a new feature.
+
+*Handoff updated: 2026-11-04*

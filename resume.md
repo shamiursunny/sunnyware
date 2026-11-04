@@ -3263,3 +3263,13 @@ me the exact git commands to commit + push both remotes."
 - **Use Case**: Recovering from quota resets or temporary outages without waiting for the 1-hour stats window to roll over.
 
 *Part 665 logged: 2026-11-04*
+
+---
+
+### Part 666 Update (2026-11-04): Auto-Recovery & Toast Notifications
+
+- **Background Auto-Recovery**: Every 15 minutes, the system pings auto-disabled providers. If one succeeds, it automatically force-recovers it for 1 hour.
+- **Toast Notifications**: When a provider is auto-disabled or recovers, a toast pops up in the bottom right of the Admin Dashboard.
+- **Lazy Startup**: The recovery loop starts lazily (on first health check) to support HF Spaces where lifespan is skipped.
+
+*Part 666 logged: 2026-11-04*
