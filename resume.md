@@ -3164,3 +3164,13 @@ me the exact git commands to commit + push both remotes."
 - **Quota vs Rate Limit**: The cooldown helper now distinguishes between **quota exceeded** (3600s / 1 hour cooldown — don't retry until reset) and **transient rate limit** (15s cooldown — retry soon). No more wasted retries on exhausted quotas.
 
 *Part 655/656 logged: 2026-11-04*
+
+---
+
+### Part 658 Update (2026-11-04): Test Results Logged to Health Stats
+
+- **Gap Closed**: The Test button previously updated cooldowns in memory but never wrote to `llm_call_logs.json` — so the Provider Health table stayed empty. Now every test calls `log_llm_call()` with `user="test"`.
+- **Dashboard Populated**: Success 1h, Avg latency, P95 latency, and Last Error now populate after each Test All run.
+- **Quota/Credits Cooldown**: `402` errors and `credits`/`billing`/`payment required` now get 3600s cooldown (was 20s default). Gemini quota, HuggingFace credits, and any billing-related errors are now properly cooled for 1 hour.
+
+*Part 658 logged: 2026-11-04*

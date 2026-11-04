@@ -5367,3 +5367,25 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 2. Or move to a new feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 658 Update (2026-11-04): Test Results Logged to Health Stats
+
+**Status:** ✅ Test All now fully populates the Provider Health dashboard.
+
+**What was done:**
+- `test_provider` now calls `log_llm_call(provider, model, ok, latency, error, user="test")`.
+- 402/credits/payment-required errors now get 3600s cooldown (was 20s default).
+- Provider Health table now shows Success %, Avg latency, P95 latency, and Last Error after each Test All.
+
+**Verified:**
+- After Test All: successful providers show 100% (1); failed providers show 0% (1).
+- Gemini quota → 3600s. HuggingFace 402 → 3600s. SambaNova 429 → 15s.
+- Live LLM Log also now shows test entries with `user=test`.
+
+**Next Steps (Part 659):**
+1. Final verification of the complete Test All flow.
+2. Or move to a new feature.
+
+*Handoff updated: 2026-11-04*

@@ -3175,3 +3175,11 @@ Fixed regex for conversation/discussion matching.
 **Fix**: Test All is sequential with error reasons. Quota errors get 3600s cooldown; transient rate-limits get 15s.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 658 Update (2026-11-04): Test Logging + 402/credits Cooldown
+
+**Fix**: Test results now write to health stats. 402/credits get 3600s cooldown. Provider Health table now populates after Test All.
+
+*Workflow updated: 2026-11-04*
