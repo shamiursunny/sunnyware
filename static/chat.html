@@ -705,6 +705,13 @@ body.message-selection-mode #messageSelectionBar { display: flex; }
   max-width: 100%;
   margin: 12px 0;
 }
+.table-scroll-wrapper::-webkit-scrollbar {
+  height: 8px;
+}
+.table-scroll-wrapper::-webkit-scrollbar-thumb {
+  background: var(--text-tertiary);
+  border-radius: 4px;
+}
 .table-scroll-wrapper table {
   min-width: max-content !important;
   margin: 0 !important;
@@ -3474,7 +3481,7 @@ function mdLite(text){
   t=t.replace(/`([^`\n]+)`/g,'<code>$1</code>');
 
   // Part 670: Markdown tables
-  t=t.replace(/^\|(.+)\|\s*\n\|[-:| ]+\|\s*\n((?:\|.*\|\s*\n?)+)/gm, (m, header, body) => {
+  t=t.replace(/^\s*\|(.+)\|\s*\n\s*\|[-:| ]+\|\s*\n((?:\s*\|.*\|\s*\n?)+)/gm, (m, header, body) => {
     const cols = header.split('|').map(c => c.trim()).filter(Boolean);
     const rows = body.trim().split('\n').map(r =>
       r.split('|').map(c => c.trim()).filter(Boolean)
@@ -3868,7 +3875,8 @@ const scrollBottom=()=>requestAnimationFrame(()=>chatScroll.scrollTop=chatScroll
     const { scrollTop, scrollHeight, clientHeight } = scrollEl;
     const isNearBottom = scrollTop + clientHeight >= scrollHeight - 100;
 
-    if (scrollHeight > clientHeight + 200) {
+    // Show button if content is taller than the viewport
+    if (scrollHeight > clientHeight + 50) {
       toggleBtn.classList.add('visible');
     } else {
       toggleBtn.classList.remove('visible');
@@ -3884,19 +3892,30 @@ const scrollBottom=()=>requestAnimationFrame(()=>chatScroll.scrollTop=chatScroll
     }
   }
 
+  // Listen for scroll events
   scrollEl.addEventListener('scroll', updateScrollBtn);
   
+  // Listen for DOM changes (new messages)
   const observer = new MutationObserver(updateScrollBtn);
   if (messagesEl) {
     observer.observe(messagesEl, { childList: true, subtree: true, characterData: true });
   }
 
+  // Also update on window resize
+  window.addEventListener('resize', updateScrollBtn);
+
+  // Initial check
+  setTimeout(updateScrollBtn, 100);
+
+  // Click handler
   toggleBtn.addEventListener('click', () => {
     const isUp = toggleBtn.classList.contains('up');
     scrollEl.scrollTo({
       top: isUp ? 0 : scrollEl.scrollHeight,
       behavior: 'smooth'
     });
+    // Update button state after smooth scroll finishes
+    setTimeout(updateScrollBtn, 600);
   });
 })();
 
