@@ -3335,3 +3335,11 @@ Fixed regex for conversation/discussion matching.
 **New**: The hamburger button now acts as a true toggle (open/close) on desktop and mobile. X button still closes the sidebar.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 676 Update (2026-11-04): Final UI Fixes — Hamburger, Dropdown, Cross-Session Sync
+
+**Fixed**: Hamburger always visible on desktop, dropdown inline positioning removed, cross-session user ID detection via cookie/localStorage.
+
+*Workflow updated: 2026-11-04*

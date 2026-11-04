@@ -5739,3 +5739,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Or move to a new feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 676 Update (2026-11-04): Final UI Fixes — Hamburger, Dropdown, Cross-Session Sync
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: `.menu-btn` now `display:inline-flex` (always visible).
+- `static/chat.html`: Removed inline `position:absolute;right:0;top:100%` from `.chat-dropdown` so CSS `position:fixed` takes effect.
+- `static/chat.html`: Added `getUserIdForChats()` and a fetch interceptor to inject `X-User-Id` for `/api/chats`.
+
+**Next Steps (Part 677):**
+- Verify hamburger toggle, dropdown positioning, and Incognito sync.
+
+*Handoff updated: 2026-11-04*

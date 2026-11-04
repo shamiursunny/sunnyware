@@ -3381,3 +3381,13 @@ me the exact git commands to commit + push both remotes."
 - **Mobile drawer**: The hamburger opens the drawer with an overlay on small screens.
 
 *Part 674 logged: 2026-11-04*
+
+---
+
+### Part 676 Update (2026-11-04): Final UI Fixes — Hamburger, Dropdown, Cross-Session Sync
+
+- **Hamburger always visible**: `.menu-btn` changed from `display:none` to `display:inline-flex` so the sidebar can be reopened on desktop.
+- **Dropdown positioning**: Removed inline `position:absolute;right:0;top:100%` that was overriding our fixed positioning.
+- **Cross-session user ID**: Added `getUserIdForChats()` helper and a fetch interceptor to inject `X-User-Id` for `/api/chats` requests, with fallback from localStorage → sessionStorage → JWT cookie → `anonymous`.
+
+*Part 676 logged: 2026-11-04*
