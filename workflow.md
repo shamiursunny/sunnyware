@@ -3463,3 +3463,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Stop button replaces Send during generation. Uses AbortController to cancel fetch and keeps partial text.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 691 Update (2026-11-04): Agent Tools Discovery
+
+**Discovered**: All requested agent tools already exist — `web_fetch`, `pdf_read`, `html_to_text`, `python_eval`, `image_generate`. 83 tools total. No new code needed.
+
+*Workflow updated: 2026-11-04*

@@ -6011,3 +6011,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Implement Batch 2 (Agent Tools: `fetch_url`, `read_pdf`).
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 691 Update (2026-11-04): Agent Tools Discovery
+
+**Status:** ✅ All requested tools already exist and are registered.
+
+**What was done:**
+- Verified that `web_fetch`, `pdf_read`, `html_to_text`, `python_eval`, and `image_generate` are all in the `_TOOLS` registry.
+- Removed the duplicate `fetch_url.py` and `read_pdf.py` that were mistakenly created.
+- Confirmed the tools are accessible via `get_tool()`.
+
+**Next Steps (Part 692):**
+- No new tools needed — all requested functionality is already available.
+- Move to a new feature or UI polish.
+
+*Handoff updated: 2026-11-04*

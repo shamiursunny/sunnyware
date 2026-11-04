@@ -3555,3 +3555,16 @@ me the exact git commands to commit + push both remotes."
 - **UI reset**: The send/stop button toggles are handled in `finally` for consistency.
 
 *Part 690 logged: 2026-11-04*
+
+---
+
+### Part 691 Update (2026-11-04): Agent Tools Discovery
+
+- **Discovered**: All requested tools already exist in the codebase. No new code needed.
+- **`web_fetch`** — fetches a URL, strips HTML, returns plain text.
+- **`pdf_read`** — reads a PDF from the workspace and extracts page-by-page text.
+- **`html_to_text`** — converts HTML to clean markdown, preserving structure.
+- **`python_eval`** and **`image_generate`** — already registered for code execution and image generation.
+- **83 tools total** are registered in the `_TOOLS` dict.
+
+*Part 691 logged: 2026-11-04*
