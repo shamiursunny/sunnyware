@@ -857,7 +857,17 @@ async def _run_agent_body(
                 _tool_obj = get_tool(_tool_name)
                 if _tool_obj:
                     try:
+                        import time as _time
+                        _t0 = _time.time()
                         _tool_result = await _tool_obj.run(_tool_args)
+                        # Part 697b: log tool call for analytics (jarvis bypass path)
+                        try:
+                            from . import analytics_hooks as _ah
+                            _ok = not (isinstance(_tool_result, dict) and _tool_result.get("error"))
+                            _ah._log_tool(_tool_name, (_time.time() - _t0) * 1000, _ok,
+                                          str(_tool_result.get("error", "")) if isinstance(_tool_result, dict) else "")
+                        except Exception:
+                            pass
                         await _emit(on_event, {
                             "type": "tool_call", "tool": _tool_name,
                             "args": _tool_args, "protocol": "jarvis",
