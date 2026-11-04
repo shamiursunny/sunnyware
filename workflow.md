@@ -3207,3 +3207,11 @@ Fixed regex for conversation/discussion matching.
 **Verified**: Search, rename, and delete for sessions already work (implemented in `webui.py`). No new code needed.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 662 Update (2026-11-04): Tokens by Model + GGUF Cleanup
+
+**New**: Tokens by Model table. Startup cleanup deletes unused GGUF files (~150MB freed). Removed stale SmolLM override.
+
+*Workflow updated: 2026-11-04*

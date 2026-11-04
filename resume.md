@@ -3212,3 +3212,13 @@ me the exact git commands to commit + push both remotes."
 - **Storage**: Sessions are stored in browser `localStorage` (`sunnyware_sessions_v2`), with Neon as an optional backup.
 
 *Part 661 logged: 2026-11-04*
+
+---
+
+### Part 662 Update (2026-11-04): Tokens by Model + GGUF Cleanup
+
+- **Tokens by Model**: New table in the Usage Analytics card showing model-level token usage over 7 days.
+- **GGUF Cleanup**: On startup, unused GGUF files are deleted from `/data/models/` (keeping only the active Qwen2.5 model). This frees ~150MB from the old SmolLM download.
+- **Stale Override Removed**: Removed the leftover `os.environ["LOCAL_MODEL_PATH"]` override from Part 646 that was still pointing at SmolLM.
+
+*Part 662 logged: 2026-11-04*

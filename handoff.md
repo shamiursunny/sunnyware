@@ -5449,3 +5449,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Or refine the UI further.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 662 Update (2026-11-04): Tokens by Model + GGUF Cleanup
+
+**Status:** ✅ Usage Analytics now includes per-model breakdown; unused GGUF files auto-cleaned.
+
+**What was done:**
+- Added "Tokens by Model" table to Usage Analytics card.
+- Replaced SmolLM download block with GGUF cleanup.
+- Removed stale `os.environ["LOCAL_MODEL_PATH"]` override from Part 646.
+
+**Next Steps (Part 663):**
+1. Verify the cleanup log line in Space logs.
+2. Verify the "Tokens by Model" table renders.
+3. Or move to a new feature.
+
+*Handoff updated: 2026-11-04*
