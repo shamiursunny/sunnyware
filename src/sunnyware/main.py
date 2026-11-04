@@ -196,7 +196,7 @@ app.include_router(rag_routes.router)
 
 # Part 89: serve local static assets (marked.js etc.) - no CDN dependency
 from fastapi.staticfiles import StaticFiles as _StaticFiles
-_STATIC_DIR = Path(__file__).parent / "static"
+_STATIC_DIR = Path(__file__).parent.parent.parent / "static"
 if _STATIC_DIR.is_dir():
     app.mount("/static", _StaticFiles(directory=str(_STATIC_DIR)), name="static")
 
