@@ -318,6 +318,28 @@ body.sidebar-collapsed #menuBtn {
 .msg-text code{background:var(--bg-tertiary);padding:2px 6px;border-radius:6px;font-family:"SF Mono",Menlo,Consolas,monospace;font-size:13px}
 
 .msg-actions{display:flex;gap:4px;margin-top:4px}
+/* Part 680: Message selection */
+.msg { position: relative; }
+.msg .msg-checkbox { display: none; position: absolute; left: 6px; top: 12px; z-index: 10; width: 16px; height: 16px; cursor: pointer; }
+body.message-selection-mode .msg .msg-checkbox { display: block; }
+body.message-selection-mode .msg { padding-left: 32px; }
+body.message-selection-mode .msg-actions { display: none; }
+body.message-selection-mode .msg .msg-avatar { margin-left: 0; }
+#messageSelectionBar {
+  display: none;
+  background: #0f1117;
+  border-top: 1px solid #232a38;
+  padding: 12px 16px;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+body.message-selection-mode #messageSelectionBar { display: flex; }
+#messageSelectionBar label { display: flex; align-items: center; gap: 6px; font-size: 13px; color: #e7ecf3; cursor: pointer; }
+#messageSelectionBar .ms-count { flex: 1; font-size: 13px; color: #8892a6; }
+#messageSelectionBar button { padding: 6px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; border: none; }
+#messageSelectionBar .ms-cancel { background: transparent; color: #e7ecf3; border: 1px solid #232a38; }
+#messageSelectionBar .ms-create { background: #5b8def; color: white; }
 
 .msg-actions .icon-btn{width:32px;height:32px;color:var(--text-tertiary)}
 
@@ -1046,6 +1068,7 @@ body.sidebar-collapsed #menuBtn {
 
         <div class="dropdown" id="chatOptionsMenu" style="left:auto;right:0;min-width:210px">
 
+          <button class="dropdown-item" id="optSelectMessages" onclick="toggleMessageSelection(); document.getElementById('chatOptionsMenu').classList.remove('open');"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><div class="dd-info"><div class="dd-name">Select messages</div><div class="dd-desc">Pick messages to share</div></div></button>
           <button class="dropdown-item" id="optSelectAll"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><div class="dd-info"><div class="dd-name">Select all chats</div><div class="dd-desc">Select every chat in the list</div></div></button>
 
           <button class="dropdown-item" id="optClearSelection"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg><div class="dd-info"><div class="dd-name">Clear selection</div><div class="dd-desc">Deselect all chats</div></div></button>
@@ -1166,7 +1189,13 @@ body.sidebar-collapsed #menuBtn {
 
       <div class="composer">
 
-        <div class="attach-preview hidden" id="attachPreview"></div>
+            <div id="messageSelectionBar">
+      <label><input type="checkbox" id="msSelectAll" onchange="toggleSelectAllMessages(this)"> Select all</label>
+      <span class="ms-count" id="msCount">0 conversation turns selected</span>
+      <button class="ms-cancel" onclick="exitMessageSelection()">Cancel</button>
+      <button class="ms-create" onclick="createPublicLink()">Create public link</button>
+    </div>
+<div class="attach-preview hidden" id="attachPreview"></div>
 
         <textarea id="chatInput" rows="1" placeholder="Message Sunnyware..."></textarea>
 
@@ -1810,6 +1839,59 @@ window.fetch = function(url, options) {
 const LS_CHATS='sunny_chats_v2', LS_FILES='sunny_files_v1', LS_THEME='sunny_theme';
 
 let chats=[], files=[], activeChatId=null, isGenerating=false, editingId=null;
+let selectedMsgs = new Set();
+
+function toggleMessageSelection() {
+  document.body.classList.toggle('message-selection-mode');
+  if (!document.body.classList.contains('message-selection-mode')) {
+    selectedMsgs.clear();
+  }
+  renderMessages();
+  updateMsgSelectionBar();
+}
+
+function toggleMessageSelected(id) {
+  if (selectedMsgs.has(id)) selectedMsgs.delete(id);
+  else selectedMsgs.add(id);
+  updateMsgSelectionBar();
+}
+
+function toggleSelectAllMessages(cb) {
+  const chat = chats.find(c => c.id === activeChatId);
+  if (!chat) return;
+  if (cb.checked) {
+    chat.messages.forEach(m => selectedMsgs.add(m.id));
+  } else {
+    selectedMsgs.clear();
+  }
+  renderMessages();
+  updateMsgSelectionBar();
+}
+
+function exitMessageSelection() {
+  selectedMsgs.clear();
+  document.body.classList.remove('message-selection-mode');
+  renderMessages();
+  updateMsgSelectionBar();
+}
+
+function updateMsgSelectionBar() {
+  const count = selectedMsgs.size;
+  const el = document.getElementById('msCount');
+  if (el) el.textContent = count + ' conversation turn' + (count === 1 ? '' : 's') + ' selected';
+  const all = document.getElementById('msSelectAll');
+  if (all) {
+    const chat = chats.find(c => c.id === activeChatId);
+    all.checked = chat && chat.messages.length > 0 && count === chat.messages.length;
+  }
+}
+
+function createPublicLink() {
+  if (selectedMsgs.size === 0) return toast('Select at least one message', 'error');
+  const ids = [...selectedMsgs].join(',');
+  const url = 'https://shamiur-sunnyware.hf.space/share/' + activeChatId + '?msgs=' + encodeURIComponent(ids);
+  navigator.clipboard.writeText(url).then(() => toast('Public link copied to clipboard'));
+}
 
 // Part 673: Load chats from server (fallback for Incognito)
 
@@ -3010,6 +3092,13 @@ function msgEl(m){
   const editedTag=m.edited?'<span class="edited-tag">edited</span>':'';
 
   const art=m.genFileId?artifactEl({id:m.genFileId},true):'';
+
+  const cb = document.createElement('input');
+  cb.type = 'checkbox';
+  cb.className = 'msg-checkbox';
+  cb.checked = selectedMsgs.has(m.id);
+  cb.onchange = () => toggleMessageSelected(m.id);
+  div.appendChild(cb);
 
   div.innerHTML=(isAI?'<div class="msg-avatar ai">N</div>':'')+
 
