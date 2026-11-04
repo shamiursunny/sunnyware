@@ -3215,3 +3215,19 @@ Fixed regex for conversation/discussion matching.
 **New**: Tokens by Model table. Startup cleanup deletes unused GGUF files (~150MB freed). Removed stale SmolLM override.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 663 Update (2026-11-04): Auto-disable Unhealthy Providers
+
+**New**: Router skips providers with >3 calls and <50% success in 1h. Red "(auto-disabled)" badge in Health table. Manual Reset sets a 1h override.
+
+*Workflow updated: 2026-11-04*
+
+---
+
+### Part 663 Update (2026-11-04): Auto-disable Unhealthy Providers
+
+**New**: Router skips providers with >3 calls and <50% success in 1h. Red "(auto-disabled)" badge calculated via frontend. Reset only clears cooldown.
+
+*Workflow updated: 2026-11-04*

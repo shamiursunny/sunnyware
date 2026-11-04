@@ -3222,3 +3222,25 @@ me the exact git commands to commit + push both remotes."
 - **Stale Override Removed**: Removed the leftover `os.environ["LOCAL_MODEL_PATH"]` override from Part 646 that was still pointing at SmolLM.
 
 *Part 662 logged: 2026-11-04*
+
+---
+
+### Part 663 Update (2026-11-04): Auto-disable Unhealthy Providers
+
+- **New Behavior**: The router now skips any provider with **>3 calls and <50% success** in the last hour (was 5). A 60-second cache prevents log spam.
+- **Manual Override**: Clicking **Reset** on a provider sets a 1-hour override that forces it active again, useful for recovering from quota resets.
+- **Visual Indicator**: The Provider Health table shows a red **"(auto-disabled)"** badge next to the Live status for affected providers.
+- **Cache Invalidation**: The auto-disable cache is cleared whenever a manual reset happens, so changes take effect immediately.
+
+*Part 663 logged: 2026-11-04*
+
+---
+
+### Part 663 Update (2026-11-04): Auto-disable Unhealthy Providers
+
+- **New Behavior**: The router now skips any provider with **>3 calls and <50% success** in the last hour.
+- **Visual Indicator**: The Provider Health table shows a red **"(auto-disabled)"** badge for affected providers.
+- **No Override**: The Reset button only clears the cooldown; it does not override auto-disable.
+- **Clean Code**: Removed stale `auto_disable_override_until` references and calculated the badge directly in the frontend from API stats.
+
+*Part 663 logged: 2026-11-04*

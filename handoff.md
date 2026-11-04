@@ -5467,3 +5467,42 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Or move to a new feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 663 Update (2026-11-04): Auto-disable Unhealthy Providers
+
+**Status:** ✅ Auto-disable logic live.
+
+**What was done:**
+- `llm.py`: Added `_auto_disabled_providers()` (60s cache) that returns providers with >3 calls and <50% success in last 1h.
+- `llm.py`: Routing loop skips auto-disabled providers with a log line.
+- `routes/llm_dashboard.py`: Health endpoint returns `auto_disabled` flag per provider.
+- `routes/llm_dashboard.py`: `reset_cooldown` sets a 1h manual override and clears the cache.
+- `static/admin-v2.html`: Shows a red "(auto-disabled)" badge in the Health table.
+
+**Next Steps (Part 664):**
+1. Verify with live traffic that auto-disable triggers correctly.
+2. Consider adding a toast/notification when a provider becomes auto-disabled.
+3. Or move to a new feature.
+
+*Handoff updated: 2026-11-04*
+
+---
+
+### Part 663 Update (2026-11-04): Auto-disable Unhealthy Providers
+
+**Status:** ✅ Auto-disable logic live and verified.
+
+**What was done:**
+- `llm.py`: `_auto_disabled_providers()` returns providers with >3 calls and <50% success in last 1h.
+- `llm.py`: Routing loop skips auto-disabled providers.
+- `routes/llm_dashboard.py`: Health endpoint returns `auto_disabled` flag.
+- `routes/llm_dashboard.py`: `reset_cooldown` clears cooldown only.
+- `static/admin-v2.html`: Calculates the red "(auto-disabled)" badge directly from `total_1h` and `success_pct_1h`.
+
+**Next Steps (Part 664):**
+1. Verify badge appears after restart.
+2. Or move to a new feature.
+
+*Handoff updated: 2026-11-04*

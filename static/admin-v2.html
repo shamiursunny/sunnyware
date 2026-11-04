@@ -3042,7 +3042,7 @@ async function refreshLlmHealth() {
         ${rows.map(r => `
           <tr>
             <td><strong>${esc(r.provider)}</strong></td>
-            <td>${badge(r.live_status)}</td>
+            <td>${badge(r.live_status)}${(r.total_1h >= 3 && r.success_pct_1h !== null && r.success_pct_1h < 50) ? ' <span style="color:#e74c3c;font-size:10px;font-weight:600;margin-left:6px;">(auto-disabled)</span>' : ''}</td>
             <td>${r.live_status === 'cooling' ? '<span style="color:#f39c12;">' + r.cooldown_remaining_s + 's</span>' : '-'}</td>
             <td>${pctCell(r.success_pct_1h, r.total_1h)}</td>
             <td>${r.avg_latency_1h_ms ? r.avg_latency_1h_ms + 'ms' : '—'}</td>
