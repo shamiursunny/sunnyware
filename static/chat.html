@@ -3588,44 +3588,84 @@ function dateSeparatorEl(date) {
 
 // Part 695: Maximize and download for tables, charts, and code blocks
 function addContentActions() {
-  // --- Tables ---
-  document.querySelectorAll('.msg-text table, .msg table, .agent table').forEach(table => {
-    if (table.closest('.content-wrapper')) return;
-    const wrapper = document.createElement('div');
-    wrapper.className = 'content-wrapper';
-    table.parentNode.insertBefore(wrapper, table);
-    wrapper.appendChild(table);
-    const actions = document.createElement('div');
-    actions.className = 'content-actions';
-    actions.innerHTML = `
-      <button class="content-action-btn" title="Maximize" onclick="maximizeContent(this.closest('.content-wrapper').querySelector('table'))">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-      </button>
-      <button class="content-action-btn" title="Download CSV" onclick="downloadTable(this.closest('.content-wrapper').querySelector('table'))">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-      </button>
-    `;
-    wrapper.appendChild(actions);
-  });
+  try {
+    // --- Tables ---
+    document.querySelectorAll('.msg-text table, #chat table, .msg table, .agent table').forEach(table => {
+      if (table.closest('.content-wrapper')) return;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'content-wrapper';
+      table.parentNode.insertBefore(wrapper, table);
+      wrapper.appendChild(table);
+      const actions = document.createElement('div');
+      actions.className = 'content-actions';
+      actions.innerHTML = `
+        <button class="content-action-btn" title="Maximize" onclick="maximizeContent(this.closest('.content-wrapper').querySelector('table'))">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        </button>
+        <button class="content-action-btn" title="Download CSV" onclick="downloadTable(this.closest('.content-wrapper').querySelector('table'))">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        </button>
+      `;
+      wrapper.appendChild(actions);
+    });
 
-  // --- Code blocks (augment existing copy button) ---
-  document.querySelectorAll('.code-block').forEach(block => {
-    if (block.querySelector('.code-action-btn')) return;
-    const head = block.querySelector('.code-head');
-    if (!head) return;
-    const actionsContainer = document.createElement('div');
-    actionsContainer.style.display = 'flex';
-    actionsContainer.style.gap = '4px';
-    actionsContainer.innerHTML = `
-      <button class="code-action-btn" title="Maximize" onclick="maximizeContent(this.closest('.code-block'))">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
-      </button>
-      <button class="code-action-btn" title="Download" onclick="downloadCode(this.closest('.code-block'))">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-      </button>
-    `;
-    head.appendChild(actionsContainer);
-  });
+    // --- Code blocks ---
+    document.querySelectorAll('.msg-text pre, #chat pre').forEach(pre => {
+      const oldCopy = pre.querySelector('.copy-btn');
+      if (oldCopy) oldCopy.remove();
+      const codeBlock = pre.closest('.code-block');
+      if (codeBlock) {
+        if (codeBlock.dataset.actionsAdded === 'true') return;
+        const defaultCopy = codeBlock.querySelector('.code-copy');
+        if (defaultCopy) defaultCopy.style.display = 'none';
+        const head = codeBlock.querySelector('.code-head');
+        if (head && !head.querySelector('.code-actions')) {
+          const actions = document.createElement('div');
+          actions.className = 'code-actions';
+          actions.style.display = 'flex';
+          actions.style.gap = '4px';
+          actions.innerHTML = `
+            <button class="code-action-btn" title="Maximize" onclick="maximizeContent(this.closest('.code-block'))">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+            </button>
+            <button class="code-action-btn" title="Download" onclick="downloadCode(this.closest('.code-block'))">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            </button>
+          `;
+          head.appendChild(actions);
+        }
+        codeBlock.dataset.actionsAdded = 'true';
+      } else {
+        if (pre.dataset.actionsAdded === 'true') return;
+        pre.style.position = 'relative';
+        if (!pre.querySelector('.code-actions')) {
+          const actions = document.createElement('div');
+          actions.className = 'code-actions';
+          actions.style.position = 'absolute';
+          actions.style.top = '6px';
+          actions.style.right = '6px';
+          actions.style.display = 'flex';
+          actions.style.gap = '4px';
+          actions.style.zIndex = '10';
+          actions.innerHTML = `
+            <button class="content-action-btn" title="Copy" onclick="copyCode(this.closest('pre'))" style="width:24px;height:24px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+            </button>
+            <button class="content-action-btn" title="Maximize" onclick="maximizeContent(this.closest('pre'))" style="width:24px;height:24px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+            </button>
+            <button class="content-action-btn" title="Download" onclick="downloadCode(this.closest('pre'))" style="width:24px;height:24px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+            </button>
+          `;
+          pre.appendChild(actions);
+        }
+        pre.dataset.actionsAdded = 'true';
+      }
+    });
+  } catch (e) {
+    console.error('Error in addContentActions:', e);
+  }
 }
 
 function maximizeContent(el) {
