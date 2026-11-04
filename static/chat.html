@@ -3367,7 +3367,7 @@ function mdLite(text){
 
   t=t.replace(/```(\w*)\n([\s\S]*?)```/g,(m,l,code)=>{
     const lang = l || 'plaintext';
-    return '<div class="code-block"><div class="code-head"><span>'+lang+'</span><button class="code-copy">Copy</button></div><pre><code class="language-'+lang+'">'+code.trim()+'</code></pre></div>';
+    return '<div class="code-block"><div class="code-head"><span>'+lang+'</span><div class="code-actions" style="display:flex; gap:4px;"><button class="code-action-btn" title="Maximize" onclick="maximizeContent(this.closest(\'.code-block\'))"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></button><button class="code-action-btn" title="Download" onclick="downloadCode(this.closest(\'.code-block\'))"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button><button class="code-action-btn" title="Copy" onclick="copyCode(this.closest(\'.code-block\'))"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button></div></div><pre><code class="language-'+lang+'">'+code.trim()+'</code></pre></div>';
   });
 
   // Images: ![alt](url) -> <img>
@@ -3705,7 +3705,9 @@ function downloadTable(table) {
   toast('Table downloaded as CSV');
 }
 
-function copyCode(pre) {
+function copyCode(block) {
+  const pre = block.tagName && block.tagName.toLowerCase() === 'pre' ? block : block.querySelector('pre');
+  if (!pre) return;
   const clone = pre.cloneNode(true);
   clone.querySelectorAll('button, .code-actions').forEach(b => b.remove());
   navigator.clipboard.writeText(clone.innerText);
@@ -4396,6 +4398,7 @@ async function streamAI(chat, prompt) {
     if(actionsEl) actionsEl.style.visibility = 'visible';
 
     bindCodeCopy(textEl);
+    addContentActions();
 
     // Part 221d: log assistant response to audit trail
     if(displayText) _logChatMessage('assistant', displayText);
