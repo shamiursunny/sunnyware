@@ -3521,3 +3521,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Floating scroll-to-bottom/top button. Tables wrapped in `.table-scroll-wrapper` with visible scrollbar. Table action buttons stay on screen. `<br>` tags fixed in tables. Enforced `overflow-x: hidden` on `.chat-scroll`.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 697 Update (2026-11-04): Fix Live Tool Call Counts on /tools Page
+
+**New**: `/api/tools/health` now merges live `analytics_store` data so the `/tools` page accurately shows which tools were called, their success counts, and their status.
+
+*Workflow updated: 2026-11-04*

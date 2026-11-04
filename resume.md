@@ -3635,3 +3635,13 @@ me the exact git commands to commit + push both remotes."
 - **Table Fixes**: Table action buttons (Maximize, Download CSV) stay visible at the top right of the message bubble. `<br>` tags in tables are now rendered as line breaks.
 
 *Part 696 logged: 2026-11-04*
+
+---
+
+### Part 697 Update (2026-11-04): Fix Live Tool Call Counts on /tools Page
+
+- **Backend Fix**: Patched `tools_health.snapshot()` to fetch tool events from `analytics_store` and merge live `total_success` and `total_fails` into the tool stats.
+- **Status Update**: Tools with successful calls now transition from `never_used` to `working` with accurate call counts.
+- **UI Cleanup**: Cleared stale "no calls recorded" reason strings for tools that now show live counts.
+
+*Part 697 logged: 2026-11-04*

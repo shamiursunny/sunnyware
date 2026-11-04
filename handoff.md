@@ -6134,3 +6134,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Choose the next feature (Chat Branching, Multi-Agent Delegation UI, or something else).
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 697 Update (2026-11-04): Fix Live Tool Call Counts on /tools Page
+
+**Status:** ✅ Implemented and verified.
+
+**What was done:**
+- `src/sunnyware/tools_health.py`: Patched `snapshot()` to read `analytics_store.list_events(event_type="tool")`.
+- Merged `total_success`, `total_fails`, and `total_calls` into the per-tool health snapshot.
+- Automatically transitioned tools from `never_used` to `working` if live calls were found.
+- Cleared stale `"no calls recorded"` reasons for working tools.
+
+**Next Steps (Part 698):**
+- Choose the next feature.
+
+*Handoff updated: 2026-11-04*
