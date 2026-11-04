@@ -629,6 +629,10 @@ async def chat(
 
     # Filter out disabled providers first
     provs = [p for p in provs if getattr(p, "enabled", True)]
+    # Part 671: Ensure local is always last (ultimate fallback)
+    _local_provs = [p for p in provs if p.name == "local"]
+    _other_provs = [p for p in provs if p.name != "local"]
+    provs = _other_provs + _local_provs
 
     if _strategy == "round_robin":
         import sunnyware.llm as _self_mod
@@ -663,7 +667,7 @@ async def chat(
         if p.name in _auto_disabled and p.name != "local":
             print(f"[llm.chat] skipping auto-disabled provider: {p.name}", flush=True)
             continue
-        if p.is_cooling():
+        if p.is_cooling() and p.name != "local":
             continue
         if (
             _any_eligible
@@ -720,8 +724,9 @@ async def chat(
             pass
 
         _t0 = time.time()
+        _api_key = _get_next_api_key(p.name, p.api_key)
         r = await _chat_single(
-            prompt=prompt, base_url=p.base_url, api_key=p.api_key,
+            prompt=prompt, base_url=p.base_url, api_key=_api_key,
             model=_resolved.get(p.name) or model or p.model, system=system, history=history,
             tools=(tools if getattr(p, "supports_tools", True) else None),
             timeout=timeout, _retry_depth=0,
@@ -956,6 +961,19 @@ async def stream_chat(
 # Part 666: Background Auto-Recovery Loop
 # ═══════════════════════════════════════════════════════════════
 import logging
+
+# Part 671: API Key Auto-Rotation
+_api_key_counters = {}
+
+def _get_next_api_key(provider_name: str, keys: str) -> str:
+    """Rotate through comma-separated API keys."""
+    key_list = [k.strip() for k in (keys or "").split(",") if k.strip()]
+    if len(key_list) <= 1:
+        return keys
+    idx = _api_key_counters.get(provider_name, 0)
+    _api_key_counters[provider_name] = (idx + 1) % len(key_list)
+    return key_list[idx]
+
 
 _auto_recover_started = False
 
