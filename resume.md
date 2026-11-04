@@ -3604,3 +3604,13 @@ me the exact git commands to commit + push both remotes."
 
 ---
 
+---
+
+### Part 695 Update (2026-11-04): Maximize & Download for Tables and Code Blocks
+
+- **New actions**: Tables and code blocks now have **Maximize** and **Download** buttons in the top-right corner on hover.
+- **Maximize**: Opens the content in a fullscreen modal (90vw, max 1200px). Close with ✕ or Escape.
+- **Download**: Tables download as CSV; code blocks download as a file with the correct language extension.
+- **Images**: Left untouched — they already had Fullscreen and Copy actions.
+
+*Part 695 logged: 2026-11-04*

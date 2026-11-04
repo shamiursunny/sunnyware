@@ -6079,3 +6079,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 
 ---
 
+---
+
+### Part 695 Update (2026-11-04): Maximize & Download for Tables and Code Blocks
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: Added CSS for content actions, fullscreen modal, and code-block action buttons.
+- `static/chat.html`: Added `addContentActions()`, `maximizeContent()`, `downloadTable()`, `downloadCode()`, and modal HTML.
+- Wired into `renderMessages` and streaming updates.
+- Fixed modal width (90vw, max 1200px) and close button position (absolute top-right).
+
+**Next Steps (Part 696):**
+- Verify maximize/download works and choose the next feature.
+
+*Handoff updated: 2026-11-04*

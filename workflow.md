@@ -3498,3 +3498,10 @@ Fixed regex for conversation/discussion matching.
 
 ---
 
+---
+
+### Part 695 Update (2026-11-04): Maximize & Download for Tables and Code Blocks
+
+**New**: Maximize + Download buttons for tables (CSV) and code blocks. Fullscreen modal for expanded view. Images unchanged.
+
+*Workflow updated: 2026-11-04*
