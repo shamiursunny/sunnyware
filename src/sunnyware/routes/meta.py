@@ -2362,12 +2362,12 @@ async def test_all_tools():
         "current_time": {"timezone": "UTC"},
         "calculator": {"expression": "2+2"},
         "python_eval": {"code": "print(2+2)"},
-        "date_calc": {"expression": "today"},
+        "date_calc": {"action": "weekday", "date": "2026-11-04"},
         "web_fetch": {"url": "https://example.com"},
         "web_search": {"query": "AI news", "max_results": 2},
         "list_files": {},
         "rag_list": {},
-        "memory_search": {"query": "test", "limit": 1},
+        # "memory_search": {"query": "test", "limit": 1},  # requires Neon DB
         "citation_lookup": {"query": "test"},
     }
 
