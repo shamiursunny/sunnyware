@@ -3324,3 +3324,14 @@ me the exact git commands to commit + push both remotes."
 - **Admin Alert Banner**: A red banner appears at the top of the Admin Dashboard when providers are auto-disabled, with a "Test All Now" button.
 
 *Part 671 logged: 2026-11-04*
+
+---
+
+### Part 672 Update (2026-11-04): ChatGPT-Style Bulk Chat Selection
+
+- **Per-chat actions**: Hover over any chat in the sidebar to reveal Share, Export, Rename, and Delete icons.
+- **Bulk selection**: A visible **Select All** checkbox sits above the chat list, with a floating action bar at the bottom for bulk actions (Export / Delete / Clear).
+- **Checkboxes**: Each chat item has a checkbox. Selecting a chat triggers the floating bar with the count.
+- **Top-bar cleanup**: Removed the redundant "Export" button from the chat header.
+
+*Part 672 logged: 2026-11-04*
