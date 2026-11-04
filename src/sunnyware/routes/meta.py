@@ -2348,6 +2348,67 @@ async def list_all_tools():
     out.sort(key=lambda x: (x["category"], x["name"]))
     return {"ok": True, "tools": out}
 
+@router.post("/api/tools-test-all")
+async def test_all_tools():
+    """Run a safe test for each tool. Skips tools that need external keys or files."""
+    import asyncio as _aio
+    import time as _t
+
+    from ..tools import list_tools, get_tool
+
+    # Canned safe inputs — tools not in this map are SKIPPED
+    TEST_CASES = {
+        "echo": {"text": "hello"},
+        "current_time": {"timezone": "UTC"},
+        "calculator": {"expression": "2+2"},
+        "python_eval": {"code": "print(2+2)"},
+        "date_calc": {"expression": "today"},
+        "web_fetch": {"url": "https://example.com"},
+        "web_search": {"query": "AI news", "max_results": 2},
+        "list_files": {},
+        "rag_list": {},
+        "memory_search": {"query": "test", "limit": 1},
+        "citation_lookup": {"query": "test"},
+    }
+
+    results = []
+    for spec in list_tools():
+        name = spec.get("name", "")
+        tool = get_tool(name)
+        if tool is None or name not in TEST_CASES:
+            results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": ""})
+            continue
+
+        args = TEST_CASES[name]
+        t0 = _t.time()
+        try:
+            raw = await _aio.wait_for(tool.run(args), timeout=15)
+            latency = int((_t.time() - t0) * 1000)
+            if isinstance(raw, dict) and raw.get("error"):
+                results.append({"name": name, "status": "FAIL", "latency_ms": latency, "output": "", "error": str(raw["error"])[:200]})
+            else:
+                preview = ""
+                try:
+                    import json as _j
+                    preview = _j.dumps(raw, default=str)[:160]
+                except Exception:
+                    preview = str(raw)[:160]
+                results.append({"name": name, "status": "PASS", "latency_ms": latency, "output": preview, "error": ""})
+        except _aio.TimeoutError:
+            results.append({"name": name, "status": "FAIL", "latency_ms": 15000, "output": "", "error": "timeout"})
+        except Exception as e:
+            latency = int((_t.time() - t0) * 1000)
+            results.append({"name": name, "status": "FAIL", "latency_ms": latency, "output": "", "error": f"{type(e).__name__}: {e}"[:200]})
+
+    passed = sum(1 for r in results if r["status"] == "PASS")
+    failed = sum(1 for r in results if r["status"] == "FAIL")
+    skipped = sum(1 for r in results if r["status"] == "SKIP")
+    return {
+        "ok": True,
+        "summary": {"total": len(results), "passed": passed, "failed": failed, "skipped": skipped},
+        "results": results,
+    }
+
 @router.get("/api/tools/health")
 async def tools_health_endpoint():
     """Part 172b: full per-tool health snapshot."""
