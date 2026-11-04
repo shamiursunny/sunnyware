@@ -1,0 +1,4 @@
+
+pre code { display: block; padding: 0; background: transparent; }
+.code-block pre { background: #0d0d0f; color: #e6e6ea; }
+.code-block .code-head { background: #16161a; color: #9b9ba3; }
