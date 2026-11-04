@@ -3145,3 +3145,13 @@ me the exact git commands to commit + push both remotes."
 - **6 cooldown calls replaced**: All hardcoded `mark_cooldown(10.0/15.0/60.0)` calls now use the smart helper.
 
 *Part 651 logged: 2026-11-04*
+
+---
+
+### Part 653 Update (2026-11-04): Filter Pseudo-Providers from Health Dashboard
+
+- **Bug**: The health dashboard was showing a `none` row, which was a router failure aggregate (not a real provider). This caused confusion by displaying `0%` success against a provider that doesn't exist.
+- **Fix**: Added a `_SKIP_PROVIDERS` set `{"none", "", "unknown", "__router__", "__all_failed__"}` to the aggregation loop in `routes/llm_dashboard.py`.
+- **Result**: The Provider Health table now shows only real providers. Router failures remain visible in the Live LLM Log (which is the correct place for raw call history).
+
+*Part 653 logged: 2026-11-04*

@@ -5332,3 +5332,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 2. Or focus on a new feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 653 Update (2026-11-04): Filter Pseudo-Providers from Health Dashboard
+
+**Status:** Health dashboard now shows only real providers.
+
+**What was done:**
+- Added `_SKIP_PROVIDERS` set to the health aggregation loop.
+- Filtered out `none`, `unknown`, empty strings.
+- The `none` failures remain in the Live LLM Log (raw call history).
+
+**Next Steps (Part 654):**
+1. Verify the dashboard is clean after restart.
+2. Consider adding "Test All" bulk button.
+3. Or move to a new feature.
+
+*Handoff updated: 2026-11-04*

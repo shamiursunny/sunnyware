@@ -3159,3 +3159,11 @@ Fixed regex for conversation/discussion matching.
 **Fix**: Exponential backoff (0.5s→1s→2s) for 5xx. Smart cooldowns: 300s for auth/404, 15s for 429, 10s for fast 5xx, 30s for slow 5xx.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 653 Update (2026-11-04): Filter Pseudo-Providers
+
+**Fix**: Removed the `none` row from the Provider Health dashboard by filtering out router failure aggregates (`none`, `unknown`, etc.) during aggregation.
+
+*Workflow updated: 2026-11-04*
