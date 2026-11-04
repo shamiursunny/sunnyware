@@ -5702,3 +5702,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Or move to a new feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 673 Update (2026-11-04): Server-Side Chat Persistence
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `routes/meta.py`: Added `GET /api/chats` and `POST /api/chats` endpoints using `/data/chat_history/` per user hash.
+- `static/chat.html`: Added `loadChatsFromServer()` (runs on page load, merges from server if local is empty).
+- `static/chat.html`: Updated `saveAll()` to POST chats to the server.
+- `static/chat.html`: Added `[renderChatList]` diagnostic logging.
+
+**Next Steps (Part 674):**
+- Verify Incognito persistence works.
+- Or move to a new feature.
+
+*Handoff updated: 2026-11-04*

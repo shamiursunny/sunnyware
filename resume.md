@@ -3360,3 +3360,14 @@ me the exact git commands to commit + push both remotes."
 - **CSS**: Added styles for the 3-dot dropdown, hover states, and `sidebar-collapsed` mode.
 
 *Part 672 logged: 2026-11-04*
+
+---
+
+### Part 673 Update (2026-11-04): Server-Side Chat Persistence
+
+- **New endpoints**: `GET /api/chats` and `POST /api/chats` store chats in `/data/chat_history/` per user ID.
+- **Incognito support**: On page load, if local storage is empty, `loadChatsFromServer()` fetches chats from the server and renders the sidebar.
+- **Auto-save**: `saveAll()` now POSTs chats to the server after every save (fire-and-forget), so history survives Incognito restarts and cross-browser sessions.
+- **Diagnostics**: Added `[renderChatList]` and `[chat] Loaded N chats from server` console logs for debugging.
+
+*Part 673 logged: 2026-11-04*

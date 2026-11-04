@@ -3319,3 +3319,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Per-chat 3-dot dropdown (Rename/Pin/Share/Multi-select/Delete), pinned chats float to top, dynamic "Select Chats (N)" header, bottom bar with Pin/Delete, sidebar collapses via X button.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 673 Update (2026-11-04): Server-Side Chat Persistence
+
+**New**: `/api/chats` GET/POST endpoints, `loadChatsFromServer()` on page load, `saveAll()` server sync. Chat history now survives Incognito and cross-browser sessions.
+
+*Workflow updated: 2026-11-04*
