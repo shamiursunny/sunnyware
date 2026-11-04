@@ -3164,7 +3164,9 @@ async function forceRecover(provider) {
     const res = await api(`/api/llm-dashboard/force-recover/${provider}`, 'POST');
     if (res.ok) {
       alert(`Success: ${res.message}`);
-      loadDashboard();
+      if (typeof refreshLlmHealth === 'function') refreshLlmHealth();
+      if (typeof refreshLlmUsage === 'function') refreshLlmUsage();
+      if (typeof loadProviders === 'function') loadProviders();
     } else {
       alert(`Failed: ${res.error}`);
     }
