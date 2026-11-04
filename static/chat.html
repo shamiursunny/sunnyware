@@ -138,6 +138,38 @@ body.selection-mode .chat-item .chat-menu-btn{display:none;}
 .chat-item.selected{background:rgba(91,141,239,0.15);}
 .chat-item .chat-actions{display:none;gap:2px}
 .chat-item .chat-menu-btn:hover{background:var(--hover)}
+/* Part 679: DeepSeek-style menu items with icons */
+.chat-dropdown .chat-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  color: #e7ecf3;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 6px;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+.chat-dropdown .chat-menu-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+.chat-dropdown .chat-menu-item.danger {
+  color: #ef5b5b;
+}
+.chat-dropdown .chat-menu-item.danger:hover {
+  background: rgba(239,91,91,0.12);
+}
+.chat-dropdown .chat-menu-item svg {
+  opacity: 0.75;
+  transition: opacity 0.15s ease;
+}
+.chat-dropdown .chat-menu-item:hover svg {
+  opacity: 1;
+}
 .chat-item .chat-dropdown .chat-menu-item:hover{background:var(--hover)}
 /* Part 675: Fixed dropdown positioning */
 .chat-dropdown {
@@ -2643,12 +2675,28 @@ function chatItemEl(c){
     ${pinnedChats.has(c.id) ? '<span style="font-size:10px;color:var(--accent);">PIN</span>' : ''}
     <div class="chat-menu-wrapper" style="position:relative;">
       <button class="icon-btn chat-menu-btn" title="More options" style="opacity:0;transition:opacity .15s;"><svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
-      <div class="chat-dropdown" style="display:none;background:#12161f;border:1px solid #232a38;border-radius:8px;padding:4px;min-width:160px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
-        <button class="chat-menu-item" data-action="rename" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--text);cursor:pointer;font-size:12px;border-radius:4px;">Rename</button>
-        <button class="chat-menu-item" data-action="pin" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--text);cursor:pointer;font-size:12px;border-radius:4px;">${pinnedChats.has(c.id) ? 'Unpin' : 'Pin'}</button>
-        <button class="chat-menu-item" data-action="share" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--text);cursor:pointer;font-size:12px;border-radius:4px;">Share</button>
-        <button class="chat-menu-item" data-action="multiselect" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--text);cursor:pointer;font-size:12px;border-radius:4px;">Multi-select</button>
-        <button class="chat-menu-item" data-action="delete" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--danger);cursor:pointer;font-size:12px;border-radius:4px;">Delete</button>
+      <div class="chat-dropdown" style="display:none;background:#12161f;border:1px solid #232a38;border-radius:10px;padding:6px;min-width:200px;box-shadow:0 8px 24px rgba(0,0,0,0.4);">
+        <button class="chat-menu-item" data-action="rename">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;"><path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg>
+          <span>Rename</span>
+        </button>
+        <button class="chat-menu-item" data-action="pin">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;"><path d="M12 2l3 3-1 1 3 3-4 4-3-3-1 1-3-3 6-6z"/><path d="M9 15l-4 4"/></svg>
+          <span>${pinnedChats.has(c.id) ? 'Unpin' : 'Pin'}</span>
+        </button>
+        <button class="chat-menu-item" data-action="share">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.59 13.51l6.83 3.98M15.41 6.51l-6.82 3.98"/></svg>
+          <span>Share</span>
+        </button>
+        <button class="chat-menu-item" data-action="multiselect">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+          <span>Multi-select</span>
+        </button>
+        <div style="height:1px;background:#232a38;margin:4px 0;"></div>
+        <button class="chat-menu-item danger" data-action="delete">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;flex-shrink:0;"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg>
+          <span>Delete</span>
+        </button>
       </div>
     </div>`;
 
