@@ -3391,3 +3391,13 @@ me the exact git commands to commit + push both remotes."
 - **Cross-session user ID**: Added `getUserIdForChats()` helper and a fetch interceptor to inject `X-User-Id` for `/api/chats` requests, with fallback from localStorage → sessionStorage → JWT cookie → `anonymous`.
 
 *Part 676 logged: 2026-11-04*
+
+---
+
+### Part 677 Update (2026-11-04): Dropdown Positioning Fix
+
+- **Missing CSS variable**: Added `--panel` and `--border` to `:root` so the chat dropdown background is opaque instead of transparent.
+- **DeepSeek-style positioning**: The chat dropdown now appears to the **right** of the 3-dot button (over the main content area), not overlapping other chat items.
+- **Viewport-aware**: The menu flips to the left if there's no room on the right, and stays within the viewport vertically.
+
+*Part 677 logged: 2026-11-04*

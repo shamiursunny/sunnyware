@@ -5755,3 +5755,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Verify hamburger toggle, dropdown positioning, and Incognito sync.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 677 Update (2026-11-04): Dropdown Positioning Fix
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: Added `--panel: #12161f` and `--border: #232a38` to `:root`.
+- `static/chat.html`: Dropdown inline background uses hardcoded colors as fallback.
+- `static/chat.html`: Repositioned dropdown logic to place the menu to the right of the 3-dot button, with viewport-aware fallback.
+
+**Next Steps (Part 678):**
+- Verify dropdown appearance and positioning on desktop and mobile.
+
+*Handoff updated: 2026-11-04*

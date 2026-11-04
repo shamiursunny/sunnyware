@@ -3343,3 +3343,11 @@ Fixed regex for conversation/discussion matching.
 **Fixed**: Hamburger always visible on desktop, dropdown inline positioning removed, cross-session user ID detection via cookie/localStorage.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 677 Update (2026-11-04): Dropdown Positioning Fix
+
+**Fixed**: Added missing `--panel` CSS variable, repositioned chat dropdown to the right of the button with opaque background and viewport-aware placement.
+
+*Workflow updated: 2026-11-04*
