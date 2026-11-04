@@ -3502,3 +3502,13 @@ me the exact git commands to commit + push both remotes."
 - **Dark theme**: The share page uses the same dark theme as the chat UI.
 
 *Part 685 logged: 2026-11-04*
+
+---
+
+### Part 686 Update (2026-11-04): Date Separators in Chat Messages
+
+- **DeepSeek-style date separators**: The chat now shows "Today", "Yesterday", "Monday", or "Nov 3" between messages from different days.
+- **Timestamp tracking**: New messages get a `ts` field (`Date.now()`), while existing messages fall back to the chat's `updated`/`created` timestamp.
+- **CSS**: Added `.date-separator` with horizontal lines on each side and a centered uppercase label.
+
+*Part 686 logged: 2026-11-04*

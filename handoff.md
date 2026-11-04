@@ -5927,3 +5927,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Verify the share link works end-to-end.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 686 Update (2026-11-04): Date Separators in Chat Messages
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: Added `.date-separator` CSS with centered label and horizontal lines.
+- `static/chat.html`: Added `dateSeparatorEl(date)` function.
+- `static/chat.html`: Updated `renderMessages` to insert a separator when the day changes.
+- `static/chat.html`: Added `ts: Date.now()` to both user and AI messages when created.
+
+**Next Steps (Part 687):**
+- Implement Option A (Chat Export & Import).
+
+*Handoff updated: 2026-11-04*

@@ -3423,3 +3423,11 @@ Fixed regex for conversation/discussion matching.
 **New**: `/share/{chat_id}` endpoint renders selected messages as a read-only HTML page with syntax highlighting and a back link.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 686 Update (2026-11-04): Date Separators in Chat Messages
+
+**New**: DeepSeek-style "Today"/"Yesterday"/"Monday" separators between messages from different days. New messages get a `ts` timestamp.
+
+*Workflow updated: 2026-11-04*
