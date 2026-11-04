@@ -3359,3 +3359,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Checkboxes are hidden by default; only visible in `selection-mode` (entered via Multi-select in the 3-dot menu). X/Escape exits selection mode.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 679 Update (2026-11-04): DeepSeek-Style 3-Dot Menu
+
+**New**: Chat menu items now have SVG icons, hover backgrounds, red Delete with divider, and a polished flex layout matching DeepSeek.
+
+*Workflow updated: 2026-11-04*

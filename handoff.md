@@ -5789,3 +5789,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Verify normal view has no checkboxes and Multi-select reveals them.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 679 Update (2026-11-04): DeepSeek-Style 3-Dot Menu with Icons & Hover
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: Replaced plain-text chat dropdown items with icon + label flex buttons.
+- `static/chat.html`: Added CSS for `.chat-dropdown .chat-menu-item` with hover, danger, and icon opacity transitions.
+- `static/chat.html`: Added divider line and separated Delete into `.danger` class.
+
+**Next Steps (Part 680):**
+- Verify the menu looks and feels like DeepSeek.
+
+*Handoff updated: 2026-11-04*

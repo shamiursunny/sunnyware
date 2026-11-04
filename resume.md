@@ -3411,3 +3411,14 @@ me the exact git commands to commit + push both remotes."
 - **Clean exit**: Pressing Escape or clicking the X in the header removes `selection-mode` and restores the normal view.
 
 *Part 678 logged: 2026-11-04*
+
+---
+
+### Part 679 Update (2026-11-04): DeepSeek-Style 3-Dot Menu with Icons & Hover
+
+- **Icons added**: Each chat menu item now has a matching SVG icon (pencil, pin, share, checkbox, trash).
+- **Hover effects**: Menu items get a subtle white background on hover, with icon opacity animating from 0.75 to 1.0.
+- **Delete separated**: A subtle divider line separates Delete from the other actions, with danger red color and red-tinted hover.
+- **Layout polish**: Flex layout with 10px gap, 13px font, 6px border radius, and 200px min-width.
+
+*Part 679 logged: 2026-11-04*
