@@ -132,6 +132,7 @@ def _auto_disabled_providers() -> set:
     """Part 663: Return provider names with >5 calls and <50% success in last 1h.
     Cached for 60s to avoid reading logs on every routing decision.
     """
+    _ensure_auto_recover_loop()  # Part 666: lazily start the recovery loop
     import time as _t
     now = _t.time()
     if now - _AUTO_DISABLE_CACHE["ts"] < 60:
@@ -949,3 +950,44 @@ async def stream_chat(
 
     raise RuntimeError(f"all providers failed: {last_err or 'unknown'}")
 
+
+
+# ═══════════════════════════════════════════════════════════════
+# Part 666: Background Auto-Recovery Loop
+# ═══════════════════════════════════════════════════════════════
+import logging
+
+_auto_recover_started = False
+
+def _ensure_auto_recover_loop():
+    """Start the recovery loop lazily (first call). Works everywhere."""
+    global _auto_recover_started
+    if _auto_recover_started:
+        return
+    _auto_recover_started = True
+    try:
+        loop = asyncio.get_running_loop()
+        loop.create_task(_auto_recover_loop())
+    except RuntimeError:
+        pass  # No running loop yet, will try again next call
+
+async def _auto_recover_loop():
+    """Every 15 minutes, try to recover auto-disabled providers."""
+    logger = logging.getLogger(__name__)
+    await asyncio.sleep(60)  # First run after 1 minute
+    while True:
+        try:
+            disabled = _auto_disabled_providers()
+            for prov in disabled:
+                logger.info(f"[auto-recover] Pinging disabled provider: {prov}")
+                try:
+                    res = await asyncio.to_thread(chat, [{"role": "user", "content": "ping"}], {"provider": prov})
+                    if res and "error" not in str(res).lower():
+                        logger.info(f"[auto-recover] Success! Force recovering {prov}")
+                        _lds.set_provider_config(prov, {"force_recover_until": time.time() + 3600})
+                        _AUTO_DISABLE_CACHE["ts"] = 0
+                except Exception as e:
+                    logger.debug(f"[auto-recover] Ping failed for {prov}: {e}")
+        except Exception as e:
+            logger.error(f"[auto-recover] Loop error: {e}")
+        await asyncio.sleep(900)  # 15 minutes

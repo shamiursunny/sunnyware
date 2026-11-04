@@ -81,6 +81,13 @@ async def lifespan(app):
     except Exception as _e:
         print(f"[jarvis] Preload failed: {_e}", flush=True)
     init_state()
+    # Part 666: Start auto-recovery loop for auto-disabled providers
+    try:
+        from . import llm as _llm_main
+        _llm_main._ensure_auto_recover_loop()
+        print("[startup] auto_recover_loop_started", flush=True)
+    except Exception as _e:
+        print(f"[startup] auto_recover_loop_failed: {_e}", flush=True)
     # Part 26: ensure scheduler running inside the live event loop
     import os
     if not os.getenv("SUNNYWARE_DISABLE_SCHEDULER"):
