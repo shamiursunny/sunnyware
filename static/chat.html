@@ -3665,10 +3665,26 @@ function downloadTable(table) {
   toast('Table downloaded as CSV');
 }
 
+function copyCode(pre) {
+  const clone = pre.cloneNode(true);
+  clone.querySelectorAll('button, .code-actions').forEach(b => b.remove());
+  navigator.clipboard.writeText(clone.innerText);
+  toast('Code copied');
+}
+
 function downloadCode(block) {
-  const codeEl = block.querySelector('pre');
-  const code = codeEl ? codeEl.innerText : block.innerText;
-  const lang = block.querySelector('.code-head span') ? block.querySelector('.code-head span').innerText : 'txt';
+  const codeEl = block.tagName.toLowerCase() === 'pre' ? block : block.querySelector('pre');
+  let code = codeEl ? codeEl.innerText : block.innerText;
+  let lang = 'txt';
+  
+  if (codeEl && codeEl.querySelector('code')) {
+    const codeTag = codeEl.querySelector('code');
+    lang = codeTag.className.replace('language-', '').split(' ')[0] || 'txt';
+    code = codeTag.innerText; // Get clean code without button text
+  } else if (block.querySelector('.code-head span')) {
+    lang = block.querySelector('.code-head span').innerText;
+  }
+
   const blob = new Blob([code], { type: 'text/plain' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
