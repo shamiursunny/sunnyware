@@ -218,6 +218,7 @@ body.light-mode mark { background: rgba(255,235,59,0.6); color: #1a1d26; }
   position: relative;
   display: inline-block;
   width: 100%;
+  overflow-x: visible;
 }
 .content-actions {
   position: absolute;
@@ -3488,20 +3489,19 @@ function mdLite(text){
     );
     let html = '<div class="table-scroll-wrapper"><table style="border-collapse:collapse;margin:12px 0;font-size:13px;width:100%;"><thead><tr>';
     cols.forEach(c => {
-      html += '<th style="border:1px solid var(--border);padding:8px 12px;background:var(--bg-secondary);text-align:left;font-weight:600;">' + c + '</th>';
+      const cleanC = c.replace(/&lt;br\s*\/?&gt;/gi, '\n');
+      html += '<th style="border:1px solid var(--border);padding:8px 12px;background:var(--bg-secondary);text-align:left;font-weight:600;white-space:pre-line;">' + cleanC + '</th>';
     });
     html += '</tr></thead><tbody>';
     rows.forEach(row => {
       html += '<tr>';
       row.forEach(c => {
-        html += '<td style="border:1px solid var(--border);padding:8px 12px;">' + c + '</td>';
+        const cleanC = c.replace(/&lt;br\s*\/?&gt;/gi, '\n');
+        html += '<td style="border:1px solid var(--border);padding:8px 12px;white-space:pre-line;">' + cleanC + '</td>';
       });
       html += '</tr>';
     });
     html += '</tbody></table></div>';
-    // Convert <br> tags to real line breaks inside table cells
-    html = html.replace(/<td([^>]*)>/g, '<td$1 style="white-space:pre-line;">');
-    html = html.replace(/<br\s*\/?>/gi, '\n');
     return html;
   });
 
@@ -3670,9 +3670,29 @@ function dateSeparatorEl(date) {
 // Part 695: Maximize and download for tables, charts, and code blocks
 function addContentActions() {
   try {
-    // --- Tables ---
-    document.querySelectorAll('.msg-text table, #chat table, .msg table, .agent table').forEach(table => {
-      if (table.closest('.content-wrapper')) return;
+    // --- Tables (wrapped in .table-scroll-wrapper) ---
+    document.querySelectorAll('.table-scroll-wrapper').forEach(scrollWrapper => {
+      if (scrollWrapper.closest('.content-wrapper')) return;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'content-wrapper';
+      scrollWrapper.parentNode.insertBefore(wrapper, scrollWrapper);
+      wrapper.appendChild(scrollWrapper);
+      const actions = document.createElement('div');
+      actions.className = 'content-actions';
+      actions.innerHTML = `
+        <button class="content-action-btn" title="Maximize" onclick="maximizeContent(this.closest('.content-wrapper').querySelector('table'))">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+        </button>
+        <button class="content-action-btn" title="Download CSV" onclick="downloadTable(this.closest('.content-wrapper').querySelector('table'))">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        </button>
+      `;
+      wrapper.appendChild(actions);
+    });
+
+    // --- Bare tables (fallback) ---
+    document.querySelectorAll('.msg-text table').forEach(table => {
+      if (table.closest('.content-wrapper') || table.closest('.table-scroll-wrapper')) return;
       const wrapper = document.createElement('div');
       wrapper.className = 'content-wrapper';
       table.parentNode.insertBefore(wrapper, table);
