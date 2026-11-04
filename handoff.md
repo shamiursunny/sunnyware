@@ -6095,3 +6095,22 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Verify maximize/download works and choose the next feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 695 Update (2026-11-04): Maximize & Download for Tables, Code Blocks, and Images
+
+**Status:** ✅ Implemented and verified.
+
+**What was done:**
+- `static/chat.html`: `mdLite` now generates the top-right action buttons (Copy, Maximize, Download) directly inside code blocks.
+- `static/chat.html`: Added `maximizeContent`, `downloadTable`, `downloadCode`, and `copyCode` functions.
+- `static/chat.html`: `addContentActions` now targets tables and bare `<pre>` tags; it skips `.code-block` (handled by `mdLite`).
+- Removed the old `MutationObserver` that was injecting duplicate Copy buttons into every `<pre>` tag.
+- Fixed table selectors to work with `webui.py` containers.
+- Mapped language names to file extensions (e.g., `.python` → `.py`).
+
+**Next Steps (Part 696):**
+- Choose the next feature: Chat Branching, Multi-Agent Delegation UI, or something else.
+
+*Handoff updated: 2026-11-04*

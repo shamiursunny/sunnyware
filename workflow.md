@@ -3505,3 +3505,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Maximize + Download buttons for tables (CSV) and code blocks. Fullscreen modal for expanded view. Images unchanged.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 695 Update (2026-11-04): Maximize & Download for Tables, Code Blocks, and Images
+
+**New**: Maximize + Download buttons for tables (CSV) and code blocks. Fullscreen modal for expanded view. Extension mapping (.python -> .py). Images unchanged (Fullscreen + Copy). Removed duplicate Copy observer.
+
+*Workflow updated: 2026-11-04*

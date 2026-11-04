@@ -3614,3 +3614,14 @@ me the exact git commands to commit + push both remotes."
 - **Images**: Left untouched — they already had Fullscreen and Copy actions.
 
 *Part 695 logged: 2026-11-04*
+
+---
+
+### Part 695 Update (2026-11-04): Maximize & Download for Tables, Code Blocks, and Images
+
+- **New actions**: Tables and code blocks now have **Maximize** and **Download** buttons. Images already had Fullscreen + Copy.
+- **Maximize**: Opens the content in a fullscreen modal (90vw, max 1200px). Close with ✕ or Escape.
+- **Download**: Tables download as CSV; code blocks download as files with the correct language extension (`.py`, `.js`, `.md`, etc.).
+- **Bug fixes**: Removed the old `MutationObserver` that was injecting duplicate Copy buttons. Refactored `mdLite` to generate code block actions directly. Fixed table selectors to work with `webui.py` containers. Fixed `copyCode` to handle `.code-block` wrappers.
+
+*Part 695 logged: 2026-11-04*
