@@ -166,13 +166,26 @@ async def test_provider(provider: str, req: Request):
                 timeout=15.0, _retry_depth=0,
             )
         latency = int((_t.time() - start) * 1000)
+        # Part 658: persist every test result to the health log
+        try:
+            from .. import llm_dashboard_store as _lds
+            _lds.log_llm_call(
+                provider=target.name,
+                model=target.model or "",
+                ok=bool(res.get("ok")),
+                tokens=0,
+                latency_ms=latency,
+                error=(res.get("error") or "")[:200],
+                user="test",
+            )
+        except Exception:
+            pass
         if res.get("ok"):
             content = (res.get("content") or "").strip()[:50]
             target.record_success(latency)
             return {"ok": True, "latency_ms": latency, "content": content}
         else:
             err = res.get("error", "Unknown")
-            # Part 657: mark cooldown so quota errors don't get retried repeatedly
             try:
                 from .. import llm as _llm2
                 cd = _llm2._cooldown_for(target.name, err)

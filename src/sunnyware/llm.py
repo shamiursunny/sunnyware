@@ -105,8 +105,9 @@ def _cooldown_for(provider_name: str, error: str) -> float:
     # Model not found - config issue
     if any(x in e for x in ("404", "model not found", "model_not_supported", "does not exist")):
         return 300.0
-    # Part 656: Quota exceeded - don't retry, wait for reset (typically 1h)
-    if any(x in e for x in ("quota", "exceeded your current quota", "billing", "insufficient_quota")):
+    # Part 656+658: Quota / credits / billing - wait for reset (typically 1h)
+    if any(x in e for x in ("quota", "exceeded your current quota", "billing",
+                             "insufficient_quota", "credits", "payment required", "402")):
         return 3600.0
     # Rate limited (transient) - retry soon
     if any(x in e for x in ("429", "rate limit", "rate_limit", "too many requests")):
