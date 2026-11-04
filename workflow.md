@@ -3239,3 +3239,11 @@ Fixed regex for conversation/discussion matching.
 **Verified**: Live traffic confirms disabled providers are skipped. Live LLM Log shows `pollinations` handled the traffic while `huggingface`/`openrouter`/`sambanova` were bypassed.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 665 Update (2026-11-04): Force Recover Button
+
+**New**: Added "Recover" button to Provider Settings. Sets a 1h `force_recover_until` override to immediately un-disable a provider.
+
+*Workflow updated: 2026-11-04*

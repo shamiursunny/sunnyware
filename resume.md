@@ -3253,3 +3253,13 @@ me the exact git commands to commit + push both remotes."
 - **Logs Checked**: Live LLM Log confirms the "hello" message was routed to `pollinations` (healthy) while `huggingface`, `openrouter`, and `sambanova` were skipped.
 
 *Part 664 logged: 2026-11-04*
+
+---
+
+### Part 665 Update (2026-11-04): Force Recover Button
+
+- **New Feature**: Added a **"Recover"** button to the Provider Settings table.
+- **Behavior**: Clicking it sets a 1-hour `force_recover_until` override for that provider, bypassing the auto-disable logic so the router immediately tries it again.
+- **Use Case**: Recovering from quota resets or temporary outages without waiting for the 1-hour stats window to roll over.
+
+*Part 665 logged: 2026-11-04*

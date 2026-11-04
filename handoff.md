@@ -5522,3 +5522,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Move to a new feature. (e.g., Auto-recovery, Toast notifications).
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 665 Update (2026-11-04): Force Recover Button
+
+**Status:** ✅ Force Recover button implemented and visible in the UI.
+
+**What was done:**
+- `llm.py`: Added `force_recover_until` check inside `_auto_disabled_providers()`.
+- `routes/llm_dashboard.py`: Added `/api/llm-dashboard/force-recover/{provider}` endpoint.
+- `static/admin-v2.html`: Added orange "Recover" button and `forceRecover()` JS function.
+
+**Next Steps (Part 666):**
+- Verify Recover button works in production.
+- Or move to a new feature.
+
+*Handoff updated: 2026-11-04*
