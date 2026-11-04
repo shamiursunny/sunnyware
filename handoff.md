@@ -5350,3 +5350,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Or move to a new feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 655/656 Update (2026-11-04): Sequential Test All + Quota Cooldown
+
+**Status:** ✅ Test All is now reliable and informative. Quota errors get proper cooldowns.
+
+**What was done:**
+- Sequential Test All: loops over providers one at a time (150ms gap).
+- Failure reasons visible: `gemini (HTTP 429: quota)`, `huggingface (HTTP 402: credits)`.
+- Cooldown: quota=3600s, rate_limit=15s.
+
+**Next Steps (Part 657):**
+1. Verify quota cooldown works after restart.
+2. Or move to a new feature.
+
+*Handoff updated: 2026-11-04*

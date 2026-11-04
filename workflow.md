@@ -3167,3 +3167,11 @@ Fixed regex for conversation/discussion matching.
 **Fix**: Removed the `none` row from the Provider Health dashboard by filtering out router failure aggregates (`none`, `unknown`, etc.) during aggregation.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 655/656 Update (2026-11-04): Sequential Test All + Quota Cooldown
+
+**Fix**: Test All is sequential with error reasons. Quota errors get 3600s cooldown; transient rate-limits get 15s.
+
+*Workflow updated: 2026-11-04*

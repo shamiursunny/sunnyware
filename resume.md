@@ -3155,3 +3155,12 @@ me the exact git commands to commit + push both remotes."
 - **Result**: The Provider Health table now shows only real providers. Router failures remain visible in the Live LLM Log (which is the correct place for raw call history).
 
 *Part 653 logged: 2026-11-04*
+
+---
+
+### Part 655/656 Update (2026-11-04): Sequential Test All + Quota Detection
+
+- **Sequential Test All**: The bulk test now runs one provider at a time (150ms gap) instead of parallel, avoiding burst rate-limit false negatives. Failure reasons are shown inline: `gemini (HTTP 429: quota)`, `huggingface (HTTP 402: credits)`.
+- **Quota vs Rate Limit**: The cooldown helper now distinguishes between **quota exceeded** (3600s / 1 hour cooldown — don't retry until reset) and **transient rate limit** (15s cooldown — retry soon). No more wasted retries on exhausted quotas.
+
+*Part 655/656 logged: 2026-11-04*
