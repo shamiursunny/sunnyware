@@ -1389,6 +1389,7 @@ body.light-mode .settings-close { border-color: #e2e5ec; color: #1a1d26; }
           <button class="icon-btn" id="micBtn" title="Voice input"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg></button>
 
           <button class="send-btn" id="sendBtn" disabled title="Send"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+          <button class="stop-btn" id="stopBtn" onclick="stopGeneration()" title="Stop generating" style="display:none;background:#e74c3c;color:white;border:none;border-radius:8px;padding:8px 12px;font-size:12px;cursor:pointer;font-weight:600;">Stop</button>
 
         </div>
 
@@ -2040,6 +2041,14 @@ window.fetch = function(url, options) {
 const LS_CHATS='sunny_chats_v2', LS_FILES='sunny_files_v1', LS_THEME='sunny_theme';
 
 let chats=[], files=[], activeChatId=null, isGenerating=false, editingId=null;
+let _currentAbortController = null;
+
+function stopGeneration() {
+  if (_currentAbortController) {
+    try { _currentAbortController.abort(); } catch(e) {}
+    _currentAbortController = null;
+  }
+}
 let selectedMsgs = new Set();
 
 function toggleMessageSelection() {
@@ -4175,27 +4184,31 @@ async function streamAI(chat, prompt) {
 
   } catch(err) {
 
-    console.error('Stream error:', err);
-
-    aiMsg.text = 'Error: ' + err.message;
-
-    textEl.innerHTML = '<span style="color:var(--danger);">' + esc(aiMsg.text) + '</span>';
-
+    if (err.name === 'AbortError') {
+      // User clicked Stop — keep partial text, no error toast
+      console.log('[streamAI] Generation stopped by user');
+      if (!aiMsg.text) {
+        aiMsg.text = '_(Generation stopped)_';
+        textEl.innerHTML = '<span style="color:var(--muted);font-style:italic;">' + esc(aiMsg.text) + '</span>';
+      }
+    } else {
+      console.error('Stream error:', err);
+      aiMsg.text = 'Error: ' + err.message;
+      textEl.innerHTML = '<span style="color:var(--danger);">' + esc(aiMsg.text) + '</span>';
+    }
     if(actionsEl) actionsEl.style.visibility = 'visible';
 
+  } finally {
+    isGenerating = false;
+    _currentAbortController = null;
+    const _send = document.getElementById('sendBtn');
+    const _stop = document.getElementById('stopBtn');
+    if (_send) { _send.style.display = 'inline-block'; _send.disabled = !input.value.trim(); }
+    if (_stop) _stop.style.display = 'none';
+    chat.updated = new Date().toISOString();
+    saveAll();
+    scrollBottom();
   }
-
-
-
-  isGenerating = false;
-
-  sendBtn.disabled = !input.value.trim();
-
-  chat.updated = new Date().toISOString();
-
-  saveAll();
-
-  scrollBottom();
 
 }
 
