@@ -3324,6 +3324,9 @@ function mdLite(text){
       html += '</tr>';
     });
     html += '</tbody></table>';
+    // Convert <br> tags to real line breaks inside table cells
+    html = html.replace(/<td([^>]*)>/g, '<td$1 style="white-space:pre-line;">');
+    html = html.replace(/<br\s*\/?>/gi, '\n');
     return html;
   });
 
