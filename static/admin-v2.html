@@ -3043,7 +3043,7 @@ async function refreshLlmHealth() {
       </thead>
       <tbody>
         ${rows.map(r => {
-          const isNowDisabled = (r.total_1h >= 3 && r.success_pct_1h !== null && r.success_pct_1h < 50);
+          const isNowDisabled = (r.total_1h >= 3 && r.success_pct_1h !== null && r.success_pct_1h < 25);
           const wasDisabled = prevAutoDisabled[r.provider] || false;
           if (wasDisabled !== isNowDisabled) {
             if (isNowDisabled) {

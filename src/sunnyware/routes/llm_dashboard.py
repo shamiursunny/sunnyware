@@ -292,7 +292,7 @@ async def health_summary(req: Request):
         total_24h = s["ok_24h"] + s["fail_24h"]
         avg_1h = round(sum(s["lat_1h"]) / len(s["lat_1h"]), 0) if s["lat_1h"] else 0
         # Part 663: auto-disabled flag (>=5 calls and <50% success)
-        _auto = total_1h >= 3 and (s["ok_1h"] / total_1h) < 0.5  # Part 663: lowered from 5 to 3
+        _auto = total_1h >= 3 and (s["ok_1h"] / total_1h) < 0.25  # Part 669: lowered from 50% to 25%  # Part 663: lowered from 5 to 3
         result.append({
             "provider": name,
             "live_status": "cooling" if (lp and lp.is_cooling()) else ("active" if lp else "unknown"),

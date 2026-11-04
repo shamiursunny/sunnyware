@@ -154,7 +154,7 @@ def _auto_disabled_providers() -> set:
                 s["ok"] += 1
         disabled = set()
         for prov, s in stats.items():
-            if s["total"] >= 3 and (s["ok"] / s["total"]) < 0.5:  # Part 663: lowered from 5 to 3
+            if s["total"] >= 3 and (s["ok"] / s["total"]) < 0.25:  # Part 669: lowered from 50% to 25%  # Part 663: lowered from 5 to 3
                 # Part 665: Check force recover override
                 try:
                     cfg = _lds.get_provider_config(prov)
