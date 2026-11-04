@@ -3367,3 +3367,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Chat menu items now have SVG icons, hover backgrounds, red Delete with divider, and a polished flex layout matching DeepSeek.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 680 Update (2026-11-04): Message Selection & Public Link Sharing
+
+**New**: Message selection mode with checkboxes on each message, bottom action bar (select all, count, cancel, create link), and public link generation with selected message IDs.
+
+*Workflow updated: 2026-11-04*

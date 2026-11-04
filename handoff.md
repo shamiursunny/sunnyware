@@ -5805,3 +5805,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Verify the menu looks and feels like DeepSeek.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 680 Update (2026-11-04): Message Selection & Public Link Sharing
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: Added `selectedMsgs` Set, `toggleMessageSelection`, `toggleMessageSelected`, `toggleSelectAllMessages`, `exitMessageSelection`, `updateMsgSelectionBar`, `createPublicLink`.
+- `static/chat.html`: Added CSS for `.msg-checkbox` and `#messageSelectionBar`.
+- `static/chat.html`: Added checkbox creation in `msgEl`.
+- `static/chat.html`: Added "Select messages" menu item to the chat options dropdown.
+- `static/chat.html`: Added bottom bar with select all, count, cancel, and create link buttons.
+
+**Next Steps (Part 681):**
+- Verify message selection works and test public link.
+
+*Handoff updated: 2026-11-04*

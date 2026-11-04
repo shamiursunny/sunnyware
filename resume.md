@@ -3422,3 +3422,14 @@ me the exact git commands to commit + push both remotes."
 - **Layout polish**: Flex layout with 10px gap, 13px font, 6px border radius, and 200px min-width.
 
 *Part 679 logged: 2026-11-04*
+
+---
+
+### Part 680 Update (2026-11-04): Message Selection & Public Link Sharing
+
+- **Message selection mode**: A new "Select messages" option in the chat 3-dot menu lets you select individual messages.
+- **Checkboxes on messages**: Each message gets a checkbox (visible only in selection mode).
+- **Bottom action bar**: A sticky bar with "Select all", a live count, Cancel, and Create public link.
+- **Public link**: Generates a share URL with the selected message IDs appended (`?msgs=id1,id2`).
+
+*Part 680 logged: 2026-11-04*
