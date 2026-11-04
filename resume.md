@@ -3303,3 +3303,13 @@ me the exact git commands to commit + push both remotes."
 - **Files updated**: `llm.py` (routing logic), `llm_dashboard.py` (health endpoint), `static/admin-v2.html` (frontend badge).
 
 *Part 669 logged: 2026-11-04*
+
+---
+
+### Part 670 Update (2026-11-04): Markdown Tables, Routing Strategy, API Key Management
+
+- **Markdown Tables**: `mdLite` now supports full markdown table syntax (`| col | col |`), rendered with borders and styled headers.
+- **Routing Strategy Dropdown**: The Admin Dashboard now has a "Routing" dropdown next to the Providers header — choose Fallback (default), Fastest (lowest latency), or Round Robin.
+- **API Key Management**: Provider Settings table now includes a masked API Key column. Enter a key and press Tab — it saves via `/api/llm-dashboard/providers/{provider}/key`.
+
+*Part 670 logged: 2026-11-04*

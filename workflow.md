@@ -3279,3 +3279,11 @@ Fixed regex for conversation/discussion matching.
 **Changed**: Auto-disable threshold lowered from 50% to 25% success rate. Providers with 25-49% success remain active.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 670 Update (2026-11-04): Markdown Tables, Routing Strategy, API Key Management
+
+**New**: Markdown table support in chat. Routing strategy dropdown (Fallback/Fastest/Round Robin). Masked API key input in Provider Settings.
+
+*Workflow updated: 2026-11-04*

@@ -5605,3 +5605,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Verify providers with 25-49% success remain active.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 670 Update (2026-11-04): Markdown Tables, Routing Strategy, API Key Management
+
+**Status:** ✅ All three features implemented.
+
+**What was done:**
+- `static/chat.html`: Added markdown table parsing to `mdLite`.
+- `static/admin-v2.html`: Added routing strategy dropdown (`setRoutingStrategy`) and masked API key input column (`saveApiKey`).
+- `routes/llm_dashboard.py`: Added `POST /api/llm-dashboard/providers/{provider}/key` endpoint.
+
+**Next Steps (Part 671):**
+- Verify markdown tables in chat.
+- Test routing strategy switching.
+- Enter an API key via the masked input.
+
+*Handoff updated: 2026-11-04*
