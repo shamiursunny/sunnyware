@@ -2860,31 +2860,40 @@ async function testAllProviders(btn) {
   try {
     const data = await api('/api/llm-dashboard/providers');
     const allProvs = (data.providers || []).map(p => p.name);
-    // Skip local — it takes ~130s and would block the bulk test
     const cloudProvs = allProvs.filter(n => n !== 'local');
     const hasLocal = allProvs.includes('local');
     if (cloudProvs.length === 0) {
       toast('No cloud providers configured', 'error');
       return;
     }
-    // Test all cloud providers in parallel for speed
-    const results = await Promise.all(cloudProvs.map(async (name) => {
+    const results = [];
+    // Part 655: sequential with 150ms delay to avoid rate-limit bursts
+    for (let i = 0; i < cloudProvs.length; i++) {
+      const name = cloudProvs[i];
+      btn.innerText = `Testing ${i + 1}/${cloudProvs.length}...`;
       const start = Date.now();
       try {
         const r = await api('/api/llm-dashboard/test-provider/' + encodeURIComponent(name), 'POST');
-        return { name, ok: r.ok, latency: r.latency_ms || (Date.now() - start), error: r.error || '' };
+        results.push({
+          name, ok: r.ok,
+          latency: r.latency_ms || (Date.now() - start),
+          error: (r.error || '').substring(0, 40),
+        });
       } catch (e) {
-        return { name, ok: false, latency: Date.now() - start, error: e.message };
+        results.push({ name, ok: false, latency: Date.now() - start, error: e.message.substring(0, 40) });
       }
-    }));
+      if (i < cloudProvs.length - 1) await new Promise(res => setTimeout(res, 150));
+    }
     const okCount = results.filter(r => r.ok).length;
-    const summary = results
-      .sort((a, b) => (b.ok - a.ok) || (a.latency - b.latency))
-      .map(r => r.ok ? `${r.name} ${Math.round(r.latency)}ms` : `${r.name} ❌`)
-      .join(' · ');
-    const suffix = hasLocal ? ' · (local skipped)' : '';
-    toast(`${okCount}/${results.length} cloud OK · ${summary}${suffix}`,
-          okCount === results.length ? 'success' : 'error');
+    const okSummary = results.filter(r => r.ok).sort((a, b) => a.latency - b.latency)
+      .map(r => `${r.name} ${Math.round(r.latency)}ms`).join(' · ');
+    const failSummary = results.filter(r => !r.ok)
+      .map(r => `${r.name} (${r.error || 'failed'})`).join(' · ');
+    const parts = [`${okCount}/${results.length} OK`];
+    if (okSummary) parts.push(okSummary);
+    if (failSummary) parts.push(`FAIL: ${failSummary}`);
+    if (hasLocal) parts.push('(local skipped)');
+    toast(parts.join(' · '), okCount === results.length ? 'success' : 'error');
     refreshLlmHealth();
   } catch (e) {
     toast(`Test all failed: ${e.message}`, 'error');
