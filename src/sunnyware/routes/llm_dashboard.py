@@ -193,8 +193,11 @@ async def health_summary(req: Request):
         "last_error": "",
     })
 
+    _SKIP_PROVIDERS = {"none", "", "unknown", "__router__", "__all_failed__"}
     for log in logs:
         pname = log.get("provider") or "unknown"
+        if pname in _SKIP_PROVIDERS:
+            continue  # Part 653: skip router failure aggregates
         ts = log.get("ts", 0)
         age = now - ts
         is_ok = log.get("ok", False)
