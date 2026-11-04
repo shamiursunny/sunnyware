@@ -212,6 +212,99 @@ body.light-mode mark { background: rgba(255,235,59,0.6); color: #1a1d26; }
   border-radius: 6px;
   overflow: hidden;
 }
+
+/* Part 695: Content action buttons (maximize + download) */
+.content-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+.content-actions {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  z-index: 10;
+}
+.content-wrapper:hover .content-actions {
+  opacity: 1;
+}
+.content-action-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.55);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 5px;
+  cursor: pointer;
+  color: #ccc;
+  padding: 0;
+}
+.content-action-btn:hover {
+  background: rgba(0,0,0,0.8);
+  color: #fff;
+}
+.content-action-btn svg {
+  width: 14px;
+  height: 14px;
+}
+/* Style for code-block header actions (copy, maximize, download) */
+.code-head .code-action-btn {
+  color: #c9c9d1;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+.code-head .code-action-btn:hover {
+  background: rgba(255,255,255,.08);
+}
+
+/* Fullscreen modal */
+.fullscreen-content-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.9);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.fullscreen-content-modal.open { display: flex; }
+.fullscreen-content-inner {
+  max-width: 95vw;
+  max-height: 95vh;
+  overflow: auto;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 24px;
+  position: relative;
+}
+.fullscreen-close-btn {
+  position: sticky;
+  top: 0;
+  float: right;
+  background: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-size: 12px;
+  margin-bottom: 8px;
+}
 .msg-text table th {
   background: #1a1d26;
   padding: 10px 12px;
@@ -3491,6 +3584,103 @@ function dateSeparatorEl(date) {
   return div;
 }
 
+
+// Part 695: Maximize and download for tables, charts, and code blocks
+function addContentActions() {
+  // --- Tables ---
+  document.querySelectorAll('.msg-text table').forEach(table => {
+    if (table.closest('.content-wrapper')) return;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'content-wrapper';
+    table.parentNode.insertBefore(wrapper, table);
+    wrapper.appendChild(table);
+    const actions = document.createElement('div');
+    actions.className = 'content-actions';
+    actions.innerHTML = `
+      <button class="content-action-btn" title="Maximize" onclick="maximizeContent(this.closest('.content-wrapper').querySelector('table'))">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+      </button>
+      <button class="content-action-btn" title="Download CSV" onclick="downloadTable(this.closest('.content-wrapper').querySelector('table'))">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      </button>
+    `;
+    wrapper.appendChild(actions);
+  });
+
+  // --- Code blocks (augment existing copy button) ---
+  document.querySelectorAll('.code-block').forEach(block => {
+    if (block.querySelector('.code-action-btn')) return;
+    const head = block.querySelector('.code-head');
+    if (!head) return;
+    const actionsContainer = document.createElement('div');
+    actionsContainer.style.display = 'flex';
+    actionsContainer.style.gap = '4px';
+    actionsContainer.innerHTML = `
+      <button class="code-action-btn" title="Maximize" onclick="maximizeContent(this.closest('.code-block'))">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+      </button>
+      <button class="code-action-btn" title="Download" onclick="downloadCode(this.closest('.code-block'))">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+      </button>
+    `;
+    head.appendChild(actionsContainer);
+  });
+}
+
+function maximizeContent(el) {
+  const modal = document.getElementById('fullscreenContentModal');
+  const body = document.getElementById('fullscreenContentBody');
+  if (!modal || !body) return;
+  const clone = el.cloneNode(true);
+  clone.querySelectorAll('.content-actions, .code-action-btn').forEach(a => a.remove());
+  body.innerHTML = '';
+  body.appendChild(clone);
+  modal.classList.add('open');
+}
+
+function closeFullscreenContent() {
+  const modal = document.getElementById('fullscreenContentModal');
+  if (modal) modal.classList.remove('open');
+}
+
+function downloadTable(table) {
+  const rows = table.querySelectorAll('tr');
+  let csv = '';
+  rows.forEach(row => {
+    const cells = row.querySelectorAll('th, td');
+    const rowData = [];
+    cells.forEach(cell => {
+      let text = cell.innerText.trim().replace(/"/g, '""');
+      rowData.push('"' + text + '"');
+    });
+    csv += rowData.join(',') + '\n';
+  });
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'table-' + Date.now() + '.csv';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Table downloaded as CSV');
+}
+
+function downloadCode(block) {
+  const codeEl = block.querySelector('pre');
+  const code = codeEl ? codeEl.innerText : block.innerText;
+  const lang = block.querySelector('.code-head span') ? block.querySelector('.code-head span').innerText : 'txt';
+  const blob = new Blob([code], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'code-' + Date.now() + '.' + lang;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Code downloaded');
+}
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeFullscreenContent();
+});
+
 function renderMessages(){
 
   messagesEl.innerHTML='';
@@ -3525,6 +3715,8 @@ function renderMessages(){
     try { hljs.highlightAll(); } catch(e) {}
   }
 
+    // Part 695: Add maximize/download buttons
+  setTimeout(addContentActions, 0);
   scrollBottom();
 
 }
@@ -3800,6 +3992,8 @@ function sunnyRenderStreaming(textEl, aiMsg, text) {
   const pills = aiMsg.tools.length ? '<div style="margin-bottom:6px;">'+sunnyRenderToolPills(aiMsg)+'</div>' : '';
 
   textEl.innerHTML = pills + mdLite(text) + '<span class="cursor-blink"></span>';
+
+  addContentActions();
 
   scrollBottom();
 
@@ -5785,6 +5979,13 @@ document.addEventListener('DOMContentLoaded', () => {
       <button class="settings-danger-btn" onclick="clearLocalHistory()">Clear</button>
     </div>
     <button class="settings-close" onclick="closeSettingsModal()">Close</button>
+  </div>
+</div>
+
+<div class="fullscreen-content-modal" id="fullscreenContentModal" onclick="if(event.target===this)closeFullscreenContent()">
+  <div class="fullscreen-content-inner" id="fullscreenContentInner">
+    <button class="fullscreen-close-btn" onclick="closeFullscreenContent()">✕ Close</button>
+    <div id="fullscreenContentBody"></div>
   </div>
 </div>
 </body>
