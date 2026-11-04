@@ -147,6 +147,14 @@ def snapshot():
             t["total_fails"] = max(int(t.get("total_fails", 0)), c["fail"])
             if t.get("status") == "never_used" and c["total"] > 0:
                 t["status"] = "working"
+                t["reason"] = ""
+
+            # Fix stale reason
+            if t.get("status") == "working" and t.get("reason") == "no calls recorded":
+                t["reason"] = ""
+            if t.get("reason") == "" and c["total"] > 0:
+                t["reason"] = f"{c['ok']} successful calls"
+
     except Exception:
         pass
 
