@@ -3455,3 +3455,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Local highlight.js stub (no more CDN), 2FA whitelist expanded for Incognito support.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 690 Update (2026-11-04): Stop-Generation Button
+
+**New**: Stop button replaces Send during generation. Uses AbortController to cancel fetch and keeps partial text.
+
+*Workflow updated: 2026-11-04*

@@ -5994,3 +5994,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Implement Option C (Agent Tools) or D (Streaming).
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 690 Update (2026-11-04): Stop-Generation Button
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: Added `#stopBtn` (red "Stop" button) next to send button.
+- `static/chat.html`: Added `_currentAbortController` global and `stopGeneration()` function.
+- `static/chat.html`: `streamAI` sets `_currentAbortController`, passes `signal` to fetch, and toggles buttons.
+- `static/chat.html`: `catch(err)` handles `AbortError` gracefully; `finally` resets UI and buttons.
+
+**Next Steps (Part 691):**
+- Implement Batch 2 (Agent Tools: `fetch_url`, `read_pdf`).
+
+*Handoff updated: 2026-11-04*

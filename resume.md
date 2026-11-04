@@ -3544,3 +3544,14 @@ me the exact git commands to commit + push both remotes."
 - **2FA whitelist expanded**: Added `/api/chats`, `/api/sessions`, `/api/roles`, `/api/auth/roles`, `/api/llm-dashboard/`, `/api/saas/dashboard`, `/api/saas/roles`, and `/share/` to the 2FA whitelist, fixing 428 errors in Incognito.
 
 *Part 689 logged: 2026-11-04*
+
+---
+
+### Part 690 Update (2026-11-04): Stop-Generation Button
+
+- **Stop button**: While the AI is generating, the Send button is replaced by a red "Stop" button.
+- **AbortController**: Clicking Stop calls `_currentAbortController.abort()`, which cancels the fetch and keeps partial text.
+- **Graceful recovery**: `AbortError` is caught, the partial text stays in the bubble, and the input is re-enabled.
+- **UI reset**: The send/stop button toggles are handled in `finally` for consistency.
+
+*Part 690 logged: 2026-11-04*
