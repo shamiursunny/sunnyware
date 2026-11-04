@@ -132,6 +132,8 @@ input,textarea{font-family:inherit}
 
 .chat-item .branch-badge{font-size:10px;font-weight:700;color:var(--accent-color);background:rgba(124,92,255,.15);padding:2px 7px;border-radius:99px;flex-shrink:0}
 
+.chat-item .chat-checkbox{width:14px;height:14px;cursor:pointer;flex-shrink:0;margin-right:2px;}
+.chat-item.selected{background:rgba(91,141,239,0.15);}
 .chat-item .chat-actions{display:none;gap:2px}
 
 .chat-item:hover .chat-actions{display:flex}
@@ -971,16 +973,15 @@ input,textarea{font-family:inherit}
 
         <div class="dropdown" id="chatOptionsMenu" style="left:auto;right:0;min-width:210px">
 
-          <button class="dropdown-item" id="optShare"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg><div class="dd-info"><div class="dd-name">Share chat</div><div class="dd-desc">Copy a public link</div></div></button>
+          <button class="dropdown-item" id="optSelectAll"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><div class="dd-info"><div class="dd-name">Select all chats</div><div class="dd-desc">Select every chat in the list</div></div></button>
 
-          <button class="dropdown-item" id="optExport"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg><div class="dd-info"><div class="dd-name">Export chat</div><div class="dd-desc">Download as Markdown</div></div></button>
-          <button class="dropdown-item" id="optRegenerate"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg><div class="dd-info"><div class="dd-name">Regenerate</div><div class="dd-desc">Re-send the last prompt</div></div></button>
-
-          <button class="dropdown-item" id="optBranch"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3v12M6 15a3 3 0 103 3M18 9a3 3 0 10-3-3M6 5a2 2 0 012-2h2a2 2 0 012 2v6"/></svg><div class="dd-info"><div class="dd-name">Branch chat</div><div class="dd-desc">Continue as a new thread</div></div></button>
+          <button class="dropdown-item" id="optClearSelection"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg><div class="dd-info"><div class="dd-name">Clear selection</div><div class="dd-desc">Deselect all chats</div></div></button>
 
           <div class="dropdown-sep"></div>
 
-          <button class="dropdown-item" id="optDelete"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--danger)"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg><div class="dd-info"><div class="dd-name" style="color:var(--danger)">Delete chat</div></div></button>
+          <button class="dropdown-item" id="optExportSelected"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg><div class="dd-info"><div class="dd-name">Export selected</div><div class="dd-desc">Download selected chats as Markdown</div></div></button>
+
+          <button class="dropdown-item" id="optDeleteSelected"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--danger)"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg><div class="dd-info"><div class="dd-name" style="color:var(--danger)">Delete selected</div><div class="dd-desc">Delete selected chats</div></div></button>
 
         </div>
 
@@ -2249,7 +2250,7 @@ function setView(v){
 
   $('#composerWrap').classList.toggle('hidden',v==='library');
 
-  $('#chatOptionsBtn').disabled = v!=='chat' || !activeChatId;
+  $('#chatOptionsBtn').disabled = v!=='chat' || chats.length === 0;
 
   $('#chatOptionsBtn').style.opacity = $('#chatOptionsBtn').disabled? .35 : 1;
 
@@ -2386,13 +2387,78 @@ function renderChatList(filter=''){
 
 }
 
+// Part 672: Bulk chat selection
+let selectedChats = new Set();
+
+function updateSelectionUI() {
+  const count = selectedChats.size;
+  const bar = document.getElementById('bulk-action-bar');
+  if (bar) {
+    bar.style.display = count > 0 ? 'flex' : 'none';
+    const label = document.getElementById('bulk-count');
+    if (label) label.innerText = count + ' selected';
+  }
+  document.querySelectorAll('.chat-item').forEach(el => {
+    const id = el.dataset.chatId;
+    const cb = el.querySelector('.chat-checkbox');
+    if (cb) cb.checked = selectedChats.has(id);
+    el.classList.toggle('selected', selectedChats.has(id));
+  });
+}
+
+function toggleChatSelection(id) {
+  if (selectedChats.has(id)) selectedChats.delete(id);
+  else selectedChats.add(id);
+  updateSelectionUI();
+}
+
+function selectAllChats() {
+  chats.forEach(c => selectedChats.add(c.id));
+  updateSelectionUI();
+  toast(selectedChats.size + ' chats selected');
+}
+
+function clearSelection() {
+  selectedChats.clear();
+  updateSelectionUI();
+  toast('Selection cleared');
+}
+
+function exportSelected() {
+  if (selectedChats.size === 0) return toast('No chats selected', 'error');
+  const sel = chats.filter(c => selectedChats.has(c.id));
+  const md = sel.map(c => {
+    let s = '# ' + c.title + '\n\n';
+    c.messages.forEach(m => { s += '**' + (m.role==='user'?'You':'Sunnyware') + ':**\n\n' + m.text + '\n\n---\n\n'; });
+    return s;
+  }).join('\n\n========\n\n');
+  download('selected-chats-' + Date.now() + '.md', md, 'text/markdown');
+  toast(selectedChats.size + ' chats exported');
+}
+
+function deleteSelected() {
+  if (selectedChats.size === 0) return toast('No chats selected', 'error');
+  if (!confirm('Delete ' + selectedChats.size + ' chat(s)? This cannot be undone.')) return;
+  chats = chats.filter(c => !selectedChats.has(c.id));
+  if (selectedChats.has(activeChatId)) activeChatId = null;
+  selectedChats.clear();
+  saveAll();
+  renderChatList($('#searchInput').value);
+  renderMessages();
+  updateSelectionUI();
+  toast('Chats deleted');
+}
+
 function chatItemEl(c){
 
   const div=document.createElement('div');
 
-  div.className='chat-item'+(c.id===activeChatId?' active':'');
+  div.dataset.chatId = c.id;
 
-  div.innerHTML=`<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;color:var(--text-tertiary)"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+  div.className='chat-item'+(c.id===activeChatId?' active':'')+(selectedChats.has(c.id)?' selected':'');
+
+  div.innerHTML=`<input type="checkbox" class="chat-checkbox" ${selectedChats.has(c.id)?'checked':''} onclick="event.stopPropagation(); toggleChatSelection('${c.id}')">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;color:var(--text-tertiary)"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
 
     <span class="chat-title">${esc(c.title)}</span>
 
@@ -2400,13 +2466,24 @@ function chatItemEl(c){
 
     <div class="chat-actions">
 
+      <button class="icon-btn act-share" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></button>
+      <button class="icon-btn act-export" title="Export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
       <button class="icon-btn act-rename" title="Rename"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
 
       <button class="icon-btn act-del" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg></button>
 
     </div>`;
 
-  div.onclick=e=>{ if(e.target.closest('button')||e.target.closest('.rename-input'))return; selectChat(c.id); closeSidebar(); };
+  div.onclick=e=>{ if(e.target.closest('button')||e.target.closest('.rename-input')||e.target.closest('.chat-checkbox'))return; selectChat(c.id); closeSidebar(); };
+
+  div.querySelector('.act-share').onclick=(e)=>{ e.stopPropagation();
+    navigator.clipboard.writeText('https://shamiur-sunnyware.hf.space/share/'+c.id).then(()=>toast('Share link copied'));
+  };
+  div.querySelector('.act-export').onclick=(e)=>{ e.stopPropagation();
+    const md = c.messages.map(m => '**' + (m.role === 'user' ? 'You' : 'Sunnyware') + ':**\n\n' + m.text).join('\n\n---\n\n');
+    download(c.title.replace(/[^\w\s-]/g,'').trim().replace(/\s+/g,'-').toLowerCase()+'.md', md, 'text/markdown');
+    toast('Chat exported as Markdown');
+  };
 
   div.querySelector('.act-rename').onclick=()=>{
 
@@ -2516,59 +2593,14 @@ $('#newChatBtn').onclick=newChat;
 
 /* ==================== CHAT-LEVEL OPTIONS ==================== */
 
-$('#optShare').onclick=()=>{
-
-  const c=chats.find(x=>x.id===activeChatId); if(!c)return;
-
-  navigator.clipboard.writeText('https://shamiur-sunnyware.hf.space/share/'+c.id).then(()=>toast('Share link copied to clipboard'));
-
-};
-
-$('#optExport').onclick=()=>{
-
-  const c=chats.find(x=>x.id===activeChatId); if(!c)return;
-
-  const md=c.messages.map(m=>`**${m.role==='user'?'You':'Sunnyware'}:**
+$('#optSelectAll').onclick=()=>{ selectAllChats(); chatMenu.classList.remove('open'); };
+$('#optClearSelection').onclick=()=>{ clearSelection(); chatMenu.classList.remove('open'); };
+$('#optExportSelected').onclick=()=>{ exportSelected(); chatMenu.classList.remove('open'); };
+$('#optDeleteSelected').onclick=()=>{ deleteSelected(); chatMenu.classList.remove('open'); };
 
 
 
-${m.text}`).join('\n\n---\n\n');
 
-  download(c.title.replace(/[^\w\s-]/g,'').trim().replace(/\s+/g,'-').toLowerCase()+'.md', md, 'text/markdown');
-
-  toast('Chat exported as Markdown');
-
-};
-
-$('#optRegenerate').onclick=()=>{
-
-  regenerateLast();
-
-};
-
-$('#optBranch').onclick=()=>{
-
-  const c=chats.find(x=>x.id===activeChatId); if(!c)return;
-
-  const b={id:uid(), title:c.title, created:new Date().toISOString(), updated:new Date().toISOString(), branched:true, messages:JSON.parse(JSON.stringify(c.messages))};
-
-  b.messages.forEach(m=>m.id=uid());
-
-  chats.unshift(b); saveAll(); selectChat(b.id); toast('Branched into a new chat — original untouched');
-
-};
-
-$('#optDelete').onclick=()=>{
-
-  const c=chats.find(x=>x.id===activeChatId); if(!c)return;
-
-  showConfirm('Delete conversation?','This chat will be permanently removed. Files in your Library are not affected.','Delete',()=>{
-
-    chats=chats.filter(x=>x.id!==c.id); activeChatId=null; saveAll(); renderChatList(); renderMessages(); toast('Conversation deleted');
-
-  });
-
-};
 
 
 
@@ -2782,6 +2814,7 @@ function renderMessages(){
   messagesEl.classList.toggle('hidden',!has);
 
   $('#chatOptionsBtn').disabled=!has; $('#chatOptionsBtn').style.opacity=has?1:.35;
+  if (chats.length > 0) { $('#chatOptionsBtn').disabled = false; $('#chatOptionsBtn').style.opacity = 1; }
 
   if(has) chat.messages.forEach(m=>messagesEl.appendChild(msgEl(m)));
 
