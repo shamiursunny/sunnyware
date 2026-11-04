@@ -287,3 +287,86 @@ async def health_summary(req: Request):
 
     return {"count": len(result), "providers": result, "ts": now}
 
+@router.get("/api/llm-dashboard/usage")
+async def usage_summary(req: Request):
+    """Part 659: Cost & token analytics from LLM call logs."""
+    d = _admin_only(req)
+    if d: return d
+    import time as _t
+    from collections import defaultdict
+    from .. import llm_dashboard_store as _lds
+
+    now = _t.time()
+    logs = _lds.list_llm_logs(limit=5000)
+
+    by_provider = defaultdict(lambda: {"tok_24h": 0, "tok_7d": 0, "calls_7d": 0, "cost_7d_cents": 0.0})
+    by_user = defaultdict(lambda: {"tok_24h": 0, "tok_7d": 0, "calls_7d": 0})
+    by_model = defaultdict(lambda: {"tok_7d": 0, "calls_7d": 0})
+    daily = defaultdict(lambda: {"tokens": 0, "calls": 0})
+
+    day_ago = now - 86400
+    week_ago = now - 7 * 86400
+
+    _SKIP = {"none", "", "unknown", "__router__", "__all_failed__"}
+    for log in logs:
+        ts = log.get("ts", 0)
+        if ts < week_ago:
+            continue
+        prov = log.get("provider") or "unknown"
+        if prov in _SKIP:
+            continue
+        model = log.get("model") or "unknown"
+        user = log.get("user") or "anonymous"
+        tok = int(log.get("tokens") or 0)
+
+        pp = by_provider[prov]
+        pp["tok_7d"] += tok
+        pp["calls_7d"] += 1
+        if ts >= day_ago:
+            pp["tok_24h"] += tok
+
+        uu = by_user[user]
+        uu["tok_7d"] += tok
+        uu["calls_7d"] += 1
+        if ts >= day_ago:
+            uu["tok_24h"] += tok
+
+        mm = by_model[model]
+        mm["tok_7d"] += tok
+        mm["calls_7d"] += 1
+
+        dk = _t.strftime("%Y-%m-%d", _t.gmtime(ts))
+        daily[dk]["tokens"] += tok
+        daily[dk]["calls"] += 1
+
+    # Cost calc per provider
+    for prov, stats in by_provider.items():
+        try:
+            cfg = _lds.get_provider_config(prov)
+            rate = float(cfg.get("cost_per_1k_cents") or 0.0)
+        except Exception:
+            rate = 0.0
+        stats["cost_7d_cents"] = round(stats["tok_7d"] / 1000.0 * rate, 4)
+
+    days_series = []
+    for i in range(6, -1, -1):
+        dts = now - i * 86400
+        key = _t.strftime("%Y-%m-%d", _t.gmtime(dts))
+        d_data = daily.get(key, {"tokens": 0, "calls": 0})
+        days_series.append({"date": key, "tokens": d_data["tokens"], "calls": d_data["calls"]})
+
+    return {
+        "providers": [{"provider": k, **v} for k, v in
+                      sorted(by_provider.items(), key=lambda kv: -kv[1]["tok_7d"])],
+        "users": [{"user": k, **v} for k, v in
+                  sorted(by_user.items(), key=lambda kv: -kv[1]["tok_7d"])][:20],
+        "models": [{"model": k, **v} for k, v in
+                   sorted(by_model.items(), key=lambda kv: -kv[1]["tok_7d"])],
+        "daily": days_series,
+        "totals": {
+            "tokens_24h": sum(p["tok_24h"] for p in by_provider.values()),
+            "tokens_7d": sum(p["tok_7d"] for p in by_provider.values()),
+            "calls_7d": sum(p["calls_7d"] for p in by_provider.values()),
+        },
+    }
+

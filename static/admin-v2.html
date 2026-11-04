@@ -2828,6 +2828,15 @@ async function renderLlmDashboard() {
     `}
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;">
+      <h3 style="margin:0;">Usage Analytics (7d)</h3>
+      <div>
+        <button class="ghost small" onclick="refreshLlmUsage()">Refresh</button>
+      </div>
+    </div>
+    <p style="color:var(--muted);font-size:12px;">Tokens &amp; estimated cost · auto-refresh 30s</p>
+    <div id="llm-usage-container"><p style="color:var(--muted)">Loading...</p></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;">
       <h3 style="margin:0;">Provider Health</h3>
       <div>
         <button class="ghost small" onclick="testAllProviders(this)" style="margin-right:8px;">Test All</button>
@@ -2850,6 +2859,7 @@ async function renderLlmDashboard() {
 
   refreshLlmLogs();
   refreshLlmHealth();
+  refreshLlmUsage();
   _llmRefreshTimer = setInterval(refreshLlmLogs, 5000);
 }
 
@@ -2900,6 +2910,79 @@ async function testAllProviders(btn) {
   } finally {
     btn.innerText = orig;
     btn.disabled = false;
+  }
+}
+
+async function refreshLlmUsage() {
+  const container = document.getElementById('llm-usage-container');
+  if (!container) {
+    if (window._llmUsageTimer) { clearInterval(window._llmUsageTimer); window._llmUsageTimer = null; }
+    return;
+  }
+  const data = await api('/api/llm-dashboard/usage').catch(() => null);
+  if (!data) {
+    container.innerHTML = '<p style="color:var(--muted)">Failed to load usage data.</p>';
+    return;
+  }
+  const totals = data.totals || {};
+  const daily = data.daily || [];
+  const maxTok = Math.max(1, ...daily.map(d => d.tokens));
+  const spark = daily.map(d => {
+    const h = Math.max(2, Math.round((d.tokens / maxTok) * 40));
+    return '<div title="' + d.date + ': ' + d.tokens + ' tokens, ' + d.calls + ' calls" style="display:inline-block;width:28px;height:' + h + 'px;background:var(--accent);border-radius:2px 2px 0 0;margin-right:4px;vertical-align:bottom;"></div>';
+  }).join('');
+
+  const provRows = (data.providers || []).map(p => `
+    <tr>
+      <td><strong>${esc(p.provider)}</strong></td>
+      <td>${(p.tok_24h || 0).toLocaleString()}</td>
+      <td>${(p.tok_7d || 0).toLocaleString()}</td>
+      <td>${(p.calls_7d || 0).toLocaleString()}</td>
+      <td>${p.cost_7d_cents > 0 ? '$' + (p.cost_7d_cents / 100).toFixed(4) : '—'}</td>
+    </tr>
+  `).join('');
+
+  const userRows = (data.users || []).slice(0, 5).map(u => `
+    <tr>
+      <td>${esc(u.user || 'anonymous')}</td>
+      <td>${(u.tok_24h || 0).toLocaleString()}</td>
+      <td>${(u.tok_7d || 0).toLocaleString()}</td>
+      <td>${(u.calls_7d || 0).toLocaleString()}</td>
+    </tr>
+  `).join('');
+
+  container.innerHTML = `
+    <div style="display:flex;gap:24px;align-items:flex-end;margin:12px 0;padding:16px;background:rgba(255,255,255,0.02);border-radius:6px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Last 7 days (hover for details)</div>
+        <div style="height:48px;line-height:0;">${spark}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);">24h Tokens</div>
+        <div style="font-size:20px;font-weight:700;">${(totals.tokens_24h || 0).toLocaleString()}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);">7d Tokens</div>
+        <div style="font-size:20px;font-weight:700;">${(totals.tokens_7d || 0).toLocaleString()}</div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:var(--muted);">7d Calls</div>
+        <div style="font-size:20px;font-weight:700;">${(totals.calls_7d || 0).toLocaleString()}</div>
+      </div>
+    </div>
+    <h4 style="margin:16px 0 8px;font-size:13px;">Tokens by Provider</h4>
+    <table style="font-size:12px;">
+      <thead><tr><th>Provider</th><th>Tokens 24h</th><th>Tokens 7d</th><th>Calls 7d</th><th>Est. Cost 7d</th></tr></thead>
+      <tbody>${provRows || '<tr><td colspan="5" style="color:var(--muted)">No usage yet.</td></tr>'}</tbody>
+    </table>
+    <h4 style="margin:16px 0 8px;font-size:13px;">Tokens by User (top 5)</h4>
+    <table style="font-size:12px;">
+      <thead><tr><th>User</th><th>Tokens 24h</th><th>Tokens 7d</th><th>Calls 7d</th></tr></thead>
+      <tbody>${userRows || '<tr><td colspan="4" style="color:var(--muted)">No usage yet.</td></tr>'}</tbody>
+    </table>
+  `;
+  if (!window._llmUsageTimer) {
+    window._llmUsageTimer = setInterval(refreshLlmUsage, 30000);
   }
 }
 
