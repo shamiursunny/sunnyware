@@ -3199,3 +3199,11 @@ Fixed regex for conversation/discussion matching.
 **Verified**: Token counting works end-to-end. 3 real chat messages produced 147 tokens, correctly separated between `anonymous` (147 tokens, 3 calls) and `test` (0 tokens, 7 calls).
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 661 Update (2026-11-04): Session Management Verified
+
+**Verified**: Search, rename, and delete for sessions already work (implemented in `webui.py`). No new code needed.
+
+*Workflow updated: 2026-11-04*

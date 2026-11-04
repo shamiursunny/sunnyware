@@ -3200,3 +3200,15 @@ me the exact git commands to commit + push both remotes."
 - **Failed Tests Show Zero**: HuggingFace (402), SambaNova (429), and OpenRouter (429) show 0 tokens (expected for failed test calls).
 
 *Part 660 logged: 2026-11-04*
+
+---
+
+### Part 661 Update (2026-11-04): Session Management Verified
+
+- **Discovery**: Session Management (search, rename, delete) was already implemented in a prior part.
+- **Search**: The `#sessSearch` input in the sidebar filters sessions by title as you type (confirmed by typing "2" and seeing only sessions with "2").
+- **Rename**: Double-click a session title or click the ✎ icon to rename inline.
+- **Delete**: Click the × icon to delete a session (with confirmation).
+- **Storage**: Sessions are stored in browser `localStorage` (`sunnyware_sessions_v2`), with Neon as an optional backup.
+
+*Part 661 logged: 2026-11-04*
