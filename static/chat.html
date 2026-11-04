@@ -132,7 +132,9 @@ input,textarea{font-family:inherit}
 
 .chat-item .branch-badge{font-size:10px;font-weight:700;color:var(--accent-color);background:rgba(124,92,255,.15);padding:2px 7px;border-radius:99px;flex-shrink:0}
 
-.chat-item .chat-checkbox{width:14px;height:14px;cursor:pointer;flex-shrink:0;margin-right:2px;}
+.chat-item .chat-checkbox{width:14px;height:14px;cursor:pointer;flex-shrink:0;margin-right:2px;display:none;}
+body.selection-mode .chat-item .chat-checkbox{display:block;}
+body.selection-mode .chat-item .chat-menu-btn{display:none;}
 .chat-item.selected{background:rgba(91,141,239,0.15);}
 .chat-item .chat-actions{display:none;gap:2px}
 .chat-item .chat-menu-btn:hover{background:var(--hover)}
@@ -2542,6 +2544,11 @@ function updateSelectionUI() {
   const exitBtn = document.getElementById('exitSelectionBtn');
   if (title) title.innerText = count > 0 ? 'Select Chats (' + count + ')' : 'Chats';
   if (exitBtn) exitBtn.style.display = count > 0 ? 'flex' : 'none';
+  if (count > 0) {
+    document.body.classList.add('selection-mode');
+  } else {
+    document.body.classList.remove('selection-mode');
+  }
   const selectAllCb = document.getElementById('selectAllCheckbox');
   if (selectAllCb) {
     selectAllCb.checked = (count > 0 && count === chats.length);
@@ -2576,6 +2583,7 @@ function selectAllChats() {
 
 function clearSelection() {
   selectedChats.clear();
+  document.body.classList.remove('selection-mode');
   updateSelectionUI();
   toast('Selection cleared');
 }
@@ -2700,6 +2708,7 @@ function chatItemEl(c){
           navigator.clipboard.writeText('https://shamiur-sunnyware.hf.space/share/'+c.id).then(()=>toast('Share link copied'));
         } else if (action === 'multiselect') {
           selectedChats.add(c.id);
+          document.body.classList.add('selection-mode');
           updateSelectionUI();
           renderChatList($('#searchInput').value);
         } else if (action === 'delete') {
