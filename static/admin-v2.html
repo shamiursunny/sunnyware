@@ -2980,6 +2980,17 @@ async function refreshLlmUsage() {
       <thead><tr><th>User</th><th>Tokens 24h</th><th>Tokens 7d</th><th>Calls 7d</th></tr></thead>
       <tbody>${userRows || '<tr><td colspan="4" style="color:var(--muted)">No usage yet.</td></tr>'}</tbody>
     </table>
+    <h4 style="margin:16px 0 8px;font-size:13px;">Tokens by Model</h4>
+    <table style="font-size:12px;">
+      <thead><tr><th>Model</th><th>Tokens 7d</th><th>Calls 7d</th></tr></thead>
+      <tbody>${(data.models || []).map(m => `
+        <tr>
+          <td><span style="font-size:11px;font-family:monospace;">${esc(m.model || 'unknown')}</span></td>
+          <td>${(m.tok_7d || 0).toLocaleString()}</td>
+          <td>${(m.calls_7d || 0).toLocaleString()}</td>
+        </tr>
+      `).join('') || '<tr><td colspan="3" style="color:var(--muted)">No model usage yet.</td></tr>'}</tbody>
+    </table>
   `;
   if (!window._llmUsageTimer) {
     window._llmUsageTimer = setInterval(refreshLlmUsage, 30000);

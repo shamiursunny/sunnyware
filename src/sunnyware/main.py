@@ -3,8 +3,6 @@
 """FastAPI entry point — thin wrapper mounting route packages."""
 
 import os
-# Part 646: Force SmolLM path to bypass secret update limits
-os.environ["LOCAL_MODEL_PATH"] = "/data/models/SmolLM-135M-Instruct-Q4_K_M.gguf"
 import sys
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -341,22 +339,20 @@ try:
         
         def _run_preload():
             try:
-                # Part 645: Download SmolLM-135M if not already present
-                _smollm_path = "/data/models/SmolLM-135M-Instruct-Q4_K_M.gguf"
-                import os as _os
-                if not _os.path.exists(_smollm_path):
-                    try:
-                        from huggingface_hub import hf_hub_download
-                        _os.makedirs("/data/models", exist_ok=True)
-                        print("[start] Downloading SmolLM-135M (first run only)...", flush=True)
-                        _downloaded = hf_hub_download(
-                            repo_id="second-state/SmolLM-135M-Instruct-GGUF",
-                            filename="SmolLM-135M-Instruct-Q4_K_M.gguf",
-                            local_dir="/data/models/",
-                        )
-                        print(f"[start] SmolLM downloaded to {_smollm_path}", flush=True)
-                    except Exception as _de:
-                        print(f"[start] SmolLM download failed: {_de}", flush=True)
+                # Part 662: Delete unused GGUF files to free storage (SmolLM ~150MB)
+                try:
+                    import os as _os
+                    _keep = _os.path.basename(_jarvis_local._model_path())
+                    _models_dir = "/data/models"
+                    if _os.path.isdir(_models_dir):
+                        for _f in _os.listdir(_models_dir):
+                            if _f.endswith(".gguf") and _f != _keep:
+                                _fp = _os.path.join(_models_dir, _f)
+                                _sz_mb = round(_os.path.getsize(_fp) / 1024 / 1024, 1)
+                                _os.remove(_fp)
+                                print(f"[start] Removed unused GGUF: {_f} ({_sz_mb} MB)", flush=True)
+                except Exception as _de:
+                    print(f"[start] GGUF cleanup skipped: {_de}", flush=True)
 
                 print(f"[jarvis] Starting hard preload of {os.path.basename(_jarvis_local._model_path())} and Embedder...", flush=True)
                 
