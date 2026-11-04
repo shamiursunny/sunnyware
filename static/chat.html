@@ -3136,6 +3136,8 @@ function msgEl(m){
 
         <button class="icon-btn a-regen" title="Regenerate">${ICONS.regen}</button>
 
+        <button class="icon-btn a-share" title="Share">${ICONS.share || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg>'}</button>
+
         <button class="icon-btn a-del" title="Delete">${ICONS.trash}</button>
 
       </div>`:`<div class="msg-actions">
@@ -3191,6 +3193,15 @@ messagesEl.addEventListener('click',e=>{
 
 
 
+  if(e.target.closest('.a-share')){
+    selectedMsgs.clear();
+    selectedMsgs.add(m.id);
+    document.body.classList.add('message-selection-mode');
+    renderMessages();
+    updateMsgSelectionBar();
+    toast('Message selected — use the bottom bar to share');
+    return;
+  }
   if(e.target.closest('.a-copy')||e.target.closest('.u-copy')){ navigator.clipboard.writeText(m.text).then(()=>toast('Copied to clipboard')); return; }
 
   if(e.target.closest('.a-like')){ m.liked=m.liked===1?0:1; saveAll(); renderMessages(); return; }
