@@ -3351,3 +3351,11 @@ Fixed regex for conversation/discussion matching.
 **Fixed**: Added missing `--panel` CSS variable, repositioned chat dropdown to the right of the button with opaque background and viewport-aware placement.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 678 Update (2026-11-04): Hide Checkboxes by Default
+
+**New**: Checkboxes are hidden by default; only visible in `selection-mode` (entered via Multi-select in the 3-dot menu). X/Escape exits selection mode.
+
+*Workflow updated: 2026-11-04*

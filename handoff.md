@@ -5771,3 +5771,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Verify dropdown appearance and positioning on desktop and mobile.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 678 Update (2026-11-04): Hide Checkboxes by Default (Selection Mode Only)
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: `.chat-checkbox` now `display:none` by default; `body.selection-mode .chat-checkbox` shows it.
+- `static/chat.html`: `body.selection-mode .chat-menu-btn` hides the per-chat 3-dot button in selection mode.
+- `static/chat.html`: `updateSelectionUI` adds/removes `selection-mode` based on `selectedChats.size`.
+- `static/chat.html`: Multi-select action adds `selection-mode` class explicitly.
+- `static/chat.html`: `clearSelection` removes `selection-mode`.
+
+**Next Steps (Part 679):**
+- Verify normal view has no checkboxes and Multi-select reveals them.
+
+*Handoff updated: 2026-11-04*

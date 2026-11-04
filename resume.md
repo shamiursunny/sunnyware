@@ -3401,3 +3401,13 @@ me the exact git commands to commit + push both remotes."
 - **Viewport-aware**: The menu flips to the left if there's no room on the right, and stays within the viewport vertically.
 
 *Part 677 logged: 2026-11-04*
+
+---
+
+### Part 678 Update (2026-11-04): Hide Checkboxes by Default (Selection Mode Only)
+
+- **Clean UI**: Chat checkboxes are now hidden by default and only appear when you enter selection mode via the 3-dot menu's **Multi-select** option.
+- **Explicit entry**: Multi-select adds the `selection-mode` class to `<body>`, which reveals checkboxes and hides the 3-dot menu buttons.
+- **Clean exit**: Pressing Escape or clicking the X in the header removes `selection-mode` and restores the normal view.
+
+*Part 678 logged: 2026-11-04*
