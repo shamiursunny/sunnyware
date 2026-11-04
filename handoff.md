@@ -5389,3 +5389,25 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 2. Or move to a new feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 659 Update (2026-11-04): Usage Analytics Dashboard
+
+**Status:** ✅ New Usage Analytics card live in Admin.
+
+**What was done:**
+- Backend: `GET /api/llm-dashboard/usage` returns 7-day token/cost data.
+- Frontend: New "Usage Analytics (7d)" card above Provider Health, auto-refreshing every 30s.
+- Metrics: Sparkline chart, 24h/7d totals, per-provider token/cost breakdown, top 5 users by tokens.
+
+**Verified:**
+- Card renders correctly after hard refresh.
+- 7 test calls are tracked (7d Calls: 7).
+- Tokens are 0 for test calls (expected); real chat traffic will populate token counts.
+
+**Next Steps (Part 660):**
+1. Send real chat messages to verify token counting.
+2. Or move to a new feature.
+
+*Handoff updated: 2026-11-04*

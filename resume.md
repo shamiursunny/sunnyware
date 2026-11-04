@@ -3174,3 +3174,18 @@ me the exact git commands to commit + push both remotes."
 - **Quota/Credits Cooldown**: `402` errors and `credits`/`billing`/`payment required` now get 3600s cooldown (was 20s default). Gemini quota, HuggingFace credits, and any billing-related errors are now properly cooled for 1 hour.
 
 *Part 658 logged: 2026-11-04*
+
+---
+
+### Part 659 Update (2026-11-04): Usage Analytics Dashboard
+
+- **New Endpoint**: `GET /api/llm-dashboard/usage` aggregates tokens, calls, and cost from `llm_call_logs.json` over 24h and 7d windows.
+- **New Card**: "Usage Analytics (7d)" appears above Provider Health in the Admin Dashboard, with:
+  - **Sparkline bar chart** (last 7 days, tokens per day)
+  - **Totals**: 24h tokens, 7d tokens, 7d calls
+  - **Tokens by Provider** table: per-provider 24h/7d tokens, calls, estimated cost
+  - **Tokens by User** table: top 5 users by token usage
+- **Auto-Refresh**: Every 30s, independent of the Provider Health (15s) and Live LLM Log (5s) refresh cycles.
+- **Test Calls Counted**: Test All runs now show as calls in the usage table, but with 0 tokens (the "Say OK" prompt is tiny). Real chat traffic will populate token counts.
+
+*Part 659 logged: 2026-11-04*

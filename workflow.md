@@ -3183,3 +3183,11 @@ Fixed regex for conversation/discussion matching.
 **Fix**: Test results now write to health stats. 402/credits get 3600s cooldown. Provider Health table now populates after Test All.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 659 Update (2026-11-04): Usage Analytics Dashboard
+
+**New**: `/api/llm-dashboard/usage` endpoint + Usage Analytics card with 7-day sparkline, per-provider/per-user token breakdown, and estimated cost.
+
+*Workflow updated: 2026-11-04*
