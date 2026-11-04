@@ -3431,3 +3431,11 @@ Fixed regex for conversation/discussion matching.
 **New**: DeepSeek-style "Today"/"Yesterday"/"Monday" separators between messages from different days. New messages get a `ts` timestamp.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 687 Update (2026-11-04): Chat Export & Import
+
+**New**: Export all chats as JSON, import from JSON with duplicate detection. Buttons in the settings menu.
+
+*Workflow updated: 2026-11-04*

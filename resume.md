@@ -3512,3 +3512,13 @@ me the exact git commands to commit + push both remotes."
 - **CSS**: Added `.date-separator` with horizontal lines on each side and a centered uppercase label.
 
 *Part 686 logged: 2026-11-04*
+
+---
+
+### Part 687 Update (2026-11-04): Chat Export & Import
+
+- **Export**: Downloads all chats and files as `sunnyware-backup-YYYY-MM-DD.json`.
+- **Import**: Upload a JSON file to merge chats (duplicates by chat ID are skipped).
+- **UI**: Added "Export chats" and "Import chats" buttons to the settings menu.
+
+*Part 687 logged: 2026-11-04*

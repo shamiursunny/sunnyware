@@ -5944,3 +5944,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Implement Option A (Chat Export & Import).
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 687 Update (2026-11-04): Chat Export & Import
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: Added `exportChats()` — downloads JSON with `{version, exported_at, chats, files}`.
+- `static/chat.html`: Added `importChats(input)` — reads JSON, merges by chat ID, skips duplicates.
+- `static/chat.html`: Added "Export chats" and "Import chats" buttons in the settings menu.
+
+**Next Steps (Part 688):**
+- Implement Option B (Provider Dashboard enhancements).
+
+*Handoff updated: 2026-11-04*
