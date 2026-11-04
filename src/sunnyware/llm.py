@@ -126,6 +126,52 @@ def _cooldown_for(provider_name: str, error: str) -> float:
     return 20.0
 
 
+_AUTO_DISABLE_CACHE = {"ts": 0.0, "providers": set()}
+
+def _auto_disabled_providers() -> set:
+    """Part 663: Return provider names with >5 calls and <50% success in last 1h.
+    Cached for 60s to avoid reading logs on every routing decision.
+    Respects manual override: if auto_disable_override_until > now, skip.
+    """
+    import time as _t
+    now = _t.time()
+    if now - _AUTO_DISABLE_CACHE["ts"] < 60:
+        return _AUTO_DISABLE_CACHE["providers"]
+    try:
+        from . import llm_dashboard_store as _lds
+        logs = _lds.list_llm_logs(limit=2000)
+        cutoff = now - 3600
+        stats = {}
+        for log in logs:
+            if log.get("ts", 0) < cutoff:
+                continue
+            prov = log.get("provider") or ""
+            if prov in ("", "none", "unknown"):
+                continue
+            s = stats.setdefault(prov, {"ok": 0, "total": 0})
+            s["total"] += 1
+            if log.get("ok"):
+                s["ok"] += 1
+        disabled = set()
+        for prov, s in stats.items():
+            if s["total"] >= 3 and (s["ok"] / s["total"]) < 0.5:  # Part 663: lowered from 5 to 3 for faster disable
+                # Check manual override
+                try:
+                    cfg = _lds.get_provider_config(prov)
+                    override = float(cfg.get("auto_disable_override_until", 0) or 0)
+                except Exception:
+                    override = 0
+                if override > now:
+                    continue
+                disabled.add(prov)
+        _AUTO_DISABLE_CACHE["ts"] = now
+        _AUTO_DISABLE_CACHE["providers"] = disabled
+        return disabled
+    except Exception:
+        _AUTO_DISABLE_CACHE["ts"] = now
+        _AUTO_DISABLE_CACHE["providers"] = set()
+        return set()
+
 def _is_transient_http_status(status_code: int) -> bool:
     """Return True if the HTTP status is likely transient and safe to retry."""
     return status_code in (500, 502, 503, 504)
@@ -609,9 +655,13 @@ async def chat(
         for p in provs
     )
 
+    _auto_disabled = _auto_disabled_providers()  # Part 663
     last_err = ""
     for p in provs:
         if not getattr(p, "enabled", True):
+            continue
+        if p.name in _auto_disabled and p.name != "local":
+            print(f"[llm.chat] skipping auto-disabled provider: {p.name}", flush=True)
             continue
         if p.is_cooling():
             continue
