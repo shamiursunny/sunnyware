@@ -93,6 +93,21 @@ button.ghost { background: rgba(255,255,255,0.05); color: var(--text); border: 1
   th, td { border-color: #ddd; color: #000; }
   th { background: #f5f5f5; }
 }
+
+/* Part 688: Provider dashboard enhancements */
+.llm-sparkline { display: inline-flex; align-items: flex-end; gap: 1px; height: 18px; }
+.llm-sparkline-bar { width: 3px; background: #5b8def; border-radius: 1px; opacity: 0.7; }
+.llm-sparkline-bar:hover { opacity: 1; }
+.health-pause-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-tertiary);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 11px;
+}
+.health-pause-btn.paused { background: #e67e22; border-color: #e67e22; color: white; }
 </style>
 
 <style>
@@ -2859,6 +2874,7 @@ async function renderLlmDashboard() {
       <h3 style="margin:0;">Provider Health</h3>
       <div>
         <button class="ghost small" onclick="testAllProviders(this)" style="margin-right:8px;">Test All</button>
+          <button class="ghost small health-pause-btn" id="healthPauseBtn" onclick="toggleHealthPause()" style="margin-right:8px;">Pause</button>
         <button class="ghost small" onclick="refreshLlmHealth()">Refresh</button>
       </div>
     </div>
@@ -3028,6 +3044,24 @@ async function refreshLlmHealth() {
     container.innerHTML = '<p style="color:var(--muted)">No data yet.</p>';
     return;
   }
+
+  if (!window._latencyHistory) window._latencyHistory = {};
+  rows.forEach(r => {
+    if (!window._latencyHistory[r.provider]) window._latencyHistory[r.provider] = [];
+    if (r.avg_latency_1h_ms) {
+      window._latencyHistory[r.provider].push(r.avg_latency_1h_ms);
+      if (window._latencyHistory[r.provider].length > 10) window._latencyHistory[r.provider].shift();
+    }
+  });
+  const sparkline = (prov) => {
+    const hist = window._latencyHistory[prov] || [];
+    if (hist.length < 2) return '<span style="color:var(--muted);">—</span>';
+    const max = Math.max(...hist, 1);
+    return '<span class="llm-sparkline">' + hist.map(v => {
+      const h = Math.max(2, Math.round((v / max) * 18));
+      return '<span class="llm-sparkline-bar" style="height:' + h + 'px;" title="' + v + 'ms"></span>';
+    }).join('') + '</span>';
+  };
   const badge = (s) => {
     if (s === 'active') return '<span style="color:#2ecc71;font-weight:600;">Active</span>';
     if (s === 'cooling') return '<span style="color:#f39c12;font-weight:600;">Cooling</span>';
@@ -3064,7 +3098,7 @@ async function refreshLlmHealth() {
           <th>Cost</th>
           <th>Cooldown</th>
           <th>Success 1h</th>
-          <th>Avg 1h</th>
+          <th>Avg 1h</th><th>Trend</th>
           <th>P95 1h</th>
           <th>Success 24h</th>
           <th>Last Error</th>
@@ -3089,7 +3123,7 @@ async function refreshLlmHealth() {
             <td>${r.cost_tier === 'Free' ? '<span style="color:#2ecc71;font-weight:600;">Free</span>' : '<span style="color:#e67e22;font-weight:600;">' + (r.cost_tier || 'Paid') + '</span>'}</td>
             <td>${r.live_status === 'cooling' ? '<span style="color:#f39c12;">' + r.cooldown_remaining_s + 's</span>' : '-'}</td>
             <td>${pctCell(r.success_pct_1h, r.total_1h)}</td>
-            <td>${r.avg_latency_1h_ms ? r.avg_latency_1h_ms + 'ms' : '—'}</td>
+            <td>${r.avg_latency_1h_ms ? r.avg_latency_1h_ms + 'ms' : '—'}</td><td>${sparkline(r.provider)}</td>
             <td>${r.p95_latency_1h_ms ? r.p95_latency_1h_ms + 'ms' : '—'}</td>
             <td>${pctCell(r.success_pct_24h, r.total_24h)}</td>
             <td style="font-size:11px;color:#e74c3c;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(r.last_error)}">${esc(r.last_error) || '—'}</td>
@@ -3099,8 +3133,23 @@ async function refreshLlmHealth() {
       </tbody>
     </table>
   `;
-  if (!window._llmHealthTimer) {
+  if (!window._llmHealthTimer && !window._llmHealthPaused) {
     window._llmHealthTimer = setInterval(refreshLlmHealth, 15000);
+  }
+}
+
+function toggleHealthPause() {
+  window._llmHealthPaused = !window._llmHealthPaused;
+  const btn = document.getElementById('healthPauseBtn');
+  if (!btn) return;
+  if (window._llmHealthPaused) {
+    if (window._llmHealthTimer) { clearInterval(window._llmHealthTimer); window._llmHealthTimer = null; }
+    btn.textContent = 'Resume';
+    btn.classList.add('paused');
+  } else {
+    btn.textContent = 'Pause';
+    btn.classList.remove('paused');
+    refreshLlmHealth();
   }
 }
 
