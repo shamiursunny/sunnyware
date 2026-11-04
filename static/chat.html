@@ -1538,6 +1538,23 @@ body.light-mode .settings-close { border-color: #e2e5ec; color: #1a1d26; }
   </div>
 
   <div class="settings-section">
+    <div class="settings-item" style="cursor:default;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M4 7V4h16v3M9 20h6M12 4v16"/>
+      </svg>
+      <span class="settings-item-label" style="flex:1;">Font size</span>
+      <input type="range" min="12" max="20" value="14" id="settingsFontSlider" oninput="updateFontSize(this.value)" style="width:80px;accent-color:var(--accent);">
+      <span id="settingsFontLabel" style="font-size:11px;color:var(--text-secondary);min-width:30px;text-align:right;">14px</span>
+    </div>
+    <button class="settings-item" id="settingsClearHistoryBtn" onclick="clearLocalHistory()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/>
+      </svg>
+      <span class="settings-item-label" style="color:var(--danger);">Clear local history</span>
+    </button>
+  </div>
+
+  <div class="settings-section">
     <button class="settings-item danger" id="settingsLogoutBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
@@ -5430,6 +5447,10 @@ function updateFontSize(val) {
   localStorage.setItem('sunny_font_size', val);
   const label = document.getElementById('fontSizeLabel');
   if (label) label.textContent = val + 'px';
+  const label2 = document.getElementById('settingsFontLabel');
+  if (label2) label2.textContent = val + 'px';
+  const slider2 = document.getElementById('settingsFontSlider');
+  if (slider2) slider2.value = val;
 }
 function clearLocalHistory() {
   if (!confirm('Clear all local chats and files? This cannot be undone.')) return;
@@ -5453,6 +5474,10 @@ function loadSettings() {
   if (slider) slider.value = fs;
   const label = document.getElementById('fontSizeLabel');
   if (label) label.textContent = fs + 'px';
+  const slider2 = document.getElementById('settingsFontSlider');
+  if (slider2) slider2.value = fs;
+  const label2 = document.getElementById('settingsFontLabel');
+  if (label2) label2.textContent = fs + 'px';
 }
 // Wire up the user pill button
 document.addEventListener('DOMContentLoaded', () => {
