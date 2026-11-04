@@ -3283,3 +3283,13 @@ me the exact git commands to commit + push both remotes."
 - **Verification**: Tested OpenRouter successfully via the dashboard (2891ms latency, status OK).
 
 *Part 667 logged: 2026-11-04*
+
+---
+
+### Part 668 Update (2026-11-04): Cost Tracking, Usage Bars, Chat Polish
+
+- **Cost Tracking**: Added `PROVIDER_COSTS` dict to `llm_dashboard.py`. The Provider Health table now shows a **Cost** column (green "Free" badge).
+- **Usage Bars**: The Usage Analytics tables (Provider, User, Model) now include CSS bars that visually show relative token usage.
+- **Chat Polish**: Added automatic "Copy" buttons to code blocks in the Chat UI (`static/chat.html`), with a mutation observer to handle dynamically added code blocks.
+
+*Part 668 logged: 2026-11-04*

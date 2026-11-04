@@ -3263,3 +3263,11 @@ Fixed regex for conversation/discussion matching.
 **Fix**: Switched OpenRouter model from specific pinned models to `openrouter/free` router to bypass model retirements and upstream throttling.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 668 Update (2026-11-04): Cost Tracking, Usage Bars, Chat Polish
+
+**New**: Cost column in Provider Health (free vs paid). CSS bars in Usage Analytics. Copy buttons on chat code blocks.
+
+*Workflow updated: 2026-11-04*

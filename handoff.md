@@ -5573,3 +5573,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Move to a new feature. (e.g., cost tracking, better UI stats, etc.)
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 668 Update (2026-11-04): Cost Tracking, Usage Bars, Chat Polish
+
+**Status:** ✅ Implemented and verified.
+
+**What was done:**
+- `llm_dashboard.py`: Added `PROVIDER_COSTS` dict and `cost_tier` field in health response.
+- `static/admin-v2.html`: Added Cost column to Health table, and CSS bars to all three Usage Analytics tables.
+- `static/chat.html`: Added copy buttons to code blocks via MutationObserver.
+
+**Next Steps (Part 669):**
+- Verify new features in production.
+
+*Handoff updated: 2026-11-04*
