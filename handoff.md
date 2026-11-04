@@ -5823,3 +5823,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Verify message selection works and test public link.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 681 Update (2026-11-04): Per-Message Share Button
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: Added `.a-share` button to AI message actions.
+- `static/chat.html`: Wired Share button to enter selection mode with the message pre-selected.
+- `static/chat.html`: Added "Select messages" menu item to the chat options dropdown.
+- `static/chat.html`: Bottom bar with count and Create public link.
+
+**Next Steps (Part 682):**
+- Verify Share button works and test public link.
+
+*Handoff updated: 2026-11-04*

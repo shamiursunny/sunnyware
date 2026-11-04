@@ -3375,3 +3375,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Message selection mode with checkboxes on each message, bottom action bar (select all, count, cancel, create link), and public link generation with selected message IDs.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 681 Update (2026-11-04): Per-Message Share Button
+
+**New**: Share arrow icon under AI messages that enters selection mode with the message pre-selected. Bottom bar shows count and share link buttons.
+
+*Workflow updated: 2026-11-04*

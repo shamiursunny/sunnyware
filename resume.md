@@ -3433,3 +3433,14 @@ me the exact git commands to commit + push both remotes."
 - **Public link**: Generates a share URL with the selected message IDs appended (`?msgs=id1,id2`).
 
 *Part 680 logged: 2026-11-04*
+
+---
+
+### Part 681 Update (2026-11-04): Per-Message Share Button
+
+- **Share arrow** added to AI message actions (next to copy, like, dislike, regenerate, delete).
+- **Clicking Share** enters message selection mode with that message pre-selected.
+- **Bottom bar** shows "1 conversation turn selected" with Cancel and "Create public link".
+- **Also accessible** via the top-right 3-dot menu → "Select messages".
+
+*Part 681 logged: 2026-11-04*
