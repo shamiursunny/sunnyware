@@ -174,3 +174,90 @@ async def test_provider(provider: str, req: Request):
     except Exception as e:
         return {"ok": False, "error": str(e), "latency_ms": int((_t.time() - start) * 1000)}
 
+@router.get("/api/llm-dashboard/health")
+async def health_summary(req: Request):
+    """Part 652: Aggregated per-provider health stats (1h + 24h windows)."""
+    d = _admin_only(req)
+    if d: return d
+    import time as _t
+    from collections import defaultdict
+    from .. import providers as _prov
+    from .. import llm_dashboard_store as _lds
+
+    now = _t.time()
+    logs = _lds.list_llm_logs(limit=5000)
+
+    stats = defaultdict(lambda: {
+        "ok_1h": 0, "fail_1h": 0, "lat_1h": [],
+        "ok_24h": 0, "fail_24h": 0, "lat_24h": [],
+        "last_error": "",
+    })
+
+    for log in logs:
+        pname = log.get("provider") or "unknown"
+        ts = log.get("ts", 0)
+        age = now - ts
+        is_ok = log.get("ok", False)
+        lat = log.get("latency_ms", 0)
+        s = stats[pname]
+        if age <= 3600:
+            if is_ok:
+                s["ok_1h"] += 1
+                if lat > 0: s["lat_1h"].append(lat)
+            else:
+                s["fail_1h"] += 1
+                s["last_error"] = (log.get("error") or "")[:100]
+        if age <= 86400:
+            if is_ok:
+                s["ok_24h"] += 1
+                if lat > 0: s["lat_24h"].append(lat)
+            else:
+                s["fail_24h"] += 1
+
+    provs = _prov.load_providers()
+    live = {p.name: p for p in provs}
+
+    def _pct(ok, total):
+        return round(100.0 * ok / total, 1) if total > 0 else None
+
+    def _p95(arr):
+        if not arr: return 0
+        a = sorted(arr)
+        idx = max(0, int(len(a) * 0.95) - 1)
+        return round(a[idx], 0)
+
+    result = []
+    seen = set()
+    for name in sorted(stats.keys()):
+        s = stats[name]
+        lp = live.get(name)
+        seen.add(name)
+        total_1h = s["ok_1h"] + s["fail_1h"]
+        total_24h = s["ok_24h"] + s["fail_24h"]
+        avg_1h = round(sum(s["lat_1h"]) / len(s["lat_1h"]), 0) if s["lat_1h"] else 0
+        result.append({
+            "provider": name,
+            "live_status": "cooling" if (lp and lp.is_cooling()) else ("active" if lp else "unknown"),
+            "cooldown_remaining_s": round(lp.cooldown_remaining(), 1) if lp and lp.is_cooling() else 0,
+            "success_pct_1h": _pct(s["ok_1h"], total_1h),
+            "avg_latency_1h_ms": avg_1h,
+            "p95_latency_1h_ms": _p95(s["lat_1h"]),
+            "total_1h": total_1h,
+            "success_pct_24h": _pct(s["ok_24h"], total_24h),
+            "total_24h": total_24h,
+            "last_error": s["last_error"],
+        })
+
+    for name in live.keys():
+        if name in seen: continue
+        lp = live[name]
+        result.append({
+            "provider": name,
+            "live_status": "cooling" if lp.is_cooling() else "active",
+            "cooldown_remaining_s": round(lp.cooldown_remaining(), 1) if lp.is_cooling() else 0,
+            "success_pct_1h": None, "avg_latency_1h_ms": 0, "p95_latency_1h_ms": 0, "total_1h": 0,
+            "success_pct_24h": None, "total_24h": 0, "last_error": "",
+        })
+
+    return {"count": len(result), "providers": result, "ts": now}
+

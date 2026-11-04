@@ -2828,6 +2828,15 @@ async function renderLlmDashboard() {
     `}
 
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;">
+      <h3 style="margin:0;">Provider Health</h3>
+      <div>
+        <button class="ghost small" onclick="refreshLlmHealth()">Refresh</button>
+      </div>
+    </div>
+    <p style="color:var(--muted);font-size:12px;">1h + 24h windows · auto-refresh 15s</p>
+    <div id="llm-health-container"><p style="color:var(--muted)">Loading...</p></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;">
       <h3 style="margin:0;">Live LLM Log</h3>
       <div>
         <button class="ghost small" onclick="clearLlmLogs()">Clear Log</button>
@@ -2839,7 +2848,70 @@ async function renderLlmDashboard() {
   `;
 
   refreshLlmLogs();
+  refreshLlmHealth();
   _llmRefreshTimer = setInterval(refreshLlmLogs, 5000);
+}
+
+async function refreshLlmHealth() {
+  const container = document.getElementById('llm-health-container');
+  if (!container) {
+    if (window._llmHealthTimer) { clearInterval(window._llmHealthTimer); window._llmHealthTimer = null; }
+    return;
+  }
+  const data = await api('/api/llm-dashboard/health').catch(() => ({ providers: [] }));
+  const rows = data.providers || [];
+  if (rows.length === 0) {
+    container.innerHTML = '<p style="color:var(--muted)">No data yet.</p>';
+    return;
+  }
+  const badge = (s) => {
+    if (s === 'active') return '<span style="color:#2ecc71;font-weight:600;">Active</span>';
+    if (s === 'cooling') return '<span style="color:#f39c12;font-weight:600;">Cooling</span>';
+    return '<span style="color:var(--muted);">Unknown</span>';
+  };
+  const pctColor = (p) => {
+    if (p === null) return 'var(--muted)';
+    if (p >= 90) return '#2ecc71';
+    if (p >= 70) return '#f39c12';
+    return '#e74c3c';
+  };
+  const pctCell = (p, n) => {
+    if (p === null) return '<span style="color:var(--muted);">—</span>';
+    return '<span style="color:' + pctColor(p) + ';font-weight:600;">' + p + '%</span> <span style="color:var(--muted);font-size:11px;">(' + n + ')</span>';
+  };
+  container.innerHTML = `
+    <table style="font-size:12px;">
+      <thead>
+        <tr>
+          <th>Provider</th>
+          <th>Live</th>
+          <th>Cooldown</th>
+          <th>Success 1h</th>
+          <th>Avg 1h</th>
+          <th>P95 1h</th>
+          <th>Success 24h</th>
+          <th>Last Error</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr>
+            <td><strong>${esc(r.provider)}</strong></td>
+            <td>${badge(r.live_status)}</td>
+            <td>${r.live_status === 'cooling' ? '<span style="color:#f39c12;">' + r.cooldown_remaining_s + 's</span>' : '-'}</td>
+            <td>${pctCell(r.success_pct_1h, r.total_1h)}</td>
+            <td>${r.avg_latency_1h_ms ? r.avg_latency_1h_ms + 'ms' : '—'}</td>
+            <td>${r.p95_latency_1h_ms ? r.p95_latency_1h_ms + 'ms' : '—'}</td>
+            <td>${pctCell(r.success_pct_24h, r.total_24h)}</td>
+            <td style="font-size:11px;color:#e74c3c;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(r.last_error)}">${esc(r.last_error) || '—'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+  `;
+  if (!window._llmHealthTimer) {
+    window._llmHealthTimer = setInterval(refreshLlmHealth, 15000);
+  }
 }
 
 async function refreshLlmLogs() {
