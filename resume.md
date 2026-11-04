@@ -3244,3 +3244,12 @@ me the exact git commands to commit + push both remotes."
 - **Clean Code**: Removed stale `auto_disable_override_until` references and calculated the badge directly in the frontend from API stats.
 
 *Part 663 logged: 2026-11-04*
+
+---
+
+### Part 664 Update (2026-11-04): Verify Auto-disable Routing
+
+- **Verification**: Sent live chat traffic and confirmed the router skips providers flagged with the "(auto-disabled)" badge.
+- **Logs Checked**: Live LLM Log confirms the "hello" message was routed to `pollinations` (healthy) while `huggingface`, `openrouter`, and `sambanova` were skipped.
+
+*Part 664 logged: 2026-11-04*

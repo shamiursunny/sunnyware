@@ -5506,3 +5506,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 2. Or move to a new feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 664 Update (2026-11-04): Verify Auto-disable Routing
+
+**Status:** ✅ Auto-disable routing verified in production.
+
+**What was done:**
+- Sent a live chat message ("hello").
+- Confirmed the Live LLM Log routed the message to `pollinations` (status: ok).
+- Confirmed `huggingface`, `openrouter`, and `sambanova` were skipped because they were auto-disabled.
+
+**Next Steps (Part 665):**
+- Move to a new feature. (e.g., Auto-recovery, Toast notifications).
+
+*Handoff updated: 2026-11-04*

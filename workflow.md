@@ -3231,3 +3231,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Router skips providers with >3 calls and <50% success in 1h. Red "(auto-disabled)" badge calculated via frontend. Reset only clears cooldown.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 664 Update (2026-11-04): Verify Auto-disable Routing
+
+**Verified**: Live traffic confirms disabled providers are skipped. Live LLM Log shows `pollinations` handled the traffic while `huggingface`/`openrouter`/`sambanova` were bypassed.
+
+*Workflow updated: 2026-11-04*
