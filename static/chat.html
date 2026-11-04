@@ -1801,17 +1801,6 @@ function getUserIdForChats() {
   return 'anonymous';
 }
 
-// Intercept fetch to inject X-User-Id for chat sync
-const _originalFetch = window.fetch;
-window.fetch = function(url, options = {}) {
-  if (url === '/api/chats' || url.startsWith('/api/chats')) {
-    if (!options.headers) options.headers = {};
-    if (!options.headers['X-User-Id']) {
-      options.headers['X-User-Id'] = getUserIdForChats();
-    }
-  }
-  return _originalFetch(url, options);
-};
 
 
 async function loadChatsFromServer() {
