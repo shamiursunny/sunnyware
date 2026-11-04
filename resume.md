@@ -3625,3 +3625,13 @@ me the exact git commands to commit + push both remotes."
 - **Bug fixes**: Removed the old `MutationObserver` that was injecting duplicate Copy buttons. Refactored `mdLite` to generate code block actions directly. Fixed table selectors to work with `webui.py` containers. Fixed `copyCode` to handle `.code-block` wrappers.
 
 *Part 695 logged: 2026-11-04*
+
+---
+
+### Part 696 Update (2026-11-04): DeepSeek-Style Scroll Toggle & Strict Layout Clamping
+
+- **Scroll Toggle**: Floating circular button at the bottom right. Auto-scrolls to bottom, flips to point up at bottom to scroll to top.
+- **Layout Clamping**: Tables are wrapped in `.table-scroll-wrapper` with `overflow-x: auto` and a visible scrollbar. The chat container is locked at 820px width with `overflow-x: hidden` to prevent page stretching.
+- **Table Fixes**: Table action buttons (Maximize, Download CSV) stay visible at the top right of the message bubble. `<br>` tags in tables are now rendered as line breaks.
+
+*Part 696 logged: 2026-11-04*

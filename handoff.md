@@ -6114,3 +6114,23 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Choose the next feature: Chat Branching, Multi-Agent Delegation UI, or something else.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 696 Update (2026-11-04): DeepSeek-Style Scroll Toggle & Layout Clamping
+
+**Status:** ✅ Implemented and verified.
+
+**What was done:**
+- `static/chat.html`: Added `<button id="scrollToggleBtn">` with SVG icon.
+- `static/chat.html`: Added CSS for `.scroll-toggle-btn` with `.visible` and `.up` states.
+- `static/chat.html`: Added `initScrollToggle()` JS with scroll, MutationObserver, resize, and smooth scroll.
+- `static/chat.html`: Wrapped markdown tables in `.table-scroll-wrapper` with `overflow-x: auto`.
+- `static/chat.html`: `addContentActions` now wraps the `.table-scroll-wrapper` (not the table) so buttons stay on screen.
+- `static/chat.html`: `content-wrapper` CSS uses `overflow-x: visible` to keep action buttons anchored.
+- `static/chat.html`: Table regex matches leading whitespace. `<br>` tags render as line breaks.
+
+**Next Steps (Part 697):**
+- Choose the next feature (Chat Branching, Multi-Agent Delegation UI, or something else).
+
+*Handoff updated: 2026-11-04*

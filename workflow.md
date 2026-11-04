@@ -3513,3 +3513,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Maximize + Download buttons for tables (CSV) and code blocks. Fullscreen modal for expanded view. Extension mapping (.python -> .py). Images unchanged (Fullscreen + Copy). Removed duplicate Copy observer.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 696 Update (2026-11-04): DeepSeek-Style Scroll Toggle & Layout Clamping
+
+**New**: Floating scroll-to-bottom/top button. Tables wrapped in `.table-scroll-wrapper` with visible scrollbar. Table action buttons stay on screen. `<br>` tags fixed in tables. Enforced `overflow-x: hidden` on `.chat-scroll`.
+
+*Workflow updated: 2026-11-04*
