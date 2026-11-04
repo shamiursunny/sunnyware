@@ -117,9 +117,41 @@ def snapshot():
         h["category"] = cats.get(name, "other")
         tools_list.append(h)
 
+    # ── Part 697: Merge live call counts from analytics_store ──────────────
+    try:
+        from . import analytics_store as _as
+        events = _as.list_events(event_type="tool")
+        live_counts = {}
+        for ev in events:
+            tool_name = ev.get("tool_name", "")
+            if not tool_name:
+                extra = ev.get("extra") or {}
+                if isinstance(extra, dict):
+                    tool_name = extra.get("tool_name", "")
+            if not tool_name:
+                continue
+            c = live_counts.setdefault(tool_name, {"total": 0, "ok": 0, "fail": 0})
+            c["total"] += 1
+            if ev.get("ok", True):
+                c["ok"] += 1
+            else:
+                c["fail"] += 1
+
+        for t in tools_list:
+            name = t.get("name", "")
+            c = live_counts.get(name)
+            if not c:
+                continue
+            t["total_calls"] = c["total"]
+            t["total_success"] = max(int(t.get("total_success", 0)), c["ok"])
+            t["total_fails"] = max(int(t.get("total_fails", 0)), c["fail"])
+            if t.get("status") == "never_used" and c["total"] > 0:
+                t["status"] = "working"
+    except Exception:
+        pass
+
     priority = {"broken": 0, "degraded": 1, "working": 2, "never_used": 3}
-    tools_list.sort(key=lambda t: (priority.get(t["status"], 9),
-                                    t["name"]))
+    tools_list.sort(key=lambda t: (priority.get(t["status"], 9), t["name"]))
 
     summary = {
         "total": len(tools_list),
@@ -142,7 +174,6 @@ def snapshot():
         "tools": tools_list,
         "breaker_threshold": fails_threshold,
     }
-
 
 def get_tool_health(name):
     for t in snapshot().get("tools", []):
