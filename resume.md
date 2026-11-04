@@ -3645,3 +3645,13 @@ me the exact git commands to commit + push both remotes."
 - **UI Cleanup**: Cleared stale "no calls recorded" reason strings for tools that now show live counts.
 
 *Part 697 logged: 2026-11-04*
+
+---
+
+### Part 697b Update (2026-11-04): Log Jarvis-Routed Tool Calls
+
+- **Bug Fix**: The Jarvis math router called tools directly (`_tool_obj.run`) and bypassed the `_execute_tool_impl` wrapper that `analytics_hooks` patches.
+- **Result**: Calculator and other Jarvis-routed tool calls were not being counted on the `/tools` page.
+- **Fix**: Added explicit `_log_tool()` call in the Jarvis path so all tool calls (routed or direct) are recorded.
+
+*Part 697b logged: 2026-11-04*

@@ -6151,3 +6151,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Choose the next feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 697b Update (2026-11-04): Log Jarvis-Routed Tool Calls
+
+**Status:** ✅ Implemented and verified.
+
+**What was done:**
+- `src/sunnyware/orchestrator.py`: Added `_log_tool()` call inside the Jarvis path, after `_tool_obj.run()`.
+- Ensures calculator and other Jarvis-routed tools are counted in `analytics_store`.
+- `/tools` page now reflects these calls on refresh.
+
+**Next Steps (Part 698):**
+- Choose the next feature.
+
+*Handoff updated: 2026-11-04*

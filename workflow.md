@@ -3529,3 +3529,11 @@ Fixed regex for conversation/discussion matching.
 **New**: `/api/tools/health` now merges live `analytics_store` data so the `/tools` page accurately shows which tools were called, their success counts, and their status.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 697b Update (2026-11-04): Log Jarvis-Routed Tool Calls
+
+**Fix**: Jarvis math router bypassed analytics; now explicitly logs tool calls so live counts update on `/tools`.
+
+*Workflow updated: 2026-11-04*
