@@ -3303,3 +3303,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Per-chat share/export icons, visible Select All checkbox above the chat list, checkboxes on each chat, floating action bar. Removed redundant top-bar Export button.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 672 Update (2026-11-04): ChatGPT-Style Bulk Chat Selection
+
+**New**: Per-chat share/export icons, visible Select All checkbox above the chat list, checkboxes on each chat, floating action bar with Done button. Export clears selection. Escape clears selection. Removed redundant top-bar Export button.
+
+*Workflow updated: 2026-11-04*

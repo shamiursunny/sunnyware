@@ -5660,3 +5660,25 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Or move to a new feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 672 Update (2026-11-04): ChatGPT-Style Bulk Chat Selection
+
+**Status:** ✅ Fully implemented and tested.
+
+**What was done:**
+- `static/chat.html`: Added checkboxes, `selectedChats` Set, `updateSelectionUI`, `toggleChatSelection`, `selectAllChats`, `clearSelection`, `exportSelected`, `deleteSelected`, `toggleSelectAll`, Escape handler.
+- `static/chat.html`: Added per-chat Share/Export buttons in the hover menu.
+- `static/chat.html`: Replaced top 3-dot menu with bulk actions (Select All / Clear / Export / Delete).
+- `static/chat.html`: Added a visible **Select All** checkbox above the chat list.
+- `static/chat.html`: Inserted floating `bulk-action-bar` HTML with **EXPORT**, **DELETE**, **Done** buttons.
+- `static/chat.html`: Export now clears selection after downloading.
+- `static/chat.html`: Escape key clears selection.
+- `static/chat.html`: Removed redundant top-bar Export button.
+
+**Next Steps (Part 673):**
+- Verify bulk selection in production.
+- Or move to a new feature.
+
+*Handoff updated: 2026-11-04*
