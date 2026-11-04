@@ -170,6 +170,38 @@ body.selection-mode .chat-item .chat-menu-btn{display:none;}
 .chat-dropdown .chat-menu-item:hover svg {
   opacity: 1;
 }
+/* Part 682: Table polish */
+.msg-text table {
+  border-collapse: collapse;
+  margin: 12px 0;
+  font-size: 13px;
+  width: 100%;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.msg-text table th {
+  background: #1a1d26;
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  border-bottom: 1px solid #2a2a2e;
+}
+.msg-text table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #1f222b;
+}
+.msg-text table tr:nth-child(even) {
+  background: rgba(255,255,255,0.02);
+}
+.msg-text table tr:hover {
+  background: rgba(255,255,255,0.04);
+}
+.code-copy.copied {
+  color: #2ecc71 !important;
+}
+.code-copy.copied::after {
+  content: ' ✓';
+}
 .chat-item .chat-dropdown .chat-menu-item:hover{background:var(--hover)}
 /* Part 675: Fixed dropdown positioning */
 .chat-dropdown {
@@ -937,6 +969,10 @@ body.message-selection-mode #messageSelectionBar { display: flex; }
   #fullscreen-img-modal img { max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 4px; }
   #fullscreen-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 30px; cursor: pointer; }
 </style>
+
+  <!-- Part 682: Syntax highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 </head>
 
 <body>
@@ -2958,7 +2994,10 @@ function mdLite(text){
 
   // Code blocks first (before image/link because code can contain brackets)
 
-  t=t.replace(/```(\w*)\n([\s\S]*?)```/g,(m,l,code)=>'<div class="code-block"><div class="code-head"><span>'+(l||'code')+'</span><button class="code-copy">Copy</button></div><pre><code>'+code.trim()+'</code></pre></div>');
+  t=t.replace(/```(\w*)\n([\s\S]*?)```/g,(m,l,code)=>{
+    const lang = l || 'plaintext';
+    return '<div class="code-block"><div class="code-head"><span>'+lang+'</span><button class="code-copy">Copy</button></div><pre><code class="language-'+lang+'">'+code.trim()+'</code></pre></div>';
+  });
 
   // Images: ![alt](url) -> <img>
 
@@ -3173,6 +3212,11 @@ function renderMessages(){
 
   if(has) chat.messages.forEach(m=>messagesEl.appendChild(msgEl(m)));
 
+  // Part 682: Apply syntax highlighting
+  if (window.hljs) {
+    try { hljs.highlightAll(); } catch(e) {}
+  }
+
   scrollBottom();
 
 }
@@ -3216,7 +3260,17 @@ messagesEl.addEventListener('click',e=>{
 
   if(e.target.closest('.u-edit')){ startEdit(chat,m,msgDiv); return; }
 
-  if(e.target.closest('.code-copy')){ navigator.clipboard.writeText(e.target.closest('.code-block').querySelector('pre').textContent).then(()=>toast('Code copied')); return; }
+  if(e.target.closest('.code-copy')){
+    const btn = e.target.closest('.code-copy');
+    const code = btn.closest('.code-block').querySelector('pre').textContent;
+    navigator.clipboard.writeText(code).then(()=>{
+      const original = btn.textContent;
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1500);
+    });
+    return;
+  }
 
   const artDl=e.target.closest('.art-dl');
 
