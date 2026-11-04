@@ -3391,3 +3391,11 @@ Fixed regex for conversation/discussion matching.
 **New**: highlight.js syntax highlighting, language classes, zebra-striped tables, and "Copied!" animation on code blocks.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 683 Update (2026-11-04): Settings Modal
+
+**New**: Settings modal (click "Admin") with dark/light theme toggle, font size slider, and clear local history. Preferences persist in localStorage.
+
+*Workflow updated: 2026-11-04*

@@ -3455,3 +3455,15 @@ me the exact git commands to commit + push both remotes."
 - **Copy button animation**: Clicking "Copy" changes to "Copied!" with a green checkmark for 1.5 seconds.
 
 *Part 682 logged: 2026-11-04*
+
+---
+
+### Part 683 Update (2026-11-04): Settings Modal
+
+- **Settings modal**: Click "Admin" in the sidebar footer → opens a modal with theme toggle, font size slider, and clear history.
+- **Dark/Light theme**: Toggle between dark and light mode; preference is saved in localStorage.
+- **Font size slider**: Adjust chat message font size (12px–20px); saved in localStorage.
+- **Clear local history**: Confirmation dialog to delete local chats and files.
+- **Persistent preferences**: Theme and font size survive page reloads.
+
+*Part 683 logged: 2026-11-04*

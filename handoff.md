@@ -5859,3 +5859,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Then Option C (Search Highlighting).
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 683 Update (2026-11-04): Settings Modal
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: Added settings modal backdrop + card HTML with theme toggle, font size slider, and clear history button.
+- `static/chat.html`: Added CSS for modal, light-mode overrides, and font-size variable.
+- `static/chat.html`: Added JS for open/close modal, theme switching, font size, and clear history with localStorage persistence.
+- `static/chat.html`: Wired `#userPillBtn` to open the settings modal.
+
+**Next Steps (Part 684):**
+- Implement Option C (Search Highlighting).
+
+*Handoff updated: 2026-11-04*
