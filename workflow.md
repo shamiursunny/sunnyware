@@ -3487,3 +3487,11 @@ Fixed regex for conversation/discussion matching.
 **New**: `/api/tools` endpoint; dropdown shows all 83 tools grouped by category with search and descriptions.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 694 Update (2026-11-04): Comprehensive Tool Testing
+
+**New**: `/api/tools/test-all` endpoint + "Test All Tools" button in Admin Dashboard. Runs safe canned tests on each tool.
+
+*Workflow updated: 2026-11-04*

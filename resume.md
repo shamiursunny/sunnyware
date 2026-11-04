@@ -3590,3 +3590,14 @@ me the exact git commands to commit + push both remotes."
 - **Auto (Default)** option remains at the top.
 
 *Part 693 logged: 2026-11-04*
+
+---
+
+### Part 694 Update (2026-11-04): Comprehensive Tool Testing
+
+- **New endpoint**: `/api/tools/test-all` runs safe canned tests on each tool and returns pass/fail + latency.
+- **Skipped tools**: Tools requiring external API keys or user uploads are marked SKIP to keep tests deterministic.
+- **Dashboard UI**: Added a "Tools Testing" section to the LLM Dashboard with a "Test All Tools" button and results table.
+- **Summary**: Shows total/passed/failed/skipped counts.
+
+*Part 694 logged: 2026-11-04*
