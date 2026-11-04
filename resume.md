@@ -3273,3 +3273,13 @@ me the exact git commands to commit + push both remotes."
 - **Lazy Startup**: The recovery loop starts lazily (on first health check) to support HF Spaces where lifespan is skipped.
 
 *Part 666 logged: 2026-11-04*
+
+---
+
+### Part 667 Update (2026-11-04): OpenRouter Stability Fix
+
+- **Issue**: The pinned free model `google/gemma-4-31b-it:free` was rate-limited upstream, and `meta-llama/llama-3.3-70b-instruct:free` was retired from the free tier (404).
+- **Fix**: Updated `OPENROUTER_MODEL` to `openrouter/free`, which uses OpenRouter's smart router to automatically fall back to any available free model.
+- **Verification**: Tested OpenRouter successfully via the dashboard (2891ms latency, status OK).
+
+*Part 667 logged: 2026-11-04*

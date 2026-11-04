@@ -3255,3 +3255,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Background loop pings disabled providers every 15 min and force-recovers them on success. Toast notifications on state change. Lazy startup for HF Spaces.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 667 Update (2026-11-04): OpenRouter Stability Fix
+
+**Fix**: Switched OpenRouter model from specific pinned models to `openrouter/free` router to bypass model retirements and upstream throttling.
+
+*Workflow updated: 2026-11-04*

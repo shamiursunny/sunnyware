@@ -5557,3 +5557,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Or move to a new feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 667 Update (2026-11-04): OpenRouter Stability Fix
+
+**Status:** ✅ OpenRouter operational using `openrouter/free` router.
+
+**What was done:**
+- Updated the `OPENROUTER_MODEL` Hugging Face Space secret to `openrouter/free`.
+- Restarted the Space.
+- Verified via the Admin Dashboard: OpenRouter test returns `OK` (green toast).
+
+**Next Steps (Part 668):**
+- Move to a new feature. (e.g., cost tracking, better UI stats, etc.)
+
+*Handoff updated: 2026-11-04*
