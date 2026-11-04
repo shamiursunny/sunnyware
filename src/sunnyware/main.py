@@ -865,6 +865,14 @@ _2FA_WHITELIST = (
     "/api/slack/commands",
     "/api/feedback",
     "/api/telemetry/report",
+    "/api/chats",
+    "/api/sessions",
+    "/api/auth/roles",
+    "/api/roles",
+    "/api/llm-dashboard/",
+    "/api/saas/dashboard",
+    "/api/saas/roles",
+    "/share/",
 )
 
 
