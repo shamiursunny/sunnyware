@@ -3439,3 +3439,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Export all chats as JSON, import from JSON with duplicate detection. Buttons in the settings menu.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 688 Update (2026-11-04): Provider Dashboard Enhancements
+
+**New**: Latency sparklines per provider, auto-refresh pause button, and cost indicator in the Provider Health table.
+
+*Workflow updated: 2026-11-04*

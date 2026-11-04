@@ -3522,3 +3522,14 @@ me the exact git commands to commit + push both remotes."
 - **UI**: Added "Export chats" and "Import chats" buttons to the settings menu.
 
 *Part 687 logged: 2026-11-04*
+
+---
+
+### Part 688 Update (2026-11-04): Provider Dashboard Enhancements
+
+- **Latency sparklines**: Each provider row shows a mini bar chart of avg latency over the last 10 refreshes.
+- **Auto-refresh pause**: A Pause button next to Test All stops/resumes the 15s health refresh.
+- **Cost indicator**: The Cost column shows "Free" (green) or "Paid" (orange) for each provider.
+- **Trend column**: New column between Avg 1h and P95 1h showing the latency sparkline.
+
+*Part 688 logged: 2026-11-04*

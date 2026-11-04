@@ -5960,3 +5960,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Implement Option B (Provider Dashboard enhancements).
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 688 Update (2026-11-04): Provider Dashboard Enhancements
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/admin-v2.html`: Added CSS for `.llm-sparkline`, `.llm-sparkline-bar`, and `.health-pause-btn`.
+- `static/admin-v2.html`: Added `window._latencyHistory` tracking and `sparkline()` helper in `refreshLlmHealth`.
+- `static/admin-v2.html`: Added Trend column header and sparkline cell.
+- `static/admin-v2.html`: Added `toggleHealthPause()` function and Pause button next to Test All.
+- `static/admin-v2.html`: Auto-refresh respects the `_llmHealthPaused` flag.
+
+**Next Steps (Part 689):**
+- Implement Option C (Agent Tools) or D (Streaming).
+
+*Handoff updated: 2026-11-04*
