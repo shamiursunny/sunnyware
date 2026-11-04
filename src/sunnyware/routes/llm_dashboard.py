@@ -117,19 +117,14 @@ async def reset_cooldown(provider: str, req: Request):
     try:
         from .. import provider_limits as _pl
         _pl.reset(provider)
-        # Part 663: manual override disables auto-disable for 1 hour
-        try:
-            import time as _t
-            _lds.set_provider_config(provider, {"auto_disable_override_until": _t.time() + 3600})
-        except Exception:
-            pass
+        # Part 663: clear cooldown only, don't override auto-disable
         # Clear cache so next routing decision re-evaluates
         try:
             from .. import llm as _llm2
             _llm2._AUTO_DISABLE_CACHE["ts"] = 0
         except Exception:
             pass
-        return {"ok": True, "message": f"Cooldown reset for {provider} (auto-disable override for 1h)"}
+        return {"ok": True, "message": f"Cooldown reset for {provider}"}
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
