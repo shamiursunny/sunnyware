@@ -695,6 +695,21 @@ body.message-selection-mode #messageSelectionBar { display: flex; }
   overflow-x: auto;
 }
 
+
+/* Strict layout clamping to prevent page stretching */
+.chat-scroll { overflow-x: hidden !important; }
+.msg-body, .msg-bubble, .msg-text { min-width: 0; max-width: 100%; }
+.table-scroll-wrapper {
+  overflow-x: auto;
+  width: 100%;
+  max-width: 100%;
+  margin: 12px 0;
+}
+.table-scroll-wrapper table {
+  min-width: max-content !important;
+  margin: 0 !important;
+}
+
 /* ============ LIBRARY VIEW ============ */
 
 .library{flex:1;overflow-y:auto;display:none}
@@ -3464,7 +3479,7 @@ function mdLite(text){
     const rows = body.trim().split('\n').map(r =>
       r.split('|').map(c => c.trim()).filter(Boolean)
     );
-    let html = '<table style="border-collapse:collapse;margin:12px 0;font-size:13px;width:100%;"><thead><tr>';
+    let html = '<div class="table-scroll-wrapper"><table style="border-collapse:collapse;margin:12px 0;font-size:13px;width:100%;"><thead><tr>';
     cols.forEach(c => {
       html += '<th style="border:1px solid var(--border);padding:8px 12px;background:var(--bg-secondary);text-align:left;font-weight:600;">' + c + '</th>';
     });
@@ -3476,7 +3491,7 @@ function mdLite(text){
       });
       html += '</tr>';
     });
-    html += '</tbody></table>';
+    html += '</tbody></table></div>';
     // Convert <br> tags to real line breaks inside table cells
     html = html.replace(/<td([^>]*)>/g, '<td$1 style="white-space:pre-line;">');
     html = html.replace(/<br\s*\/?>/gi, '\n');
