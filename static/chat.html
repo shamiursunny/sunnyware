@@ -3589,7 +3589,7 @@ function dateSeparatorEl(date) {
 // Part 695: Maximize and download for tables, charts, and code blocks
 function addContentActions() {
   // --- Tables ---
-  document.querySelectorAll('.msg-text table').forEach(table => {
+  document.querySelectorAll('.msg-text table, .msg table, .agent table').forEach(table => {
     if (table.closest('.content-wrapper')) return;
     const wrapper = document.createElement('div');
     wrapper.className = 'content-wrapper';
