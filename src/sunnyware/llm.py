@@ -88,6 +88,40 @@ async def health_check(timeout: float = 5.0) -> dict:
         return {"status": "error", "error": f"{type(e).__name__}: {e}"}
 
 
+def _cooldown_for(provider_name: str, error: str) -> float:
+    """Part 651: Return cooldown seconds based on provider and error type.
+    
+    - Rate limited (429): 15s, retry soon
+    - Auth/config (401/403/404): 300s, don't retry
+    - Server error (5xx): 10s (fast providers), 30s (slow)
+    - Model not found: 300s, config issue
+    - Empty response: 10s
+    - Rate limited (429): 15s
+    """
+    e = (error or "").lower()
+    # Auth/config errors - don't retry these
+    if any(x in e for x in ("401", "403", "unauthorized", "forbidden", "invalid api key", "authentication")):
+        return 300.0
+    # Model not found - config issue
+    if any(x in e for x in ("404", "model not found", "model_not_supported", "does not exist")):
+        return 300.0
+    # Rate limited - retry soon
+    if any(x in e for x in ("429", "rate limit", "rate_limit", "too many requests")):
+        return 15.0
+    # Empty response - retry soon
+    if "empty" in e:
+        return 10.0
+    # Server errors (5xx) - provider-dependent
+    if any(x in e for x in ("500", "502", "503", "504", "server error", "internal error", "bad gateway")):
+        fast = ("cerebras", "groq", "gemini")
+        return 10.0 if any(f in provider_name for f in fast) else 30.0
+    # Timeout
+    if any(x in e for x in ("timeout", "timed out")):
+        return 15.0
+    # Default
+    return 20.0
+
+
 def _is_transient_http_status(status_code: int) -> bool:
     """Return True if the HTTP status is likely transient and safe to retry."""
     return status_code in (500, 502, 503, 504)
@@ -203,10 +237,10 @@ async def _chat_single(
                 except (_httpx.TimeoutException, _httpx.ConnectError, _httpx.ReadTimeout) as _e:
                     if _attempt >= _max_attempts:
                         raise
-                    await asyncio.sleep(0.5 * _attempt)
+                    await asyncio.sleep(0.5 * (2 ** (_attempt - 1)))  # Part 651: exponential backoff
                     continue
                 if _attempt < _max_attempts:
-                    await asyncio.sleep(0.5 * _attempt)
+                    await asyncio.sleep(0.5 * (2 ** (_attempt - 1)))  # Part 651: exponential backoff
             if r is None:
                 raise _httpx.ConnectError("no response after retries")
             latency_ms = int((time.time() - start) * 1000)
@@ -610,7 +644,7 @@ async def chat(
                 _err = "empty LLM response (no content, no tool calls)"
                 last_err = _err
                 p.record_failure(_err)
-                p.mark_cooldown(10.0)
+                p.mark_cooldown(_cooldown_for(p.name, last_err))
                 try:
                     from . import metrics as _m
                     _m.incr_labeled("llm_provider_empty_response", p.name)
@@ -622,7 +656,7 @@ async def chat(
                 return r
             p.record_failure(r.get("error", ""))
             last_err = r.get("error", "")
-            p.mark_cooldown(10.0)
+            p.mark_cooldown(_cooldown_for(p.name, last_err))
             continue
 
         try:
@@ -648,7 +682,7 @@ async def chat(
             _err = "empty LLM response (no content, no tool calls)"
             last_err = _err
             p.record_failure(_err)
-            p.mark_cooldown(15.0)
+            p.mark_cooldown(_cooldown_for(p.name, last_err))
             try:
                 from . import metrics as _m
                 _m.incr_labeled("llm_provider_empty_response", p.name)
@@ -682,7 +716,7 @@ async def chat(
                 pass
             # Short cooldown so we don't retry this provider in the
             # same request or immediately after.
-            p.mark_cooldown(60.0)
+            p.mark_cooldown(_cooldown_for(p.name, last_err))
             continue
 
         if _is_rate_limit_error(err):
@@ -695,7 +729,7 @@ async def chat(
                 _cd = 60.0
             p.mark_cooldown(float(_cd))
         else:
-            p.mark_cooldown(10.0)
+            p.mark_cooldown(_cooldown_for(p.name, last_err))
 
     # Part 102: if every provider failed on this pass, consider one
     # retry. Cooldowns are transient (10-60s); if a provider will be
@@ -828,7 +862,7 @@ async def stream_chat(
                         body = await r.aread()
                         last_err = f"{p.name}: HTTP {r.status_code}: {body[:120]!r}"
                         if r.status_code == 429:
-                            p.mark_cooldown(60.0)
+                            p.mark_cooldown(_cooldown_for(p.name, last_err))
                         p.record_failure(last_err)
                         continue
                     _LAST_STREAM_PROVIDER_CTX.set(p.name)
