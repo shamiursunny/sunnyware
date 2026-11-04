@@ -270,13 +270,6 @@ async def health_summary(req: Request):
         avg_1h = round(sum(s["lat_1h"]) / len(s["lat_1h"]), 0) if s["lat_1h"] else 0
         # Part 663: auto-disabled flag (>=5 calls and <50% success)
         _auto = total_1h >= 3 and (s["ok_1h"] / total_1h) < 0.5  # Part 663: lowered from 5 to 3
-        try:
-            _cfg = _lds.get_provider_config(name)
-            _override = float(_cfg.get("auto_disable_override_until", 0) or 0)
-            if _override > now:
-                _auto = False
-        except Exception:
-            pass
         result.append({
             "provider": name,
             "live_status": "cooling" if (lp and lp.is_cooling()) else ("active" if lp else "unknown"),

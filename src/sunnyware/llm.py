@@ -131,7 +131,6 @@ _AUTO_DISABLE_CACHE = {"ts": 0.0, "providers": set()}
 def _auto_disabled_providers() -> set:
     """Part 663: Return provider names with >5 calls and <50% success in last 1h.
     Cached for 60s to avoid reading logs on every routing decision.
-    Respects manual override: if auto_disable_override_until > now, skip.
     """
     import time as _t
     now = _t.time()
@@ -154,15 +153,7 @@ def _auto_disabled_providers() -> set:
                 s["ok"] += 1
         disabled = set()
         for prov, s in stats.items():
-            if s["total"] >= 3 and (s["ok"] / s["total"]) < 0.5:  # Part 663: lowered from 5 to 3 for faster disable
-                # Check manual override
-                try:
-                    cfg = _lds.get_provider_config(prov)
-                    override = float(cfg.get("auto_disable_override_until", 0) or 0)
-                except Exception:
-                    override = 0
-                if override > now:
-                    continue
+            if s["total"] >= 3 and (s["ok"] / s["total"]) < 0.5:  # Part 663: lowered from 5 to 3
                 disabled.add(prov)
         _AUTO_DISABLE_CACHE["ts"] = now
         _AUTO_DISABLE_CACHE["providers"] = disabled
