@@ -3479,3 +3479,11 @@ Fixed regex for conversation/discussion matching.
 **Fixed**: `<br>` tags in markdown table cells now render as actual line breaks via `white-space: pre-line` and tag replacement.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 693 Update (2026-11-04): Expanded Tools Dropdown
+
+**New**: `/api/tools` endpoint; dropdown shows all 83 tools grouped by category with search and descriptions.
+
+*Workflow updated: 2026-11-04*

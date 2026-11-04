@@ -3578,3 +3578,15 @@ me the exact git commands to commit + push both remotes."
 ` and add `white-space: pre-line` to table cells, so multi-line content renders correctly.
 
 *Part 692 logged: 2026-11-04*
+
+---
+
+### Part 693 Update (2026-11-04): Expanded Tools Dropdown
+
+- **New API endpoint**: `/api/tools` returns all 83 tools with name, description, and category.
+- **Expanded dropdown**: The tool selector (wrench icon) now shows all tools grouped by category (Search & Web, Code & Data, Files & Documents, Finance, Media & Browser, Ops & Automation, General).
+- **Search filter**: A search input at the top of the dropdown filters tools instantly.
+- **Tool descriptions**: Each tool shows a short description below its name.
+- **Auto (Default)** option remains at the top.
+
+*Part 693 logged: 2026-11-04*

@@ -6043,3 +6043,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Choose next feature (A: Tools Indicator, B: Tool Testing, C: Branching, D: Multi-Agent, E: Other).
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 693 Update (2026-11-04): Expanded Tools Dropdown
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `routes/meta.py`: Added `/api/tools` endpoint that returns all tools with categories.
+- `static/chat.html`: Expanded `#toolsMenu` with search input and dynamic tool list.
+- `static/chat.html`: Added `loadToolsMenu()`, `renderToolsMenu()`, `filterToolsMenu()` functions.
+- `static/chat.html`: Added click listener to load tools when the menu opens.
+
+**Next Steps (Part 694):**
+- Verify the expanded dropdown works and choose the next feature.
+
+*Handoff updated: 2026-11-04*
