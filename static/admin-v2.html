@@ -2870,11 +2870,20 @@ async function renderLlmDashboard() {
     <p style="color:var(--muted);font-size:12px;">Tokens &amp; estimated cost · auto-refresh 30s</p>
     <div id="llm-usage-container"><p style="color:var(--muted)">Loading...</p></div>
 
+    <div style="background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:20px;margin-bottom:24px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="margin:0;">Tools Testing</h3>
+        <button class="ghost small" onclick="testAllTools(this)">Test All Tools</button>
+      </div>
+      <p style="color:var(--muted);font-size:12px;margin:0 0 12px;">Runs safe canned tests on all 83 tools. Tools requiring external keys or uploads are skipped.</p>
+      <div id="tools-test-results"><span style="color:var(--muted);font-size:12px;">Click "Test All Tools" to start.</span></div>
+    </div>
+
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;">
       <h3 style="margin:0;">Provider Health</h3>
       <div>
         <button class="ghost small" onclick="testAllProviders(this)" style="margin-right:8px;">Test All</button>
-          <button class="ghost small health-pause-btn" id="healthPauseBtn" onclick="toggleHealthPause()" style="margin-right:8px;">Pause</button>
+        <button class="ghost small health-pause-btn" id="healthPauseBtn" onclick="toggleHealthPause()" style="margin-right:8px;">Pause</button>
         <button class="ghost small" onclick="refreshLlmHealth()">Refresh</button>
       </div>
     </div>
@@ -3029,6 +3038,48 @@ async function refreshLlmUsage() {
   `;
   if (!window._llmUsageTimer) {
     window._llmUsageTimer = setInterval(refreshLlmUsage, 30000);
+  }
+}
+
+async function testAllTools(btn) {
+  const container = document.getElementById('tools-test-results');
+  if (!container) return;
+  btn.disabled = true;
+  btn.textContent = 'Testing...';
+  container.innerHTML = '<span style="color:var(--muted);font-size:12px;">Running tests...</span>';
+  try {
+    const res = await api('/api/tools/test-all', 'POST');
+    const data = res || {};
+    const results = data.results || [];
+    const s = data.summary || {total: results.length, passed: 0, failed: 0, skipped: 0};
+    const badge = (status) => {
+      if (status === 'PASS') return '<span style="color:#2ecc71;font-weight:600;">PASS</span>';
+      if (status === 'FAIL') return '<span style="color:#e74c3c;font-weight:600;">FAIL</span>';
+      return '<span style="color:var(--muted);">SKIP</span>';
+    };
+    container.innerHTML = `
+      <div style="font-size:12px;margin-bottom:8px;">
+        <strong>${s.total}</strong> tools · <span style="color:#2ecc71;">${s.passed} passed</span> · <span style="color:#e74c3c;">${s.failed} failed</span> · <span style="color:var(--muted);">${s.skipped} skipped</span>
+      </div>
+      <table style="font-size:12px;width:100%;">
+        <thead><tr><th>Tool</th><th>Status</th><th>Latency</th><th>Output / Error</th></tr></thead>
+        <tbody>
+          ${results.map(r => `
+            <tr>
+              <td><strong>${esc(r.name)}</strong></td>
+              <td>${badge(r.status)}</td>
+              <td style="color:var(--muted);">${r.latency_ms}ms</td>
+              <td style="font-size:11px;color:${r.status === 'FAIL' ? '#e74c3c' : 'var(--muted)'};max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${esc(r.error || r.output)}">${esc((r.error || r.output || '—').slice(0, 120))}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    `;
+  } catch (e) {
+    container.innerHTML = '<span style="color:#e74c3c;">Test failed: ' + esc(e.message) + '</span>';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Test All Tools';
   }
 }
 
