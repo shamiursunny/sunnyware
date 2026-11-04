@@ -5978,3 +5978,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Implement Option C (Agent Tools) or D (Streaming).
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 689 Update (2026-11-04): Silence CDN Warnings & Fix 428 Errors
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/highlight.min.js` and `static/github-dark.min.css`: Added local stubs to replace CDN.
+- `static/chat.html` and `routes/meta.py`: Updated references to local files.
+- `routes/main.py`: Added `/api/chats`, `/api/sessions`, `/api/roles`, `/api/auth/roles`, `/api/llm-dashboard/`, `/api/saas/dashboard`, `/api/saas/roles`, `/share/` to `_2FA_WHITELIST`.
+
+**Next Steps (Part 690):**
+- Implement Option C (Agent Tools) or D (Streaming).
+
+*Handoff updated: 2026-11-04*

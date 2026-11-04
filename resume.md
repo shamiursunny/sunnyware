@@ -3533,3 +3533,14 @@ me the exact git commands to commit + push both remotes."
 - **Trend column**: New column between Avg 1h and P95 1h showing the latency sparkline.
 
 *Part 688 logged: 2026-11-04*
+
+---
+
+### Part 689 Update (2026-11-04): Silence CDN Warnings
+
+- **Local highlight.js stub**: Replaced the Cloudflare CDN with local `static/highlight.min.js` and `static/github-dark.min.css` to eliminate Edge tracking-prevention warnings.
+- **Basic code styling**: Code blocks still have clean styling, though without full syntax highlighting (the stub doesn't perform real highlighting).
+- **Share page updated**: The `/share/` page also uses the local stub.
+- **2FA whitelist expanded**: Added `/api/chats`, `/api/sessions`, `/api/roles`, `/api/auth/roles`, `/api/llm-dashboard/`, `/api/saas/dashboard`, `/api/saas/roles`, and `/share/` to the 2FA whitelist, fixing 428 errors in Incognito.
+
+*Part 689 logged: 2026-11-04*

@@ -3447,3 +3447,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Latency sparklines per provider, auto-refresh pause button, and cost indicator in the Provider Health table.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 689 Update (2026-11-04): Silence CDN Warnings & Fix 428 Errors
+
+**New**: Local highlight.js stub (no more CDN), 2FA whitelist expanded for Incognito support.
+
+*Workflow updated: 2026-11-04*
