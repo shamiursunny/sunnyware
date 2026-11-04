@@ -346,6 +346,81 @@ async def save_chats(req: _Request):
     path.write_text(_json.dumps(body.get("chats", [])))
     return {"ok": True}
 
+# Part 685: Share read-only chat view
+from fastapi.responses import HTMLResponse as _ShareHR
+
+def _find_chat_by_id(chat_id: str):
+    import json as _json
+    if not _CHAT_STORE_DIR.exists():
+        return None
+    for f in _CHAT_STORE_DIR.glob("chats_*.json"):
+        try:
+            chats = _json.loads(f.read_text())
+            for c in chats:
+                if c.get("id") == chat_id:
+                    return c
+        except Exception:
+            continue
+    return None
+
+def _md_lite_share(text: str) -> str:
+    import html as _html
+    import re as _re
+    text = _html.escape(text or "")
+    def _code(m):
+        lang = m.group(1) or 'plaintext'
+        body = m.group(2)
+        return '<pre><code class="language-' + lang + '">' + body + '</code></pre>'
+    text = _re.sub(r'```(\w*)\n([\s\S]*?)```', _code, text)
+    text = _re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
+    text = _re.sub(r'`([^`\n]+)`', r'<code>\1</code>', text)
+    text = text.replace('\n', '<br>')
+    return text
+
+@router.get("/share/{chat_id}", response_class=_ShareHR)
+async def share_chat(chat_id: str, msgs: str = ""):
+    chat = _find_chat_by_id(chat_id)
+    if not chat:
+        return _ShareHR("<h1 style='font-family:system-ui;padding:40px;'>Chat not found</h1>", status_code=404)
+    selected_ids = set(msgs.split(',')) if msgs else None
+    messages = chat.get("messages", [])
+    if selected_ids:
+        messages = [m for m in messages if m.get("id") in selected_ids]
+    rows = []
+    for m in messages:
+        role = m.get("role", "user")
+        text = m.get("text", "")
+        label = "You" if role == "user" else "Sunnyware"
+        bg = "#1a1d26" if role == "user" else "#12161f"
+        align = "flex-end" if role == "user" else "flex-start"
+        rows.append(f'''<div style="display:flex;flex-direction:column;align-items:{align};margin:16px 0;"><div style="font-size:11px;color:#8892a6;margin-bottom:4px;">{label}</div><div style="background:{bg};border:1px solid #232a38;border-radius:10px;padding:12px 16px;max-width:80%;color:#e7ecf3;line-height:1.6;font-size:14px;">{_md_lite_share(text)}</div></div>''')
+    title = chat.get("title", "Shared chat")
+    html = f'''<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{title} — Shared</title>
+<style>
+  body {{ background: #0b0d12; color: #e7ecf3; font-family: system-ui, -apple-system, sans-serif; margin: 0; padding: 40px 20px; }}
+  .container {{ max-width: 800px; margin: 0 auto; }}
+  h1 {{ font-size: 24px; margin-bottom: 4px; }}
+  .subtitle {{ color: #8892a6; font-size: 13px; margin-bottom: 32px; }}
+  pre {{ background: #0d0d0f; border: 1px solid #2a2a2e; border-radius: 8px; padding: 14px; overflow-x: auto; }}
+  code {{ background: #1a1d26; padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 13px; }}
+  pre code {{ background: none; padding: 0; }}
+  strong {{ color: #fff; }}
+  a {{ color: #5b8def; }}
+  .back {{ display: inline-block; margin-top: 32px; color: #5b8def; text-decoration: none; }}
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+</head><body>
+<div class="container">
+  <h1>{title}</h1>
+  <div class="subtitle">Shared conversation · {len(messages)} messages</div>
+  {''.join(rows) or '<p style="color:#8892a6;">No messages selected.</p>'}
+  <a class="back" href="/ui">← Open Sunnyware</a>
+</div>
+<script>if(window.hljs) hljs.highlightAll();</script>
+</body></html>'''
+    return _ShareHR(html)
+
 @router.get("/api/firewall/status")
 async def firewall_status():
     """Inspect IP allowlist + security header configuration."""
