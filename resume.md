@@ -3189,3 +3189,14 @@ me the exact git commands to commit + push both remotes."
 - **Test Calls Counted**: Test All runs now show as calls in the usage table, but with 0 tokens (the "Say OK" prompt is tiny). Real chat traffic will populate token counts.
 
 *Part 659 logged: 2026-11-04*
+
+---
+
+### Part 660 Update (2026-11-04): Usage Analytics End-to-End Verified
+
+- **Token Counting Verified**: Sent 3 real chat messages (hello, explain quantum computing, write a haiku). The Usage Analytics card correctly showed **147 total tokens** across **10 calls**.
+- **Provider Breakdown Working**: Pollinations (100 tokens), Cerebras (24 tokens), Groq (23 tokens) all registered correctly.
+- **User Breakdown Working**: `anonymous` user shows 147 tokens (3 real calls); `test` user shows 0 tokens (7 test calls).
+- **Failed Tests Show Zero**: HuggingFace (402), SambaNova (429), and OpenRouter (429) show 0 tokens (expected for failed test calls).
+
+*Part 660 logged: 2026-11-04*

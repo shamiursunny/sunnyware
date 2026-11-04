@@ -3191,3 +3191,11 @@ Fixed regex for conversation/discussion matching.
 **New**: `/api/llm-dashboard/usage` endpoint + Usage Analytics card with 7-day sparkline, per-provider/per-user token breakdown, and estimated cost.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 660 Update (2026-11-04): Usage Analytics Verified
+
+**Verified**: Token counting works end-to-end. 3 real chat messages produced 147 tokens, correctly separated between `anonymous` (147 tokens, 3 calls) and `test` (0 tokens, 7 calls).
+
+*Workflow updated: 2026-11-04*

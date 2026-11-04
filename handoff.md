@@ -5411,3 +5411,22 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 2. Or move to a new feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 660 Update (2026-11-04): Usage Analytics Verified
+
+**Status:** ✅ Usage Analytics fully verified with real chat traffic and test traffic.
+
+**What was verified:**
+- **3 real chat messages** (hello, quantum, haiku) → **147 tokens** across **10 total calls**.
+- **Provider breakdown**: Pollinations (100), Cerebras (24), Groq (23).
+- **User breakdown**: `anonymous` (147 tokens, 3 calls), `test` (0 tokens, 7 calls).
+- **Failed tests** (sambanova, huggingface, openrouter, gemini) show 0 tokens.
+
+**Next Steps (Part 661):**
+1. Consider a new feature: session management, prompt library, or auto-disable unhealthy providers.
+2. Or clean up the unused SmolLM file.
+3. Or add a "Tokens by Model" breakdown to the Usage card.
+
+*Handoff updated: 2026-11-04*
