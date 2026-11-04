@@ -319,6 +319,8 @@ async def health_summary(req: Request):
             "success_pct_1h": None, "avg_latency_1h_ms": 0, "p95_latency_1h_ms": 0, "total_1h": 0,
             "success_pct_24h": None, "total_24h": 0, "last_error": "",
             "auto_disabled": False,
+            "cost_tier": PROVIDER_COSTS.get(name, {}).get("tier", "Free"),
+            "cost_per_1m": PROVIDER_COSTS.get(name, {}).get("cost", 0),
         })
 
     return {"count": len(result), "providers": result, "ts": now}
