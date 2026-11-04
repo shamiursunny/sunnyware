@@ -137,8 +137,33 @@ input,textarea{font-family:inherit}
 .chat-item .chat-actions{display:none;gap:2px}
 .chat-item .chat-menu-btn:hover{background:var(--hover)}
 .chat-item .chat-dropdown .chat-menu-item:hover{background:var(--hover)}
-body.sidebar-collapsed .sidebar{display:none !important}
-body.sidebar-collapsed .main-content{width:100%}
+/* Part 675: Fixed dropdown positioning */
+.chat-dropdown {
+  position: fixed !important;
+  z-index: 9999 !important;
+  max-height: 300px;
+  overflow-y: auto;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
+}
+/* Part 675: Proper sidebar collapse — slide out and adjust layout */
+body.sidebar-collapsed .sidebar {
+  transform: translateX(-100%);
+  width: 0;
+  padding: 0;
+  border-right: none;
+  overflow: hidden;
+}
+body.sidebar-collapsed .main {
+  margin-left: 0 !important;
+  width: 100% !important;
+}
+
+/* Ensure the hamburger is always visible and clickable when sidebar is collapsed */
+body.sidebar-collapsed #menuBtn {
+  display: inline-flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+}
 
 .chat-item:hover .chat-actions{display:flex}
 
@@ -198,7 +223,7 @@ body.sidebar-collapsed .main-content{width:100%}
 
 .topbar-spacer{flex:1}
 
-.menu-btn{display:none}
+.menu-btn{display:inline-flex}
 
 
 
@@ -1753,10 +1778,50 @@ const LS_CHATS='sunny_chats_v2', LS_FILES='sunny_files_v1', LS_THEME='sunny_them
 let chats=[], files=[], activeChatId=null, isGenerating=false, editingId=null;
 
 // Part 673: Load chats from server (fallback for Incognito)
+
+// Part 676: Cross-session user ID detection
+function getUserIdForChats() {
+  const stored = localStorage.getItem('sunny_user_id');
+  if (stored) return stored;
+  const sess = sessionStorage.getItem('sunny_user_id');
+  if (sess) return sess;
+  try {
+    const cookies = document.cookie.split(';').reduce((acc, c) => {
+      const [k, v] = c.trim().split('=');
+      if (k && v) acc[k] = v;
+      return acc;
+    }, {});
+    const token = cookies['sunny_token'] || cookies['token'];
+    if (token) {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.email) return payload.email;
+      if (payload.sub) return payload.sub;
+    }
+  } catch (e) {}
+  return 'anonymous';
+}
+
+// Intercept fetch to inject X-User-Id for chat sync
+const _originalFetch = window.fetch;
+window.fetch = function(url, options = {}) {
+  if (url === '/api/chats' || url.startsWith('/api/chats')) {
+    if (!options.headers) options.headers = {};
+    if (!options.headers['X-User-Id']) {
+      options.headers['X-User-Id'] = getUserIdForChats();
+    }
+  }
+  return _originalFetch(url, options);
+};
+
+
 async function loadChatsFromServer() {
   try {
-    const res = await fetch('/api/chats', { headers: { 'X-User-Id': localStorage.getItem('sunny_user_id') || 'anonymous' } });
+    const userId = localStorage.getItem('sunny_user_id') || 'anonymous';
+    console.log('[chat] Loading chats for user:', userId);
+    const res = await fetch('/api/chats', { headers: { 'X-User-Id': userId } });
+    if (!res.ok) { console.warn('[chat] Server load failed:', res.status); return; }
     const data = await res.json();
+    console.log('[chat] Server response:', data);
     if (data.ok && Array.isArray(data.chats) && data.chats.length > 0) {
       if (chats.length === 0) {
         chats = data.chats;
@@ -1764,6 +1829,8 @@ async function loadChatsFromServer() {
         renderChatList($('#searchInput') ? $('#searchInput').value : '');
         console.log('[chat] Loaded', chats.length, 'chats from server');
       }
+    } else {
+      console.log('[chat] No chats on server');
     }
   } catch (e) {
     console.warn('[chat] Server load failed:', e);
@@ -2282,20 +2349,22 @@ const closeSidebar=()=>{
 };
 
 $('#menuBtn').onclick=()=>{
-  // Part 674: True toggle (DeepSeek-style) — open if collapsed, close if open
+  // Part 675: Robust toggle for all screen sizes
   const isCollapsed = document.body.classList.contains('sidebar-collapsed');
-  const isMobileOpen = window.innerWidth <= 900 && sidebar.classList.contains('open');
+  const isMobile = window.innerWidth <= 900;
   if (isCollapsed) {
     document.body.classList.remove('sidebar-collapsed');
     sidebar.classList.add('open');
-  } else if (isMobileOpen) {
+    if (isMobile) overlayEl.classList.add('show');
+  } else if (isMobile && sidebar.classList.contains('open')) {
     sidebar.classList.remove('open');
     overlayEl.classList.remove('show');
-  } else if (window.innerWidth <= 900) {
+  } else if (isMobile) {
     sidebar.classList.add('open');
     overlayEl.classList.add('show');
   } else {
     document.body.classList.add('sidebar-collapsed');
+    sidebar.classList.remove('open');
   }
 };
 $('#sidebarClose').onclick=closeSidebar; overlayEl.onclick=closeSidebar;
@@ -2577,7 +2646,7 @@ function chatItemEl(c){
     ${pinnedChats.has(c.id) ? '<span style="font-size:10px;color:var(--accent);">PIN</span>' : ''}
     <div class="chat-menu-wrapper" style="position:relative;">
       <button class="icon-btn chat-menu-btn" title="More options" style="opacity:0;transition:opacity .15s;"><svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
-      <div class="chat-dropdown" style="display:none;position:absolute;right:0;top:100%;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:4px;min-width:160px;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+      <div class="chat-dropdown" style="display:none;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:4px;min-width:160px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
         <button class="chat-menu-item" data-action="rename" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--text);cursor:pointer;font-size:12px;border-radius:4px;">Rename</button>
         <button class="chat-menu-item" data-action="pin" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--text);cursor:pointer;font-size:12px;border-radius:4px;">${pinnedChats.has(c.id) ? 'Unpin' : 'Pin'}</button>
         <button class="chat-menu-item" data-action="share" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--text);cursor:pointer;font-size:12px;border-radius:4px;">Share</button>
@@ -2597,7 +2666,19 @@ function chatItemEl(c){
       e.stopPropagation();
       const isOpen = dropdown.style.display === 'block';
       document.querySelectorAll('.chat-dropdown').forEach(d => d.style.display = 'none');
-      dropdown.style.display = isOpen ? 'none' : 'block';
+      if (!isOpen) {
+        const rect = menuBtn.getBoundingClientRect();
+        dropdown.style.display = 'block';
+        const ddRect = dropdown.getBoundingClientRect();
+        let top = rect.bottom + 4;
+        let left = rect.right - ddRect.width;
+        if (left < 8) left = 8;
+        if (top + ddRect.height > window.innerHeight - 8) top = rect.top - ddRect.height - 4;
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = top + 'px';
+        dropdown.style.left = left + 'px';
+        dropdown.style.right = 'auto';
+      }
       menuBtn.style.opacity = '1';
     });
   }
@@ -5004,6 +5085,15 @@ async function regenerateLast() {
   }
   streamAI(chat, lastUser.text);
 }
+
+
+// Part 675: Close all chat dropdowns on scroll or resize
+window.addEventListener('scroll', () => {
+  document.querySelectorAll('.chat-dropdown').forEach(d => { d.style.display = 'none'; d.classList.remove('open'); });
+}, { passive: true });
+window.addEventListener('resize', () => {
+  document.querySelectorAll('.chat-dropdown').forEach(d => { d.style.display = 'none'; d.classList.remove('open'); });
+}, { passive: true });
 
 </script>
 </body>
