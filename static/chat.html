@@ -135,6 +135,10 @@ input,textarea{font-family:inherit}
 .chat-item .chat-checkbox{width:14px;height:14px;cursor:pointer;flex-shrink:0;margin-right:2px;}
 .chat-item.selected{background:rgba(91,141,239,0.15);}
 .chat-item .chat-actions{display:none;gap:2px}
+.chat-item .chat-menu-btn:hover{background:var(--hover)}
+.chat-item .chat-dropdown .chat-menu-item:hover{background:var(--hover)}
+body.sidebar-collapsed .sidebar{display:none !important}
+body.sidebar-collapsed .main-content{width:100%}
 
 .chat-item:hover .chat-actions{display:flex}
 
@@ -903,13 +907,17 @@ input,textarea{font-family:inherit}
     </div>
 
     <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 14px;font-size:11px;color:var(--text-tertiary);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">
-      <span>Chats</span>
-      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;text-transform:none;font-weight:normal;">
-        <input type="checkbox" id="selectAllCheckbox" onclick="toggleSelectAll(this)" style="cursor:pointer;">
-        Select All
-      </label>
+      <span id="chat-list-header-title">Chats</span>
+      <button class="icon-btn" id="exitSelectionBtn" onclick="clearSelection()" title="Exit selection" style="display:none;width:24px;height:24px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+      
     </div>
     <nav class="chat-list" id="chatList"></nav>
+    <div id="bulk-action-bar" style="display:none;padding:10px 14px;border-top:1px solid var(--border);background:var(--sidebar);gap:8px;align-items:center;justify-content:space-around;">
+      <button class="icon-btn" onclick="pinSelected()" title="Pin selected" style="width:auto;height:32px;padding:0 16px;font-size:11px;display:flex;align-items:center;gap:4px;">Pin</button>
+      <button class="icon-btn" onclick="deleteSelected()" title="Delete selected" style="width:auto;height:32px;padding:0 16px;font-size:11px;color:var(--danger);display:flex;align-items:center;gap:4px;">Delete</button>
+    </div>
 
     <div class="sidebar-footer">
       <button class="user-pill" id="userPillBtn" title="Settings & account">
@@ -2232,9 +2240,19 @@ function loadAll(){
 
 const sidebar=$('#sidebar'), overlayEl=$('#sidebarOverlay');
 
-const openSidebar=()=>{sidebar.classList.add('open');overlayEl.classList.add('show');};
+const openSidebar=()=>{
+  sidebar.classList.add('open');
+  overlayEl.classList.add('show');
+  document.body.classList.remove('sidebar-collapsed');
+};
 
-const closeSidebar=()=>{sidebar.classList.remove('open');overlayEl.classList.remove('show');};
+const closeSidebar=()=>{
+  sidebar.classList.remove('open');
+  overlayEl.classList.remove('show');
+  if (window.innerWidth > 900) {
+    document.body.classList.add('sidebar-collapsed');
+  }
+};
 
 $('#menuBtn').onclick=openSidebar; $('#sidebarClose').onclick=closeSidebar; overlayEl.onclick=closeSidebar;
 
@@ -2387,6 +2405,12 @@ function renderChatList(filter=''){
 
     const lbl=document.createElement('div'); lbl.className='chat-group-label'; lbl.textContent=g; chatList.appendChild(lbl);
 
+    // Part 672: Sort pinned chats to top
+    items.sort((a, b) => {
+      const pa = pinnedChats.has(a.id) ? 0 : 1;
+      const pb = pinnedChats.has(b.id) ? 0 : 1;
+      return pa - pb;
+    });
     items.forEach(c=>chatList.appendChild(chatItemEl(c)));
 
   });
@@ -2395,15 +2419,26 @@ function renderChatList(filter=''){
 
 // Part 672: Bulk chat selection
 let selectedChats = new Set();
+let pinnedChats = new Set(JSON.parse(localStorage.getItem('sunny_pinned') || '[]'));
+function savePinned() { localStorage.setItem('sunny_pinned', JSON.stringify([...pinnedChats])); }
+function togglePinChat(id) {
+  if (pinnedChats.has(id)) pinnedChats.delete(id);
+  else pinnedChats.add(id);
+  savePinned();
+  renderChatList($('#searchInput').value);
+  toast(pinnedChats.has(id) ? 'Chat pinned' : 'Chat unpinned');
+}
 
 function updateSelectionUI() {
   const count = selectedChats.size;
   const bar = document.getElementById('bulk-action-bar');
   if (bar) {
     bar.style.display = count > 0 ? 'flex' : 'none';
-    const label = document.getElementById('bulk-count');
-    if (label) label.innerText = count + ' selected';
   }
+  const title = document.getElementById('chat-list-header-title');
+  const exitBtn = document.getElementById('exitSelectionBtn');
+  if (title) title.innerText = count > 0 ? 'Select Chats (' + count + ')' : 'Chats';
+  if (exitBtn) exitBtn.style.display = count > 0 ? 'flex' : 'none';
   const selectAllCb = document.getElementById('selectAllCheckbox');
   if (selectAllCb) {
     selectAllCb.checked = (count > 0 && count === chats.length);
@@ -2444,6 +2479,7 @@ function clearSelection() {
 
 function exportSelected() {
   if (selectedChats.size === 0) return toast('No chats selected', 'error');
+  const count = selectedChats.size;
   const sel = chats.filter(c => selectedChats.has(c.id));
   const md = sel.map(c => {
     let s = '# ' + c.title + '\n\n';
@@ -2451,7 +2487,18 @@ function exportSelected() {
     return s;
   }).join('\n\n========\n\n');
   download('selected-chats-' + Date.now() + '.md', md, 'text/markdown');
-  toast(selectedChats.size + ' chats exported');
+  toast(count + ' chats exported');
+  clearSelection();  // Part 672 fix: clear selection after export
+}
+
+function pinSelected() {
+  if (selectedChats.size === 0) return toast('No chats selected', 'error');
+  let added = 0;
+  selectedChats.forEach(id => { if (!pinnedChats.has(id)) { pinnedChats.add(id); added++; } });
+  savePinned();
+  clearSelection();
+  renderChatList($('#searchInput').value);
+  toast(added + ' chat(s) pinned');
 }
 
 function deleteSelected() {
@@ -2482,46 +2529,61 @@ function chatItemEl(c){
 
     ${c.branched?'<span class="branch-badge">branch</span>':''}
 
-    <div class="chat-actions">
-
-      <button class="icon-btn act-share" title="Share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8M16 6l-4-4-4 4M12 2v13"/></svg></button>
-      <button class="icon-btn act-export" title="Export"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></button>
-      <button class="icon-btn act-rename" title="Rename"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.83 2.83 0 114 4L7.5 20.5 2 22l1.5-5.5L17 3z"/></svg></button>
-
-      <button class="icon-btn act-del" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg></button>
-
+    ${pinnedChats.has(c.id) ? '<span style="font-size:10px;color:var(--accent);">PIN</span>' : ''}
+    <div class="chat-menu-wrapper" style="position:relative;">
+      <button class="icon-btn chat-menu-btn" title="More options" style="opacity:0;transition:opacity .15s;"><svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
+      <div class="chat-dropdown" style="display:none;position:absolute;right:0;top:100%;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:4px;min-width:160px;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+        <button class="chat-menu-item" data-action="rename" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--text);cursor:pointer;font-size:12px;border-radius:4px;">Rename</button>
+        <button class="chat-menu-item" data-action="pin" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--text);cursor:pointer;font-size:12px;border-radius:4px;">${pinnedChats.has(c.id) ? 'Unpin' : 'Pin'}</button>
+        <button class="chat-menu-item" data-action="share" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--text);cursor:pointer;font-size:12px;border-radius:4px;">Share</button>
+        <button class="chat-menu-item" data-action="multiselect" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--text);cursor:pointer;font-size:12px;border-radius:4px;">Multi-select</button>
+        <button class="chat-menu-item" data-action="delete" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--danger);cursor:pointer;font-size:12px;border-radius:4px;">Delete</button>
+      </div>
     </div>`;
 
   div.onclick=e=>{ if(e.target.closest('button')||e.target.closest('.rename-input')||e.target.closest('.chat-checkbox'))return; selectChat(c.id); closeSidebar(); };
 
-  div.querySelector('.act-share').onclick=(e)=>{ e.stopPropagation();
-    navigator.clipboard.writeText('https://shamiur-sunnyware.hf.space/share/'+c.id).then(()=>toast('Share link copied'));
-  };
-  div.querySelector('.act-export').onclick=(e)=>{ e.stopPropagation();
-    const md = c.messages.map(m => '**' + (m.role === 'user' ? 'You' : 'Sunnyware') + ':**\n\n' + m.text).join('\n\n---\n\n');
-    download(c.title.replace(/[^\w\s-]/g,'').trim().replace(/\s+/g,'-').toLowerCase()+'.md', md, 'text/markdown');
-    toast('Chat exported as Markdown');
-  };
-
-  div.querySelector('.act-rename').onclick=()=>{
-
-    const span=div.querySelector('.chat-title'), inp=document.createElement('input');
-
-    inp.className='rename-input'; inp.value=c.title; span.replaceWith(inp); inp.focus(); inp.select();
-
-    inp.onblur=()=>{ c.title=inp.value.trim()||c.title; saveAll(); renderChatList($('#searchInput').value); };
-
-    inp.onkeydown=e=>{ if(e.key==='Enter')inp.blur(); if(e.key==='Escape'){inp.value=c.title;inp.blur();} };
-
-  };
-
-  div.querySelector('.act-del').onclick=()=>showConfirm('Delete conversation?','This chat will be permanently removed from your history. Files in your Library are not affected.','Delete',()=>{
-
-    chats=chats.filter(x=>x.id!==c.id); if(activeChatId===c.id)activeChatId=null;
-
-    saveAll(); renderChatList($('#searchInput').value); renderMessages(); toast('Conversation deleted');
-
-  });
+  const menuBtn = div.querySelector('.chat-menu-btn');
+  const dropdown = div.querySelector('.chat-dropdown');
+  if (menuBtn) {
+    div.addEventListener('mouseenter', () => { menuBtn.style.opacity = '1'; });
+    div.addEventListener('mouseleave', () => { if (!dropdown || dropdown.style.display !== 'block') menuBtn.style.opacity = '0'; });
+    menuBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = dropdown.style.display === 'block';
+      document.querySelectorAll('.chat-dropdown').forEach(d => d.style.display = 'none');
+      dropdown.style.display = isOpen ? 'none' : 'block';
+      menuBtn.style.opacity = '1';
+    });
+  }
+  if (dropdown) {
+    dropdown.querySelectorAll('.chat-menu-item').forEach(item => {
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const action = item.dataset.action;
+        dropdown.style.display = 'none';
+        if (action === 'rename') {
+          const span=div.querySelector('.chat-title'), inp=document.createElement('input');
+          inp.className='rename-input'; inp.value=c.title; span.replaceWith(inp); inp.focus(); inp.select();
+          inp.onblur=()=>{ c.title=inp.value.trim()||c.title; saveAll(); renderChatList($('#searchInput').value); };
+          inp.onkeydown=e=>{ if(e.key==='Enter')inp.blur(); if(e.key==='Escape'){inp.value=c.title;inp.blur();} };
+        } else if (action === 'pin') {
+          togglePinChat(c.id);
+        } else if (action === 'share') {
+          navigator.clipboard.writeText('https://shamiur-sunnyware.hf.space/share/'+c.id).then(()=>toast('Share link copied'));
+        } else if (action === 'multiselect') {
+          selectedChats.add(c.id);
+          updateSelectionUI();
+          renderChatList($('#searchInput').value);
+        } else if (action === 'delete') {
+          showConfirm('Delete conversation?','This chat will be permanently removed from your history. Files in your Library are not affected.','Delete',()=>{
+            chats=chats.filter(x=>x.id!==c.id); if(activeChatId===c.id)activeChatId=null;
+            saveAll(); renderChatList($('#searchInput').value); renderMessages(); toast('Conversation deleted');
+          });
+        }
+      });
+    });
+  }
 
   return div;
 
