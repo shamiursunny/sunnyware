@@ -14,7 +14,7 @@
 
 /* ============ TOKENS ============ */
 
-:root{
+:root{ --panel: #12161f; --border: #232a38; 
 
   --bg:#ffffff;--bg-secondary:#f7f7f8;--bg-tertiary:#ececf1;
 
@@ -2635,7 +2635,7 @@ function chatItemEl(c){
     ${pinnedChats.has(c.id) ? '<span style="font-size:10px;color:var(--accent);">PIN</span>' : ''}
     <div class="chat-menu-wrapper" style="position:relative;">
       <button class="icon-btn chat-menu-btn" title="More options" style="opacity:0;transition:opacity .15s;"><svg viewBox="0 0 24 24" fill="currentColor" style="width:14px;height:14px;"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg></button>
-      <div class="chat-dropdown" style="display:none;background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:4px;min-width:160px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
+      <div class="chat-dropdown" style="display:none;background:#12161f;border:1px solid #232a38;border-radius:8px;padding:4px;min-width:160px;box-shadow:0 4px 12px rgba(0,0,0,0.3);">
         <button class="chat-menu-item" data-action="rename" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--text);cursor:pointer;font-size:12px;border-radius:4px;">Rename</button>
         <button class="chat-menu-item" data-action="pin" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--text);cursor:pointer;font-size:12px;border-radius:4px;">${pinnedChats.has(c.id) ? 'Unpin' : 'Pin'}</button>
         <button class="chat-menu-item" data-action="share" style="width:100%;text-align:left;padding:8px 12px;background:none;border:none;color:var(--text);cursor:pointer;font-size:12px;border-radius:4px;">Share</button>
@@ -2656,17 +2656,29 @@ function chatItemEl(c){
       const isOpen = dropdown.style.display === 'block';
       document.querySelectorAll('.chat-dropdown').forEach(d => d.style.display = 'none');
       if (!isOpen) {
-        const rect = menuBtn.getBoundingClientRect();
         dropdown.style.display = 'block';
+        dropdown.style.visibility = 'hidden';
+        // Force layout
+        const _ = dropdown.offsetHeight;
+        const rect = menuBtn.getBoundingClientRect();
         const ddRect = dropdown.getBoundingClientRect();
-        let top = rect.bottom + 4;
-        let left = rect.right - ddRect.width;
-        if (left < 8) left = 8;
-        if (top + ddRect.height > window.innerHeight - 8) top = rect.top - ddRect.height - 4;
+        // Position to the right of the button (over main content)
+        let left = rect.right + 8;
+        let top = rect.top;
+        // If no room on right, place to the left
+        if (left + ddRect.width > window.innerWidth - 8) {
+          left = rect.left - ddRect.width - 8;
+        }
+        // Keep in viewport vertically
+        if (top + ddRect.height > window.innerHeight - 8) {
+          top = window.innerHeight - ddRect.height - 8;
+        }
+        if (top < 8) top = 8;
         dropdown.style.position = 'fixed';
         dropdown.style.top = top + 'px';
         dropdown.style.left = left + 'px';
         dropdown.style.right = 'auto';
+        dropdown.style.visibility = 'visible';
       }
       menuBtn.style.opacity = '1';
     });
