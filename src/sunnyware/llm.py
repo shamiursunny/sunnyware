@@ -959,20 +959,32 @@ import logging
 
 _auto_recover_started = False
 
+_auto_recover_thread = None
+
 def _ensure_auto_recover_loop():
-    """Start the recovery loop lazily (first call). Works everywhere."""
-    global _auto_recover_started
+    """Start the recovery loop lazily (first call). Works with or without an event loop."""
+    global _auto_recover_started, _auto_recover_thread
     if _auto_recover_started:
         return
-    _auto_recover_started = True
     try:
         loop = asyncio.get_running_loop()
         loop.create_task(_auto_recover_loop())
+        _auto_recover_started = True
+        print("[auto-recover] loop started (event loop)", flush=True)
     except RuntimeError:
-        pass  # No running loop yet, will try again next call
+        # No event loop — start a dedicated background thread
+        if _auto_recover_thread is None or not _auto_recover_thread.is_alive():
+            import threading
+            def _run():
+                asyncio.run(_auto_recover_loop())
+            _auto_recover_thread = threading.Thread(target=_run, daemon=True, name="auto-recover")
+            _auto_recover_thread.start()
+            _auto_recover_started = True
+            print("[auto-recover] loop started (thread)", flush=True)
 
 async def _auto_recover_loop():
     """Every 15 minutes, try to recover auto-disabled providers."""
+    print("[auto-recover] loop task started", flush=True)
     logger = logging.getLogger(__name__)
     await asyncio.sleep(60)  # First run after 1 minute
     while True:
