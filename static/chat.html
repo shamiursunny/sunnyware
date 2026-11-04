@@ -2281,7 +2281,24 @@ const closeSidebar=()=>{
   }
 };
 
-$('#menuBtn').onclick=openSidebar; $('#sidebarClose').onclick=closeSidebar; overlayEl.onclick=closeSidebar;
+$('#menuBtn').onclick=()=>{
+  // Part 674: True toggle (DeepSeek-style) — open if collapsed, close if open
+  const isCollapsed = document.body.classList.contains('sidebar-collapsed');
+  const isMobileOpen = window.innerWidth <= 900 && sidebar.classList.contains('open');
+  if (isCollapsed) {
+    document.body.classList.remove('sidebar-collapsed');
+    sidebar.classList.add('open');
+  } else if (isMobileOpen) {
+    sidebar.classList.remove('open');
+    overlayEl.classList.remove('show');
+  } else if (window.innerWidth <= 900) {
+    sidebar.classList.add('open');
+    overlayEl.classList.add('show');
+  } else {
+    document.body.classList.add('sidebar-collapsed');
+  }
+};
+$('#sidebarClose').onclick=closeSidebar; overlayEl.onclick=closeSidebar;
 
 
 
