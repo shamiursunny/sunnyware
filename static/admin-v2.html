@@ -2820,7 +2820,8 @@ async function renderLlmDashboard() {
             <td><input type="number" value="${p.config.limit_per_day}" style="width:80px;padding:4px;font-size:12px;" onblur="saveProviderConfig('${esc(p.name)}', 'limit_per_day', this.value)"></td>
             <td>${p.is_cooling ? '<span style="color:#f39c12;">' + Math.ceil(p.cooldown_remaining) + 's</span>' : '-'}</td>
             <td><button class="ghost small" onclick="resetCooldown('${esc(p.name)}')">Reset</button>
-                <button class="ghost small" onclick="testProvider('${esc(p.name)}', this)">Test</button></td>
+                <button class="ghost small" onclick="testProvider('${esc(p.name)}', this)">Test</button>
+                <button class="ghost small" style="background:#e67e22; color:#fff;" onclick="forceRecover('${esc(p.name)}')">Recover</button></td>
           </tr>
         `).join('')}
       </tbody>
@@ -3139,6 +3140,21 @@ async function testProvider(provider, btn) {
   } finally {
     btn.innerText = orig;
     btn.disabled = false;
+  }
+}
+
+async function forceRecover(provider) {
+  if (!confirm(`Force recover ${provider}? This will bypass auto-disable for 1 hour.`)) return;
+  try {
+    const res = await api(`/api/llm-dashboard/force-recover/${provider}`, { method: 'POST' });
+    if (res.ok) {
+      alert(`Success: ${res.message}`);
+      loadDashboard();
+    } else {
+      alert(`Failed: ${res.error}`);
+    }
+  } catch (e) {
+    alert(`Error: ${e.message}`);
   }
 }
 

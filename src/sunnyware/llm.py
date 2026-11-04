@@ -154,6 +154,14 @@ def _auto_disabled_providers() -> set:
         disabled = set()
         for prov, s in stats.items():
             if s["total"] >= 3 and (s["ok"] / s["total"]) < 0.5:  # Part 663: lowered from 5 to 3
+                # Part 665: Check force recover override
+                try:
+                    cfg = _lds.get_provider_config(prov)
+                    force_recover = float(cfg.get("force_recover_until", 0) or 0)
+                except Exception:
+                    force_recover = 0
+                if force_recover > now:
+                    continue
                 disabled.add(prov)
         _AUTO_DISABLE_CACHE["ts"] = now
         _AUTO_DISABLE_CACHE["providers"] = disabled

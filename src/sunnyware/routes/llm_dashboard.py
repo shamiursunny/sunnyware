@@ -110,6 +110,17 @@ async def set_priority(req: Request):
     return {"ok": True, "order": order}
 
 
+@router.post("/api/llm-dashboard/force-recover/{provider}")
+async def force_recover_provider(provider: str):
+    try:
+        import time as _t
+        _lds.set_provider_config(provider, {"force_recover_until": _t.time() + 3600})
+        from .. import llm as _llm2
+        _llm2._AUTO_DISABLE_CACHE["ts"] = 0
+        return {"ok": True, "message": f"Provider {provider} force-recovered for 1 hour"}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
 @router.post("/api/llm-dashboard/reset-cooldown/{provider}")
 async def reset_cooldown(provider: str, req: Request):
     d = _admin_only(req)
