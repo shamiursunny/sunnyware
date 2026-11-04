@@ -3478,3 +3478,15 @@ me the exact git commands to commit + push both remotes."
 - **Theme toggle** works from the existing menu; font size is new.
 
 *Part 683 logged: 2026-11-04*
+
+---
+
+### Part 684 Update (2026-11-04): Chat Search Highlighting & Filters
+
+- **Text highlighting**: Matching text in chat titles is now wrapped in `<mark>` tags with a blue background (yellow in light mode).
+- **Result count**: Shows "N results for 'query'" above the chat list when searching.
+- **Clear button (X)**: Appears inside the search input when typing — click to clear.
+- **Date filters**: Chips for All / Today / Yesterday / Last 7 days, filtering by `updated` timestamp.
+- **Ctrl+K shortcut**: Focuses and selects the search box from anywhere in the chat UI.
+
+*Part 684 logged: 2026-11-04*

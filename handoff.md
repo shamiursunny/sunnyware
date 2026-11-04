@@ -5892,3 +5892,22 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Implement Option C (Search Highlighting).
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 684 Update (2026-11-04): Chat Search Highlighting & Filters
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: Added clear button, date filter chips, and result count to the sidebar search.
+- `static/chat.html`: Added CSS for `.search-clear-btn`, `.search-filter-chip`, and `mark`.
+- `static/chat.html`: Added `highlightMatch()`, `onSearchInput()`, `clearSearch()`, `setDateFilter()`, `matchesDateFilter()`, and Ctrl+K handler.
+- `static/chat.html`: Updated `renderChatList` to filter by date and show result count.
+- `static/chat.html`: Updated `chatItemEl` to use `highlightMatch` for the title.
+
+**Next Steps (Part 685):**
+- Verify search features in production.
+- All options (A, B, C) now complete.
+
+*Handoff updated: 2026-11-04*

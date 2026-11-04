@@ -3407,3 +3407,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Font size slider and clear local history added to the existing settings menu. Existing items preserved.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 684 Update (2026-11-04): Chat Search Highlighting & Filters
+
+**New**: Text highlighting in chat titles, result count, clear button, date filter chips, and Ctrl+K shortcut.
+
+*Workflow updated: 2026-11-04*
