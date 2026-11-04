@@ -293,6 +293,7 @@ async def health_summary(req: Request):
             "cooldown_remaining_s": round(lp.cooldown_remaining(), 1) if lp.is_cooling() else 0,
             "success_pct_1h": None, "avg_latency_1h_ms": 0, "p95_latency_1h_ms": 0, "total_1h": 0,
             "success_pct_24h": None, "total_24h": 0, "last_error": "",
+            "auto_disabled": False,
         })
 
     return {"count": len(result), "providers": result, "ts": now}
