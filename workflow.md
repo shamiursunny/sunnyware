@@ -3495,3 +3495,6 @@ Fixed regex for conversation/discussion matching.
 **New**: `/api/tools/test-all` endpoint + "Test All Tools" button in Admin Dashboard. Runs safe canned tests on each tool.
 
 *Workflow updated: 2026-11-04*
+
+---
+

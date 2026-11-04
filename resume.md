@@ -3601,3 +3601,6 @@ me the exact git commands to commit + push both remotes."
 - **Summary**: Shows total/passed/failed/skipped counts.
 
 *Part 694 logged: 2026-11-04*
+
+---
+
