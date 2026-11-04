@@ -138,6 +138,29 @@ body.selection-mode .chat-item .chat-menu-btn{display:none;}
 .chat-item.selected{background:rgba(91,141,239,0.15);}
 .chat-item .chat-actions{display:none;gap:2px}
 .chat-item .chat-menu-btn:hover{background:var(--hover)}
+/* Part 686: Date separators in chat */
+.date-separator {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 24px 0 12px;
+  padding: 0 16px;
+}
+.date-separator::before,
+.date-separator::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.date-separator span {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 /* Part 684: Search highlighting & filters */
 .search-clear-btn { position: absolute; right: 28px; top: 50%; transform: translateY(-50%); background: transparent; border: none; color: var(--text-tertiary); cursor: pointer; font-size: 18px; line-height: 1; padding: 0 6px; display: none; }
 .search-clear-btn:hover { color: var(--text); }
@@ -3373,6 +3396,22 @@ function msgEl(m){
 
 }
 
+function dateSeparatorEl(date) {
+  const div = document.createElement('div');
+  div.className = 'date-separator';
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const msgDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffDays = Math.round((today - msgDay) / (1000 * 60 * 60 * 24));
+  let label;
+  if (diffDays === 0) label = 'Today';
+  else if (diffDays === 1) label = 'Yesterday';
+  else if (diffDays < 7) label = date.toLocaleDateString(undefined, { weekday: 'long' });
+  else label = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+  div.innerHTML = '<span>' + label + '</span>';
+  return div;
+}
+
 function renderMessages(){
 
   messagesEl.innerHTML='';
@@ -3388,7 +3427,19 @@ function renderMessages(){
   $('#chatOptionsBtn').disabled=!has; $('#chatOptionsBtn').style.opacity=has?1:.35;
   if (chats.length > 0) { $('#chatOptionsBtn').disabled = false; $('#chatOptionsBtn').style.opacity = 1; }
 
-  if(has) chat.messages.forEach(m=>messagesEl.appendChild(msgEl(m)));
+  if(has) {
+    let lastDay = null;
+    chat.messages.forEach(m => {
+      const ts = m.ts || m.created || chat.updated || chat.created || Date.now();
+      const msgDate = new Date(ts);
+      const dayKey = msgDate.toDateString();
+      if (dayKey !== lastDay) {
+        messagesEl.appendChild(dateSeparatorEl(msgDate));
+        lastDay = dayKey;
+      }
+      messagesEl.appendChild(msgEl(m));
+    });
+  }
 
   // Part 682: Apply syntax highlighting
   if (window.hljs) {
@@ -3630,7 +3681,7 @@ function sendMessage(textOverride){
 
   if(!chat.sessionKey) chat.sessionKey = chat.sessionId;
 
-  chat.messages.push({id:uid(), role:'user', text, attachments:attachIds});
+  chat.messages.push({id:uid(), role:'user', text, attachments:attachIds, ts: Date.now()});
 
   chat.updated=new Date().toISOString();
 
@@ -3685,7 +3736,7 @@ async function streamAI(chat, prompt) {
 
 
 
-  const aiMsg = { id: uid(), role: 'ai', text: '', tools: [] };
+  const aiMsg = { id: uid(), role: 'ai', text: '', tools: [], ts: Date.now() };
 
   chat.messages.push(aiMsg);
 
