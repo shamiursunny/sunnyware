@@ -3467,3 +3467,14 @@ me the exact git commands to commit + push both remotes."
 - **Persistent preferences**: Theme and font size survive page reloads.
 
 *Part 683 logged: 2026-11-04*
+
+---
+
+### Part 683 Update (2026-11-04): Settings Menu Integration
+
+- **Font size slider**: Added to the existing settings menu (12px–20px) with a live label, persisted in localStorage.
+- **Clear local history**: Red button with confirmation dialog to delete local chats and files.
+- **Integrated cleanly**: The existing menu items (Upgrade plan, Manage billing, Theme, Switch account, Log out) remain intact.
+- **Theme toggle** works from the existing menu; font size is new.
+
+*Part 683 logged: 2026-11-04*

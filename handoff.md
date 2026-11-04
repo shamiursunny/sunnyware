@@ -5876,3 +5876,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Implement Option C (Search Highlighting).
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 683 Update (2026-11-04): Settings Menu Integration
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: Added font size slider and clear history button into the existing settings menu (after Theme/Switch account).
+- `static/chat.html`: Updated `updateFontSize` and `loadSettings` to sync both the modal slider and the new menu slider.
+- The existing settings menu items (Upgrade, Billing, Theme, Switch, Log out) are untouched.
+
+**Next Steps (Part 684):**
+- Implement Option C (Search Highlighting).
+
+*Handoff updated: 2026-11-04*
