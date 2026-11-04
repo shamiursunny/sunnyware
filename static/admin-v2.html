@@ -2830,6 +2830,7 @@ async function renderLlmDashboard() {
     <div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px;">
       <h3 style="margin:0;">Provider Health</h3>
       <div>
+        <button class="ghost small" onclick="testAllProviders(this)" style="margin-right:8px;">Test All</button>
         <button class="ghost small" onclick="refreshLlmHealth()">Refresh</button>
       </div>
     </div>
@@ -2850,6 +2851,47 @@ async function renderLlmDashboard() {
   refreshLlmLogs();
   refreshLlmHealth();
   _llmRefreshTimer = setInterval(refreshLlmLogs, 5000);
+}
+
+async function testAllProviders(btn) {
+  const orig = btn.innerText;
+  btn.innerText = "Testing...";
+  btn.disabled = true;
+  try {
+    const data = await api('/api/llm-dashboard/providers');
+    const allProvs = (data.providers || []).map(p => p.name);
+    // Skip local — it takes ~130s and would block the bulk test
+    const cloudProvs = allProvs.filter(n => n !== 'local');
+    const hasLocal = allProvs.includes('local');
+    if (cloudProvs.length === 0) {
+      toast('No cloud providers configured', 'error');
+      return;
+    }
+    // Test all cloud providers in parallel for speed
+    const results = await Promise.all(cloudProvs.map(async (name) => {
+      const start = Date.now();
+      try {
+        const r = await api('/api/llm-dashboard/test-provider/' + encodeURIComponent(name), 'POST');
+        return { name, ok: r.ok, latency: r.latency_ms || (Date.now() - start), error: r.error || '' };
+      } catch (e) {
+        return { name, ok: false, latency: Date.now() - start, error: e.message };
+      }
+    }));
+    const okCount = results.filter(r => r.ok).length;
+    const summary = results
+      .sort((a, b) => (b.ok - a.ok) || (a.latency - b.latency))
+      .map(r => r.ok ? `${r.name} ${Math.round(r.latency)}ms` : `${r.name} ❌`)
+      .join(' · ');
+    const suffix = hasLocal ? ' · (local skipped)' : '';
+    toast(`${okCount}/${results.length} cloud OK · ${summary}${suffix}`,
+          okCount === results.length ? 'success' : 'error');
+    refreshLlmHealth();
+  } catch (e) {
+    toast(`Test all failed: ${e.message}`, 'error');
+  } finally {
+    btn.innerText = orig;
+    btn.disabled = false;
+  }
 }
 
 async function refreshLlmHealth() {
