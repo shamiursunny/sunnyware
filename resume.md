@@ -3313,3 +3313,14 @@ me the exact git commands to commit + push both remotes."
 - **API Key Management**: Provider Settings table now includes a masked API Key column. Enter a key and press Tab — it saves via `/api/llm-dashboard/providers/{provider}/key`.
 
 *Part 670 logged: 2026-11-04*
+
+---
+
+### Part 671 Update (2026-11-04): Local Fallback, API Key Rotation, Chat Export, Admin Alerts
+
+- **Local Fallback**: The `local` model is now always last in the routing order and bypasses cooldowns as the ultimate fallback.
+- **API Key Rotation**: Comma-separated API keys are rotated automatically via `_get_next_api_key()` in `llm.py`.
+- **Chat Export & Regenerate**: The 3-dot menu now includes a **Regenerate** button (re-sends last prompt), and the existing **Export chat** button uses the new `exportChat()` function.
+- **Admin Alert Banner**: A red banner appears at the top of the Admin Dashboard when providers are auto-disabled, with a "Test All Now" button.
+
+*Part 671 logged: 2026-11-04*

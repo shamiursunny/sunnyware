@@ -5623,3 +5623,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Enter an API key via the masked input.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 671 Update (2026-11-04): Local Fallback, API Key Rotation, Chat Export, Admin Alerts
+
+**Status:** ✅ All four features implemented.
+
+**What was done:**
+- `llm.py`: `local` forced to end of provider list; cooldown bypass for `local`.
+- `llm.py`: `_get_next_api_key()` rotates comma-separated keys.
+- `static/chat.html`: Regenerate option in 3-dot menu, `exportChat()` function, `regenerateLast()` function.
+- `static/admin-v2.html`: Alert banner container inside `admin-section` + logic in `refreshLlmHealth`.
+
+**Next Steps (Part 672):**
+- Verify all four features in production.
+
+*Handoff updated: 2026-11-04*

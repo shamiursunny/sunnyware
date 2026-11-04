@@ -3287,3 +3287,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Markdown table support in chat. Routing strategy dropdown (Fallback/Fastest/Round Robin). Masked API key input in Provider Settings.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 671 Update (2026-11-04): Local Fallback, API Key Rotation, Chat Export, Admin Alerts
+
+**New**: Local model is last-resort fallback. API key rotation. Regenerate option in chat 3-dot menu. Admin alert banner for auto-disabled providers.
+
+*Workflow updated: 2026-11-04*
