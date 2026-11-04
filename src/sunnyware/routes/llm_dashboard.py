@@ -168,9 +168,19 @@ async def test_provider(provider: str, req: Request):
         latency = int((_t.time() - start) * 1000)
         if res.get("ok"):
             content = (res.get("content") or "").strip()[:50]
+            target.record_success(latency)
             return {"ok": True, "latency_ms": latency, "content": content}
         else:
-            return {"ok": False, "error": res.get("error", "Unknown"), "latency_ms": latency}
+            err = res.get("error", "Unknown")
+            # Part 657: mark cooldown so quota errors don't get retried repeatedly
+            try:
+                from .. import llm as _llm2
+                cd = _llm2._cooldown_for(target.name, err)
+                target.mark_cooldown(cd)
+            except Exception:
+                pass
+            target.record_failure(err)
+            return {"ok": False, "error": err, "latency_ms": latency}
     except Exception as e:
         return {"ok": False, "error": str(e), "latency_ms": int((_t.time() - start) * 1000)}
 
