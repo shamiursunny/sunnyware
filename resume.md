@@ -3130,3 +3130,18 @@ me the exact git commands to commit + push both remotes."
 - **Result**: Logs now accurately reflect the loaded model, making future debugging much easier.
 
 *Part 650 logged: 2026-11-03*
+
+---
+
+### Part 651 Update (2026-11-04): Exponential Backoff & Smart Cooldowns
+
+- **Exponential Backoff**: The internal HTTP retry loop now uses `0.5 * 2^(attempt-1)` (0.5s → 1s → 2s) instead of linear `0.5 * attempt` (0.5s → 1s → 1.5s). Transient 5xx errors get progressively longer waits.
+- **Smart Cooldown Helper**: New `_cooldown_for(provider_name, error)` function categorizes errors:
+  - **Auth/config (401/403/404)**: 300s — don't retry permanent errors
+  - **Rate limit (429)**: 15s — retry soon
+  - **Server error (5xx)**: 10s for fast providers (Cerebras, Groq, Gemini), 30s for slow ones
+  - **Timeout**: 15s
+  - **Empty response**: 10s
+- **6 cooldown calls replaced**: All hardcoded `mark_cooldown(10.0/15.0/60.0)` calls now use the smart helper.
+
+*Part 651 logged: 2026-11-04*

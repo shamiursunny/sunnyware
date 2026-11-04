@@ -5309,3 +5309,26 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 2. Or new feature from roadmap.
 
 *Handoff updated: 2026-11-03*
+
+---
+
+### Part 651 Update (2026-11-04): Exponential Backoff & Smart Cooldowns
+
+**Status:** Router is now resilient to transient failures.
+
+**What was done:**
+- Added `_cooldown_for(provider_name, error)` helper.
+- Replaced 6 hardcoded `mark_cooldown` calls with the helper.
+- Changed linear backoff to exponential (0.5s → 1s → 2s).
+
+**Behavior:**
+- Auth errors (401/403/404): 300s cooldown — no wasted retries.
+- Rate limit (429): 15s cooldown — quick recovery.
+- Fast provider 5xx (Cerebras/Groq/Gemini): 10s cooldown.
+- Slow provider 5xx (SambaNova/Pollinations): 30s cooldown.
+
+**Next Steps (Part 652):**
+1. Test the router under simulated failure (mock 429, mock 503).
+2. Or focus on a new feature.
+
+*Handoff updated: 2026-11-04*

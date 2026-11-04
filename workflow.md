@@ -3151,3 +3151,11 @@ Fixed regex for conversation/discussion matching.
 **Fix**: Model log labels are now dynamic (read from actual file path). No more hardcoded "SmolLM" or "Qwen2.5".
 
 *Workflow updated: 2026-11-03*
+
+---
+
+### Part 651 Update (2026-11-04): Smart Cooldowns & Exponential Backoff
+
+**Fix**: Exponential backoff (0.5s→1s→2s) for 5xx. Smart cooldowns: 300s for auth/404, 15s for 429, 10s for fast 5xx, 30s for slow 5xx.
+
+*Workflow updated: 2026-11-04*
