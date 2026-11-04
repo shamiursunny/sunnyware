@@ -1595,6 +1595,22 @@ body.light-mode .settings-close { border-color: #e2e5ec; color: #1a1d26; }
   </div>
 
   <div class="settings-section">
+    <button class="settings-item" onclick="exportChats()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/>
+      </svg>
+      <span class="settings-item-label">Export chats</span>
+    </button>
+    <label class="settings-item" style="cursor:pointer;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+      </svg>
+      <span class="settings-item-label">Import chats</span>
+      <input type="file" accept=".json" style="display:none;" onchange="importChats(this)">
+    </label>
+  </div>
+
+  <div class="settings-section">
     <button class="settings-item danger" id="settingsLogoutBtn">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
@@ -2441,6 +2457,57 @@ document.addEventListener('click', function(e) {
 
 
 /* ==================== STORAGE ==================== */
+
+
+// Part 687: Chat Export & Import
+function exportChats() {
+  const data = {
+    version: 1,
+    exported_at: new Date().toISOString(),
+    chats: chats,
+    files: files
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sunnyware-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('Exported ' + chats.length + ' chat(s) as JSON');
+}
+
+function importChats(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const importedChats = Array.isArray(data.chats) ? data.chats : (Array.isArray(data) ? data : []);
+      if (!importedChats.length) { toast('No chats found in file', 'error'); return; }
+      const existingIds = new Set(chats.map(c => c.id));
+      let added = 0;
+      importedChats.forEach(c => {
+        if (c && c.id && !existingIds.has(c.id)) {
+          chats.push(c);
+          existingIds.add(c.id);
+          added++;
+        }
+      });
+      if (data.files && Array.isArray(data.files)) {
+        const existingFileIds = new Set(files.map(f => f.id));
+        data.files.forEach(f => { if (f && f.id && !existingFileIds.has(f.id)) files.push(f); });
+      }
+      saveAll();
+      renderChatList($('#searchInput') ? $('#searchInput').value : '');
+      toast('Imported ' + added + ' new chat(s)');
+    } catch (err) {
+      toast('Import failed: invalid JSON', 'error');
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
 
 function saveAll(){
   try{ localStorage.setItem(LS_CHATS,JSON.stringify(chats)); localStorage.setItem(LS_FILES,JSON.stringify(files)); }catch(e){ toast('Storage full — large files kept for this session only'); }
