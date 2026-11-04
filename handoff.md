@@ -5840,3 +5840,22 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Verify Share button works and test public link.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 682 Update (2026-11-04): Markdown & Code Block Polish
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: Added highlight.js CDN (JS + CSS) in `<head>`.
+- `static/chat.html`: Updated `mdLite` code block regex to add `language-<lang>` class.
+- `static/chat.html`: Added `hljs.highlightAll()` call after `renderMessages()`.
+- `static/chat.html`: Added CSS for zebra-striped tables and `.code-copy.copied` animation.
+- `static/chat.html`: Updated code-copy handler to show "Copied!" with a checkmark.
+
+**Next Steps (Part 683):**
+- Implement Option B (Settings Modal).
+- Then Option C (Search Highlighting).
+
+*Handoff updated: 2026-11-04*

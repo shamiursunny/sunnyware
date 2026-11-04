@@ -3444,3 +3444,14 @@ me the exact git commands to commit + push both remotes."
 - **Also accessible** via the top-right 3-dot menu → "Select messages".
 
 *Part 681 logged: 2026-11-04*
+
+---
+
+### Part 682 Update (2026-11-04): Markdown & Code Block Polish
+
+- **Syntax highlighting**: Added `highlight.js` CDN with GitHub Dark theme. Code blocks now have colored syntax.
+- **Language classes**: The markdown parser adds `language-<lang>` classes to `<code>` tags so highlight.js knows which language to highlight.
+- **Table styling**: Zebra striping, hover effect, rounded corners, and better padding for markdown tables.
+- **Copy button animation**: Clicking "Copy" changes to "Copied!" with a green checkmark for 1.5 seconds.
+
+*Part 682 logged: 2026-11-04*

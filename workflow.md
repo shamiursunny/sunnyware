@@ -3383,3 +3383,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Share arrow icon under AI messages that enters selection mode with the message pre-selected. Bottom bar shows count and share link buttons.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 682 Update (2026-11-04): Markdown & Code Block Polish
+
+**New**: highlight.js syntax highlighting, language classes, zebra-striped tables, and "Copied!" animation on code blocks.
+
+*Workflow updated: 2026-11-04*
