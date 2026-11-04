@@ -5720,3 +5720,22 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Or move to a new feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 674 Update (2026-11-04): DeepSeek-Style Sidebar Toggle
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: Replaced `$('#menuBtn').onclick=openSidebar` with a toggle handler that:
+  - Removes `sidebar-collapsed` and opens the sidebar if collapsed.
+  - Closes the sidebar (adds `sidebar-collapsed`) if open on desktop.
+  - Opens/closes the drawer with overlay on mobile (`window.innerWidth <= 900`).
+- `static/chat.html`: X button still uses `closeSidebar` as before.
+
+**Next Steps (Part 675):**
+- Verify toggle works on desktop and mobile.
+- Or move to a new feature.
+
+*Handoff updated: 2026-11-04*

@@ -3371,3 +3371,13 @@ me the exact git commands to commit + push both remotes."
 - **Diagnostics**: Added `[renderChatList]` and `[chat] Loaded N chats from server` console logs for debugging.
 
 *Part 673 logged: 2026-11-04*
+
+---
+
+### Part 674 Update (2026-11-04): DeepSeek-Style Sidebar Toggle
+
+- **Hamburger toggle**: The ☰ button in the top bar now toggles the sidebar — clicking it collapses the sidebar on desktop or opens it if already collapsed. On mobile it opens/closes the drawer.
+- **X button**: The X in the sidebar header still closes the sidebar.
+- **Mobile drawer**: The hamburger opens the drawer with an overlay on small screens.
+
+*Part 674 logged: 2026-11-04*

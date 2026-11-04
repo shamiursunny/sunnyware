@@ -3327,3 +3327,11 @@ Fixed regex for conversation/discussion matching.
 **New**: `/api/chats` GET/POST endpoints, `loadChatsFromServer()` on page load, `saveAll()` server sync. Chat history now survives Incognito and cross-browser sessions.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 674 Update (2026-11-04): DeepSeek-Style Sidebar Toggle
+
+**New**: The hamburger button now acts as a true toggle (open/close) on desktop and mobile. X button still closes the sidebar.
+
+*Workflow updated: 2026-11-04*
