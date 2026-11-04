@@ -3161,7 +3161,7 @@ async function testProvider(provider, btn) {
 async function forceRecover(provider) {
   if (!confirm(`Force recover ${provider}? This will bypass auto-disable for 1 hour.`)) return;
   try {
-    const res = await api(`/api/llm-dashboard/force-recover/${provider}`, { method: 'POST' });
+    const res = await api(`/api/llm-dashboard/force-recover/${provider}`, 'POST');
     if (res.ok) {
       alert(`Success: ${res.message}`);
       loadDashboard();
