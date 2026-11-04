@@ -3568,3 +3568,13 @@ me the exact git commands to commit + push both remotes."
 - **83 tools total** are registered in the `_TOOLS` dict.
 
 *Part 691 logged: 2026-11-04*
+
+---
+
+### Part 692 Update (2026-11-04): Fix <br> Rendering in Markdown Tables
+
+- **Issue**: When the LLM returned tables with `<br>` tags in cells (e.g., web search results), the tags appeared as literal text instead of line breaks.
+- **Fix**: Updated `mdLite` to replace `<br>` with actual `
+` and add `white-space: pre-line` to table cells, so multi-line content renders correctly.
+
+*Part 692 logged: 2026-11-04*

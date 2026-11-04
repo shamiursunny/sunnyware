@@ -6028,3 +6028,18 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Move to a new feature or UI polish.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 692 Update (2026-11-04): Fix <br> Rendering in Markdown Tables
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: In `mdLite`, after building the table HTML, replaced `<br>` tags with `
+` and added `white-space: pre-line` to `<td>` cells.
+
+**Next Steps (Part 693):**
+- Choose next feature (A: Tools Indicator, B: Tool Testing, C: Branching, D: Multi-Agent, E: Other).
+
+*Handoff updated: 2026-11-04*

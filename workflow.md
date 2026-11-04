@@ -3471,3 +3471,11 @@ Fixed regex for conversation/discussion matching.
 **Discovered**: All requested agent tools already exist — `web_fetch`, `pdf_read`, `html_to_text`, `python_eval`, `image_generate`. 83 tools total. No new code needed.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 692 Update (2026-11-04): Fix <br> Rendering in Markdown Tables
+
+**Fixed**: `<br>` tags in markdown table cells now render as actual line breaks via `white-space: pre-line` and tag replacement.
+
+*Workflow updated: 2026-11-04*
