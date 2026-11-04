@@ -6,6 +6,18 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from .. import llm_dashboard_store as _lds
 
+
+PROVIDER_COSTS = {
+    "groq": {"tier": "Free", "cost": 0},
+    "pollinations": {"tier": "Free", "cost": 0},
+    "gemini": {"tier": "Free", "cost": 0},
+    "openrouter": {"tier": "Free", "cost": 0},
+    "huggingface": {"tier": "Free", "cost": 0},
+    "cerebras": {"tier": "Free", "cost": 0},
+    "sambanova": {"tier": "Free", "cost": 0},
+    "local": {"tier": "Free", "cost": 0},
+}
+
 router = APIRouter(tags=["llm_dashboard"])
 
 
@@ -293,6 +305,8 @@ async def health_summary(req: Request):
             "total_24h": total_24h,
             "last_error": s["last_error"],
             "auto_disabled": _auto,
+            "cost_tier": PROVIDER_COSTS.get(name, {}).get("tier", "Unknown"),
+            "cost_per_1m": PROVIDER_COSTS.get(name, {}).get("cost", 0),
         })
 
     for name in live.keys():

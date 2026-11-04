@@ -2938,7 +2938,7 @@ async function refreshLlmUsage() {
     <tr>
       <td><strong>${esc(p.provider)}</strong></td>
       <td>${(p.tok_24h || 0).toLocaleString()}</td>
-      <td>${(p.tok_7d || 0).toLocaleString()}</td>
+      <td>${(p.tok_7d || 0).toLocaleString()} <div style="background:#2ecc71; height:4px; width:${Math.min(100, ((p.tok_7d || 0) / 500) * 100)}%; border-radius:2px; margin-top:4px;"></div></td>
       <td>${(p.calls_7d || 0).toLocaleString()}</td>
       <td>${p.cost_7d_cents > 0 ? '$' + (p.cost_7d_cents / 100).toFixed(4) : '—'}</td>
     </tr>
@@ -2948,7 +2948,7 @@ async function refreshLlmUsage() {
     <tr>
       <td>${esc(u.user || 'anonymous')}</td>
       <td>${(u.tok_24h || 0).toLocaleString()}</td>
-      <td>${(u.tok_7d || 0).toLocaleString()}</td>
+      <td>${(u.tok_7d || 0).toLocaleString()} <div style="background:#9b59b6; height:4px; width:${Math.min(100, ((u.tok_7d || 0) / 500) * 100)}%; border-radius:2px; margin-top:4px;"></div></td>
       <td>${(u.calls_7d || 0).toLocaleString()}</td>
     </tr>
   `).join('');
@@ -2988,7 +2988,7 @@ async function refreshLlmUsage() {
       <tbody>${(data.models || []).map(m => `
         <tr>
           <td><span style="font-size:11px;font-family:monospace;">${esc(m.model || 'unknown')}</span></td>
-          <td>${(m.tok_7d || 0).toLocaleString()}</td>
+          <td>${(m.tok_7d || 0).toLocaleString()} <div style="background:#3498db; height:4px; width:${Math.min(100, ((m.tok_7d || 0) / 500) * 100)}%; border-radius:2px; margin-top:4px;"></div></td>
           <td>${(m.calls_7d || 0).toLocaleString()}</td>
         </tr>
       `).join('') || '<tr><td colspan="3" style="color:var(--muted)">No model usage yet.</td></tr>'}</tbody>
@@ -3032,6 +3032,7 @@ async function refreshLlmHealth() {
         <tr>
           <th>Provider</th>
           <th>Live</th>
+          <th>Cost</th>
           <th>Cooldown</th>
           <th>Success 1h</th>
           <th>Avg 1h</th>
@@ -3056,6 +3057,7 @@ async function refreshLlmHealth() {
           <tr>
             <td><strong>${esc(r.provider)}</strong></td>
             <td>${badge(r.live_status)}${isNowDisabled ? ' <span style="color:#e74c3c;font-size:10px;font-weight:600;margin-left:6px;">(auto-disabled)</span>' : ''}</td>
+            <td>${r.cost_tier === 'Free' ? '<span style="color:#2ecc71;font-weight:600;">Free</span>' : '<span style="color:#e67e22;font-weight:600;">' + (r.cost_tier || 'Paid') + '</span>'}</td>
             <td>${r.live_status === 'cooling' ? '<span style="color:#f39c12;">' + r.cooldown_remaining_s + 's</span>' : '-'}</td>
             <td>${pctCell(r.success_pct_1h, r.total_1h)}</td>
             <td>${r.avg_latency_1h_ms ? r.avg_latency_1h_ms + 'ms' : '—'}</td>
