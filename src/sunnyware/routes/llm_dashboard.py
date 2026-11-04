@@ -117,7 +117,19 @@ async def reset_cooldown(provider: str, req: Request):
     try:
         from .. import provider_limits as _pl
         _pl.reset(provider)
-        return {"ok": True, "message": f"Cooldown reset for {provider}"}
+        # Part 663: manual override disables auto-disable for 1 hour
+        try:
+            import time as _t
+            _lds.set_provider_config(provider, {"auto_disable_override_until": _t.time() + 3600})
+        except Exception:
+            pass
+        # Clear cache so next routing decision re-evaluates
+        try:
+            from .. import llm as _llm2
+            _llm2._AUTO_DISABLE_CACHE["ts"] = 0
+        except Exception:
+            pass
+        return {"ok": True, "message": f"Cooldown reset for {provider} (auto-disable override for 1h)"}
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -261,6 +273,15 @@ async def health_summary(req: Request):
         total_1h = s["ok_1h"] + s["fail_1h"]
         total_24h = s["ok_24h"] + s["fail_24h"]
         avg_1h = round(sum(s["lat_1h"]) / len(s["lat_1h"]), 0) if s["lat_1h"] else 0
+        # Part 663: auto-disabled flag (>=5 calls and <50% success)
+        _auto = total_1h >= 5 and (s["ok_1h"] / total_1h) < 0.5
+        try:
+            _cfg = _lds.get_provider_config(name)
+            _override = float(_cfg.get("auto_disable_override_until", 0) or 0)
+            if _override > now:
+                _auto = False
+        except Exception:
+            pass
         result.append({
             "provider": name,
             "live_status": "cooling" if (lp and lp.is_cooling()) else ("active" if lp else "unknown"),
@@ -272,6 +293,7 @@ async def health_summary(req: Request):
             "success_pct_24h": _pct(s["ok_24h"], total_24h),
             "total_24h": total_24h,
             "last_error": s["last_error"],
+            "auto_disabled": _auto,
         })
 
     for name in live.keys():
