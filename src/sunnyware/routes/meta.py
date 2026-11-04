@@ -2313,6 +2313,41 @@ async def webhooks_out_test(webhook_id: str):
                             status_code=500)
 
 
+@router.get("/api/tools")
+async def list_all_tools():
+    """Return all registered tools with name, description, and category."""
+    try:
+        from ..tools import list_tools
+        tools = list_tools()
+    except Exception as e:
+        return {"ok": False, "error": str(e), "tools": []}
+
+    def _category(name: str) -> str:
+        n = name.lower()
+        if any(k in n for k in ("web", "search", "url", "http", "fetch")):
+            return "Search & Web"
+        if any(k in n for k in ("python", "eval", "sandbox", "sql", "script")):
+            return "Code & Data"
+        if any(k in n for k in ("file", "pdf", "csv", "excel", "doc", "rag")):
+            return "Files & Documents"
+        if any(k in n for k in ("finance", "market", "stock", "fred", "edgar", "finnhub")):
+            return "Finance"
+        if any(k in n for k in ("browser", "image", "screenshot", "narrate", "chart")):
+            return "Media & Browser"
+        if any(k in n for k in ("email", "webhook", "slack", "schedule", "kpi", "metrics")):
+            return "Ops & Automation"
+        return "General"
+
+    out = []
+    for tool in tools:
+        out.append({
+            "name": tool.get("name", ""),
+            "description": tool.get("description", ""),
+            "category": _category(tool.get("name", "")),
+        })
+    out.sort(key=lambda x: (x["category"], x["name"]))
+    return {"ok": True, "tools": out}
+
 @router.get("/api/tools/health")
 async def tools_health_endpoint():
     """Part 172b: full per-tool health snapshot."""

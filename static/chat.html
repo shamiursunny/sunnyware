@@ -1373,12 +1373,12 @@ body.light-mode .settings-close { border-color: #e2e5ec; color: #1a1d26; }
             <button class="icon-btn" id="toolsBtn" title="Force a specific tool">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
             </button>
-            <div id="toolsMenu" style="display:none; position:absolute; bottom:100%; left:0; margin-bottom:8px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:8px; padding:5px; width:170px; box-shadow:0 -5px 15px rgba(0,0,0,0.3); z-index:100;">
-              <div class="dropdown-item" data-tool="" style="padding:8px; cursor:pointer; border-radius:4px; font-size:13px;">Auto (Default)</div>
-              <div class="dropdown-item" data-tool="web_search" style="padding:8px; cursor:pointer; border-radius:4px; font-size:13px;">Web Search</div>
-              <div class="dropdown-item" data-tool="calculator" style="padding:8px; cursor:pointer; border-radius:4px; font-size:13px;">Calculator</div>
-              <div class="dropdown-item" data-tool="python_eval" style="padding:8px; cursor:pointer; border-radius:4px; font-size:13px;">Python</div>
-              <div class="dropdown-item" data-tool="pdf_read" style="padding:8px; cursor:pointer; border-radius:4px; font-size:13px;">PDF Reader</div>
+            <div id="toolsMenu" style="display:none; position:absolute; bottom:100%; left:0; margin-bottom:8px; background:var(--bg-secondary); border:1px solid var(--border); border-radius:8px; padding:8px; width:320px; max-height:420px; overflow-y:auto; box-shadow:0 -5px 20px rgba(0,0,0,0.4); z-index:100;">
+              <input type="text" id="toolsSearch" placeholder="Search tools..." style="width:100%; padding:8px 10px; border-radius:6px; border:1px solid var(--border); background:var(--bg-tertiary); color:var(--text); font-size:12px; margin-bottom:6px; outline:none;" oninput="filterToolsMenu(this.value)">
+              <div id="toolsList">
+                <div class="dropdown-item" data-tool="" style="padding:8px; cursor:pointer; border-radius:4px; font-size:13px;">Auto (Default)</div>
+                <div style="padding:12px; text-align:center; color:var(--text-tertiary); font-size:12px;">Loading tools…</div>
+              </div>
             </div>
           </div>
           <button class="icon-btn" id="attachBtn" title="Attach files (saved to Library)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg></button>
@@ -4573,6 +4573,70 @@ $('#fileInput').onchange=e=>{
 
 // Part 197: Tools Dropdown Logic
 let _forcedTool = '';
+let _allTools = [];
+
+async function loadToolsMenu() {
+  if (_allTools.length) return;
+  try {
+    const res = await fetch('/api/tools');
+    const data = await res.json();
+    _allTools = data.tools || [];
+    renderToolsMenu(_allTools);
+  } catch (e) {
+    console.warn('Failed to load tools:', e);
+    const list = document.getElementById('toolsList');
+    if (list) list.innerHTML = '<div style="padding:12px;color:var(--danger);font-size:12px;">Failed to load tools</div>';
+  }
+}
+
+function renderToolsMenu(tools) {
+  const list = document.getElementById('toolsList');
+  if (!list) return;
+  const autoItem = '<div class="dropdown-item" data-tool="" style="padding:8px; cursor:pointer; border-radius:4px; font-size:13px; font-weight:600;">Auto (Default)</div>';
+  if (!tools.length) {
+    list.innerHTML = autoItem + '<div style="padding:12px;text-align:center;color:var(--text-tertiary);font-size:12px;">No tools found</div>';
+    return;
+  }
+  const groups = {};
+  tools.forEach(t => { (groups[t.category] = groups[t.category] || []).push(t); });
+  let html = autoItem;
+  Object.keys(groups).sort().forEach(cat => {
+    html += '<div style="padding:6px 8px 2px; font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-tertiary); font-weight:600;">' + esc(cat) + '</div>';
+    groups[cat].forEach(t => {
+      const safeDesc = (t.description || '').slice(0, 90);
+      html += '<div class="dropdown-item" data-tool="' + esc(t.name) + '" title="' + esc(t.description) + '" style="padding:6px 8px; cursor:pointer; border-radius:4px; font-size:12.5px; display:flex; flex-direction:column; gap:2px;"><span style="font-weight:500;">' + esc(t.name) + '</span><span style="font-size:10.5px; color:var(--text-tertiary); line-height:1.2;">' + esc(safeDesc) + '</span></div>';
+    });
+  });
+  list.innerHTML = html;
+  list.querySelectorAll('.dropdown-item').forEach(el => {
+    el.onclick = () => {
+      _forcedTool = el.dataset.tool || '';
+      document.getElementById('toolsMenu').style.display = 'none';
+      document.querySelectorAll('#toolsList .dropdown-item').forEach(x => x.style.background = 'transparent');
+      el.style.background = 'var(--hover)';
+      toast(_forcedTool ? _forcedTool + ' mode enabled' : 'Auto tool mode enabled');
+    };
+  });
+}
+
+function filterToolsMenu(query) {
+  const q = (query || '').toLowerCase().trim();
+  const filtered = q ? _allTools.filter(t => t.name.toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q)) : _allTools;
+  renderToolsMenu(filtered);
+}
+
+document.addEventListener('click', (e) => {
+  if (e.target.closest('#toolsBtn')) {
+    setTimeout(() => {
+      const m = document.getElementById('toolsMenu');
+      if (m && m.style.display !== 'none') {
+        loadToolsMenu();
+        const s = document.getElementById('toolsSearch');
+        if (s) s.focus();
+      }
+    }, 50);
+  }
+});
 $('#toolsBtn').onclick = (e) => {
   e.stopPropagation();
   const m = $('#toolsMenu');
