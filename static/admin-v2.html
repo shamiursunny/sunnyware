@@ -2789,10 +2789,20 @@ async function renderLlmDashboard() {
       </div>
     </div>
 
-    <h3>Providers (${providers.length})</h3>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+      <h3 style="margin:0;">Providers (${providers.length})</h3>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;color:var(--muted);">Routing:</span>
+        <select id="routingStrategy" style="padding:4px 8px;font-size:12px;background:var(--bg-tertiary);color:var(--text);border:1px solid var(--border);border-radius:4px;" onchange="setRoutingStrategy(this.value)">
+          <option value="fallback">Fallback (default order)</option>
+          <option value="fastest">Fastest (lowest latency)</option>
+          <option value="round_robin">Round Robin</option>
+        </select>
+      </div>
+    </div>
     ${providers.length === 0 ? '<p style="color:var(--muted)">No providers configured. Set LLM_PROVIDERS env var.</p>' : `
     <table>
-      <thead><tr><th>#</th><th>Provider</th><th>Model</th><th>Status</th><th>Limit/min</th><th>Limit/hr</th><th>Limit/day</th><th>Cooldown</th><th>Actions</th></tr></thead>
+      <thead><tr><th>#</th><th>Provider</th><th>Model</th><th>API Key</th><th>Status</th><th>Limit/min</th><th>Limit/hr</th><th>Limit/day</th><th>Cooldown</th><th>Actions</th></tr></thead>
       <tbody>
         ${providers.map((p, i) => `
           <tr>
@@ -2812,6 +2822,9 @@ async function renderLlmDashboard() {
             </td>
             <td style="font-size:11px;">
               <input type="text" value="${esc(p.config.model_override || p.model || '')}" placeholder="${esc(p.model)}" style="width:130px;padding:4px;font-size:11px;" onblur="saveProviderConfig('${esc(p.name)}', 'model_override', this.value)">
+            </td>
+            <td style="font-size:11px;">
+              <input type="password" value="${esc(p.config.api_key || '')}" placeholder="API Key (masked)" style="width:120px;padding:4px;font-size:11px;" onblur="saveApiKey('${esc(p.name)}', this.value)">
             </td>
             <td>${p.is_cooling
               ? '<span style="color:#f39c12;font-weight:600;">Cooling</span>'
@@ -3104,6 +3117,26 @@ async function refreshLlmLogs() {
           `).join('')}
         </tbody>
       </table>`;
+}
+
+async function setRoutingStrategy(strategy) {
+  try {
+    await api('/api/llm-dashboard/orchestrator', 'POST', { routing_strategy: strategy });
+    toast('Routing strategy set to: ' + strategy, 'success');
+    if (typeof refreshLlmHealth === 'function') refreshLlmHealth();
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
+}
+
+async function saveApiKey(provider, value) {
+  if (!value) return;
+  try {
+    const res = await api('/api/llm-dashboard/providers/' + encodeURIComponent(provider) + '/key', 'POST', { api_key: value });
+    if (res.ok) {
+      toast('API key updated for ' + provider, 'success');
+    } else {
+      toast('Failed: ' + (res.error || 'Unknown error'), 'error');
+    }
+  } catch (e) { toast('Failed: ' + e.message, 'error'); }
 }
 
 async function saveProviderConfig(provider, field, value) {

@@ -2602,6 +2602,28 @@ function mdLite(text){
 
   t=t.replace(/`([^`\n]+)`/g,'<code>$1</code>');
 
+  // Part 670: Markdown tables
+  t=t.replace(/^\|(.+)\|\s*\n\|[-:| ]+\|\s*\n((?:\|.*\|\s*\n?)+)/gm, (m, header, body) => {
+    const cols = header.split('|').map(c => c.trim()).filter(Boolean);
+    const rows = body.trim().split('\n').map(r =>
+      r.split('|').map(c => c.trim()).filter(Boolean)
+    );
+    let html = '<table style="border-collapse:collapse;margin:12px 0;font-size:13px;width:100%;"><thead><tr>';
+    cols.forEach(c => {
+      html += '<th style="border:1px solid var(--border);padding:8px 12px;background:var(--bg-secondary);text-align:left;font-weight:600;">' + c + '</th>';
+    });
+    html += '</tr></thead><tbody>';
+    rows.forEach(row => {
+      html += '<tr>';
+      row.forEach(c => {
+        html += '<td style="border:1px solid var(--border);padding:8px 12px;">' + c + '</td>';
+      });
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    return html;
+  });
+
   return t;
 
 }

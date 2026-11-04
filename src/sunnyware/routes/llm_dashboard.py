@@ -122,6 +122,17 @@ async def set_priority(req: Request):
     return {"ok": True, "order": order}
 
 
+@router.post("/api/llm-dashboard/providers/{provider}/key")
+async def update_provider_key(provider: str, body: dict):
+    try:
+        key = body.get("api_key", "")
+        if not key:
+            return {"ok": False, "error": "api_key is required"}
+        _lds.set_provider_config(provider, {"api_key": key})
+        return {"ok": True, "message": f"API key updated for {provider}"}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
 @router.post("/api/llm-dashboard/force-recover/{provider}")
 async def force_recover_provider(provider: str):
     try:
