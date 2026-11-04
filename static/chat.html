@@ -283,19 +283,20 @@ body.light-mode mark { background: rgba(255,235,59,0.6); color: #1a1d26; }
 }
 .fullscreen-content-modal.open { display: flex; }
 .fullscreen-content-inner {
-  max-width: 95vw;
-  max-height: 95vh;
+  width: 90vw;
+  max-width: 1200px;
+  max-height: 90vh;
   overflow: auto;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: 8px;
-  padding: 24px;
+  padding: 32px;
   position: relative;
 }
 .fullscreen-close-btn {
-  position: sticky;
-  top: 0;
-  float: right;
+  position: absolute;
+  top: 8px;
+  right: 8px;
   background: #e74c3c;
   color: white;
   border: none;
@@ -303,7 +304,7 @@ body.light-mode mark { background: rgba(255,235,59,0.6); color: #1a1d26; }
   padding: 4px 12px;
   cursor: pointer;
   font-size: 12px;
-  margin-bottom: 8px;
+  z-index: 10;
 }
 .msg-text table th {
   background: #1a1d26;
