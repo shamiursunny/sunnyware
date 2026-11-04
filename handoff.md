@@ -5682,3 +5682,23 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Or move to a new feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 672 Update (2026-11-04): DeepSeek-Style Chat Sidebar
+
+**Status:** ✅ Fully implemented and tested.
+
+**What was done:**
+- `static/chat.html`: Added `pinnedChats` Set with localStorage persistence, `togglePinChat`, `pinSelected`.
+- `static/chat.html`: Replaced hover icons with per-chat 3-dot dropdown (`chat-menu-wrapper`, `chat-dropdown`, `chat-menu-item`).
+- `static/chat.html`: Dynamic header swaps between "Chats" and "Select Chats (N)" with exit X.
+- `static/chat.html`: Bottom bar now shows Pin and Delete buttons.
+- `static/chat.html`: `closeSidebar` now collapses on desktop via `sidebar-collapsed` class; `openSidebar` removes it.
+- `static/chat.html`: Added CSS for dropdown, hover states, and collapsed sidebar.
+
+**Next Steps (Part 673):**
+- Verify all UI changes in production.
+- Or move to a new feature.
+
+*Handoff updated: 2026-11-04*

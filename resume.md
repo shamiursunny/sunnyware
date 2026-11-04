@@ -3347,3 +3347,16 @@ me the exact git commands to commit + push both remotes."
 - **UX polish**: Export automatically clears selection, Escape key clears selection, and the X button is now a clear **Done** button.
 
 *Part 672 logged: 2026-11-04*
+
+---
+
+### Part 672 Update (2026-11-04): DeepSeek-Style Chat Sidebar
+
+- **Per-chat 3-dot menu**: Each chat now has a dropdown with Rename, Pin, Share, Multi-select, and Delete.
+- **Pin feature**: Pinned chats float to the top of the list with a pin badge and are persisted in localStorage.
+- **Dynamic selection header**: The sidebar header changes from "Chats" to "Select Chats (N)" with an X to exit selection mode.
+- **Bottom bar**: Bulk actions are now Pin and Delete, matching the DeepSeek pattern.
+- **Sidebar collapse**: The X button in the sidebar header now collapses the sidebar on desktop.
+- **CSS**: Added styles for the 3-dot dropdown, hover states, and `sidebar-collapsed` mode.
+
+*Part 672 logged: 2026-11-04*

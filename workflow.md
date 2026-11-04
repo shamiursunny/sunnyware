@@ -3311,3 +3311,11 @@ Fixed regex for conversation/discussion matching.
 **New**: Per-chat share/export icons, visible Select All checkbox above the chat list, checkboxes on each chat, floating action bar with Done button. Export clears selection. Escape clears selection. Removed redundant top-bar Export button.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 672 Update (2026-11-04): DeepSeek-Style Chat Sidebar
+
+**New**: Per-chat 3-dot dropdown (Rename/Pin/Share/Multi-select/Delete), pinned chats float to top, dynamic "Select Chats (N)" header, bottom bar with Pin/Delete, sidebar collapses via X button.
+
+*Workflow updated: 2026-11-04*
