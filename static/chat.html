@@ -1314,6 +1314,25 @@ body.light-mode .settings-sublabel { color: #6b7280; }
 body.light-mode .settings-toggle-btn { background: #f0f2f5; border-color: #e2e5ec; color: #1a1d26; }
 body.light-mode .settings-close { border-color: #e2e5ec; color: #1a1d26; }
 
+
+/* Ultra-specific light mode code block override */
+html[data-theme="light"] .code-block {
+  background: #f8f9fb !important;
+  border: 1px solid #e2e5ec !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] .code-block pre {
+  background: transparent !important;
+  color: #1a1d26 !important;
+}
+html[data-theme="light"] .code-block code {
+  color: #1a1d26 !important;
+}
+html[data-theme="light"] .code-head {
+  background: #f0f2f5 !important;
+  border-bottom: 1px solid #e2e5ec !important;
+  color: #6b7280 !important;
+}
 </style>
 
 
@@ -1324,6 +1343,101 @@ body.light-mode .settings-close { border-color: #e2e5ec; color: #1a1d26; }
   #fullscreen-img-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; align-items: center; justify-content: center; }
   #fullscreen-img-modal img { max-width: 95%; max-height: 95%; object-fit: contain; border-radius: 4px; }
   #fullscreen-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: white; font-size: 30px; cursor: pointer; }
+
+/* Force light mode code block backgrounds and borders (maximum specificity) */
+body.light-mode .code-block,
+html[data-theme="light"] .code-block {
+  background-color: #f8f9fb !important;
+  border: 1px solid #e2e5ec !important;
+  box-shadow: none !important;
+}
+body.light-mode .code-block pre,
+html[data-theme="light"] .code-block pre {
+  background-color: transparent !important;
+  background: transparent !important;
+  color: #1a1d26 !important;
+}
+body.light-mode .code-block code,
+html[data-theme="light"] .code-block code {
+  background-color: transparent !important;
+  background: transparent !important;
+  color: #1a1d26 !important;
+}
+body.light-mode .code-head,
+html[data-theme="light"] .code-head {
+  background-color: #f0f2f5 !important;
+  border-bottom: 1px solid #e2e5ec !important;
+  color: #6b7280 !important;
+}
+body.light-mode .code-head span,
+html[data-theme="light"] .code-head span {
+  color: #6b7280 !important;
+}
+body.light-mode .code-block .code-action-btn,
+html[data-theme="light"] .code-block .code-action-btn {
+  color: #6b7280 !important;
+}
+
+/* LIGHT MODE CODE BLOCK OVERRIDE — DO NOT REMOVE */
+body.light-mode .code-block,
+body.light-mode .msg-text .code-block,
+html[data-theme="light"] .code-block,
+html[data-theme="light"] .msg-text .code-block {
+  background: #f8f9fb !important;
+  background-color: #f8f9fb !important;
+  border: 1px solid #e2e5ec !important;
+  box-shadow: none !important;
+}
+body.light-mode .code-block pre,
+body.light-mode .msg-text .code-block pre,
+html[data-theme="light"] .code-block pre,
+html[data-theme="light"] .msg-text .code-block pre {
+  background: transparent !important;
+  background-color: transparent !important;
+  color: #1a1d26 !important;
+}
+body.light-mode .code-block pre code,
+html[data-theme="light"] .code-block pre code {
+  background: transparent !important;
+  color: #1a1d26 !important;
+}
+body.light-mode .code-head,
+html[data-theme="light"] .code-head {
+  background: #f0f2f5 !important;
+  background-color: #f0f2f5 !important;
+  border-bottom: 1px solid #e2e5ec !important;
+}
+body.light-mode .code-head span,
+html[data-theme="light"] .code-head span {
+  color: #6b7280 !important;
+}
+body.light-mode .code-action-btn,
+html[data-theme="light"] .code-action-btn {
+  color: #6b7280 !important;
+}
+
+/* ULTIMATE light mode code block fix — targets ALL inner elements */
+html[data-theme="light"] .code-block,
+html[data-theme="light"] .code-block *,
+body.light-mode .code-block,
+body.light-mode .code-block * {
+  background: transparent !important;
+  background-color: transparent !important;
+  border-color: #e2e5ec !important;
+  color: #1a1d26 !important;
+}
+html[data-theme="light"] .code-block,
+body.light-mode .code-block {
+  background: #f8f9fb !important;
+  background-color: #f8f9fb !important;
+  border: 1px solid #e2e5ec !important;
+  box-shadow: none !important;
+}
+html[data-theme="light"] .code-head,
+body.light-mode .code-head {
+  background: #f0f2f5 !important;
+  border-bottom: 1px solid #e2e5ec !important;
+}
 </style>
 
   <!-- Part 682: Syntax highlighting -->
