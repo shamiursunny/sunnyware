@@ -536,13 +536,15 @@ async def list_workspace_files():
     if ws.exists():
         for f in ws.iterdir():
             if f.is_file():
+                st = f.stat()
                 out.append({
                     "id": f.name,
                     "name": f.name,
                     "type": f.suffix.lstrip(".").lower() or "file",
-                    "size": f.stat().st_size,
+                    "size": st.st_size,
                     "kind": "workspace",
-                    "created_at": datetime.datetime.fromtimestamp(f.stat().st_mtime).isoformat()
+                    "modified": datetime.datetime.fromtimestamp(st.st_mtime).isoformat(),
+                    "created_at": datetime.datetime.fromtimestamp(st.st_mtime).isoformat()
                 })
     # Sort by created_at descending
     out.sort(key=lambda x: x["created_at"], reverse=True)

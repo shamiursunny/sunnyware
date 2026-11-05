@@ -9,6 +9,7 @@ from .write_file import WriteFileTool
 from .write_sandbox_file import WriteSandboxFileTool
 from .read_sandbox_file import ReadSandboxFileTool
 from .read_bi_file import ReadBiFileTool
+from .edit_tableau_field import EditTableauFieldTool
 from .export_table import ExportTableTool
 from .calculator import CalculatorTool
 from .web_fetch import WebFetchTool
@@ -100,6 +101,7 @@ _TOOLS = {
     WriteSandboxFileTool.name: WriteSandboxFileTool(),
     ReadSandboxFileTool.name: ReadSandboxFileTool(),
     ReadBiFileTool.name: ReadBiFileTool(),
+    EditTableauFieldTool(),
     ExportTableTool.name: ExportTableTool(),
     CalculatorTool.name: CalculatorTool(),
     SearchLibraryTool.name: SearchLibraryTool(),

@@ -865,6 +865,11 @@ def keyword_route(prompt: str) -> Optional[dict]:
         return {"tool": "kpi_watch_run", "args": {}}
 
 
+    # --- edit_tableau_field ---
+    m = re.search(r"(?:edit|update|change|modify)\s+(?:the\s+)?(?:tableau\s+)?(?:field|calc|calculation|filter|parameter)\s+['\"]?(.+?)['\"]?\s+(?:to|as)\s+['\"]?(.+?)['\"]?(?:\s+in\s+([\w\-\.]+\.twbx?))?", text, re.IGNORECASE)
+    if m:
+        return {"tool": "edit_tableau_field", "args": {"field_name": m.group(1).strip(), "new_value": m.group(2).strip(), "filename": m.group(3) or "workbook.twb"}}
+
     # --- read_bi_file (inspect Office/BI files) ---
     # Longest extensions first to avoid truncation (xlsm before xls, twbx before twb)
     _bi_ext = r"(?:xlsx|xlsm|xls|docx|pptx|pptx|pbix|twbx|twb|doc|ppt)"
