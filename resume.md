@@ -3790,3 +3790,28 @@ me the exact git commands to commit + push both remotes."
 *Part 712 logged: 2026-11-05*
 
 ---
+
+
+---
+
+### Part 713 Update (2026-11-05): Office Docs + BI Files + Zoom + Jump Dropdown
+
+- **Office Preview Parsers** (src/sunnyware/office_preview.py):
+  - .docx via python-docx -> paragraphs + tables; fallback to raw text when not a valid ZIP package
+  - .pptx via python-pptx -> slide list; fallback to raw text
+  - .twb -> Tableau XML -> data sources + worksheets + dashboards
+  - .twbx -> extracts .twb from ZIP -> parses same
+  - .pbix -> ZIP metadata -> version + report/model/security flags + file list
+- **New Endpoints** (routes/library.py):
+  - GET /api/workspace/file/{name}/office-preview
+  - GET /api/sandbox/file/{name}/office-preview
+- **Sandbox Whitelist**: added docx + pptx to ALLOWED_MODULES in _sandbox.py
+- **Bug Fix**: moved is_user_code assignment before its first use in sandbox_import to fix UnboundLocalError
+- **Zoom Controls**: header has - 100% + 1:1 buttons; _ffvZoom state (0.25x-5x); applyFFVZoom() scales image via CSS transform
+- **Jump Dropdown**: select in header lists all files in current tab
+- **Requirements**: added python-pptx>=0.6.23
+- **BI reality check**: Looker Studio has no offline format; PBIX is proprietary binary (metadata only); TWB visualizations not rendered. Download button remains available for all.
+
+*Part 713 logged: 2026-11-05*
+
+---

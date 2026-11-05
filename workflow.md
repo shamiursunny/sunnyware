@@ -3666,3 +3666,43 @@ Click test.xlsx in Sandbox -> renderFFVFile detects kind==='sandbox' && isExcel
 -> GET /api/sandbox/file/test.xlsx/xlsx
 -> openpyxl parses -> {sheets: {Sheet1: {headers, rows}}}
 -> rendered as table
+
+
+---
+
+# Office Preview Workflows (Part 713)
+
+## 1. Opening a .docx File
+Click test.docx in any tab -> isDocx detected -> GET /api/{kind}/file/test.docx/office-preview
+- Real docx (ZIP): parse_docx returns {paragraphs, tables} -> rendered as serif paragraphs + tables
+- Fake docx (renamed text): zipfile.is_zipfile() fails -> falls back to raw text with warning banner
+
+## 2. Opening a .pptx File
+Click test.pptx -> isPptx detected -> GET office-preview
+- Real pptx: parse_pptx returns {slides: [{index, title, texts}]} -> rendered as slide cards
+- Fake pptx: falls back to raw text with warning
+
+## 3. Opening a .twb / .twbx File
+parse_twb (or parse_twbx extracts .twb from ZIP) -> {datasources, worksheets, dashboards} -> .ffv-bio sections
+
+## 4. Opening a .pbix File
+parse_pbix lists ZIP contents + flags -> .ffv-bio with version + report/model/security
+
+## 5. Image Zoom
+Click any image -> header shows - 100% + 1:1
+- Click + -> ffvZoom(0.25); Click - -> ffvZoom(-0.25); Click 1:1 -> ffvZoomReset()
+- Range: 0.25x to 5x
+
+## 6. Jump Dropdown
+Open any file -> header #ffvJump populated with all files
+Selecting a file sets _ffvState.index + calls renderFFVFile()
+
+## 7. Creating Real DOCX in Sandbox
+Use python_eval with:
+from docx import Document
+doc = Document()
+doc.add_paragraph('Paragraph text')
+out = sandbox_path('real.docx')
+doc.save(out)
+result = 'SAVED: ' + out
+-> whitelist allows docx, sandbox_path writes to /data/sandbox/

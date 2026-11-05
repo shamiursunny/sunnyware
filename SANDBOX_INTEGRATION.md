@@ -97,3 +97,32 @@ The Sandbox tab - and every other Library tab - opens files in a universal full-
 
 ### Binary Guard
 Returns type:binary for .xlsx/.xls/.docx/.doc/.pptx/.ppt/.zip/.gz/.tar - except .xlsx in sandbox which routes to /xlsx endpoint (parses to tables).
+
+
+## Office Preview (Part 713)
+
+The full-screen viewer now supports Office documents and BI files.
+
+### Supported Formats
+- .docx -> paragraphs + tables (fallback to raw text for invalid packages)
+- .pptx -> slide list (fallback to raw text for invalid packages)
+- .twb/.twbx -> Tableau structure
+- .pbix -> Power BI metadata
+
+### Looker Studio
+No offline file format - cloud only. PDF exports work via existing PDF viewer.
+
+### New Endpoints
+- GET /api/workspace/file/{name}/office-preview
+- GET /api/sandbox/file/{name}/office-preview
+
+### Sandbox Integration
+- docx and pptx added to ALLOWED_MODULES whitelist
+- Fixed UnboundLocalError in sandbox_import
+- python_eval can now create real .docx files via sandbox_path()
+
+### Image Zoom Controls
+Header shows - 100% + 1:1 for image files.
+
+### Jump Dropdown
+Header select allows jumping directly to any file in current tab.

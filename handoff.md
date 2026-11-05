@@ -6318,3 +6318,38 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 3. Image zoom controls
 4. Semicolon-delimited CSV support
 5. Jump-to-file dropdown in viewer header
+
+
+---
+
+# Office Preview Handoff (Part 713)
+
+## New File
+- src/sunnyware/office_preview.py - parse_docx, parse_pptx, parse_twb, parse_twbx, parse_pbix
+- docx/pptx both fall back to raw text when file is not a valid ZIP package (guards renamed .txt files)
+
+## New Backend Endpoints
+- GET /api/workspace/file/{name}/office-preview
+- GET /api/sandbox/file/{name}/office-preview
+
+## Frontend (static/chat.html)
+- Zoom: _ffvZoom state, ffvZoom(delta), ffvZoomReset(), applyFFVZoom(); buttons #ffvZoomIn/#ffvZoomOut/#ffvZoomReset visible only for images
+- Jump: #ffvJump select populated by populateFFVJump(); onchange sets _ffvState.index
+- Warning banner for fake docx/pptx (renamed text)
+- CSS: .ffv-docx, .ffv-slide, .ffv-bio, .ffv-pbix-list, .ffv-img-zoom-wrap
+
+## Sandbox Fixes
+- Added docx + pptx to ALLOWED_MODULES in _sandbox.py
+- Fixed UnboundLocalError: moved is_user_code assignment before its first use in sandbox_import
+
+## Known Limitations
+- Looker Studio: cloud-only, no offline format
+- Power BI .pbix: metadata only (proprietary binary)
+- Tableau .twb/.twbx: XML structure readable, visualizations not rendered
+- Legacy .doc/.ppt: not supported
+- Fake docx/pptx (renamed text): falls back to raw text with warning
+
+## Next Steps
+- .doc/.ppt via libreoffice
+- Tableau calculated fields + parameters
+- .pbix report layout parsing
