@@ -1691,7 +1691,6 @@ body.light-mode .code-head {
 
           </button>
 
-          <button class="btn btn-outline btn-sm hidden" id="clearSandboxBtn" title="Delete all files in Sandbox">Clear Sandbox</button>
           <input type="file" id="libFileInput" multiple hidden accept="*/*">
 
         </div>
@@ -5047,7 +5046,6 @@ document.querySelectorAll('.lib-tab').forEach(t=>t.onclick=()=>{
   libKind=t.dataset.kind; exitSelectMode(); 
   if(libKind==='workspace' || libKind==='generated') { loadWorkspaceFiles().then(()=>renderLibrary()); }
   else if(libKind==='sandbox') { loadSandboxFiles().then(()=>renderLibrary()); }
-  const _csb = document.getElementById('clearSandboxBtn'); if(_csb) _csb.classList.toggle('hidden', libKind !== 'sandbox' || selectMode);
   else { renderLibrary(); }
 
 });
@@ -5073,18 +5071,24 @@ $('#selectAllBtn').onclick=()=>{
 
 $('#deleteSelectedBtn').onclick=()=>{
   if(!selected.size)return;
-
-  showConfirm(`Delete ${selected.size} file${selected.size>1?'s':''}?`,'Selected files will be permanently removed from your Library.','Delete',()=>{
+  const _kind = libKind;
+  showConfirm(`Delete ${selected.size} file${selected.size>1?'s':''}?`,'Selected files will be permanently removed.','Delete',()=>{
     const idsToDelete = new Set([...selected]);
     idsToDelete.forEach(id => {
-      if (String(id).startsWith('rag:') || String(id).startsWith('srv-')) return;
-      fetch('/api/library/files/' + id, {method:'DELETE'}).catch(() => {});
+      const idStr = String(id);
+      if (idStr.startsWith('rag:') || idStr.startsWith('srv-')) return;
+      if (_kind === 'sandbox') {
+        fetch('/api/sandbox/file/' + encodeURIComponent(idStr), {method:'DELETE'}).catch(() => {});
+      } else if (_kind === 'upload') {
+        fetch('/api/library/files/' + idStr, {method:'DELETE'}).catch(() => {});
+      }
     });
-    files = files.filter(f => !idsToDelete.has(f.id));
-    workspaceFiles = (workspaceFiles || []).filter(f => !idsToDelete.has(f.id));
-    sandboxFiles = (sandboxFiles || []).filter(f => !idsToDelete.has(f.id));
+    const _match = (f) => idsToDelete.has(f.id) || idsToDelete.has(f.name);
+    files = files.filter(f => !_match(f));
+    workspaceFiles = (workspaceFiles || []).filter(f => !_match(f));
+    sandboxFiles = (sandboxFiles || []).filter(f => !_match(f));
     chats.forEach(c => c.messages.forEach(m => { if(m.genFileId && idsToDelete.has(m.genFileId)) m.genFileDeleted = true; }));
-    selected.clear(); saveAll(); renderLibrary(); renderMessages(); toast('Files deleted');
+    selected.clear(); saveAll(); renderLibrary(); renderMessages(); toast('Deleted ' + idsToDelete.size + ' file(s)');
   });
 };
 
@@ -5103,7 +5107,6 @@ function syncSelectUI(){
   $('#cancelSelectBtn').classList.toggle('hidden',!selectMode);
 
   $('#uploadBtn').classList.toggle('hidden',selectMode);
-  const _csb2 = document.getElementById('clearSandboxBtn'); if(_csb2) _csb2.classList.toggle('hidden', libKind !== 'sandbox' || selectMode);
 
 }
 
@@ -5111,18 +5114,21 @@ function syncSelectUI(){
 
 function getLibraryItems(kind){
   const k = kind || libKind;
+  let items;
   if(k === 'upload') {
-    return files.filter(f => f.kind === 'upload' || f.kind === 'rag');
+    items = files.filter(f => f.kind === 'upload' || f.kind === 'rag');
   } else if(k === 'workspace') {
-    return workspaceFiles || [];
+    items = workspaceFiles || [];
   } else if(k === 'sandbox') {
-    return sandboxFiles || [];
+    items = sandboxFiles || [];
   } else if(k === 'generated') {
     const genExts = ['png','jpg','jpeg','gif','pdf','csv','xlsx','json','svg'];
-    return (workspaceFiles || []).filter(f => genExts.includes(f.type));
+    items = (workspaceFiles || []).filter(f => genExts.includes(f.type));
   } else {
-    return files.filter(f => f.kind === k);
+    items = files.filter(f => f.kind === k);
   }
+  // Part 710: ensure every item has a stable `id` (sandbox/workspace items only have `name`)
+  return items.map(f => f.id ? f : {...f, id: f.name || ''});
 }
 
 function renderLibrary(){
@@ -5291,23 +5297,6 @@ async function deleteSandboxFile(name) {
     }
   } catch (e) {
     toast('Delete failed: ' + e.message);
-  }
-}
-
-async function clearSandbox() {
-  if (!confirm('Delete ALL files in the Sandbox? This cannot be undone.')) return;
-  try {
-    const r = await fetch('/api/sandbox/clear', {method:'POST'});
-    const d = await r.json();
-    if (d.ok) {
-      sandboxFiles = [];
-      renderLibrary();
-      toast('Cleared ' + (d.deleted || 0) + ' file(s) from Sandbox');
-    } else {
-      toast('Clear failed');
-    }
-  } catch (e) {
-    toast('Clear failed: ' + e.message);
   }
 }
 
@@ -6041,8 +6030,6 @@ loadAll(); renderChatList(); renderMessages(); renderLibrary(); autoGrow();
 
 // Part 709: Sandbox modal + clear button wiring
 (function wireSandboxEvents() {
-  const csb = document.getElementById('clearSandboxBtn');
-  if(csb) csb.addEventListener('click', clearSandbox);
   const sfmClose = document.getElementById('sfmClose');
   if(sfmClose) sfmClose.addEventListener('click', () => document.getElementById('sandboxFileModal').classList.remove('open'));
   const sfmOverlay = document.getElementById('sandboxFileModal');
