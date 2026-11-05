@@ -222,28 +222,64 @@ def _extract_sheets_from_xlsx(xlsx_path: Path) -> dict:
     return sheets
 
 
+def _extract_sheets_from_xlrd(xls_path: Path) -> dict:
+    """Extract sheets from a BIFF .xls file via xlrd."""
+    import xlrd
+    book = xlrd.open_workbook(str(xls_path))
+    sheets = {}
+    for sheet_name in book.sheet_names():
+        ws = book.sheet_by_name(sheet_name)
+        if ws.nrows == 0:
+            sheets[sheet_name] = {"headers": [], "rows": []}
+            continue
+        headers = [str(c.value) for c in ws.row(0)]
+        rows = []
+        for r_idx in range(1, min(ws.nrows, 2001)):
+            row_vals = ws.row(r_idx)
+            row_dict = {}
+            for i, h in enumerate(headers):
+                v = row_vals[i].value if i < len(row_vals) else None
+                row_dict[h] = v
+            rows.append(row_dict)
+        sheets[sheet_name] = {"headers": headers, "rows": rows[:2000]}
+    return sheets
+
+
 def parse_xls(path: Path) -> dict:
-    """Parse .xls file. Handles both real XLS (BIFF) and XLSX-renamed-to-XLS."""
-    # Strategy: try direct openpyxl first (works if file is actually XLSX)
+    """Parse .xls file. 3-level fallback: openpyxl -> xlrd -> LibreOffice."""
+    direct_error = ""
+    xlrd_error = ""
+    lo_error = ""
+
+    # Strategy 1: direct openpyxl (works if file is actually XLSX content)
     try:
         sheets = _extract_sheets_from_xlsx(path)
         return {"ok": True, "name": path.name, "sheets": sheets, "engine": "openpyxl-direct"}
-    except Exception as direct_err:
-        direct_error = f"{type(direct_err).__name__}: {str(direct_err)[:150]}"
+    except Exception as e:
+        direct_error = f"{type(e).__name__}: {str(e)[:120]}"
 
-    # Fall back to LibreOffice conversion (for real legacy .xls files)
+    # Strategy 2: xlrd (purpose-built for BIFF .xls)
+    try:
+        sheets = _extract_sheets_from_xlrd(path)
+        return {"ok": True, "name": path.name, "sheets": sheets, "engine": "xlrd"}
+    except ImportError:
+        xlrd_error = "xlrd not installed"
+    except Exception as e:
+        xlrd_error = f"{type(e).__name__}: {str(e)[:120]}"
+
+    # Strategy 3: LibreOffice conversion -> openpyxl
     try:
         converted = _libreoffice_convert(path, "xlsx")
-    except FileNotFoundError:
-        return {"error": f"File is not XLSX ({direct_error}); LibreOffice not installed"}
-    except Exception as e:
-        return {"error": f"File is not XLSX ({direct_error}); LibreOffice conversion failed: {type(e).__name__}: {str(e)[:150]}"}
-
-    try:
         sheets = _extract_sheets_from_xlsx(converted)
         return {"ok": True, "name": path.name, "sheets": sheets, "engine": "libreoffice"}
+    except FileNotFoundError:
+        lo_error = "LibreOffice not installed"
     except Exception as e:
-        return {"error": f"Converted xlsx parse failed: {type(e).__name__}: {str(e)[:150]}"}
+        lo_error = f"{type(e).__name__}: {str(e)[:120]}"
+
+    return {
+        "error": f"All .xls readers failed. openpyxl: {direct_error} | xlrd: {xlrd_error} | LibreOffice: {lo_error}"
+    }
 
 
 
