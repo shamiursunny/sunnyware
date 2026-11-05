@@ -789,7 +789,8 @@ body.light-mode .code-head {
 
 .library-sub{font-size:13.5px;color:var(--text-secondary);margin-bottom:20px}
 
-.lib-tabs{display:flex;gap:4px;background:var(--bg-secondary);border-radius:99px;padding:4px;margin-left:auto}
+.lib-tabs{display:flex;gap:4px;background:var(--bg-secondary);border-radius:99px;padding:4px;margin-left:auto;overflow-x:auto;white-space:nowrap;-webkit-overflow-scrolling:touch}
+.lib-tabs::-webkit-scrollbar{display:none}
 
 .lib-tab{padding:7px 16px;border-radius:99px;font-size:13px;font-weight:600;color:var(--text-secondary);transition:all .15s}
 
@@ -2986,10 +2987,14 @@ function loadAll(){
   // Load Library files from backend, then merge RAG documents
   fetch('/api/library/files').then(r=>r.json()).then(data=>{
     if(data && data.files) {
-      files = data.files.map(f => ({
+      const serverFiles = data.files.map(f => ({
         id: f.id, name: f.name, type: f.type, size: f.size, kind: f.kind,
         date: f.created_at, mime: f.type, dataUrl: f.content, textContent: f.kind !== 'image' ? f.content : ''
       }));
+      
+      const existingIds = new Set(serverFiles.map(f => f.id));
+      const localFiles = files.filter(f => !existingIds.has(f.id));
+      files = [...serverFiles, ...localFiles];
       // Merge RAG documents
       fetch('/api/rag/documents').then(r2=>r2.json()).then(ragData=>{
         if(ragData && ragData.documents) {
@@ -4361,7 +4366,17 @@ function sendMessage(textOverride){
   saveAll(); renderChatList($('#searchInput').value); renderMessages();
 
   if(text || attachIds.length > 0) {
-    if (attachIds.length > 0) _forcedTool = 'rag_search';
+    if (attachIds.length > 0) {
+      _forcedTool = 'rag_search';
+      const fileNames = attachIds.map(id => {
+        const f = files.find(x => x.id === id);
+        return f ? f.name : '';
+      }).filter(Boolean).join(', ');
+      if (fileNames) {
+        streamAI(chat, `[Attached File: ${fileNames}]\n${text || 'Read and summarize the attached files.'}`);
+        return;
+      }
+    }
     streamAI(chat, text || 'Read and summarize the attached files.');
   }
 
@@ -5195,6 +5210,14 @@ $('#fileInput').onchange=e=>{
         }
         files.unshift(entry);
         saveAll();  // Persist the file so the chip survives refresh
+        
+        // Also save to library files so it shows in the Library tab
+        fetch('/api/library/files', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...entry, content: entry.textContent || '' })
+        }).catch(e => console.error('Library sync failed', e));
+        
         pendingAttach.push(entry.id);
         const preview=$('#attachPreview'); preview.classList.remove('hidden');
         const chip=document.createElement('span'); chip.className='attach-chip';
