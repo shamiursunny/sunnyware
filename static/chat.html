@@ -4049,9 +4049,13 @@ function renderMessages(){
   $('#chatOptionsBtn').disabled=!has; $('#chatOptionsBtn').style.opacity=has?1:.35;
   if (chats.length > 0) { $('#chatOptionsBtn').disabled = false; $('#chatOptionsBtn').style.opacity = 1; }
 
+  const MAX_RENDERED = window.innerWidth < 768 ? 40 : 100;
   if(has) {
     let lastDay = null;
-    chat.messages.forEach(m => {
+    const messagesToRender = chat.messages.length > MAX_RENDERED
+      ? chat.messages.slice(-MAX_RENDERED)
+      : chat.messages;
+    messagesToRender.forEach(m => {
       const ts = m.ts || m.created || chat.updated || chat.created || Date.now();
       const msgDate = new Date(ts);
       const dayKey = msgDate.toDateString();
@@ -4907,7 +4911,18 @@ function addUploadedFiles(fileList){
 
   const arr=[...fileList]; let big=0;
 
-  arr.forEach(f=>{
+  arr.forEach(async f=>{
+    // Always upload to RAG/workspace so the AI's file tools can find it
+    try {
+      const formData = new FormData();
+      formData.append('file', f);
+      const ragRes = await fetch('/api/rag/upload', { method: 'POST', body: formData });
+      if (ragRes.ok) {
+        console.log('[upload] RAG upload ok:', f.name);
+      } else {
+        console.warn('[upload] RAG upload failed:', ragRes.status);
+      }
+    } catch(e) { console.warn('[upload] RAG upload error:', e); }
 
     const entry={id:uid(), name:f.name, type:fileTypeOf(f.name), kind:'upload', size:f.size, date:new Date().toISOString(), mime:f.type||'application/octet-stream'};
 

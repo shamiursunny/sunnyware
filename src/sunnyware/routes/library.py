@@ -56,7 +56,9 @@ async def list_files():
 @router.post("/api/library/files")
 async def save_file(req: Request):
     pool = app_state.get_pool()
-    if not pool: return JSONResponse({"error": "db unavailable"}, status_code=503)
+    if not pool:
+        # DB unavailable — accept the upload but return a warning instead of failing
+        return JSONResponse({"ok": True, "db": False, "warning": "No database configured — file saved locally only"})
     await _ensure_table()
     owner = _owner()
     body = await req.json()
