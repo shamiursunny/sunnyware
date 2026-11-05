@@ -218,3 +218,10 @@ Frontend search filters by name, sort dropdown handles name/size/modified.
 - **ZIP**: `/api/{workspace|library|sandbox}/download-zip`
 - **Auto-Cleanup**: Managed via `GET/POST /api/settings/cleanup`. Deletes old files in `/data/sandbox`.
 - **Tableau Edit**: `edit_tableau_field` parses `.twb` XML and modifies `<calculation>` formulas.
+
+
+## Part 718 (Tableau/PBIX + Library + RAG)
+
+- **Tableau Tools**: `add_tableau_filter`, `remove_tableau_field`, `extract_pbix_assets`.
+- **Library Upgrades**: Right-click rename, multi-select ZIP, native PDF preview.
+- **Memory Tab**: `POST /api/rag/upload` indexes `.pdf`, `.docx`, `.txt`, etc. Deletions via `DELETE /api/rag/delete?source=...`.

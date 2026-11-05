@@ -3920,3 +3920,22 @@ me the exact git commands to commit + push both remotes."
 - **Tableau Editing**:
   - New `edit_tableau_field` tool. Safely parses `.twb`/`.twbx` XML to update calculated field formulas, filters, and parameters.
   - Added 88th tool to registry; fixed `_simplify_schema` in Jarvis to handle full JSON schemas without crashing.
+
+
+---
+
+### Part 718 Update (2026-11-05): Tableau/PBIX Tools, Library Upgrades, Memory/RAG Tab
+
+- **New Tools (91 total)**:
+  - `add_tableau_filter`: Adds a filter to a specific Tableau worksheet.
+  - `remove_tableau_field`: Removes a calculated field from a Tableau workbook.
+  - `extract_pbix_assets`: Extracts embedded data and images from a Power BI `.pbix` file.
+- **Library UI Upgrades**:
+  - **Rename**: Right-click any file in the Uploaded tab to rename it.
+  - **PDF Preview**: Clicking a PDF opens it in a new browser tab (native viewer).
+  - **Multi-Select ZIP**: Check specific files and click Download ZIP to download only those files.
+- **AI Memory (RAG) Tab**:
+  - Added a "Memory" tab in the Library.
+  - Drag-and-drop interface for `.pdf`, `.docx`, `.txt`, `.csv`, `.xlsx` files.
+  - Uploads feed directly into the RAG vector store via `/api/rag/upload`.
+  - Lists all indexed documents and allows deletion via `/api/rag/delete`.

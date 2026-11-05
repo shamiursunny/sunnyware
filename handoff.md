@@ -6498,3 +6498,24 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 
 ## Next Steps
 - PBIX editing (requires proprietary SDK, still unsupported).
+
+
+---
+
+# Part 718 Handoff: Tableau/PBIX, Library Upgrades, RAG Memory
+
+## New Features
+- **Tableau/PBIX Tools**:
+  - `add_tableau_filter.py` and `remove_tableau_field.py` (in `tableau_extra.py`).
+  - `extract_pbix_assets.py` (in `tableau_extra.py`).
+- **Library UI**:
+  - Right-click rename (calls `PUT /api/library/files/{filename}`).
+  - Native PDF preview (`window.open(...)`).
+  - Multi-select ZIP (`?files=file1,file2` query param handled by backend).
+- **Memory/RAG Tab**:
+  - `memoryContainer` in `static/chat.html`.
+  - `loadMemoryTab()`, `uploadMemoryFile()`, `deleteMemoryDoc()` JS functions.
+  - Hooked into tab click routing (`libKind === 'memory'`).
+
+## Fixes
+- Fixed broken `loadLibrary()` reference in rename handler (now calls `renderLibrary()`).

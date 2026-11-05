@@ -3839,3 +3839,14 @@ On Space restart -> `fallback_cleanup` hook checks config -> deletes files older
 ## 2. Tableau Field Editing
 User: "Update the tableau field 'Profit' to 'SUM(Sales) - SUM(Cost)' in workbook.twb"
 -> `edit_tableau_field(filename, field_name, new_value)` -> Reads XML, finds `<calculation caption="Profit">` -> updates `formula` attribute -> rewrites `.twb`.
+
+
+---
+
+# Part 718 Workflows
+
+## 1. Memory Upload
+User clicks "Memory" tab -> drags `.pdf` -> `uploadMemoryFile(file)` -> `POST /api/rag/upload` -> vectors stored -> list refreshes.
+
+## 2. Library Rename
+User right-clicks a card -> `prompt('Enter new filename')` -> `PUT /api/library/files/{filename}` -> backend renames file on disk (`/data/uploads`).
