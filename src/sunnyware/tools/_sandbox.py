@@ -53,6 +53,7 @@ ALLOWED_MODULES = frozenset({
     # excel / output / office
     "openpyxl", "xlsxwriter", "tabulate",
     "docx", "pptx",         # python-docx, python-pptx (Part 713)
+    "xlrd",                 # BIFF .xls reader (Part 715)
     # Part 111: actuarial / insurance / risk-management
     "chainladder",           # P&C loss reserving (IBNR)
     "lifelib",               # Life/pension actuarial models

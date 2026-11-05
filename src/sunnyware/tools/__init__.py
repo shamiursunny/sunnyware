@@ -8,6 +8,8 @@ from .read_file import ReadFileTool
 from .write_file import WriteFileTool
 from .write_sandbox_file import WriteSandboxFileTool
 from .read_sandbox_file import ReadSandboxFileTool
+from .read_bi_file import ReadBiFileTool
+from .export_table import ExportTableTool
 from .calculator import CalculatorTool
 from .web_fetch import WebFetchTool
 from .memory_search import MemorySearchTool
@@ -97,6 +99,8 @@ _TOOLS = {
     WriteFileTool.name: WriteFileTool(),
     WriteSandboxFileTool.name: WriteSandboxFileTool(),
     ReadSandboxFileTool.name: ReadSandboxFileTool(),
+    ReadBiFileTool.name: ReadBiFileTool(),
+    ExportTableTool.name: ExportTableTool(),
     CalculatorTool.name: CalculatorTool(),
     SearchLibraryTool.name: SearchLibraryTool(),
     WebFetchTool.name: WebFetchTool(),
