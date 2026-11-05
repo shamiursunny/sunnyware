@@ -10,6 +10,7 @@ from .write_sandbox_file import WriteSandboxFileTool
 from .read_sandbox_file import ReadSandboxFileTool
 from .read_bi_file import ReadBiFileTool
 from .edit_tableau_field import EditTableauFieldTool
+from .tableau_extra import AddTableauFilterTool, RemoveTableauFieldTool, ExtractPbixAssetsTool
 from .export_table import ExportTableTool
 from .calculator import CalculatorTool
 from .web_fetch import WebFetchTool
@@ -102,6 +103,9 @@ _TOOLS = {
     ReadSandboxFileTool.name: ReadSandboxFileTool(),
     ReadBiFileTool.name: ReadBiFileTool(),
     EditTableauFieldTool.name: EditTableauFieldTool(),
+    AddTableauFilterTool.name: AddTableauFilterTool(),
+    RemoveTableauFieldTool.name: RemoveTableauFieldTool(),
+    ExtractPbixAssetsTool.name: ExtractPbixAssetsTool(),
     ExportTableTool.name: ExportTableTool(),
     CalculatorTool.name: CalculatorTool(),
     SearchLibraryTool.name: SearchLibraryTool(),

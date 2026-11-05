@@ -190,7 +190,7 @@ async def delete_file(file_id: str):
         return {"deleted": True}
 
 @router.get("/api/sandbox/download-zip")
-async def download_sandbox_zip():
+async def download_sandbox_zip(files: str = None):
     """Package all sandbox files into a single ZIP and return it."""
     from fastapi.responses import Response
     from .. import paths
@@ -201,8 +201,10 @@ async def download_sandbox_zip():
     buf = io.BytesIO()
     count = 0
     with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        allowed = files.split(",") if files else None
         for f in sb.iterdir():
             if f.is_file():
+                if allowed and f.name not in allowed: continue
                 zf.write(f, arcname=f.name)
                 count += 1
     buf.seek(0)
@@ -236,6 +238,21 @@ async def download_workspace_zip():
         headers={"Content-Disposition": f'attachment; filename="workspace-{count}-files.zip"'},
     )
 
+
+@router.put("/api/library/files/{filename}")
+async def rename_library_file(filename: str, req: Request):
+    from .. import paths
+    body = await req.json()
+    new_name = body.get("new_name")
+    if not new_name: return {"error": "new_name required"}
+    
+    d = paths.data_root() / "uploads"
+    old_path = d / filename
+    new_path = d / new_name
+    if old_path.exists():
+        old_path.rename(new_path)
+        return {"ok": True, "name": new_name}
+    return {"error": "File not found"}
 
 @router.get("/api/library/download-zip")
 async def download_uploaded_zip():

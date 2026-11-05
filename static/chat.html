@@ -5285,6 +5285,20 @@ function renderLibrary(){
   items.forEach(f=>{
 
     const card=document.createElement('div');
+    card.oncontextmenu = (e) => {
+        e.preventDefault();
+        const nn = prompt('Enter new filename:', f.name);
+        if (nn && nn !== f.name) {
+            fetch(`/api/library/files/${encodeURIComponent(f.name)}`, {
+                method: 'PUT',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({new_name: nn})
+            }).then(r => {
+                if (r.ok) { toast('Renamed'); loadLibrary(); }
+                else { toast('Rename failed'); }
+            }).catch(() => toast('Rename failed'));
+        }
+    };
 
     card.className='file-card'+(selected.has(f.id)?' selected':'');
 
@@ -5468,6 +5482,11 @@ function renderFFVFile() {
   const ext = (f.name || '').split('.').pop().toLowerCase();
   const isImage = ['png','jpg','jpeg','gif','webp','svg','bmp'].includes(ext);
   const isPdf = ext === 'pdf';
+  if (isPdf) {
+    const pdfUrl = kind === 'upload' ? '/api/library/file/' + encodeURIComponent(f.name) : '/api/' + kind + '/file/' + encodeURIComponent(f.name);
+    window.open(pdfUrl, '_blank');
+    return;
+  }
   const isCsv = ext === 'csv' || ext === 'tsv';
   const isJson = ext === 'json';
   const isExcel = ext === 'xlsx' || ext === 'xls';
