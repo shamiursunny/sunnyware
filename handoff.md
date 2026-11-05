@@ -6216,3 +6216,20 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Choose the next feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 705 Update (2026-11-05): Sidebar Chat Options Menu & Import
+
+**Status:** ✅ Implemented and verified.
+
+**What was done:**
+- `static/chat.html`: Moved `chatOptionsWrap` from topbar to sidebar header next to "CHATS".
+- Added `optImportChats` menu item above `optExportSelected`.
+- Removed orphaned topbar menu items, leaving topbar clean.
+- All menu items work correctly from the sidebar.
+
+**Next Steps (Part 706):**
+- Choose the next feature.
+
+*Handoff updated: 2026-11-05*

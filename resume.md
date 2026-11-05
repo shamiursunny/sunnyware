@@ -3690,3 +3690,14 @@ me the exact git commands to commit + push both remotes."
 - **Bug Fix**: The code block in light mode had a thick black border because the `.code-block` background (`#0d0d0f`) was showing through the `pre` padding. Added an aggressive universal override to force all inner elements of `.code-block` to use transparent backgrounds with light-mode colors.
 
 *Part 698c logged: 2026-11-04*
+
+---
+
+### Part 705 Update (2026-11-05): Sidebar Chat Options Menu & Import
+
+- **Menu Moved**: Moved the chat options menu (3-dot) from the topbar into the sidebar header next to "CHATS".
+- **Import Added**: Added "Import chats" option inside the menu, above "Export selected". Uses the existing JSON import functionality.
+- **Topbar Cleaned**: Removed all orphaned menu items from the topbar, leaving it clean with only the model selector, badges, and theme toggle.
+- **Verification**: All menu items (Select messages, Select all chats, Clear selection, Import chats, Export selected, Delete selected) work correctly from the sidebar.
+
+*Part 705 logged: 2026-11-05*

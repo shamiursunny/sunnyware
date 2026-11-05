@@ -3569,3 +3569,11 @@ Fixed regex for conversation/discussion matching.
 **Fix**: Applied universal light mode override for all elements inside `.code-block`, eliminating the thick black border and ensuring proper contrast in both themes.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 705 Update (2026-11-05): Sidebar Chat Options Menu & Import
+
+**New**: Chat options menu moved to sidebar header next to "CHATS". Import chats option added above Export. Topbar cleaned of orphaned menu items.
+
+*Workflow updated: 2026-11-05*
