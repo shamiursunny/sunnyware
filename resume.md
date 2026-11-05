@@ -3836,3 +3836,27 @@ me the exact git commands to commit + push both remotes."
 *Part 714 logged: 2026-11-05*
 
 ---
+
+
+---
+
+### Part 715 Update (2026-11-05): Legacy Excel .xls Support with Magic-Byte Detection
+
+- **requirements.txt**: Added xlrd>=2.0.1 for BIFF .xls files.
+- **office_preview.py**:
+  - New _detect_office_magic() - reads first 4 bytes: PK (ZIP) or ÐÏà (OLE).
+  - New _extract_sheets_from_xlrd() - reads BIFF .xls via xlrd.
+  - Rewritten parse_xls() with 3 strategies:
+    - ZIP magic -> copy to temp .xlsx -> openpyxl (XLSX-renamed-as-.xls)
+    - OLE magic -> xlrd direct (real BIFF .xls)
+    - Unknown magic -> try xlrd then LibreOffice -> combined error
+- **routes/library.py**: Dispatcher extended for .xls -> parse_xls().
+- **static/chat.html**: isLegacyXls detection routes .xls to /office-preview instead of /xlsx.
+- **Verified behavior**:
+  - real_test.xls (XLSX content, .xls extension) -> xlsx-in-xls-extension engine -> table renders
+  - binary_garbage.xls -> Unknown file format (neither ZIP nor OLE)
+  - Real BIFF .xls (future test) -> xlrd engine
+
+*Part 715 logged: 2026-11-05*
+
+---

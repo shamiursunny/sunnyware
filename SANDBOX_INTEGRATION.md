@@ -154,3 +154,29 @@ Requires Factory rebuild (not Restart) to install the ~350MB of packages. After 
 - LibreOffice is tried first - provides full formatting (headings, tables, lists)
 - If LO fails (binary corruption, incompatible format) -> antiword/catppt (text-only with warning banner)
 - If both fail -> clean error message to user
+
+
+## Legacy Excel (Part 715)
+
+### Supported Formats
+- **.xls (Excel 97-2003)** - magic-byte detection routes to correct engine:
+  - XLSX-renamed-as-.xls -> temp .xlsx copy -> openpyxl
+  - Real BIFF .xls -> xlrd
+  - Unknown/corrupt -> try all engines -> combined error
+
+### New Pip Package (requirements.txt)
+- xlrd>=2.0.1 - purpose-built BIFF .xls reader
+
+### Detection Logic
+- Reads first 4 bytes: PK\x03\x04 -> ZIP (XLSX content)
+- Reads first 4 bytes: \xD0\xCF\x11\xE0 -> OLE (BIFF/XLS)
+- Else -> unknown -> fallback chain
+
+### API Endpoints
+- Reuses /api/{workspace|sandbox}/file/{name}/office-preview
+- Dispatcher routes .xls -> parse_xls()
+
+### Fallback Behavior
+- XLSX renamed .xls: temp copy -> openpyxl -> table
+- Real .xls: xlrd -> table
+- Corrupt: combined error from all engines

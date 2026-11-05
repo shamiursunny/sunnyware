@@ -6395,3 +6395,41 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Consider caching LO conversions (temp file reuse)
 - Support .xls legacy Excel via LibreOffice
 - .doc with complex formatting -> test LO output quality
+
+
+---
+
+# Legacy Excel Handoff (Part 715)
+
+## New Pip Package
+- xlrd>=2.0.1 - purpose-built BIFF .xls reader
+
+## New Functions (office_preview.py)
+- _detect_office_magic(path) -> 'zip' | 'ole' | 'unknown'
+- _extract_sheets_from_xlrd(xls_path) -> {sheets: {name: {headers, rows}}}
+- parse_xls(path) with 3 strategies:
+  1. ZIP magic -> copy to temp .xlsx -> openpyxl
+  2. OLE magic -> xlrd
+  3. Unknown -> xlrd -> LibreOffice -> combined error
+
+## Dispatcher Extension (routes/library.py)
+- .xls -> parse_xls()
+
+## Frontend (chat.html)
+- isLegacyXls = ext === 'xls'
+- Routes .xls to /office-preview (not /xlsx)
+
+## Known Limitations
+- XLSX-renamed-as-.xls works via temp copy (magic detection)
+- Real BIFF .xls works via xlrd
+- Corrupt files show combined error from all engines
+- Legacy .xls with macros (XLSM) not supported
+
+## Deployment Notes
+- Factory rebuild required for xlrd (pip package)
+- Once built, xlrd is baked into image - future restarts instant
+
+## Next Steps
+- Support .xlsm (macro-enabled) via openpyxl
+- Caching for repeated .xls conversions
+- Real BIFF .xls test with Office 97-2003 file

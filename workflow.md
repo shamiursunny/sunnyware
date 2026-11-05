@@ -3750,3 +3750,34 @@ Click real_test.ppt -> isPptx = true -> GET /api/{kind}/file/test.ppt/office-pre
 - Factory rebuild required (not Restart) for packages.txt to install LibreOffice
 - Build adds ~350MB to Docker image
 - Future restarts/redeploys use cached image - instant startup
+
+
+---
+
+# Legacy Excel Workflows (Part 715)
+
+## 1. Opening a .xls File
+Click real_test.xls -> isLegacyXls = true -> GET /api/{kind}/file/real_test.xls/office-preview
+-> parse_xls() called
+-> _detect_office_magic() reads first 4 bytes:
+
+  - PK\x03\x04 (ZIP): XLSX content in .xls extension
+    -> Copy to temp .xlsx file
+    -> _extract_sheets_from_xlsx(temp) via openpyxl
+    -> Returns {ok: true, engine: 'xlsx-in-xls-extension'}
+
+  - \xD0\xCF\x11\xE0 (OLE): Real BIFF .xls
+    -> _extract_sheets_from_xlrd(path) via xlrd
+    -> Returns {ok: true, engine: 'xlrd'}
+
+  - Unknown magic: Try all engines
+    -> xlrd then LibreOffice conversion
+    -> Returns combined error if all fail
+
+## 2. Test Cases
+- XLSX renamed .xls: magic=zip, engine='xlsx-in-xls-extension' -> table renders
+- Real BIFF .xls (Office 97-2003): magic=ole, engine='xlrd' -> table renders
+- Binary garbage .xls: magic=unknown -> combined error
+
+## 3. Error Reporting
+Returns comprehensive error: 'Unknown file format. xlrd: <error> | LibreOffice: <error>'
