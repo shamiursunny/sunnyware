@@ -142,6 +142,30 @@ async def list_workspace_files():
     return {"files": out}
 
 
+@router.get("/api/sandbox/download-zip")
+async def download_sandbox_zip():
+    """Package all sandbox files into a single ZIP and return it."""
+    from fastapi.responses import Response
+    from .. import paths
+    import io, zipfile
+    sb = paths.sandbox()
+    if not sb.exists():
+        return {"error": "sandbox does not exist"}
+    buf = io.BytesIO()
+    count = 0
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for f in sb.iterdir():
+            if f.is_file():
+                zf.write(f, arcname=f.name)
+                count += 1
+    buf.seek(0)
+    return Response(
+        content=buf.read(),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="sandbox-{count}-files.zip"'},
+    )
+
+
 @router.get("/api/sandbox/file/{filename}")
 async def get_sandbox_file(filename: str):
     """Read a single sandbox file's content (text or base64 for images)."""
@@ -163,6 +187,34 @@ async def get_sandbox_file(filename: str):
             content = content[:500_000] + "\n\n... (truncated)"
         return {"ok": True, "name": name, "type": "text", "content": content,
                 "size": target.stat().st_size}
+    except Exception as e:
+        return {"error": f"read failed: {type(e).__name__}: {e}"}
+
+
+@router.get("/api/workspace/file/{filename}")
+async def get_workspace_file(filename: str):
+    """Read a single workspace file's content (text / image / pdf / base64)."""
+    from pathlib import Path as _Path
+    import base64
+    try:
+        from .. import paths
+        name = _Path(filename).name
+        target = paths.workspace() / name
+        if not target.exists() or not target.is_file():
+            return {"error": f"file not found: {name}"}
+        ext = target.suffix.lower()
+        size = target.stat().st_size
+        if ext in (".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp"):
+            data = base64.b64encode(target.read_bytes()).decode()
+            mime = "image/svg+xml" if ext == ".svg" else f"image/{ext[1:]}"
+            return {"ok": True, "name": name, "type": "image", "content": data, "mime": mime, "size": size}
+        if ext == ".pdf":
+            data = base64.b64encode(target.read_bytes()).decode()
+            return {"ok": True, "name": name, "type": "pdf", "content": data, "mime": "application/pdf", "size": size}
+        content = target.read_text(encoding="utf-8", errors="replace")
+        if len(content) > 500_000:
+            content = content[:500_000] + "\n\n... (truncated)"
+        return {"ok": True, "name": name, "type": "text", "content": content, "size": size}
     except Exception as e:
         return {"error": f"read failed: {type(e).__name__}: {e}"}
 
