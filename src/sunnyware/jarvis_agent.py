@@ -17,12 +17,19 @@ from . import local_llm as local_llm
 def _simplify_schema(params):
     if not params:
         return {}
+    # If it's a full JSON schema, extract just the properties
+    if "properties" in params and isinstance(params["properties"], dict):
+        params = params["properties"]
+    
     new_params = {}
     for k, v in params.items():
-        new_v = dict(v)
-        if new_v.get("type") == "array":
-            new_v["type"] = "string"
-            new_v["description"] = new_v.get("description", "") + " (comma-separated list of values)"
+        if not isinstance(v, dict):
+            new_v = v
+        else:
+            new_v = dict(v)
+            if new_v.get("type") == "array":
+                new_v["type"] = "string"
+                new_v["description"] = new_v.get("description", "") + " (comma-separated list of values)"
         new_params[k] = new_v
     return new_params
 from .tools import _TOOLS, get_tool, list_tools
