@@ -3537,3 +3537,11 @@ Fixed regex for conversation/discussion matching.
 **Fix**: Jarvis math router bypassed analytics; now explicitly logs tool calls so live counts update on `/tools`.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 698 Update (2026-11-04): Chat Branching, Sidebar Tree, and Delegation Tool Styling
+
+**New**: Branch button on AI messages, branched chats indented in sidebar with tree line, delegation tool pills with purple glow, filter chip text color fixed.
+
+*Workflow updated: 2026-11-04*

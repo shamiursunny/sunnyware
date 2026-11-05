@@ -6167,3 +6167,21 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Choose the next feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 698 Update (2026-11-04): Chat Branching, Sidebar Tree, and Delegation Tool Styling
+
+**Status:** ✅ Implemented and ready for testing.
+
+**What was done:**
+- `static/chat.html`: Added `a-branch` button to AI message actions.
+- `static/chat.html`: Added `branchFromMessage()` function to fork conversations.
+- `static/chat.html`: Added `.branched` CSS for indented sidebar items with tree line.
+- `static/chat.html`: Added `delegate` class to tool pills for sub-agent styling.
+- `static/chat.html`: Fixed filter chip text color to use `var(--accent-text)`.
+
+**Next Steps (Part 699):**
+- Verify the three features and choose next feature.
+
+*Handoff updated: 2026-11-04*

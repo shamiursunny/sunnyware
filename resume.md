@@ -3655,3 +3655,14 @@ me the exact git commands to commit + push both remotes."
 - **Fix**: Added explicit `_log_tool()` call in the Jarvis path so all tool calls (routed or direct) are recorded.
 
 *Part 697b logged: 2026-11-04*
+
+---
+
+### Part 698 Update (2026-11-04): Chat Branching, Sidebar Tree, and Delegation Tool Styling
+
+- **Chat Branching**: Added a "Branch" button to every AI message. Clicking it forks the conversation, creating a new chat with the history up to that point.
+- **Sidebar Tree**: Branched chats are now visually indented in the sidebar with a small tree line connecting them to their parent.
+- **Delegation Tool Styling**: Tool pills containing "delegate" now have a purple glow, indicating a sub-agent is working.
+- **Filter Chip Fix**: The selected filter chip ("All", "Today", etc.) now uses `var(--accent-text)` for proper contrast in both dark and light modes.
+
+*Part 698 logged: 2026-11-04*
