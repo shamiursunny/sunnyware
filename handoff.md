@@ -6570,3 +6570,24 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 
 ## Dependencies Added
 - `sqlalchemy`, `psycopg2-binary`, `pymysql`, `lxml`, `html5lib`, `beautifulsoup4`.
+
+
+---
+
+# Part 721 Handoff: Stability & Bug Fixes
+
+## Fixed
+- `orchestrator.py`: Local `import json` causing `UnboundLocalError`.
+- `orchestrator.py`: `_build_tools_schema` now guards against string parameter metadata.
+- `orchestrator.py`: Tool result message now includes the original prompt.
+- `orchestrator.py`: Removed duplicate `isinstance` checks.
+- `orchestrator.py`: `tool.run(**tool_args)` restored (was `tool.run(tool_args)`).
+- `library.py`: `datetime.datetime.fromtimestamp` (module vs. class).
+- `agent.py`: Added traceback logging to error events for future debugging.
+
+## Stable Version Confirmed
+The app now passes all production tests:
+- Math queries (e.g., `what is 2 + 2`) return correctly.
+- General queries return the capabilities list.
+- UI loads without errors.
+- Slack bot integration returns correct results.

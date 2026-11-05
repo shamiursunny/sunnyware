@@ -3973,3 +3973,16 @@ me the exact git commands to commit + push both remotes."
   - Correctly unpack `**tool_args` for all tools.
   - Inject `MULTI_STEP_PLANNING` instructions into both `compact_prompt` and `native_prompt`.
 - **Dependencies**: Added `sqlalchemy`, `psycopg2-binary`, `pymysql`, `lxml`, `html5lib`, `beautifulsoup4`.
+
+
+---
+
+### Part 721 Update (2026-11-05): Stability & Bug Fixes
+
+- **Fixed `UnboundLocalError` in `orchestrator.py`** — Local `import json` shadowing the global import.
+- **Fixed `AttributeError` in `_build_tools_schema`** — Added `isinstance` guards for string parameter metadata.
+- **Fixed tool result message** — Now includes the original prompt so the LLM doesn't forget the question.
+- **Fixed `datetime.datetime.fromtimestamp`** — Corrected module vs. class reference in `list_sandbox_files`.
+- **Removed duplicate `isinstance` checks** in `orchestrator.py`.
+- **Added traceback logging** to `agent.py` error events for easier debugging.
+- **Restored `tool.run(**tool_args)`** — Keyword argument unpacking was lost.
