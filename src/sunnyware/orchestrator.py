@@ -581,7 +581,7 @@ async def _execute_tool_impl(tool_name: str, tool_args: dict) -> dict:
         while _attempt < _max_attempts:
             _attempt += 1
             try:
-                _result = await tool.run(tool_args)
+                _result = await tool.run(**tool_args)
                 if not isinstance(_result, dict):
                     _result = {"result": _result}
                 if isinstance(_result, dict) and _result.get("error"):
@@ -861,7 +861,17 @@ async def _run_agent_body(
         _jarvis_result = await _jarvis.jarvis_route(prompt)
         if _jarvis_result:
             _tool_name = _jarvis_result.get("tool")
+            if isinstance(_jarvis_result, str):
+                try:
+                    import json
+                    _jarvis_result = json.loads(_jarvis_result)
+                except Exception:
+                    _jarvis_result = {}
+            if not isinstance(_jarvis_result, dict):
+                _jarvis_result = {}
             _tool_args = _jarvis_result.get("args", {})
+            if not isinstance(_tool_args, dict):
+                _tool_args = {}
             if _allowed_set is None or _tool_name in _allowed_set:
                 from .tools import get_tool
                 _tool_obj = get_tool(_tool_name)
@@ -869,7 +879,7 @@ async def _run_agent_body(
                     try:
                         import time as _time
                         _t0 = _time.time()
-                        _tool_result = await _tool_obj.run(_tool_args)
+                        _tool_result = await _tool_obj.run(**_tool_args)
                         # Part 697b: log tool call for analytics (jarvis bypass path)
                         try:
                             from . import analytics_hooks as _ah
