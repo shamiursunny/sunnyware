@@ -225,3 +225,9 @@ Frontend search filters by name, sort dropdown handles name/size/modified.
 - **Tableau Tools**: `add_tableau_filter`, `remove_tableau_field`, `extract_pbix_assets`.
 - **Library Upgrades**: Right-click rename, multi-select ZIP, native PDF preview.
 - **Memory Tab**: `POST /api/rag/upload` indexes `.pdf`, `.docx`, `.txt`, etc. Deletions via `DELETE /api/rag/delete?source=...`.
+
+
+## Part 719 (Data Tools + SQLite + Settings)
+
+- **Data Tools**: `generate_chart`, `clean_dataset`, `query_sqlite`.
+- **Settings**: `GET/POST /api/settings/keys`. Keys stored in `/data/settings.json` and applied on startup via `settings_manager.apply_settings()`.

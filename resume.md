@@ -3939,3 +3939,18 @@ me the exact git commands to commit + push both remotes."
   - Drag-and-drop interface for `.pdf`, `.docx`, `.txt`, `.csv`, `.xlsx` files.
   - Uploads feed directly into the RAG vector store via `/api/rag/upload`.
   - Lists all indexed documents and allows deletion via `/api/rag/delete`.
+
+
+---
+
+### Part 719 Update (2026-11-06): Data Tools, SQLite, API Key Settings
+
+- **New Tools (94 total)**:
+  - `generate_chart`: Create bar/line/pie charts from CSV/Excel files (uses matplotlib).
+  - `clean_dataset`: Drop nulls, fill missing values, and save cleaned datasets.
+  - `query_sqlite`: Load CSV/Excel into an in-memory SQLite DB and run SQL queries.
+- **API Key Settings UI**:
+  - New "Settings" button in the sidebar (above New chat).
+  - Modal with inputs for Groq, OpenAI, Gemini, and Hugging Face keys.
+  - Keys are saved to `/data/settings.json` and applied to `os.environ` on startup.
+  - `settings_manager.py` handles reading/writing and applying keys.

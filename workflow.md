@@ -3850,3 +3850,23 @@ User clicks "Memory" tab -> drags `.pdf` -> `uploadMemoryFile(file)` -> `POST /a
 
 ## 2. Library Rename
 User right-clicks a card -> `prompt('Enter new filename')` -> `PUT /api/library/files/{filename}` -> backend renames file on disk (`/data/uploads`).
+
+
+---
+
+# Part 719 Workflows
+
+## 1. Generate Chart
+User: "Generate a bar chart from sales.csv with x_column=Region and y_column=Revenue"
+-> `generate_chart(filename, chart_type, x_column, y_column)` -> saves `chart_sales.png` to sandbox.
+
+## 2. Clean Dataset
+User: "Clean sales.csv, drop nulls, and save as clean.csv"
+-> `clean_dataset(filename, output_filename, drop_nulls=True)` -> saves `clean.csv` to sandbox.
+
+## 3. SQL Query
+User: "Run a SQL query on sales.csv to find the top 5 rows by Revenue"
+-> `query_sqlite(filename, sql_query)` -> loads CSV into memory, runs SQL, returns results.
+
+## 4. API Key Settings
+User clicks "Settings" -> `openSettingsModal()` -> loads keys via `GET /api/settings/keys` -> user saves -> `POST /api/settings/keys` -> saved to `/data/settings.json`.

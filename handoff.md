@@ -6519,3 +6519,30 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 
 ## Fixes
 - Fixed broken `loadLibrary()` reference in rename handler (now calls `renderLibrary()`).
+
+
+---
+
+# Part 719 Handoff: Data Tools, SQLite, Settings
+
+## New Tools
+- `data_tools.py`: `GenerateChartTool`, `CleanDatasetTool`.
+- `sql_tool.py`: `QuerySqliteTool`.
+- All registered in `tools/__init__.py`.
+
+## Settings Manager
+- `settings_manager.py`: `get_settings()`, `save_settings()`, `apply_settings()`.
+- `SETTINGS_FILE = /data/settings.json`.
+- `apply_settings()` loads keys into `os.environ`.
+
+## API Endpoints
+- `GET /api/settings/keys` (returns current keys).
+- `POST /api/settings/keys` (saves keys and applies them).
+
+## Frontend
+- Settings button injected via regex above `#newChatBtn`.
+- Settings modal with password inputs.
+- `openSettingsModal()`, `closeSettingsModal()`, `saveSettings()` JS functions.
+
+## Startup
+- `settings_manager.apply_settings()` called in both `lifespan` and fallback block.
