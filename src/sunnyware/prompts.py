@@ -57,7 +57,7 @@ def compact_prompt(context: str = "", allowed_tools=None) -> str:
     )
     if context:
         base += "\n\nRelevant context from your memory of past sessions:\n" + context
-    return base
+    return base + "\n\n" + MULTI_STEP_PLANNING
 
 
 def native_prompt(context: str = "") -> str:
@@ -99,7 +99,7 @@ def native_prompt(context: str = "") -> str:
     )
     if context:
         base += "\n\nRelevant context from your memory of past sessions:\n" + context
-    return base
+    return base + "\n\n" + MULTI_STEP_PLANNING
 
 
 PLANNER_SYSTEM = (
@@ -119,3 +119,18 @@ SYNTH_SYSTEM = (
     "directly addresses the original request. Do not mention sub-tasks. "
     "Just answer."
 )
+
+
+MULTI_STEP_PLANNING = """
+## MULTI-STEP PLANNING
+When the user asks for a complex multi-step task (like "Scrape data, clean it, run a SQL query, and generate a report"), DO NOT try to do it in one tool call.
+Instead, break it down into a sequence of steps and call the `execute_plan` tool.
+Example payload:
+{
+  "steps": [
+    {"tool": "scrape_webpage", "args": {"url": "https://...", "output_filename": "data.csv"}},
+    {"tool": "clean_dataset", "args": {"filename": "data.csv", "drop_nulls": true, "output_filename": "clean.csv"}},
+    {"tool": "generate_report", "args": {"filename": "clean.csv", "title": "Scraped Data", "output_filename": "report.html"}}
+  ]
+}
+"""
