@@ -5026,30 +5026,31 @@ $('#selectToggle').onclick=()=>{ selectMode=true; selected.clear(); syncSelectUI
 $('#cancelSelectBtn').onclick=exitSelectMode;
 
 $('#selectAllBtn').onclick=()=>{
-
-  const vis=files.filter(f=>f.kind===libKind);
-
-  if(selected.size===vis.length){ selected.clear(); } else { vis.forEach(f=>selected.add(f.id)); }
-
+  const vis = getLibraryItems(libKind);
+  if(selected.size === vis.length && vis.length > 0){
+    selected.clear();
+  } else {
+    selected.clear();
+    vis.forEach(f => selected.add(f.id));
+  }
   syncSelectUI(); renderLibrary();
-
 };
 
 $('#deleteSelectedBtn').onclick=()=>{
-
   if(!selected.size)return;
 
   showConfirm(`Delete ${selected.size} file${selected.size>1?'s':''}?`,'Selected files will be permanently removed from your Library.','Delete',()=>{
-
-    selected.forEach(id => {
-      fetch('/api/library/files/' + id, {method:'DELETE'});
+    const idsToDelete = new Set([...selected]);
+    idsToDelete.forEach(id => {
+      if (String(id).startsWith('rag:') || String(id).startsWith('srv-')) return;
+      fetch('/api/library/files/' + id, {method:'DELETE'}).catch(() => {});
     });
-    files=files.filter(f=>!selected.has(f.id));
-    chats.forEach(c=>c.messages.forEach(m=>{ if(m.genFileId&&selected.has(m.genFileId)) m.genFileDeleted=true; }));
+    files = files.filter(f => !idsToDelete.has(f.id));
+    workspaceFiles = (workspaceFiles || []).filter(f => !idsToDelete.has(f.id));
+    sandboxFiles = (sandboxFiles || []).filter(f => !idsToDelete.has(f.id));
+    chats.forEach(c => c.messages.forEach(m => { if(m.genFileId && idsToDelete.has(m.genFileId)) m.genFileDeleted = true; }));
     selected.clear(); saveAll(); renderLibrary(); renderMessages(); toast('Files deleted');
-
   });
-
 };
 
 function exitSelectMode(){ selectMode=false; selected.clear(); syncSelectUI(); renderLibrary(); }
@@ -5072,23 +5073,27 @@ function syncSelectUI(){
 
 
 
+function getLibraryItems(kind){
+  const k = kind || libKind;
+  if(k === 'upload') {
+    return files.filter(f => f.kind === 'upload' || f.kind === 'rag');
+  } else if(k === 'workspace') {
+    return workspaceFiles || [];
+  } else if(k === 'sandbox') {
+    return sandboxFiles || [];
+  } else if(k === 'generated') {
+    const genExts = ['png','jpg','jpeg','gif','pdf','csv','xlsx','json','svg'];
+    return (workspaceFiles || []).filter(f => genExts.includes(f.type));
+  } else {
+    return files.filter(f => f.kind === k);
+  }
+}
+
 function renderLibrary(){
 
   const grid=$('#libGrid');
 
-  let items;
-  if(libKind==='upload') {
-    items = files.filter(f => f.kind === 'upload' || f.kind === 'rag');
-  } else if(libKind==='workspace') {
-    items = workspaceFiles || [];
-  } else if(libKind==='sandbox') {
-    items = sandboxFiles || [];
-  } else if(libKind==='generated') {
-    const genExts = ['png','jpg','jpeg','gif','pdf','csv','xlsx','json','svg'];
-    items = (workspaceFiles || []).filter(f => genExts.includes(f.type));
-  } else {
-    items = files.filter(f=>f.kind===libKind);
-  }
+  const items = getLibraryItems(libKind);
 
   $('#libCount').textContent=items.length+' file'+(items.length===1?'':'s');
 
@@ -5150,7 +5155,10 @@ function renderLibrary(){
 
     card.onclick=e=>{
 
-      if(selectMode){ selected.has(f.id)?selected.delete(f.id):selected.add(f.id); syncSelectUI(); renderLibrary(); return; }
+      if(selectMode){
+        if(selected.has(f.id)){ selected.delete(f.id); } else { selected.add(f.id); }
+        syncSelectUI(); renderLibrary(); return;
+      }
 
       if(e.target.closest('.fh-dl')){ downloadFile(f); return; }
 
