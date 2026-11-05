@@ -75,6 +75,39 @@ def keyword_route(prompt: str) -> Optional[dict]:
     Match obvious tool intent using keywords and regex extraction.
     Returns {"tool": name, "args": {...}} or None.
     """
+    # --- sandbox file tools (write / read) ---
+    # This MUST be checked early — before generic "write file" / "read file" blocks.
+    if "sandbox" in (prompt or "").lower():
+        _pl = (prompt or "").lower()
+
+        # WRITE: "write/save/create a file called X to sandbox [with content '...']"
+        _m_write = re.search(
+            r"(?:write|save|create|store|put)\s+(?:a\s+|the\s+)?(?:file\s+)?"
+            r"(?:called|named|as)?\s*['\"\u2018\u2019]?([\w.\-]+\.[A-Za-z0-9]+)['\"\u2018\u2019]?"
+            r".*?(?:to|in|into|inside)\s+(?:the\s+)?sandbox",
+            _pl,
+        )
+        if _m_write:
+            _fname = _m_write.group(1).strip()
+            _content = ""
+            _cm = re.search(
+                r"(?:with\s+content|containing|content\s*[:=])\s*['\"\u2018\u2019\u201c\u201d`](.+?)['\"\u2018\u2019\u201c\u201d`]",
+                prompt,
+                re.IGNORECASE | re.DOTALL,
+            )
+            if _cm:
+                _content = _cm.group(1)
+            return {"tool": "write_sandbox_file", "args": {"file": _fname, "content": _content}}
+
+        # READ: "read/open/show X from sandbox" or "read sandbox file X"
+        _m_read = re.search(
+            r"(?:read|open|show|get|view|display|cat|see)\s+(?:me\s+)?(?:the\s+)?"
+            r"(?:sandbox\s+)?(?:file\s+)?['\"\u2018\u2019]?([\w.\-]+\.[A-Za-z0-9]+)['\"\u2018\u2019]?",
+            _pl,
+        )
+        if _m_read:
+            return {"tool": "read_sandbox_file", "args": {"file": _m_read.group(1).strip()}}
+
     p = prompt.lower()
 
     # --- date_calc ---
@@ -779,34 +812,6 @@ def keyword_route(prompt: str) -> Optional[dict]:
                                "run kpi watches", "trigger kpis", "check kpis"]):
         return {"tool": "kpi_watch_run", "args": {}}
 
-
-    # --- sandbox file tools (write / read) ---
-    m = re.search(
-        r"(?:write|save|create|store)\s+(?:a\s+)?(?:file\s+)?(?:called|named|as)?\s*"
-        r"['\"]?([\w.\-]+\.\w+)['\"]?\s+(?:to|in|into|inside)\s+(?:the\s+)?sandbox",
-        p_lower,
-    )
-    if m:
-        fname = m.group(1).strip()
-        content_match = re.search(r"(?:with\s+content|containing|content:)\s+['\x22](.+?)['\x22]", prompt, re.IGNORECASE)
-        if content_match:
-            return {"tool": "write_sandbox_file", "args": {"file": fname, "content": content_match.group(1)}}
-        return {"tool": "write_sandbox_file", "args": {"file": fname}}
-
-    m = re.search(
-        r"(?:read|open|show|get|view|display|cat)\s+(?:the\s+)?(?:sandbox\s+)?file\s+"
-        r"['\"]?([\w.\-]+\.\w+)['\"]?(?:\s+from\s+(?:the\s+)?sandbox)?",
-        p_lower,
-    )
-    if m and ("sandbox" in p_lower or "from sandbox" in p_lower or "in sandbox" in p_lower):
-        return {"tool": "read_sandbox_file", "args": {"file": m.group(1).strip()}}
-
-    m = re.search(
-        r"(?:read|open|show|get|view)\s+sandbox\s+(?:file\s+)?['\"]?([\w.\-]+\.\w+)['\"]?",
-        p_lower,
-    )
-    if m:
-        return {"tool": "read_sandbox_file", "args": {"file": m.group(1).strip()}}
 
     # --- python_eval (must have "python" AND code-like words) ---
     python_keywords = ["run this python", "execute code", "use python to",
