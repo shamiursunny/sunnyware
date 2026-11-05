@@ -27,14 +27,25 @@ def compact_prompt(context: str = "", allowed_tools=None) -> str:
     if allowed_tools is not None:
         names = ", ".join(sorted(allowed_tools)) or "(none)"
     else:
-        names = ", ".join(tools_registry.tool_names()) or "(none)"
+        all_tools = list(tools_registry.tool_names())
+        priority = ['rag_search', 'pdf_read', 'read_file', 'excel_read', 'csv_query', 'write_file', 'list_files']
+        priority_tools = [t for t in priority if t in all_tools]
+        other_tools = [t for t in all_tools if t not in priority_tools]
+        names = ", ".join(priority_tools + other_tools) or "(none)"
     base = (
         _IDENTITY_CLAUSE + " "
         f"Available tools: {names}. "
         'Reply with JSON only: {"answer": "..."} or {"tool": "name", "args": {...}}. '
         "For greetings (hi, hello), chit-chat, or simple questions you can "
         "answer from general knowledge, reply with {\"answer\": \"...\"} "
-        "directly and DO NOT call any tool. Keep it short."
+        "directly and DO NOT call any tool. Keep it short.\n\n"
+        "IMPORTANT FILE HANDLING INSTRUCTIONS:\n"
+        "- If the user asks to read, summarize, or analyze a PDF file, use the `rag_search` or `pdf_read` tool.\n"
+        "- If the user asks to read a text file (.txt, .md, .csv), use the `read_file` tool.\n"
+        "- If the user asks to read an Excel file (.xlsx, .xls), use the `excel_read` tool.\n"
+        "- If the user asks to read a CSV file, use the `csv_query` tool.\n"
+        "- NEVER say 'I cannot read PDF files'. You HAVE the tools to do so.\n"
+        "- If a file is uploaded, use `rag_search` to find and read its content."
     )
     if context:
         base += "\n\nRelevant context from your memory of past sessions:\n" + context
