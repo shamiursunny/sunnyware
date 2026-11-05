@@ -867,7 +867,6 @@ async def _run_agent_body(
         if _jarvis_result:
             if isinstance(_jarvis_result, str):
                 try:
-                    import json
                     _jarvis_result = json.loads(_jarvis_result)
                 except Exception:
                     _jarvis_result = {}
