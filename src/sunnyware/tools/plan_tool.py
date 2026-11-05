@@ -24,11 +24,28 @@ class ExecutePlanTool:
 
     async def run(self, steps: list) -> dict:
         from . import get_tool
+        import json
+
+        # Safety: if the LLM sends a stringified JSON, parse it
+        if isinstance(steps, str):
+            try:
+                steps = json.loads(steps)
+            except Exception:
+                return {"error": "steps must be a valid JSON array string or a list"}
+
+        if not isinstance(steps, list):
+            return {"error": "steps must be a list"}
 
         results = []
         for i, step in enumerate(steps):
+            if not isinstance(step, dict):
+                results.append({"step": i+1, "error": f"Invalid step format: {step}"})
+                continue
+
             tool_name = step.get("tool")
             args = step.get("args", {})
+            if not isinstance(args, dict):
+                args = {}
             
             tool = get_tool(tool_name)
             if not tool:
