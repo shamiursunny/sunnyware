@@ -5192,6 +5192,33 @@ function syncSelectUI(){
 
 
 
+
+/* Part 716: Library search & sort */
+let _libSearchQuery = "";
+let _libSortMode = "modified-desc";
+
+function onLibSearch(val) {
+  _libSearchQuery = (val || "").toLowerCase().trim();
+  renderLibrary();
+}
+
+function onLibSort(val) {
+  _libSortMode = val || "modified-desc";
+  renderLibrary();
+}
+
+function _sortLibraryItems(items) {
+  const mode = _libSortMode;
+  const copy = items.slice();
+  if (mode === "name-asc") copy.sort((a,b) => (a.name || "").localeCompare(b.name || ""));
+  else if (mode === "name-desc") copy.sort((a,b) => (b.name || "").localeCompare(a.name || ""));
+  else if (mode === "size-desc") copy.sort((a,b) => (b.size || 0) - (a.size || 0));
+  else if (mode === "size-asc") copy.sort((a,b) => (a.size || 0) - (b.size || 0));
+  else if (mode === "modified-asc") copy.sort((a,b) => new Date(a.modified || 0) - new Date(b.modified || 0));
+  else copy.sort((a,b) => new Date(b.modified || 0) - new Date(a.modified || 0));
+  return copy;
+}
+
 function getLibraryItems(kind){
   const k = kind || libKind;
   let items;
