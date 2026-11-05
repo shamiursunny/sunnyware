@@ -3826,3 +3826,16 @@ User: "Export sales.xlsx to CSV"
 Type in search box -> getLibraryItems filters by name
 Change sort dropdown -> getLibraryItems reorders
 No backend call needed — all client-side
+
+
+---
+
+# Part 717 Workflows
+
+## 1. Auto-Cleanup Configuration
+User clicks "⚙️ Cleanup" -> POST `/api/settings/cleanup` -> Saves `enabled` and `ttl_days` to `/data/cleanup_config.json`.
+On Space restart -> `fallback_cleanup` hook checks config -> deletes files older than `ttl_days` -> logs result.
+
+## 2. Tableau Field Editing
+User: "Update the tableau field 'Profit' to 'SUM(Sales) - SUM(Cost)' in workbook.twb"
+-> `edit_tableau_field(filename, field_name, new_value)` -> Reads XML, finds `<calculation caption="Profit">` -> updates `formula` attribute -> rewrites `.twb`.

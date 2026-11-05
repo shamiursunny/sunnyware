@@ -211,3 +211,10 @@ All tools accept `kind` (read) or `source_kind`/`target_kind` (export):
 
 ### Library Search + Sort
 Frontend search filters by name, sort dropdown handles name/size/modified.
+
+
+## Part 717 (ZIP + Cleanup + Tableau)
+
+- **ZIP**: `/api/{workspace|library|sandbox}/download-zip`
+- **Auto-Cleanup**: Managed via `GET/POST /api/settings/cleanup`. Deletes old files in `/data/sandbox`.
+- **Tableau Edit**: `edit_tableau_field` parses `.twb` XML and modifies `<calculation>` formulas.

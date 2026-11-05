@@ -3901,3 +3901,22 @@ me the exact git commands to commit + push both remotes."
 *Part 716 logged: 2026-11-05*
 
 ---
+
+
+---
+
+### Part 717 Update (2026-11-05): ZIP, Auto-Cleanup, Tableau Edit, Local Storage
+
+- **ZIP Download on All Tabs**:
+  - `/api/workspace/download-zip` and `/api/library/download-zip` added.
+  - Frontend `downloadLibZip()` routes to correct endpoint based on active tab.
+- **Library Local Disk Fallback (No Postgres)**:
+  - `/api/library/files` (Uploaded) now reads from `/data/uploads` if DB is offline.
+  - `save_file` and `delete_file` fully support local disk.
+- **Sandbox Auto-Cleanup**:
+  - New `sandbox_cleanup.py` (config + TTL logic).
+  - Runs automatically on startup (HF Space fallback hook).
+  - Settings UI (⚙️ Cleanup button) to toggle enabled/disabled, set custom TTL days, and force "Run Now".
+- **Tableau Editing**:
+  - New `edit_tableau_field` tool. Safely parses `.twb`/`.twbx` XML to update calculated field formulas, filters, and parameters.
+  - Added 88th tool to registry; fixed `_simplify_schema` in Jarvis to handle full JSON schemas without crashing.

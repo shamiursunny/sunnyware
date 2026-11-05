@@ -6479,3 +6479,22 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - .xlsm macros (VBA) — only data is read, macros are ignored
 - Tableau calculated field editing — read-only
 - Power BI report editing — not supported
+
+
+---
+
+# Part 717 Handoff: ZIP, Cleanup, Tableau Editing
+
+## New Features
+- **ZIP Downloads**: Workspace, Uploaded, and Sandbox tabs all have functioning ZIP downloads. AI Generated routes to Workspace ZIP.
+- **Local Fallback**: `library.py` writes to `/data/uploads` if `NEON_DATABASE_URL` is missing. Dates are mapped to `modified` for correct UI rendering.
+- **Auto-Cleanup**: Background task `sandbox_cleanup.py` clears sandbox files based on `cleanup_config.json` (enabled, ttl_days).
+- **Tableau XML Editing**: `edit_tableau_field` tool allows AI to modify `.twb` calculated fields, filters, and parameters.
+
+## Changes
+- `edit_tableau_field.py`: No `BaseTool` import, custom `parameters` schema.
+- `jarvis_agent.py`: `_simplify_schema` now safely handles full JSON schemas (dict objects with "properties" key).
+- `main.py`: Startup hooks for `run_cleanup()`.
+
+## Next Steps
+- PBIX editing (requires proprietary SDK, still unsupported).
