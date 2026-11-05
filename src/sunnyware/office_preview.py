@@ -9,6 +9,22 @@ def parse_docx(path: Path) -> dict:
         from docx import Document
     except ImportError:
         return {"error": "python-docx not installed"}
+    # Detect if the file is actually a ZIP (docx/pptx are ZIP)
+    import zipfile as _zip
+    _is_zip = False
+    try:
+        _is_zip = _zip.is_zipfile(str(path))
+    except Exception:
+        pass
+    if not _is_zip:
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+            paragraphs = [{"text": line, "style": "plain"} for line in text.split("\n") if line.strip()]
+            return {"ok": True, "warning": "Not a valid DOCX package — showing raw text",
+                    "paragraphs": paragraphs, "tables": [],
+                    "paragraph_count": len(paragraphs), "table_count": 0}
+        except Exception as e:
+            return {"error": f"file is not a valid docx and cannot be read as text: {e}"}
     try:
         doc = Document(str(path))
         paragraphs = []
@@ -36,6 +52,20 @@ def parse_pptx(path: Path) -> dict:
         from pptx import Presentation
     except ImportError:
         return {"error": "python-pptx not installed"}
+    import zipfile as _zip
+    _is_zip = False
+    try:
+        _is_zip = _zip.is_zipfile(str(path))
+    except Exception:
+        pass
+    if not _is_zip:
+        try:
+            text = path.read_text(encoding="utf-8", errors="replace")
+            return {"ok": True, "warning": "Not a valid PPTX package — showing raw text",
+                    "slides": [{"index": 1, "title": path.name, "texts": text.split("\n")}],
+                    "slide_count": 1}
+        except Exception as e:
+            return {"error": f"file is not a valid pptx and cannot be read as text: {e}"}
     try:
         prs = Presentation(str(path))
         slides = []

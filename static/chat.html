@@ -5513,6 +5513,7 @@ function renderFFVFile() {
           if (xd.error) { body.innerHTML = '<div class="ffv-error">' + esc(xd.error) + '</div>'; return; }
           if (isDocx) {
             let html = '';
+            if (xd.warning) html += '<div class="ffv-note" style="background:rgba(245,166,35,0.15);padding:10px 14px;border-radius:6px;color:#f5a623;margin-bottom:14px;font-size:12px;">⚠ ' + esc(xd.warning) + '</div>';
             if (xd.paragraphs && xd.paragraphs.length) {
               html += '<div class="ffv-docx">';
               xd.paragraphs.forEach(pp => { html += '<p class="ffv-docx-p">' + esc(pp.text) + '</p>'; });
@@ -5531,6 +5532,7 @@ function renderFFVFile() {
             body.innerHTML = html || '<div class="ffv-empty">Empty document</div>';
           } else if (isPptx) {
             let html = '';
+            if (xd.warning) html += '<div class="ffv-note" style="background:rgba(245,166,35,0.15);padding:10px 14px;border-radius:6px;color:#f5a623;margin-bottom:14px;font-size:12px;">⚠ ' + esc(xd.warning) + '</div>';
             (xd.slides || []).forEach(s => {
               html += '<div class="ffv-slide">';
               html += '<div class="ffv-slide-num">Slide ' + s.index + '</div>';
