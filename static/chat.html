@@ -1441,6 +1441,32 @@ body.light-mode .code-head {
 }
 </style>
 
+<style>
+/* Part 711: Full-screen file viewer */
+#fullscreenFileViewer { display: none; position: fixed; inset: 0; background: rgba(10,12,18,0.98); z-index: 99999; flex-direction: column; color: #e7ecf3; }
+#fullscreenFileViewer.open { display: flex; }
+#ffvHeader { display: flex; align-items: center; gap: 12px; padding: 12px 20px; border-bottom: 1px solid #232a38; background: #12161f; flex-shrink: 0; flex-wrap: wrap; }
+#ffvName { font-weight: 600; font-size: 14px; }
+#ffvMeta { font-size: 11px; color: #8892a6; }
+#ffvCounter { font-size: 12px; color: #8892a6; min-width: 50px; text-align: center; }
+#fullscreenFileViewer .ffv-btn { padding: 6px 12px; border-radius: 6px; border: 1px solid #232a38; background: #1a1d26; color: #e7ecf3; cursor: pointer; font-size: 13px; }
+#fullscreenFileViewer .ffv-btn:hover { background: #252a37; }
+#fullscreenFileViewer .ffv-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+#ffvClose { padding: 6px 10px !important; font-weight: bold; }
+#ffvBody { flex: 1; overflow: auto; padding: 24px; }
+.ffv-pre { margin: 0; padding: 20px; background: #0d0d0f; border-radius: 8px; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; color: #e6e6ea; border: 1px solid #2a2a2e; }
+.ffv-img-wrap { display: flex; justify-content: center; align-items: center; min-height: 100%; }
+.ffv-img-wrap img { max-width: 100%; max-height: calc(100vh - 120px); object-fit: contain; border-radius: 6px; }
+.ffv-pdf { width: 100%; height: calc(100vh - 120px); border: none; border-radius: 6px; background: #fff; }
+.ffv-table-wrap { overflow: auto; border-radius: 8px; border: 1px solid #232a38; }
+.ffv-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.ffv-table th { background: #1a1d26; padding: 8px 12px; text-align: left; font-weight: 600; border-bottom: 1px solid #232a38; position: sticky; top: 0; }
+.ffv-table td { padding: 6px 12px; border-bottom: 1px solid #1f222b; }
+.ffv-table tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+.ffv-loading, .ffv-error, .ffv-empty, .ffv-note { padding: 20px; text-align: center; color: #8892a6; font-size: 13px; }
+.ffv-error { color: #ef5b5b; }
+</style>
+
   <!-- Part 682: Syntax highlighting -->
   <link rel="stylesheet" href="/static/github-dark.min.css">
   <script src="/static/highlight.min.js"></script>
@@ -1691,6 +1717,7 @@ body.light-mode .code-head {
 
           </button>
 
+          <button class="btn btn-outline btn-sm hidden" id="downloadZipBtn" title="Download all Sandbox files as ZIP">Download ZIP</button>
           <input type="file" id="libFileInput" multiple hidden accept="*/*">
 
         </div>
@@ -1850,6 +1877,22 @@ body.light-mode .code-head {
       <button class="btn btn-outline" id="sfmClose" style="margin-left:auto">Close</button>
     </div>
   </div>
+</div>
+
+<!-- Part 711: Full-screen file viewer -->
+<div id="fullscreenFileViewer">
+  <div id="ffvHeader">
+    <button class="ffv-btn" id="ffvClose" title="Close (Esc)">✕</button>
+    <div style="flex:1;min-width:0;">
+      <div id="ffvName"></div>
+      <div id="ffvMeta"></div>
+    </div>
+    <button class="ffv-btn" id="ffvPrev" title="Previous (←)">←</button>
+    <span id="ffvCounter">—</span>
+    <button class="ffv-btn" id="ffvNext" title="Next (→)">→</button>
+    <button class="ffv-btn" id="ffvDownload" title="Download this file">Download</button>
+  </div>
+  <div id="ffvBody"></div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -5046,6 +5089,7 @@ document.querySelectorAll('.lib-tab').forEach(t=>t.onclick=()=>{
   libKind=t.dataset.kind; exitSelectMode(); 
   if(libKind==='workspace' || libKind==='generated') { loadWorkspaceFiles().then(()=>renderLibrary()); }
   else if(libKind==='sandbox') { loadSandboxFiles().then(()=>renderLibrary()); }
+  const _dzb = document.getElementById('downloadZipBtn'); if(_dzb) _dzb.classList.toggle('hidden', libKind !== 'sandbox' || selectMode);
   else { renderLibrary(); }
 
 });
@@ -5107,6 +5151,7 @@ function syncSelectUI(){
   $('#cancelSelectBtn').classList.toggle('hidden',!selectMode);
 
   $('#uploadBtn').classList.toggle('hidden',selectMode);
+  const _dzb2 = document.getElementById('downloadZipBtn'); if(_dzb2) _dzb2.classList.toggle('hidden', libKind !== 'sandbox' || selectMode);
 
 }
 
@@ -5206,6 +5251,7 @@ function renderLibrary(){
 
       if(e.target.closest('.fh-dl')){
         if(_isSandbox) { downloadSandboxFile(f.name); }
+        else if(libKind === 'workspace' || libKind === 'generated') { downloadWorkspaceFile(f.name); }
         else { downloadFile(f); }
         return;
       }
@@ -5216,9 +5262,9 @@ function renderLibrary(){
         return;
       }
 
-      if(_isSandbox) { openSandboxFileModal(f.name); return; }
-
-      openFileModal(f.id);
+      const _items = getLibraryItems(libKind);
+      const _idx = _items.findIndex(x => x.name === f.name || x.id === f.id);
+      openFullscreenFileViewer(libKind, _idx >= 0 ? _idx : 0);
 
     };
 
@@ -5299,6 +5345,168 @@ async function deleteSandboxFile(name) {
     toast('Delete failed: ' + e.message);
   }
 }
+
+/* Part 711: Universal full-screen file viewer */
+let _ffvState = { kind: 'sandbox', index: 0, items: [] };
+
+function openFullscreenFileViewer(kind, index) {
+  const items = getLibraryItems(kind);
+  if (!items.length) { toast('No files to view'); return; }
+  _ffvState = { kind, index: Math.max(0, Math.min(index, items.length - 1)), items };
+  document.getElementById('fullscreenFileViewer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  renderFFVFile();
+}
+
+function renderFFVFile() {
+  const { kind, index, items } = _ffvState;
+  const f = items[index];
+  if (!f) return;
+  document.getElementById('ffvName').textContent = f.name || '(unnamed)';
+  document.getElementById('ffvMeta').textContent = (f.type || '').toUpperCase() + ' · ' + fmtSize(f.size || 0);
+  document.getElementById('ffvCounter').textContent = (index + 1) + ' / ' + items.length;
+  document.getElementById('ffvPrev').disabled = index === 0;
+  document.getElementById('ffvNext').disabled = index === items.length - 1;
+  const body = document.getElementById('ffvBody');
+  body.innerHTML = '<div class="ffv-loading">Loading…</div>';
+  const ext = (f.name || '').split('.').pop().toLowerCase();
+  const isImage = ['png','jpg','jpeg','gif','webp','svg','bmp'].includes(ext);
+  const isPdf = ext === 'pdf';
+  const isCsv = ext === 'csv' || ext === 'tsv';
+  const isJson = ext === 'json';
+  (async () => {
+    let content = '', type = 'text', mime = '';
+    try {
+      if (kind === 'sandbox') {
+        const r = await fetch('/api/sandbox/file/' + encodeURIComponent(f.name));
+        const d = await r.json();
+        if (d.error) { body.innerHTML = '<div class="ffv-error">' + esc(d.error) + '</div>'; return; }
+        content = d.content || ''; type = d.type || 'text'; mime = d.mime || '';
+      } else if (kind === 'workspace' || kind === 'generated') {
+        const r = await fetch('/api/workspace/file/' + encodeURIComponent(f.name));
+        const d = await r.json();
+        if (d.error) { body.innerHTML = '<div class="ffv-error">' + esc(d.error) + '</div>'; return; }
+        content = d.content || ''; type = d.type || 'text'; mime = d.mime || '';
+      } else {
+        const fullFile = files.find(x => x.id === f.id || x.name === f.name);
+        if (!fullFile) { body.innerHTML = '<div class="ffv-error">File not found in cache</div>'; return; }
+        content = fullFile.textContent || fullFile.dataUrl || '';
+        if (isImage) { type = 'image'; content = fullFile.dataUrl || content; }
+        if (isPdf) { type = 'pdf'; content = fullFile.dataUrl || content; }
+      }
+      if (type === 'image' || isImage) {
+        let src = content;
+        if (mime && !content.startsWith('data:')) src = 'data:' + mime + ';base64,' + content;
+        body.innerHTML = '<div class="ffv-img-wrap"><img src="' + esc(src) + '" alt=""></div>';
+      } else if (type === 'pdf' || isPdf) {
+        let src = content;
+        if (!content.startsWith('data:')) src = 'data:application/pdf;base64,' + content;
+        body.innerHTML = '<iframe class="ffv-pdf" src="' + esc(src) + '"></iframe>';
+      } else if (isCsv) {
+        body.innerHTML = renderCsvAsTable(content);
+      } else if (isJson) {
+        try { body.innerHTML = '<pre class="ffv-pre">' + esc(JSON.stringify(JSON.parse(content), null, 2)) + '</pre>'; }
+        catch(e) { body.innerHTML = '<pre class="ffv-pre">' + esc(content) + '</pre>'; }
+      } else {
+        body.innerHTML = '<pre class="ffv-pre">' + esc(content) + '</pre>';
+      }
+    } catch(e) {
+      body.innerHTML = '<div class="ffv-error">Error: ' + esc(e.message) + '</div>';
+    }
+  })();
+}
+
+function renderCsvAsTable(csv) {
+  const lines = (csv || '').split(/\r?\n/).filter(l => l.trim());
+  if (!lines.length) return '<div class="ffv-empty">Empty CSV</div>';
+  const delim = lines[0].includes('\t') ? '\t' : ',';
+  const rows = lines.slice(0, 500).map(l => l.split(delim));
+  let html = '<div class="ffv-table-wrap"><table class="ffv-table"><thead><tr>';
+  rows[0].forEach(c => html += '<th>' + esc(c) + '</th>');
+  html += '</tr></thead><tbody>';
+  rows.slice(1).forEach(r => {
+    html += '<tr>';
+    r.forEach(c => html += '<td>' + esc(c) + '</td>');
+    html += '</tr>';
+  });
+  html += '</tbody></table></div>';
+  if (lines.length > 500) html += '<div class="ffv-note">Showing first 500 of ' + lines.length + ' rows.</div>';
+  return html;
+}
+
+function ffvNav(dir) {
+  const ni = _ffvState.index + dir;
+  if (ni < 0 || ni >= _ffvState.items.length) return;
+  _ffvState.index = ni;
+  renderFFVFile();
+}
+
+function closeFullscreenFileViewer() {
+  document.getElementById('fullscreenFileViewer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', (e) => {
+  const v = document.getElementById('fullscreenFileViewer');
+  if (!v || !v.classList.contains('open')) return;
+  if (e.key === 'Escape') closeFullscreenFileViewer();
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); ffvNav(-1); }
+  else if (e.key === 'ArrowRight') { e.preventDefault(); ffvNav(1); }
+});
+
+async function downloadWorkspaceFile(name) {
+  try {
+    const r = await fetch('/api/workspace/file/' + encodeURIComponent(name));
+    const d = await r.json();
+    if (d.error) { toast('Download failed: ' + d.error); return; }
+    if (d.type === 'image' || d.type === 'pdf') {
+      const byteString = atob(d.content);
+      const bytes = new Uint8Array(byteString.length);
+      for (let i = 0; i < byteString.length; i++) bytes[i] = byteString.charCodeAt(i);
+      download(name, new Blob([bytes], {type: d.mime}));
+    } else {
+      download(name, d.content, 'text/plain');
+    }
+    toast('Downloaded ' + name);
+  } catch(e) { toast('Download failed: ' + e.message); }
+}
+
+async function downloadCurrentFFVFile() {
+  const { kind, index, items } = _ffvState;
+  const f = items[index];
+  if (!f) return;
+  if (kind === 'sandbox') { downloadSandboxFile(f.name); return; }
+  if (kind === 'workspace' || kind === 'generated') { await downloadWorkspaceFile(f.name); return; }
+  const fullFile = files.find(x => x.id === f.id || x.name === f.name);
+  if (fullFile) downloadFile(fullFile);
+}
+
+async function downloadSandboxZip() {
+  try {
+    const r = await fetch('/api/sandbox/download-zip');
+    if (!r.ok) { toast('ZIP download failed'); return; }
+    const blob = await r.blob();
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'sandbox-' + new Date().toISOString().slice(0, 10) + '.zip';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast('Downloaded Sandbox ZIP');
+  } catch(e) { toast('ZIP failed: ' + e.message); }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  const closeBtn = document.getElementById('ffvClose');
+  if (closeBtn) closeBtn.addEventListener('click', closeFullscreenFileViewer);
+  const prevBtn = document.getElementById('ffvPrev');
+  if (prevBtn) prevBtn.addEventListener('click', () => ffvNav(-1));
+  const nextBtn = document.getElementById('ffvNext');
+  if (nextBtn) nextBtn.addEventListener('click', () => ffvNav(1));
+  const dlBtn = document.getElementById('ffvDownload');
+  if (dlBtn) dlBtn.addEventListener('click', downloadCurrentFFVFile);
+  const zbtn = document.getElementById('downloadZipBtn');
+  if (zbtn) zbtn.addEventListener('click', downloadSandboxZip);
+});
 
 function openFileModal(id){
 
