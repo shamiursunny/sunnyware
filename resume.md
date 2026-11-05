@@ -3954,3 +3954,22 @@ me the exact git commands to commit + push both remotes."
   - Modal with inputs for Groq, OpenAI, Gemini, and Hugging Face keys.
   - Keys are saved to `/data/settings.json` and applied to `os.environ` on startup.
   - `settings_manager.py` handles reading/writing and applying keys.
+
+
+---
+
+### Part 720 Update (2026-11-06): Web Scraping, Reports, Planner, External DB, Voice
+
+- **New Tools (98 total)**:
+  - `scrape_webpage`: Scrape tables from a URL and save as CSV.
+  - `generate_report`: Create a formatted HTML report from any CSV/Excel file.
+  - `execute_plan`: Execute a multi-step plan by orchestrating multiple tools in sequence.
+  - `query_external_db`: Query external PostgreSQL/MySQL databases via SQLAlchemy.
+- **Voice Interface**:
+  - STT (Speech-to-Text) using the browser's native Web Speech API.
+  - Mic button next to the send arrow to capture voice input.
+- **Orchestrator Fixes**:
+  - Safely handle stringified JSON from Jarvis planner.
+  - Correctly unpack `**tool_args` for all tools.
+  - Inject `MULTI_STEP_PLANNING` instructions into both `compact_prompt` and `native_prompt`.
+- **Dependencies**: Added `sqlalchemy`, `psycopg2-binary`, `pymysql`, `lxml`, `html5lib`, `beautifulsoup4`.

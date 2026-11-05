@@ -6546,3 +6546,27 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 
 ## Startup
 - `settings_manager.apply_settings()` called in both `lifespan` and fallback block.
+
+
+---
+
+# Part 720 Handoff: Scraping, Reports, Planner, External DB, Voice
+
+## New Tools
+- `report_scrape_tools.py`: `ScrapeWebpageTool`, `GenerateReportTool`.
+- `plan_tool.py`: `ExecutePlanTool` (orchestrates a JSON plan of tool calls).
+- `external_db_tool.py`: `QueryExternalDbTool` (Postgres/MySQL via SQLAlchemy).
+
+## Orchestrator Fixes
+- `_jarvis_result` is safely converted from string to dict via `json.loads`.
+- `tool.run(**tool_args)` is used to unpack dict arguments correctly.
+
+## Prompt Injection
+- `MULTI_STEP_PLANNING` string defined in `prompts.py` and appended to both `compact_prompt` and `native_prompt`.
+
+## Voice Interface
+- `static/chat.html`: `toggleVoiceInput()` uses `window.SpeechRecognition`.
+- Mic button injected with HTML entity `&#127908;`.
+
+## Dependencies Added
+- `sqlalchemy`, `psycopg2-binary`, `pymysql`, `lxml`, `html5lib`, `beautifulsoup4`.

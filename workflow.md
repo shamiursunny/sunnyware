@@ -3870,3 +3870,27 @@ User: "Run a SQL query on sales.csv to find the top 5 rows by Revenue"
 
 ## 4. API Key Settings
 User clicks "Settings" -> `openSettingsModal()` -> loads keys via `GET /api/settings/keys` -> user saves -> `POST /api/settings/keys` -> saved to `/data/settings.json`.
+
+
+---
+
+# Part 720 Workflows
+
+## 1. Web Scraping
+User: "Scrape the table from https://example.com and save as data.csv"
+-> `scrape_webpage(url, output_filename)` -> returns CSV in Sandbox.
+
+## 2. HTML Report
+User: "Generate a report from data.csv called 'Sales Summary'"
+-> `generate_report(filename, title, output_filename)` -> returns HTML in Sandbox.
+
+## 3. Multi-Step Planner
+User: "Scrape GDP data, clean it, and generate a report"
+-> `execute_plan(steps=[{scrape_webpage}, {clean_dataset}, {generate_report}])` -> runs all sequentially.
+
+## 4. External Database
+User: "Query postgresql://user:pass@host/db for all users"
+-> `query_external_db(connection_string, sql_query, db_type)` -> returns rows.
+
+## 5. Voice Input
+User clicks the mic button -> browser captures speech -> text inserted into the input field.

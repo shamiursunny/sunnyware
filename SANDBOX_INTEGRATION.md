@@ -231,3 +231,12 @@ Frontend search filters by name, sort dropdown handles name/size/modified.
 
 - **Data Tools**: `generate_chart`, `clean_dataset`, `query_sqlite`.
 - **Settings**: `GET/POST /api/settings/keys`. Keys stored in `/data/settings.json` and applied on startup via `settings_manager.apply_settings()`.
+
+
+## Part 720 (Scraper + Report + Planner + External DB + Voice)
+
+- **Scraper**: `scrape_webpage` fetches tables via `pd.read_html`.
+- **Report**: `generate_report` produces styled HTML in the Sandbox.
+- **Planner**: `execute_plan` runs multiple tools sequentially.
+- **External DB**: `query_external_db` uses SQLAlchemy to query Postgres/MySQL.
+- **Voice**: `toggleVoiceInput()` uses the Web Speech API (no backend dependency).
