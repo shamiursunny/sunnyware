@@ -1722,6 +1722,15 @@ body.light-mode .code-head {
 
           <div class="lib-spacer"></div>
 
+          <input type="text" id="libSearchInput" placeholder="Search files..." oninput="onLibSearch(this.value)" style="padding:6px 12px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;min-width:180px;outline:none;">
+          <select id="libSortSelect" onchange="onLibSort(this.value)" style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:12px;outline:none;">
+            <option value="modified-desc">Newest first</option>
+            <option value="modified-asc">Oldest first</option>
+            <option value="name-asc">Name A→Z</option>
+            <option value="name-desc">Name Z→A</option>
+            <option value="size-desc">Largest first</option>
+            <option value="size-asc">Smallest first</option>
+          </select>
           <button class="btn btn-outline btn-sm" id="selectToggle">Select</button>
 
           <button class="btn btn-outline btn-sm hidden" id="selectAllBtn">Select all</button>
@@ -5199,7 +5208,12 @@ function getLibraryItems(kind){
     items = files.filter(f => f.kind === k);
   }
   // Part 710: ensure every item has a stable `id` (sandbox/workspace items only have `name`)
-  return items.map(f => f.id ? f : {...f, id: f.name || ''});
+  items = items.map(f => f.id ? f : {...f, id: f.name || ''});
+  // Part 716: apply search filter + sort
+  if (_libSearchQuery) {
+    items = items.filter(f => (f.name || "").toLowerCase().includes(_libSearchQuery));
+  }
+  return _sortLibraryItems(items);
 }
 
 function renderLibrary(){
