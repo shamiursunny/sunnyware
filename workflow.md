@@ -3706,3 +3706,47 @@ out = sandbox_path('real.docx')
 doc.save(out)
 result = 'SAVED: ' + out
 -> whitelist allows docx, sandbox_path writes to /data/sandbox/
+
+
+---
+
+# Legacy Office Workflows (Part 714)
+
+## 1. Opening a .doc File
+Click legacy_test.doc -> isDocx = true -> GET /api/{kind}/file/test.doc/office-preview
+-> parse_doc() called
+- Step 1: LibreOffice headless converts .doc -> .docx
+- Step 2: parse_docx() extracts paragraphs + tables
+- Step 3: Returns {paragraphs, tables, engine: 'libreoffice'}
+- Frontend renders as serif paragraphs
+
+## 2. .doc Fallback (LibreOffice fails)
+- If LO conversion fails -> fallback to antiword
+- antiword outputs plain text
+- Returns {paragraphs: [...], warning: 'LibreOffice unavailable...', engine: 'antiword'}
+- Frontend shows warning banner + text
+
+## 3. Opening a .ppt File
+Click real_test.ppt -> isPptx = true -> GET /api/{kind}/file/test.ppt/office-preview
+-> parse_ppt() called
+- Step 1: LibreOffice converts .ppt -> .pptx
+- Step 2: parse_pptx() extracts slides
+- Step 3: Returns {slides: [{index, title, texts}], engine: 'libreoffice'}
+- Frontend renders slide cards
+
+## 4. .ppt Fallback (LibreOffice fails)
+- If LO fails -> fallback to catppt
+- catppt outputs plain text
+- Returns {slides: [{texts: [...]}], warning: 'LibreOffice unavailable...', engine: 'catppt'}
+
+## 5. Testing Fallback Chain
+- Create binary_garbage.doc (random bytes, .doc extension)
+- LibreOffice fails (not valid format)
+- antiword runs, rejects with 'not a Word Document'
+- Returns error: 'antiword failed: ... is not a Word Document'
+- Frontend shows red error message
+
+## 6. Deployment Requirement
+- Factory rebuild required (not Restart) for packages.txt to install LibreOffice
+- Build adds ~350MB to Docker image
+- Future restarts/redeploys use cached image - instant startup

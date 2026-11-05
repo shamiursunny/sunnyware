@@ -126,3 +126,31 @@ Header shows - 100% + 1:1 for image files.
 
 ### Jump Dropdown
 Header select allows jumping directly to any file in current tab.
+
+
+## Legacy Office (Part 714)
+
+### Supported Legacy Formats
+- .doc (Word 97-2003) -> LibreOffice conversion -> paragraphs + tables
+  - Fallback: antiword (text-only) if LibreOffice fails
+- .ppt (PowerPoint 97-2003) -> LibreOffice conversion -> slide cards
+  - Fallback: catppt (text-only) if LibreOffice fails
+
+### System Packages (packages.txt)
+- libreoffice-writer - .doc -> .docx conversion
+- libreoffice-impress - .ppt -> .pptx conversion
+- antiword - .doc text fallback
+- catdoc - .doc + .ppt text fallback (provides catppt)
+
+### API Endpoints
+Reuses /api/{workspace|sandbox}/file/{name}/office-preview - the dispatcher routes by extension:
+- .doc -> parse_doc()
+- .ppt -> parse_ppt()
+
+### Deployment
+Requires Factory rebuild (not Restart) to install the ~350MB of packages. After build, LibreOffice is baked into the Docker image - future restarts are instant.
+
+### Fallback Behavior
+- LibreOffice is tried first - provides full formatting (headings, tables, lists)
+- If LO fails (binary corruption, incompatible format) -> antiword/catppt (text-only with warning banner)
+- If both fail -> clean error message to user

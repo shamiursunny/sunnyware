@@ -3815,3 +3815,24 @@ me the exact git commands to commit + push both remotes."
 *Part 713 logged: 2026-11-05*
 
 ---
+
+
+---
+
+### Part 714 Update (2026-11-05): Legacy .doc/.ppt Support via LibreOffice + Fallback
+
+- **packages.txt**: New file installing `libreoffice-writer`, `libreoffice-impress`, `antiword`, `catdoc` at build time (no reinstall on restart).
+- **office_preview.py**: New `_libreoffice_convert()`, `parse_doc()`, `parse_ppt()` functions.
+  - `.doc` → LibreOffice conversion to `.docx` → parse_docx; fallback to antiword (text-only) if LO fails
+  - `.ppt` → LibreOffice conversion to `.pptx` → parse_pptx; fallback to catppt (text-only) if LO fails
+- **Dispatcher** (routes/library.py): Extended to route `.doc`/`.ppt` to new parsers.
+- **Frontend** (chat.html): `isDocx` now includes `ext === 'doc'`; `isPptx` includes `ext === 'ppt'`.
+- **Verified behavior**:
+  - `legacy_test.doc` (text-renamed .doc) → LibreOffice succeeds → 3 paragraphs
+  - `real_test.ppt` (real PPT binary) → LibreOffice succeeds → slide cards
+  - `binary_garbage.doc` (random binary) → LO fails → antiword rejects → clean error message
+- **Deployment note**: This requires a **Factory rebuild** (not just Restart) to install the system packages. Future restarts are instant.
+
+*Part 714 logged: 2026-11-05*
+
+---

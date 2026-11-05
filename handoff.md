@@ -6353,3 +6353,45 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - .doc/.ppt via libreoffice
 - Tableau calculated fields + parameters
 - .pbix report layout parsing
+
+
+---
+
+# Legacy Office Handoff (Part 714)
+
+## New Files
+- packages.txt - system packages: libreoffice-writer, libreoffice-impress, antiword, catdoc
+
+## New Backend Functions (office_preview.py)
+- _libreoffice_convert(input_path, output_ext) - subprocess wrapper for soffice --headless
+- parse_doc(path) - LO convert docx -> parse_docx, fallback antiword
+- parse_ppt(path) - LO convert pptx -> parse_pptx, fallback catppt
+
+## Dispatcher Extension (routes/library.py)
+- _office_preview_dispatch now handles .doc and .ppt
+
+## Frontend (chat.html)
+- isDocx = ext === 'docx' || ext === 'doc'
+- isPptx = ext === 'pptx' || ext === 'ppt'
+
+## Fallback Chain Design
+1. LibreOffice tried first (full formatting)
+2. If LO fails -> antiword/catppt (text-only, warning banner shown)
+3. If both fail -> clean error message surfaced to user
+
+## Known Limitations
+- LibreOffice is lenient (accepts text-renamed .doc), so antiword rarely triggers
+- Binary garbage produces 'not a Word Document' from antiword (as expected)
+- Legacy .doc/.ppt from Office 2003 and earlier work best
+- No rendering of advanced formatting (charts, SmartArt)
+- Antiword/catppt are text-only - formatting is lost in fallback
+
+## Deployment Notes
+- Must use Factory rebuild for packages.txt to take effect (not just Restart)
+- Once built, LibreOffice is baked into the image - future restarts are instant
+- Build time increases by ~3-5 min on rebuild
+
+## Next Steps
+- Consider caching LO conversions (temp file reuse)
+- Support .xls legacy Excel via LibreOffice
+- .doc with complex formatting -> test LO output quality
