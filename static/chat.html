@@ -5753,7 +5753,9 @@ async function downloadLibZip() {
         label = 'workspace';
     }
 
-    const r = await fetch(endpoint);
+        const sel = Array.from(document.querySelectorAll('input[type=checkbox]:checked')).map(c => c.value).filter(v => v);
+    const qs = sel.length > 0 ? '?files=' + encodeURIComponent(sel.join(',')) : '';
+    const r = await fetch(endpoint + qs);
     if (!r.ok) {
         const text = await r.text();
         toast('ZIP download failed (HTTP ' + r.status + ')');
