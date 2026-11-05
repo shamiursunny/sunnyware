@@ -1688,7 +1688,7 @@ body.light-mode .code-head {
 
           </button>
 
-          <input type="file" id="libFileInput" multiple hidden>
+          <input type="file" id="libFileInput" multiple hidden accept="*/*">
 
         </div>
 
@@ -1733,7 +1733,7 @@ body.light-mode .code-head {
           <button class="icon-btn" id="attachBtn" title="Attach files (saved to Library)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/></svg></button>
           <button class="icon-btn" id="docsBtn" title="Manage uploaded documents"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></button>
 
-          <input type="file" id="fileInput" multiple hidden>
+          <input type="file" id="fileInput" multiple hidden accept="*/*">
 
           <button class="icon-btn" id="micBtn" title="Voice input"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8"/></svg></button>
 
@@ -1790,6 +1790,17 @@ body.light-mode .code-head {
 </div>
 
 
+
+<!-- Tool Detail Modal -->
+<div class="modal-overlay" id="toolDetailModal">
+  <div class="modal" style="max-width:600px">
+    <h3 id="toolDetailTitle" style="margin-bottom:12px;">Tool Result</h3>
+    <pre id="toolDetailContent" style="white-space:pre-wrap; font-family:monospace; font-size:13px; background:var(--bg); padding:12px; border-radius:8px; border:1px solid var(--border); max-height: 400px; overflow-y: auto;"></pre>
+    <div class="modal-actions" style="margin-top:16px;">
+      <button class="btn btn-outline" onclick="document.getElementById('toolDetailModal').classList.remove('open')">Close</button>
+    </div>
+  </div>
+</div>
 
 <!-- ============ FILE DETAIL MODAL ============ -->
 
@@ -4362,7 +4373,7 @@ function sunnyRenderToolPills(aiMsg) {
 
   return aiMsg.tools.map(t =>
 
-    '<div class="tool-pill '+(t.status==='done'?'done':'running')+' '+(t.name.includes('delegate')?'delegate':'')+'" style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--bg-tertiary);border-radius:99px;font-size:11.5px;margin:0 4px 4px 0;">' +
+    '<div class="tool-pill '+(t.status==='done'?'done':'running')+' '+(t.name.includes('delegate')?'delegate':'')+'" data-tool="'+esc(t.name)+'" data-result="'+esc(JSON.stringify(t.result || {}))+'" onclick="showToolDetail(this)" style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:var(--bg-tertiary);border-radius:99px;font-size:11.5px;margin:0 4px 4px 0; cursor:pointer;">' +
 
       '<span style="width:6px;height:6px;border-radius:50%;background:var(--'+(t.status==='done'?'success':'warn')+');"></span>' +
 
@@ -4427,6 +4438,14 @@ async function streamAI(chat, prompt) {
   // Part 602: compute attached files and show reading indicator
   const lastUserMsg = chat.messages.slice().reverse().find(m => m.role === 'user');
   const attachedFiles = (lastUserMsg && lastUserMsg.attachments ? lastUserMsg.attachments : []).map(id => files.find(f => f.id === id)).filter(Boolean);
+  
+  let fileContext = '';
+  attachedFiles.forEach(f => {
+    if (f.textContent) {
+      fileContext += `\n--- START OF FILE: ${f.name} ---\n${f.textContent}\n--- END OF FILE: ${f.name} ---\n`;
+    }
+  });
+  const finalPrompt = fileContext ? prompt + '\n\nAttached file contents:\n' + fileContext : prompt;
 
   const typing = document.createElement('div');
   typing.className = 'typing';
@@ -4803,6 +4822,19 @@ async function streamAI(chat, prompt) {
 
 
 
+function showToolDetail(el) {
+  const name = el.dataset.tool;
+  const result = el.dataset.result;
+  document.getElementById('toolDetailTitle').textContent = 'Tool: ' + name;
+  try {
+    const parsed = JSON.parse(result);
+    document.getElementById('toolDetailContent').textContent = JSON.stringify(parsed, null, 2);
+  } catch(e) {
+    document.getElementById('toolDetailContent').textContent = result;
+  }
+  document.getElementById('toolDetailModal').classList.add('open');
+}
+
 function branchFromMessage(chat, msgId) {
   const idx = chat.messages.findIndex(m => m.id === msgId);
   if (idx === -1) return;
@@ -5158,6 +5190,9 @@ $('#fileInput').onchange=e=>{
       const d = await r.json();
       if (d.ok) {
         const entry = { id: uid(), name: d.filename, type: fileTypeOf(f.name), kind: 'upload', size: f.size, date: new Date().toISOString(), mime: f.type||'application/octet-stream', rag: true };
+        if (f.size < 500 * 1024 && (f.type.startsWith('text/') || ['.txt','.md','.csv','.json','.py','.js','.html','.css'].some(ext => f.name.toLowerCase().endsWith(ext)))) {
+          try { entry.textContent = await f.text(); } catch(e) {}
+        }
         files.unshift(entry);
         saveAll();  // Persist the file so the chip survives refresh
         pendingAttach.push(entry.id);
@@ -5185,16 +5220,22 @@ let _forcedTool = '';
 let _allTools = [];
 
 async function loadToolsMenu() {
-  if (_allTools.length) return;
+  if (_allTools.length > 0) {
+    renderToolsMenu(_allTools);
+    return;
+  }
+  const list = document.getElementById('toolsList');
+  if (list) list.innerHTML = '<div style="padding:12px; text-align:center; color:var(--text-tertiary); font-size:12px;">Loading tools...</div>';
+  
   try {
     const res = await fetch('/api/tools');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
     const data = await res.json();
     _allTools = data.tools || [];
     renderToolsMenu(_allTools);
   } catch (e) {
     console.warn('Failed to load tools:', e);
-    const list = document.getElementById('toolsList');
-    if (list) list.innerHTML = '<div style="padding:12px;color:var(--danger);font-size:12px;">Failed to load tools</div>';
+    if (list) list.innerHTML = '<div style="padding:12px;color:var(--danger);font-size:12px;">Failed to load tools. Please check API key.</div>';
   }
 }
 
@@ -5249,7 +5290,9 @@ document.addEventListener('click', (e) => {
 $('#toolsBtn').onclick = (e) => {
   e.stopPropagation();
   const m = $('#toolsMenu');
-  m.style.display = m.style.display === 'none' ? 'block' : 'none';
+  const willOpen = m.style.display === 'none';
+  m.style.display = willOpen ? 'block' : 'none';
+  if (willOpen) loadToolsMenu();
 };
 document.addEventListener('click', () => {
   const m = $('#toolsMenu');
