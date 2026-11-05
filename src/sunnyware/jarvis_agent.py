@@ -129,6 +129,8 @@ async def select_tool_via_local_llm(prompt: str, tools: List[Dict], model_path: 
         timeout=300.0
     )
 
+    if not isinstance(result, dict):
+        result = {"ok": False, "error": f"LLM returned {type(result).__name__}: {str(result)[:200]}"}
     print(f"[jarvis] DEBUG Result: ok={result.get('ok')} content_len={len(result.get('content') or '')} error={result.get('error')}", flush=True)
     if not result.get("ok"):
         print(f"[jarvis] Local model failed: {result.get('error')}", flush=True)
