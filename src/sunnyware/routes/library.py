@@ -38,6 +38,20 @@ async def _ensure_table():
             CREATE INDEX IF NOT EXISTS idx_library_owner ON library_files(owner_key);
         """)
 
+@router.get("/api/settings/keys")
+async def get_keys():
+    from .. import settings_manager
+    return settings_manager.get_settings()
+
+@router.post("/api/settings/keys")
+async def save_keys(req: Request):
+    from .. import settings_manager
+    body = await req.json()
+    current = settings_manager.get_settings()
+    current.update(body)
+    settings_manager.save_settings(current)
+    return {"ok": True, "settings": current}
+
 @router.get("/api/settings/cleanup")
 async def get_cleanup_settings():
     from .. import sandbox_cleanup

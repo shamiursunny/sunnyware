@@ -70,6 +70,12 @@ async def _preload_local_task():
 
 @asynccontextmanager
 async def lifespan(app):
+    try:
+        from . import settings_manager
+        settings_manager.apply_settings()
+    except Exception:
+        pass
+
     # Run auto-cleanup on startup
     try:
         from . import sandbox_cleanup
@@ -344,6 +350,12 @@ except Exception:
 
 
 # FALLBACK: init state at import time (HF Spaces skips lifespan)
+try:
+    from . import settings_manager
+    settings_manager.apply_settings()
+except Exception:
+    pass
+
 try:
     from . import sandbox_cleanup
     res = sandbox_cleanup.run_cleanup()
