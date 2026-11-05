@@ -297,6 +297,8 @@ print(f"Mean: {df['value'].mean()}")"""
         
         if shortlist_schemas:
             res = await llm_chat(prompt, tools=shortlist_schemas, timeout=20.0)
+            if not isinstance(res, dict):
+                res = {}
             if res.get("tool_calls"):
                 tc = res["tool_calls"][0]
                 import json

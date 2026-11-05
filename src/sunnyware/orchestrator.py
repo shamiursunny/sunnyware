@@ -974,6 +974,8 @@ async def _run_agent_body(
 
         if not isinstance(result, dict):
             return {"error": f"Invalid response type: {type(result).__name__}"}
+        if not isinstance(result, dict):
+            result = {"ok": False, "error": f"Invalid response type: {type(result).__name__}"}
         if not result.get("ok"):
             return {
                 "ok": False,
