@@ -5374,6 +5374,7 @@ function renderFFVFile() {
   const isPdf = ext === 'pdf';
   const isCsv = ext === 'csv' || ext === 'tsv';
   const isJson = ext === 'json';
+  const isExcel = ext === 'xlsx' || ext === 'xls';
   (async () => {
     let content = '', type = 'text', mime = '';
     try {
@@ -5383,10 +5384,15 @@ function renderFFVFile() {
         if (d.error) { body.innerHTML = '<div class="ffv-error">' + esc(d.error) + '</div>'; return; }
         content = d.content || ''; type = d.type || 'text'; mime = d.mime || '';
       } else if (kind === 'workspace' || kind === 'generated') {
-        const r = await fetch('/api/workspace/file/' + encodeURIComponent(f.name));
-        const d = await r.json();
-        if (d.error) { body.innerHTML = '<div class="ffv-error">' + esc(d.error) + '</div>'; return; }
-        content = d.content || ''; type = d.type || 'text'; mime = d.mime || '';
+        if (isExcel) {
+          // handled below by excel_read tool
+          content = ''; type = 'text';
+        } else {
+          const r = await fetch('/api/workspace/file/' + encodeURIComponent(f.name));
+          const d = await r.json();
+          if (d.error) { body.innerHTML = '<div class="ffv-error">' + esc(d.error) + '</div>'; return; }
+          content = d.content || ''; type = d.type || 'text'; mime = d.mime || '';
+        }
       } else {
         const fullFile = files.find(x => x.id === f.id || x.name === f.name);
         if (!fullFile) { body.innerHTML = '<div class="ffv-error">File not found in cache</div>'; return; }
@@ -5402,6 +5408,40 @@ function renderFFVFile() {
         let src = content;
         if (!content.startsWith('data:')) src = 'data:application/pdf;base64,' + content;
         body.innerHTML = '<iframe class="ffv-pdf" src="' + esc(src) + '"></iframe>';
+      } else if (isExcel) {
+        body.innerHTML = '<div class="ffv-loading">Loading Excel preview…</div>';
+        try {
+          const xr = await fetch('/api/tools/excel_read', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({path: f.name})
+          });
+          const xd = await xr.json();
+          const sheets = xd.result && xd.result.sheets;
+          if (sheets && Object.keys(sheets).length) {
+            let html = '';
+            for (const [sheetName, sheetData] of Object.entries(sheets)) {
+              const headers = sheetData.headers || [];
+              const rows = sheetData.rows || [];
+              html += '<h3 style="color:#e7ecf3;margin:16px 0 8px;font-size:14px;">Sheet: ' + esc(sheetName) + '</h3>';
+              html += '<div class="ffv-table-wrap"><table class="ffv-table"><thead><tr>';
+              headers.forEach(h => html += '<th>' + esc(h) + '</th>');
+              html += '</tr></thead><tbody>';
+              rows.slice(0, 500).forEach(r => {
+                html += '<tr>';
+                headers.forEach(h => html += '<td>' + esc(String(r[h] != null ? r[h] : '')) + '</td>');
+                html += '</tr>';
+              });
+              html += '</tbody></table></div>';
+              if (rows.length > 500) html += '<div class="ffv-note">Showing first 500 of ' + rows.length + ' rows.</div>';
+            }
+            body.innerHTML = html;
+          } else {
+            body.innerHTML = '<div class="ffv-note">Excel preview unavailable. <a href="#" onclick="downloadCurrentFFVFile();return false;" style="color:#7c5cff;">Download the file</a> to open in Excel.</div>';
+          }
+        } catch (e) {
+          body.innerHTML = '<div class="ffv-error">Excel preview failed: ' + esc(e.message) + '</div>';
+        }
       } else if (isCsv) {
         body.innerHTML = renderCsvAsTable(content);
       } else if (isJson) {

@@ -182,6 +182,9 @@ async def get_sandbox_file(filename: str):
             mime = "image/svg+xml" if ext == ".svg" else f"image/{ext[1:]}"
             return {"ok": True, "name": name, "type": "image", "content": data,
                     "mime": mime, "size": target.stat().st_size}
+        if ext in (".xlsx", ".xls", ".docx", ".doc", ".pptx", ".ppt", ".zip", ".gz", ".tar"):
+            return {"ok": True, "name": name, "type": "binary", "size": target.stat().st_size,
+                    "content": f"Preview not available for {ext} files. Click Download."}
         content = target.read_text(encoding="utf-8", errors="replace")
         if len(content) > 500_000:
             content = content[:500_000] + "\n\n... (truncated)"
@@ -211,6 +214,9 @@ async def get_workspace_file(filename: str):
         if ext == ".pdf":
             data = base64.b64encode(target.read_bytes()).decode()
             return {"ok": True, "name": name, "type": "pdf", "content": data, "mime": "application/pdf", "size": size}
+        if ext in (".xlsx", ".xls", ".docx", ".doc", ".pptx", ".ppt", ".zip", ".gz", ".tar"):
+            return {"ok": True, "name": name, "type": "binary", "size": size,
+                    "content": f"Preview not available for {ext} files. Click Download."}
         content = target.read_text(encoding="utf-8", errors="replace")
         if len(content) > 500_000:
             content = content[:500_000] + "\n\n... (truncated)"
