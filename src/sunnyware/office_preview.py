@@ -193,47 +193,57 @@ def parse_pptx(path: Path) -> dict:
 
 # ── Part 715: Legacy .xls support via LibreOffice ──
 
+def _extract_sheets_from_xlsx(xlsx_path: Path) -> dict:
+    """Shared helper: extract sheets from an xlsx file via openpyxl."""
+    import openpyxl
+    wb = openpyxl.load_workbook(str(xlsx_path), data_only=True, read_only=True)
+    sheets = {}
+    for sheet_name in wb.sheetnames:
+        ws = wb[sheet_name]
+        rows_iter = ws.iter_rows(values_only=True)
+        try:
+            headers_row = next(rows_iter, None)
+        except StopIteration:
+            headers_row = None
+        if not headers_row:
+            sheets[sheet_name] = {"headers": [], "rows": []}
+            continue
+        headers = [str(h) if h is not None else f"col{i+1}" for i, h in enumerate(headers_row)]
+        rows = []
+        for r in rows_iter:
+            if all(c is None for c in r):
+                continue
+            row_dict = {}
+            for i, h in enumerate(headers):
+                row_dict[h] = r[i] if i < len(r) else None
+            rows.append(row_dict)
+        sheets[sheet_name] = {"headers": headers, "rows": rows[:2000]}
+    wb.close()
+    return sheets
+
+
 def parse_xls(path: Path) -> dict:
-    """Parse legacy .xls (Excel 97-2003) via LibreOffice -> openpyxl."""
+    """Parse .xls file. Handles both real XLS (BIFF) and XLSX-renamed-to-XLS."""
+    # Strategy: try direct openpyxl first (works if file is actually XLSX)
+    try:
+        sheets = _extract_sheets_from_xlsx(path)
+        return {"ok": True, "name": path.name, "sheets": sheets, "engine": "openpyxl-direct"}
+    except Exception as direct_err:
+        direct_error = f"{type(direct_err).__name__}: {str(direct_err)[:150]}"
+
+    # Fall back to LibreOffice conversion (for real legacy .xls files)
     try:
         converted = _libreoffice_convert(path, "xlsx")
     except FileNotFoundError:
-        return {"error": "LibreOffice (soffice) not installed"}
+        return {"error": f"File is not XLSX ({direct_error}); LibreOffice not installed"}
     except Exception as e:
-        return {"error": f"LibreOffice conversion failed: {type(e).__name__}: {e}"}
+        return {"error": f"File is not XLSX ({direct_error}); LibreOffice conversion failed: {type(e).__name__}: {str(e)[:150]}"}
 
     try:
-        import openpyxl
-    except ImportError:
-        return {"error": "openpyxl not installed"}
-
-    try:
-        wb = openpyxl.load_workbook(str(converted), data_only=True, read_only=True)
-        sheets = {}
-        for sheet_name in wb.sheetnames:
-            ws = wb[sheet_name]
-            rows_iter = ws.iter_rows(values_only=True)
-            try:
-                headers_row = next(rows_iter, None)
-            except StopIteration:
-                headers_row = None
-            if not headers_row:
-                sheets[sheet_name] = {"headers": [], "rows": []}
-                continue
-            headers = [str(h) if h is not None else f"col{i+1}" for i, h in enumerate(headers_row)]
-            rows = []
-            for r in rows_iter:
-                if all(c is None for c in r):
-                    continue
-                row_dict = {}
-                for i, h in enumerate(headers):
-                    row_dict[h] = r[i] if i < len(r) else None
-                rows.append(row_dict)
-            sheets[sheet_name] = {"headers": headers, "rows": rows[:2000]}
-        wb.close()
+        sheets = _extract_sheets_from_xlsx(converted)
         return {"ok": True, "name": path.name, "sheets": sheets, "engine": "libreoffice"}
     except Exception as e:
-        return {"error": f"xlsx parse failed: {type(e).__name__}: {e}"}
+        return {"error": f"Converted xlsx parse failed: {type(e).__name__}: {str(e)[:150]}"}
 
 
 
