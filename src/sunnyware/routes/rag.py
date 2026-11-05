@@ -114,7 +114,30 @@ async def rag_upload(
             {"error": f"extract failed: {type(e).__name__}: {e}"}, status_code=422
         )
     finally:
+        # ── Save a permanent copy to the workspace so file tools can read it ──
         if tmp_path and tmp_path.exists():
+            try:
+                from .. import paths as _paths
+                ws = _paths.workspace()
+                ws.mkdir(parents=True, exist_ok=True)
+                dest = ws / filename
+                # Avoid overwriting: add a numeric suffix if the file already exists
+                if dest.exists():
+                    stem = dest.stem
+                    suffix = dest.suffix
+                    counter = 1
+                    while dest.exists():
+                        dest = ws / f"{stem}_{counter}{suffix}"
+                        counter += 1
+                import shutil
+                shutil.copy2(tmp_path, dest)
+                # Also save the exact filename so tools can find it by the original name
+                orig_dest = ws / filename
+                if not orig_dest.exists():
+                    shutil.copy2(tmp_path, orig_dest)
+            except Exception as _save_err:
+                import logging
+                logging.getLogger(__name__).warning("Failed to save upload to workspace: %s", _save_err)
             try:
                 tmp_path.unlink()
             except Exception:
