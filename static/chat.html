@@ -5429,6 +5429,7 @@ function renderFFVFile() {
   const isCsv = ext === 'csv' || ext === 'tsv';
   const isJson = ext === 'json';
   const isExcel = ext === 'xlsx' || ext === 'xls';
+  const isLegacyXls = ext === 'xls';
   const isDocx = ext === 'docx' || ext === 'doc';
   const isPptx = ext === 'pptx' || ext === 'ppt';
   const isTwb = ext === 'twb';
@@ -5471,7 +5472,13 @@ function renderFFVFile() {
         body.innerHTML = '<div class="ffv-loading">Loading Excel preview…</div>';
         try {
           let sheets = null;
-          if (kind === 'sandbox') {
+          if (isLegacyXls) {
+            const _k = (kind === 'sandbox') ? 'sandbox' : 'workspace';
+            const xr = await fetch('/api/' + _k + '/file/' + encodeURIComponent(f.name) + '/office-preview');
+            const xd = await xr.json();
+            if (xd.error) { body.innerHTML = '<div class="ffv-error">' + esc(xd.error) + '</div>'; return; }
+            sheets = xd.sheets;
+          } else if (kind === 'sandbox') {
             const xr = await fetch('/api/sandbox/file/' + encodeURIComponent(f.name) + '/xlsx');
             const xd = await xr.json();
             sheets = xd.sheets;

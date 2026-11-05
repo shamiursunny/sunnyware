@@ -255,6 +255,7 @@ def _office_preview_dispatch(kind: str, filename: str):
     if ext == ".docx": return office_preview.parse_docx(target)
     if ext == ".ppt":  return office_preview.parse_ppt(target)
     if ext == ".pptx": return office_preview.parse_pptx(target)
+    if ext == ".xls":  return office_preview.parse_xls(target)
     if ext == ".twb":  return office_preview.parse_twb(target)
     if ext == ".twbx": return office_preview.parse_twbx(target)
     if ext == ".pbix": return office_preview.parse_pbix(target)

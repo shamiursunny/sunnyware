@@ -189,6 +189,54 @@ def parse_pptx(path: Path) -> dict:
         return {"error": f"pptx parse failed: {type(e).__name__}: {e}"}
 
 
+
+
+# ── Part 715: Legacy .xls support via LibreOffice ──
+
+def parse_xls(path: Path) -> dict:
+    """Parse legacy .xls (Excel 97-2003) via LibreOffice -> openpyxl."""
+    try:
+        converted = _libreoffice_convert(path, "xlsx")
+    except FileNotFoundError:
+        return {"error": "LibreOffice (soffice) not installed"}
+    except Exception as e:
+        return {"error": f"LibreOffice conversion failed: {type(e).__name__}: {e}"}
+
+    try:
+        import openpyxl
+    except ImportError:
+        return {"error": "openpyxl not installed"}
+
+    try:
+        wb = openpyxl.load_workbook(str(converted), data_only=True, read_only=True)
+        sheets = {}
+        for sheet_name in wb.sheetnames:
+            ws = wb[sheet_name]
+            rows_iter = ws.iter_rows(values_only=True)
+            try:
+                headers_row = next(rows_iter, None)
+            except StopIteration:
+                headers_row = None
+            if not headers_row:
+                sheets[sheet_name] = {"headers": [], "rows": []}
+                continue
+            headers = [str(h) if h is not None else f"col{i+1}" for i, h in enumerate(headers_row)]
+            rows = []
+            for r in rows_iter:
+                if all(c is None for c in r):
+                    continue
+                row_dict = {}
+                for i, h in enumerate(headers):
+                    row_dict[h] = r[i] if i < len(r) else None
+                rows.append(row_dict)
+            sheets[sheet_name] = {"headers": headers, "rows": rows[:2000]}
+        wb.close()
+        return {"ok": True, "name": path.name, "sheets": sheets, "engine": "libreoffice"}
+    except Exception as e:
+        return {"error": f"xlsx parse failed: {type(e).__name__}: {e}"}
+
+
+
 def parse_twb(path: Path) -> dict:
     try:
         import xml.etree.ElementTree as ET
