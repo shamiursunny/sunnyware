@@ -40,15 +40,13 @@ class WriteSandboxFileTool:
         target_dir.mkdir(parents=True, exist_ok=True)
         target_path = target_dir / fname
 
-        import os
         try:
             target_path.write_text(content, encoding="utf-8")
             return {
                 "ok": True,
                 "file": fname,
                 "size": target_path.stat().st_size,
-                "path": str(target_path),
-                "_debug": {"target_dir": str(target_dir), "cwd": os.getcwd(), "env": os.environ.get("SUNNYWARE_SANDBOX")}
+                "path": str(target_path)
             }
         except Exception as e:
-            return {"error": f"write failed: {type(e).__name__}: {e}", "_debug": {"target_dir": str(target_dir), "cwd": os.getcwd()}}
+            return {"error": f"write failed: {type(e).__name__}: {e}"}
