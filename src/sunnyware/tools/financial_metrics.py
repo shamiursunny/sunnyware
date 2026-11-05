@@ -11,7 +11,17 @@ import os
 from pathlib import Path
 from typing import Optional
 
-import numpy as np
+
+# Lazy numpy proxy — imports numpy on first use, not at module load
+class _NumpyProxy:
+    _module = None
+    def __getattr__(self, name):
+        if _NumpyProxy._module is None:
+            import numpy
+            _NumpyProxy._module = numpy
+        return getattr(_NumpyProxy._module, name)
+
+np = _NumpyProxy()
 
 
 def _workspace_root() -> Path:
