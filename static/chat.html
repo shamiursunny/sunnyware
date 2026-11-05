@@ -5411,13 +5411,20 @@ function renderFFVFile() {
       } else if (isExcel) {
         body.innerHTML = '<div class="ffv-loading">Loading Excel preview…</div>';
         try {
-          const xr = await fetch('/api/tools/excel_read', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({path: f.name})
-          });
-          const xd = await xr.json();
-          const sheets = xd.result && xd.result.sheets;
+          let sheets = null;
+          if (kind === 'sandbox') {
+            const xr = await fetch('/api/sandbox/file/' + encodeURIComponent(f.name) + '/xlsx');
+            const xd = await xr.json();
+            sheets = xd.sheets;
+          } else {
+            const xr = await fetch('/api/tools/excel_read', {
+              method: 'POST',
+              headers: {'Content-Type': 'application/json'},
+              body: JSON.stringify({path: f.name})
+            });
+            const xd = await xr.json();
+            sheets = xd.result && xd.result.sheets;
+          }
           if (sheets && Object.keys(sheets).length) {
             let html = '';
             for (const [sheetName, sheetData] of Object.entries(sheets)) {
