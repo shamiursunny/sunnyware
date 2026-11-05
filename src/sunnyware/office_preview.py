@@ -4,6 +4,103 @@
 from pathlib import Path
 
 
+# ── Part 714: Legacy .doc / .ppt support via LibreOffice + fallback ──
+
+def _libreoffice_convert(input_path, output_ext):
+    """Convert any office file to output_ext via LibreOffice headless."""
+    import subprocess, tempfile
+    outdir = Path(tempfile.mkdtemp(prefix="lo_out_"))
+    profile = Path(tempfile.mkdtemp(prefix="lo_prof_"))
+    try:
+        cmd = [
+            "soffice", "--headless", "--norestore",
+            f"-env:UserInstallation=file://{profile}",
+            "--convert-to", output_ext,
+            "--outdir", str(outdir),
+            str(input_path),
+        ]
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=90)
+        if r.returncode != 0:
+            raise RuntimeError(f"lo exit {r.returncode}: {r.stderr[:200]}")
+        expected = outdir / (input_path.stem + "." + output_ext)
+        if expected.exists():
+            return expected
+        files = list(outdir.iterdir())
+        if not files:
+            raise RuntimeError("lo produced no output")
+        return files[0]
+    finally:
+        pass
+
+
+def parse_doc(path: Path) -> dict:
+    """Parse legacy .doc. Try LibreOffice -> antiword."""
+    lo_error = None
+    try:
+        converted = _libreoffice_convert(path, "docx")
+        result = parse_docx(converted)
+        if result.get("ok"):
+            result["engine"] = "libreoffice"
+            return result
+        lo_error = result.get("error", "unknown parse error")
+    except FileNotFoundError:
+        lo_error = "libreoffice (soffice) not installed"
+    except Exception as e:
+        lo_error = f"{type(e).__name__}: {e}"
+
+    try:
+        import subprocess
+        r = subprocess.run(["antiword", str(path)], capture_output=True, text=True, timeout=30)
+        if r.returncode == 0 and r.stdout.strip():
+            paragraphs = [{"text": line, "style": "plain"} for line in r.stdout.split("\n") if line.strip()]
+            return {
+                "ok": True,
+                "warning": f"LibreOffice unavailable ({lo_error}) - showing text-only via antiword",
+                "paragraphs": paragraphs, "tables": [],
+                "paragraph_count": len(paragraphs), "table_count": 0,
+                "engine": "antiword",
+            }
+        return {"error": f"antiword failed: {(r.stderr or 'no output')[:200]}"}
+    except FileNotFoundError:
+        return {"error": f"no .doc engine available. LO: {lo_error}. antiword: not installed"}
+    except Exception as e:
+        return {"error": f"all .doc engines failed. LO: {lo_error}. antiword: {e}"}
+
+
+def parse_ppt(path: Path) -> dict:
+    """Parse legacy .ppt. Try LibreOffice -> catppt."""
+    lo_error = None
+    try:
+        converted = _libreoffice_convert(path, "pptx")
+        result = parse_pptx(converted)
+        if result.get("ok"):
+            result["engine"] = "libreoffice"
+            return result
+        lo_error = result.get("error", "unknown parse error")
+    except FileNotFoundError:
+        lo_error = "libreoffice (soffice) not installed"
+    except Exception as e:
+        lo_error = f"{type(e).__name__}: {e}"
+
+    try:
+        import subprocess
+        r = subprocess.run(["catppt", str(path)], capture_output=True, text=True, timeout=30)
+        if r.returncode == 0 and r.stdout.strip():
+            return {
+                "ok": True,
+                "warning": f"LibreOffice unavailable ({lo_error}) - showing text-only via catppt",
+                "slides": [{"index": 1, "title": path.name, "texts": r.stdout.split("\n")}],
+                "slide_count": 1,
+                "engine": "catppt",
+            }
+        return {"error": f"catppt failed: {(r.stderr or 'no output')[:200]}"}
+    except FileNotFoundError:
+        return {"error": f"no .ppt engine available. LO: {lo_error}. catppt: not installed"}
+    except Exception as e:
+        return {"error": f"all .ppt engines failed. LO: {lo_error}. catppt: {e}"}
+
+
+
 def parse_docx(path: Path) -> dict:
     try:
         from docx import Document
