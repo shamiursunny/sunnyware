@@ -238,6 +238,38 @@ async def get_workspace_xlsx(filename: str):
         return {"error": f"xlsx parse failed: {type(e).__name__}: {e}"}
 
 
+
+
+def _office_preview_dispatch(kind: str, filename: str):
+    """Shared dispatcher for office-preview endpoints."""
+    from pathlib import Path as _Path
+    from .. import paths
+    from .. import office_preview
+    base = paths.workspace() if kind == "workspace" else paths.sandbox()
+    name = _Path(filename).name
+    target = base / name
+    if not target.exists():
+        return {"error": f"file not found: {name}"}
+    ext = target.suffix.lower()
+    if ext == ".docx": return office_preview.parse_docx(target)
+    if ext == ".pptx": return office_preview.parse_pptx(target)
+    if ext == ".twb":  return office_preview.parse_twb(target)
+    if ext == ".twbx": return office_preview.parse_twbx(target)
+    if ext == ".pbix": return office_preview.parse_pbix(target)
+    return {"error": f"unsupported preview format: {ext}"}
+
+
+@router.get("/api/workspace/file/{filename}/office-preview")
+async def get_workspace_office_preview(filename: str):
+    try: return _office_preview_dispatch("workspace", filename)
+    except Exception as e: return {"error": f"dispatch failed: {type(e).__name__}: {e}"}
+
+
+@router.get("/api/sandbox/file/{filename}/office-preview")
+async def get_sandbox_office_preview(filename: str):
+    try: return _office_preview_dispatch("sandbox", filename)
+    except Exception as e: return {"error": f"dispatch failed: {type(e).__name__}: {e}"}
+
 @router.get("/api/workspace/file/{filename}")
 async def get_workspace_file(filename: str):
     """Read a single workspace file's content (text / image / pdf / base64)."""
