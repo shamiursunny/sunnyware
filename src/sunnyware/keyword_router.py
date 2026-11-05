@@ -780,6 +780,34 @@ def keyword_route(prompt: str) -> Optional[dict]:
         return {"tool": "kpi_watch_run", "args": {}}
 
 
+    # --- sandbox file tools (write / read) ---
+    m = re.search(
+        r"(?:write|save|create|store)\s+(?:a\s+)?(?:file\s+)?(?:called|named|as)?\s*"
+        r"['\"]?([\w.\-]+\.\w+)['\"]?\s+(?:to|in|into|inside)\s+(?:the\s+)?sandbox",
+        p_lower,
+    )
+    if m:
+        fname = m.group(1).strip()
+        content_match = re.search(r"(?:with\s+content|containing|content:)\s+['\x22](.+?)['\x22]", prompt, re.IGNORECASE)
+        if content_match:
+            return {"tool": "write_sandbox_file", "args": {"file": fname, "content": content_match.group(1)}}
+        return {"tool": "write_sandbox_file", "args": {"file": fname}}
+
+    m = re.search(
+        r"(?:read|open|show|get|view|display|cat)\s+(?:the\s+)?(?:sandbox\s+)?file\s+"
+        r"['\"]?([\w.\-]+\.\w+)['\"]?(?:\s+from\s+(?:the\s+)?sandbox)?",
+        p_lower,
+    )
+    if m and ("sandbox" in p_lower or "from sandbox" in p_lower or "in sandbox" in p_lower):
+        return {"tool": "read_sandbox_file", "args": {"file": m.group(1).strip()}}
+
+    m = re.search(
+        r"(?:read|open|show|get|view)\s+sandbox\s+(?:file\s+)?['\"]?([\w.\-]+\.\w+)['\"]?",
+        p_lower,
+    )
+    if m:
+        return {"tool": "read_sandbox_file", "args": {"file": m.group(1).strip()}}
+
     # --- python_eval (must have "python" AND code-like words) ---
     python_keywords = ["run this python", "execute code", "use python to",
                        "run python", "run this code", "execute this code"]
