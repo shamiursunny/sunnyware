@@ -63,7 +63,21 @@ async def save_file(req: Request):
     owner = _owner()
     body = await req.json()
     content = body.get("content", "")
-    
+    size = body.get("size") or 0
+
+    # Derive size from content when missing (e.g. text files uploaded before sync fix)
+    if not size and content:
+        if isinstance(content, str):
+            if content.startswith('data:'):
+                try:
+                    import base64 as _b64
+                    b64_part = content.split(',', 1)[1] if ',' in content else ''
+                    size = len(_b64.b64decode(b64_part))
+                except Exception:
+                    size = len(content)
+            else:
+                size = len(content.encode('utf-8'))
+
     # Part 258: Prevent DoS via massive base64 payloads (max 5MB)
     if len(content) > 5 * 1024 * 1024:
         return JSONResponse(
@@ -83,7 +97,7 @@ async def save_file(req: Request):
         row = await conn.fetchrow("""
             INSERT INTO library_files (owner_key, name, type, size, kind, content)
             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at
-        """, owner, body.get("name", "Untitled"), body.get("type", "file"), body.get("size", 0), body.get("kind", "upload"), content)
+        """, owner, body.get("name", "Untitled"), body.get("type", "file"), size, body.get("kind", "upload"), content)
         return {"id": str(row["id"]), "created_at": row["created_at"].isoformat()}
 
 @router.delete("/api/library/files/{file_id}")

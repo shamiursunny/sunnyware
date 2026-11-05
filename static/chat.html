@@ -4950,22 +4950,46 @@ function addUploadedFiles(fileList){
 
     const entry={id:uid(), name:f.name, type:fileTypeOf(f.name), kind:'upload', size:f.size, date:new Date().toISOString(), mime:f.type||'application/octet-stream'};
 
-    const done=()=>{ 
-      files.unshift(entry); saveAll(); renderLibrary(); toast('Uploaded to Library'); 
-      const contentStr = entry.dataUrl || entry.textContent || '';
+    const done=()=>{
+      // Ensure size reflects actual content (never 0 for non-empty files)
+      if (!entry.size || entry.size === 0) {
+        if (entry.textContent) {
+          entry.size = new Blob([entry.textContent]).size;
+        } else if (entry.dataUrl) {
+          const b64 = entry.dataUrl.split(",")[1] || "";
+          entry.size = Math.round(b64.length * 0.75);
+        }
+      }
+      files.unshift(entry); saveAll(); renderLibrary(); toast("Uploaded to Library");
+      const contentStr = entry.textContent || entry.dataUrl || "";
       if (contentStr.length > 5 * 1024 * 1024) {
-        toast('File too large to sync (max 5MB). Saved locally only.');
+        toast("File too large to sync (max 5MB). Saved locally only.");
       } else {
-        fetch('/api/library/files', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({...entry, content: contentStr})})
-          .then(res => { if(!res.ok) console.error('Sync failed:', res.status); })
-          .catch(e => console.error('Sync failed:', e));
+        fetch("/api/library/files", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({...entry, content: contentStr})})
+          .then(res => { if(!res.ok) console.error("Sync failed:", res.status); })
+          .catch(e => console.error("Sync failed:", e));
       }
     };
 
-    if(f.size < 700*1024 && (entry.type==='image'||entry.type==='doc'||entry.type==='code')){
+    const isText = ['doc','code','data'].includes(entry.type) ||
+                   (f.type && f.type.startsWith('text/')) ||
+                   /\.(txt|md|csv|json|py|js|ts|html|css|xml|yaml|yml|log|sql)$/i.test(f.name);
 
-      const r=new FileReader(); r.onload=()=>{ entry.dataUrl=r.result; if(entry.type!=='image') entry.textContent=r.result; done(); }; r.readAsDataURL(f);
-
+    if(f.size < 700*1024 && isText){
+      // Text files: read as text so content and size are accurate
+      const r = new FileReader();
+      r.onload = () => { entry.textContent = r.result; done(); };
+      r.readAsText(f);
+    } else if(f.size < 700*1024 && entry.type==='image'){
+      // Images: read as data URL for preview
+      const r = new FileReader();
+      r.onload = () => { entry.dataUrl = r.result; done(); };
+      r.readAsDataURL(f);
+    } else if(f.size < 700*1024){
+      // Other small files: read as data URL (for preview/download)
+      const r = new FileReader();
+      r.onload = () => { entry.dataUrl = r.result; done(); };
+      r.readAsDataURL(f);
     } else { big++; done(); }
 
   });
