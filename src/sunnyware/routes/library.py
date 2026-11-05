@@ -144,20 +144,29 @@ async def list_workspace_files():
 async def list_sandbox_files():
     """List files in the agent sandbox directory."""
     from .. import paths
+    import os
     sb = paths.sandbox()
+    debug_info = {"path": str(sb), "cwd": os.getcwd(), "env": os.environ.get("SUNNYWARE_SANDBOX")}
     if not sb.exists():
-        return {"files": []}
+        debug_info["exists"] = False
+        return {"files": [], "_debug": debug_info}
     out = []
-    for f in sb.iterdir():
-        if not f.is_file():
-            continue
-        stat = f.stat()
-        out.append({
-            "name": f.name,
-            "size": stat.st_size,
-            "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-            "type": f.suffix.lstrip(".").lower() or "file",
-        })
+    try:
+        for f in sb.iterdir():
+            if not f.is_file():
+                continue
+            stat = f.stat()
+            out.append({
+                "name": f.name,
+                "size": stat.st_size,
+                "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                "type": f.suffix.lstrip(".").lower() or "file",
+            })
+        debug_info["exists"] = True
+        debug_info["count"] = len(out)
+    except Exception as e:
+        debug_info["error"] = str(e)
+        return {"files": [], "_debug": debug_info}
     out.sort(key=lambda x: x["modified"], reverse=True)
-    return {"files": out}
+    return {"files": out, "_debug": debug_info}
 
