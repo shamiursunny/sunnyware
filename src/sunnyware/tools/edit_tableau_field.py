@@ -1,9 +1,8 @@
 import xml.etree.ElementTree as ET
 from pathlib import Path
-from .base import BaseTool
 from .. import paths
 
-class EditTableauFieldTool(BaseTool):
+class EditTableauFieldTool:
     name = "edit_tableau_field"
     description = "Edit a calculated field formula, filter value, or parameter in a Tableau .twb workbook. Requires file, field_name, and new_value."
     keywords = ["edit tableau", "update tableau field", "change tableau formula"]
