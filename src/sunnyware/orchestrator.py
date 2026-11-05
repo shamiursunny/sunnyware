@@ -586,7 +586,7 @@ async def _execute_tool_impl(tool_name: str, tool_args: dict) -> dict:
         while _attempt < _max_attempts:
             _attempt += 1
             try:
-                _result = await tool.run(**tool_args)
+                _result = await _call_tool(tool, tool_args)
                 if not isinstance(_result, dict):
                     _result = {"result": _result}
                 if isinstance(_result, dict) and _result.get("error"):
@@ -626,6 +626,22 @@ async def _emit(on_event, event: dict) -> None:
     except Exception:
         pass
 
+
+
+import inspect as _inspect
+
+async def _call_tool(tool, args_dict: dict):
+    """Call a tool, auto-detecting whether it uses Style A (args: dict) or Style B (**kwargs)."""
+    try:
+        sig = _inspect.signature(tool.run)
+        params = [p for p in sig.parameters.keys() if p != 'self']
+        # Style A: single param named 'args' or 'kwargs'
+        if len(params) == 1 and params[0] in ('args', 'kwargs'):
+            return await tool.run(args_dict)
+        # Style B: keyword args
+        return await tool.run(**args_dict)
+    except Exception as e:
+        return {"error": f"{type(e).__name__}: {e}"}
 
 async def run_agent(
     prompt: str,
@@ -892,7 +908,7 @@ async def _run_agent_body(
                         import time as _time
                         _t0 = _time.time()
                         try:
-                            _tool_result = await _tool_obj.run(**_tool_args)
+                            _tool_result = await _call_tool(_tool_obj, _tool_args)
                         except Exception as _tool_exc:
                             _tool_result = {"error": f"{type(_tool_exc).__name__}: {_tool_exc}"}
                         # Part 697b: log tool call for analytics (jarvis bypass path)

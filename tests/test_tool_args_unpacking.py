@@ -3,12 +3,20 @@ import asyncio
 from sunnyware.tools import get_tool
 
 
-def test_calculator_accepts_kwargs():
-    """Calculator tool must accept keyword args, not a single positional dict."""
+def test_calculator_accepts_args_dict():
+    """Calculator tool uses Style A (args: dict) — must accept a single dict."""
     calc = get_tool("calculator")
     assert calc is not None
-    result = asyncio.run(calc.run(expression="2 + 2"))
+    result = asyncio.run(calc.run({"expression": "2 + 2"}))
     assert result is not None
+    assert isinstance(result, dict)
+
+
+def test_call_tool_handles_both_styles():
+    """The _call_tool helper must auto-detect Style A vs Style B."""
+    from sunnyware.orchestrator import _call_tool
+    calc = get_tool("calculator")
+    result = asyncio.run(_call_tool(calc, {"expression": "2 + 2"}))
     assert isinstance(result, dict)
 
 
