@@ -179,14 +179,17 @@ _TOOLS = {
 
 
 def list_tools() -> list:
-    return [
-        {
+    result = []
+    for t in _TOOLS.values():
+        item = {
             "name": t.name,
             "description": t.description,
             "parameters": t.parameters,
         }
-        for t in _TOOLS.values()
-    ]
+        if hasattr(t, "category"):
+            item["category"] = t.category
+        result.append(item)
+    return result
 
 
 def get_tool(name: str):

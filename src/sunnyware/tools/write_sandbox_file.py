@@ -7,6 +7,7 @@ from .. import paths
 
 class WriteSandboxFileTool:
     name = "write_sandbox_file"
+    category = "Sandbox"
     description = (
         "Write a file to the Sandbox directory. Use this for intermediate "
         "data files, cleaned CSVs, database dumps, or temporary outputs. "

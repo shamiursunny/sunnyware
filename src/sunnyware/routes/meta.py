@@ -2340,12 +2340,22 @@ async def list_all_tools():
 
     out = []
     for tool in tools:
+        # Prefer explicit category from tool class, fall back to keyword inference
+        cat = tool.get("category") or _category(tool.get("name", ""))
         out.append({
             "name": tool.get("name", ""),
             "description": tool.get("description", ""),
-            "category": _category(tool.get("name", "")),
+            "category": cat,
         })
-    out.sort(key=lambda x: (x["category"], x["name"]))
+    # Custom category ordering: put Sandbox first, then others alphabetically
+    CATEGORY_ORDER = ["Sandbox", "Code & Data", "Files & Documents", "Search & Web", "Finance", "Media & Browser", "Ops & Automation", "General"]
+    def _sort_key(x):
+        try:
+            idx = CATEGORY_ORDER.index(x["category"])
+        except ValueError:
+            idx = 999
+        return (idx, x["name"])
+    out.sort(key=_sort_key)
     return {"ok": True, "tools": out}
 
 @router.post("/api/tools-test-all")

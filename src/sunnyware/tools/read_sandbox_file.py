@@ -7,6 +7,7 @@ from .. import paths
 
 class ReadSandboxFileTool:
     name = "read_sandbox_file"
+    category = "Sandbox"
     description = (
         "Read a file from the Sandbox directory. Use this to inspect "
         "intermediate data, cleaned CSVs, database dumps, or temporary "
