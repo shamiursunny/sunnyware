@@ -42,7 +42,13 @@ class ReadFileTool:
     async def run(self, args: dict) -> dict:
         rel = str(args.get("path", "")).strip()
         if not rel:
-            return {"error": "path is required"}
+            from .. import paths
+            ws = paths.workspace()
+            files = sorted(ws.glob("*"), key=lambda p: p.stat().st_mtime, reverse=True)
+            files = [f for f in files if f.suffix.lower() in (".txt", ".md", ".csv", ".json", ".py", ".js", ".html", ".css", ".xml", ".yaml", ".yml", ".log")]
+            if not files:
+                return {"error": "no text files found in workspace"}
+            rel = files[0].name
         try:
             target = _safe_path(rel)
         except ValueError as e:

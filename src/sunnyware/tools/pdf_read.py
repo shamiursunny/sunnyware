@@ -15,10 +15,8 @@ _MAX_PAGES = 500
 
 
 def _workspace_root() -> Path:
-    p = os.getenv("SUNNYWARE_WORKSPACE") or os.getenv("WORKSPACE_PATH")
-    if p:
-        return Path(p).resolve()
-    return Path("/data/workspace").resolve()
+    from .. import paths
+    return paths.workspace()
 
 
 class PdfReadTool:
@@ -56,7 +54,12 @@ class PdfReadTool:
     async def run(self, args: dict) -> dict:
         fname = (args.get("file") or "").strip()
         if not fname:
-            return {"error": "file is required"}
+            # Auto-find the most recently modified PDF in the workspace
+            root = _workspace_root()
+            pdfs = sorted(root.glob("*.pdf"), key=lambda p: p.stat().st_mtime, reverse=True)
+            if not pdfs:
+                return {"error": "no PDF files found in workspace. Please upload a PDF first."}
+            fname = pdfs[0].name
         if not fname.lower().endswith(".pdf"):
             return {"error": "only .pdf files are supported"}
 

@@ -140,7 +140,13 @@ class ExcelReadTool:
 
         fname = (args.get("file") or "").strip()
         if not fname:
-            return {"error": "file is required"}
+            from .. import paths
+            ws = paths.workspace()
+            files = sorted(ws.glob("*"), key=lambda p: p.stat().st_mtime, reverse=True)
+            files = [f for f in files if f.suffix.lower() in (".xlsx", ".xls", ".csv")]
+            if not files:
+                return {"error": "no Excel/CSV files found in workspace"}
+            fname = files[0].name
         if not fname.lower().endswith(".xlsx"):
             return {"error": "only .xlsx files are supported"}
 
