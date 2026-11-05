@@ -5047,6 +5047,7 @@ document.querySelectorAll('.lib-tab').forEach(t=>t.onclick=()=>{
   libKind=t.dataset.kind; exitSelectMode(); 
   if(libKind==='workspace' || libKind==='generated') { loadWorkspaceFiles().then(()=>renderLibrary()); }
   else if(libKind==='sandbox') { loadSandboxFiles().then(()=>renderLibrary()); }
+  const _csb = document.getElementById('clearSandboxBtn'); if(_csb) _csb.classList.toggle('hidden', libKind !== 'sandbox' || selectMode);
   else { renderLibrary(); }
 
 });
@@ -5102,6 +5103,7 @@ function syncSelectUI(){
   $('#cancelSelectBtn').classList.toggle('hidden',!selectMode);
 
   $('#uploadBtn').classList.toggle('hidden',selectMode);
+  const _csb2 = document.getElementById('clearSandboxBtn'); if(_csb2) _csb2.classList.toggle('hidden', libKind !== 'sandbox' || selectMode);
 
 }
 
