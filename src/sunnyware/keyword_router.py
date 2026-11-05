@@ -71,6 +71,8 @@ def _extract_timezone(prompt: str) -> str:
 
 
 def keyword_route(prompt: str) -> Optional[dict]:
+    import re as _re_bi
+    _p_low_bi = prompt.lower()
     """
     Match obvious tool intent using keywords and regex extraction.
     Returns {"tool": name, "args": {...}} or None.
@@ -106,9 +108,59 @@ def keyword_route(prompt: str) -> Optional[dict]:
             _pl,
         )
         if _m_read:
-            return {"tool": "read_sandbox_file", "args": {"file": _m_read.group(1).strip()}}
+            _ext_read = _m_read.group(1).split('.')[-1].lower()
+            # Skip BI/Office extensions — those go to read_bi_file
+            if _ext_read not in ("pbix", "twb", "twbx", "xls", "xlsm", "xlsx", "docx", "doc", "pptx", "ppt"):
+                return {"tool": "read_sandbox_file", "args": {"file": _m_read.group(1).strip()}}
 
     p = prompt.lower()
+
+    # --- export_table (save data as CSV/JSON) ---
+    # Export patterns: "export/save X to/as CSV" OR "save as X.csv"
+    _export_match = _re_bi.search(
+        r"(export|save|download|write)\s+(?:the\s+)?(?:data|table|sheet|result|it|this)?\s*(?:to|as)\s+(?:a\s+)?(?:csv|json|tsv)\b",
+        _p_low_bi
+    )
+    _save_as_match = _re_bi.search(r"(?:save|export|write|download)\s+as\s+[\x27\x22]?([\w.\-]+\.(?:csv|json|tsv))[\x27\x22]?", _p_low_bi)
+    _save_the_as_match = _re_bi.search(r"(?:save|export|write|download)(?:\s+\w+){1,5}?\s+as\s+[\x27\x22]?([\w.\-]+\.(?:csv|json|tsv))[\x27\x22]?", _p_low_bi)
+    if _export_match or _save_as_match or _save_the_as_match:
+        _target_kind = "sandbox"
+        if "workspace" in _p_low_bi:
+            _target_kind = "workspace"
+        _fname_match = _re_bi.search(r"['\"]?([\w.\-]+\.(?:csv|json|tsv))['\"]?", prompt, _re_bi.IGNORECASE)
+        _out_name = _fname_match.group(1) if _fname_match else "export.csv"
+        return {"tool": "export_table", "args": {"filename": _out_name, "target_kind": _target_kind}}
+
+    # --- write_file (simple "write a file called X.txt with content Y") ---
+    _wf_match = _re_bi.search(
+        r"(?:write|save|create)\s+(?:a\s+)?file\s+(?:called|named)?\s*[\x27\x22]?([\w.\-]+\.txt)[\x27\x22]?",
+        _p_low_bi
+    )
+    if _wf_match:
+        _wf_fname = _wf_match.group(1)
+        # Try quoted content first, then unquoted (rest of line)
+        _content_m = _re_bi.search(
+            r"(?:with\s+content|containing|content\s*[:=])\s*[\x27\x22](.+?)[\x27\x22]",
+            prompt, _re_bi.IGNORECASE
+        )
+        if not _content_m:
+            _content_m = _re_bi.search(
+                r"(?:with\s+content|containing|content\s*[:=])\s+(.+?)$",
+                prompt, _re_bi.IGNORECASE | _re_bi.MULTILINE
+            )
+        _content = _content_m.group(1).strip() if _content_m else ""
+        return {"tool": "write_file", "args": {"path": _wf_fname, "content": _content}}
+
+    # --- csv_query (simple "read csv file X") ---
+    _csv_simple = _re_bi.search(
+        r"(?:read|open|show|query|select\s+from)\s+(?:the\s+)?(?:csv\s+)?file\s+[\x27\x22]?([\w.\-]+\.csv)[\x27\x22]?",
+        _p_low_bi
+    )
+    if _csv_simple:
+        _csv_fname = _csv_simple.group(1)
+        return {"tool": "csv_query", "args": {"file": _csv_fname, "sql": f"SELECT * FROM {_csv_fname}"}}
+
+
 
     # --- date_calc ---
     # "add N days to YYYY-MM-DD" / "subtract N days from YYYY-MM-DD"
@@ -813,6 +865,34 @@ def keyword_route(prompt: str) -> Optional[dict]:
         return {"tool": "kpi_watch_run", "args": {}}
 
 
+    # --- read_bi_file (inspect Office/BI files) ---
+    # Longest extensions first to avoid truncation (xlsm before xls, twbx before twb)
+    _bi_ext = r"(?:xlsx|xlsm|xls|docx|pptx|pptx|pbix|twbx|twb|doc|ppt)"
+    _bi_verbs = r"(?:read|show|inspect|analyze|open|view|summarize|describe|list|display|check)"
+    # Capture only the LAST filename-like token (no spaces) to avoid grabbing preceding words
+    _bi_match = _re_bi.search(
+        r"(?:" + _bi_verbs + r"|what'?s in|tell me about|look at|contents of)\s+"
+        r"(?:[^'\x22]*?\s)?"
+        r"['\"]?([\w.\-]+\.(?:" + _bi_ext + r"))['\"]?",
+        prompt, _re_bi.IGNORECASE
+    )
+    if _bi_match:
+        _fname = (_bi_match.group(1) or "").strip()
+        if _fname:
+            _kind = "workspace"
+            if "sandbox" in _p_low_bi:
+                _kind = "sandbox"
+            return {"tool": "read_bi_file", "args": {"file": _fname, "kind": _kind}}
+
+    # Bare BI filename without explicit verb: only for BI extensions (.pbix/.twb/.twbx)
+    _bare_bi = _re_bi.search(r"([\w.\-]+\.(?:pbix|twbx|twb))", prompt, _re_bi.IGNORECASE)
+    if _bare_bi:
+        _kind = "workspace"
+        if "sandbox" in _p_low_bi:
+            _kind = "sandbox"
+        return {"tool": "read_bi_file", "args": {"file": _bare_bi.group(1).strip(), "kind": _kind}}
+
+    
     # --- python_eval (must have "python" AND code-like words) ---
     python_keywords = ["run this python", "execute code", "use python to",
                        "run python", "run this code", "execute this code"]

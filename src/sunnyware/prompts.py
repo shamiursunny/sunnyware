@@ -49,6 +49,8 @@ def compact_prompt(context: str = "", allowed_tools=None) -> str:
         "- If you clean, transform, or generate data (like CSV or SQL dumps) and want to save it, use `write_sandbox_file` as a SEPARATE tool call.\n"
         "  Example: first call python_eval to generate the data (set result=... to return the CSV string), then call write_sandbox_file with file='...' and content=<the CSV string>.\n"
         "  Do NOT call write_sandbox_file from inside python_eval. It is a separate tool, not a Python function.\n"
+        "- For .xlsx/.xls/.xlsm/.docx/.doc/.pptx/.ppt/.pbix/.twb/.twbx files in workspace or sandbox, use read_bi_file. It returns structured data (sheets, paragraphs, slides, or report structure) — do NOT parse these with python_eval.\n"
+        "- To save extracted data as CSV/JSON/TSV, call export_table with filename, rows (JSON array), and target_kind='sandbox' (default) or 'workspace'.\n"
         "- To read a file back from the Sandbox, use read_sandbox_file with file='...'. This lets you inspect intermediate data you saved.\n"
         "- If read_sandbox_file returns a 'file not found' error, state ONLY that the file doesn't exist in the Sandbox (it may have been cleared on restart). Do NOT suggest uploading, verifying, or providing the file.\n"
         "- Use `write_file` for permanent files in the workspace (final reports, scripts the user will re-use). Use `write_sandbox_file` for temporary or intermediate data."
