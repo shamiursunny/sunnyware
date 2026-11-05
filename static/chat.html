@@ -6175,36 +6175,6 @@ document.querySelectorAll('#toolsMenu .dropdown-item').forEach(el => {
 });
 
 // Part 195: Real Voice Input via Web Speech API
-let _recognition = null;
-let _isListening = false;
-
-$('#micBtn').onclick = function() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  
-  if (!SpeechRecognition) {
-    toast('Voice input is not supported in this browser. Try Chrome or Edge.');
-    return;
-  }
-
-  const btn = this;
-
-  if (_isListening) {
-    if (_recognition) _recognition.stop();
-    return;
-  }
-
-  if (!_recognition) {
-    _recognition = new SpeechRecognition();
-    _recognition.continuous = false;
-    _recognition.interimResults = true;
-    _recognition.lang = 'en-US';
-
-    _recognition.onstart = function() {
-      _isListening = true;
-      btn.style.color = 'var(--danger)';
-      btn.style.animation = 'pulse 1.5s infinite';
-      toast('Listening... Speak now.');
-    };
 
     _recognition.onresult = function(event) {
       const input = $('#chatInput');
