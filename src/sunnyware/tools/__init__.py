@@ -101,7 +101,7 @@ _TOOLS = {
     WriteSandboxFileTool.name: WriteSandboxFileTool(),
     ReadSandboxFileTool.name: ReadSandboxFileTool(),
     ReadBiFileTool.name: ReadBiFileTool(),
-    EditTableauFieldTool(),
+    EditTableauFieldTool.name: EditTableauFieldTool(),
     ExportTableTool.name: ExportTableTool(),
     CalculatorTool.name: CalculatorTool(),
     SearchLibraryTool.name: SearchLibraryTool(),
