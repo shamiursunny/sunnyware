@@ -743,6 +743,26 @@ body.message-selection-mode #messageSelectionBar { display: flex; }
   margin: 0 !important;
 }
 
+
+/* Light mode message contrast fixes (targeting data-theme) */
+[data-theme="light"] .msg.user .msg-bubble { color: #ffffff !important; }
+[data-theme="light"] .msg.ai .msg-bubble { color: #1a1d26 !important; }
+[data-theme="light"] .code-block {
+  background: #f8f9fb !important;
+  border-color: #e2e5ec !important;
+}
+[data-theme="light"] .code-head {
+  background: #f0f2f5 !important;
+  color: #6b7280 !important;
+}
+[data-theme="light"] .code-block pre {
+  color: #1a1d26 !important;
+}
+[data-theme="light"] .msg-text code {
+  background: #f0f2f5 !important;
+  color: #1a1d26 !important;
+}
+
 /* ============ LIBRARY VIEW ============ */
 
 .library{flex:1;overflow-y:auto;display:none}
