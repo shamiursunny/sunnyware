@@ -1513,10 +1513,17 @@ body.light-mode .code-head {
 
     <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 14px;font-size:11px;color:var(--text-tertiary);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">
       <span id="chat-list-header-title">Chats</span>
-      <button class="icon-btn" id="exitSelectionBtn" onclick="clearSelection()" title="Exit selection" style="display:none;width:24px;height:24px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M18 6L6 18M6 6l12 12"/></svg>
-      </button>
-      
+      <div style="display:flex; align-items:center; gap:4px;">
+        <!-- Import button -->
+        <button class="icon-btn" id="sidebarImportBtn" title="Import chats" style="width:24px;height:24px;color:var(--text-tertiary);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+        </button>
+        <input type="file" id="sidebarImportInput" accept=".json" style="display:none;" onchange="importChats(this)">
+        <!-- Exit selection button -->
+        <button class="icon-btn" id="exitSelectionBtn" onclick="clearSelection()" title="Exit selection" style="display:none;width:24px;height:24px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
     </div>
     <nav class="chat-list" id="chatList"></nav>
     <div id="bulk-action-bar" style="display:none;padding:10px 14px;border-top:1px solid var(--border);background:var(--sidebar);gap:8px;align-items:center;justify-content:space-around;">
@@ -3558,6 +3565,14 @@ function chatItemEl(c){
 }
 
 $('#searchInput').oninput=e=>renderChatList(e.target.value);
+
+// Sidebar import button handler
+document.addEventListener('click', (e) => {
+  if (e.target.closest('#sidebarImportBtn')) {
+    e.preventDefault();
+    document.getElementById('sidebarImportInput').click();
+  }
+});
 
 function selectChat(id){
   if(window.innerWidth <= 900 && typeof closeSidebar === 'function') closeSidebar();
