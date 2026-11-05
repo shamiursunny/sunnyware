@@ -3682,3 +3682,11 @@ me the exact git commands to commit + push both remotes."
 - **Bug Fix**: In light mode, the user message bubble had a black background but black text, making it invisible. Enforced white text for user bubbles and black text for AI bubbles in light mode.
 
 *Part 698b logged: 2026-11-04*
+
+---
+
+### Part 698c Update (2026-11-04): Ultimate Light Mode Code Block Fix
+
+- **Bug Fix**: The code block in light mode had a thick black border because the `.code-block` background (`#0d0d0f`) was showing through the `pre` padding. Added an aggressive universal override to force all inner elements of `.code-block` to use transparent backgrounds with light-mode colors.
+
+*Part 698c logged: 2026-11-04*

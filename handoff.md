@@ -6200,3 +6200,19 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Choose the next feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 698c Update (2026-11-04): Ultimate Light Mode Code Block Fix
+
+**Status:** ✅ Implemented and verified.
+
+**What was done:**
+- `static/chat.html`: Added a universal light-mode override that targets `.code-block` and all its descendants (`*`), setting `background: transparent !important` and `color: #1a1d26 !important`.
+- The `.code-block` itself gets a light background (`#f8f9fb`) and a subtle border (`#e2e5ec`).
+- The `.code-head` gets a slightly darker light background (`#f0f2f5`).
+
+**Next Steps (Part 699):**
+- Choose the next feature.
+
+*Handoff updated: 2026-11-04*

@@ -3561,3 +3561,11 @@ Fixed regex for conversation/discussion matching.
 **Fix**: User bubbles in light mode now use white text; AI bubbles use black text. No more invisible messages.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 698c Update (2026-11-04): Ultimate Light Mode Code Block Fix
+
+**Fix**: Applied universal light mode override for all elements inside `.code-block`, eliminating the thick black border and ensuring proper contrast in both themes.
+
+*Workflow updated: 2026-11-04*
