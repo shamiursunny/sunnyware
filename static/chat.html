@@ -1502,7 +1502,7 @@ async function loadMemoryTab() {
       return;
     }
     list.innerHTML = data.documents.map(doc => `
-      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg2); padding:10px; border-radius:6px; border:1px solid var(--border);">
+      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-secondary); padding:10px; border-radius:6px; border:1px solid var(--border);">
         <span>[Doc] ${doc}</span>
         <button class="btn btn-outline btn-sm" onclick="deleteMemoryDoc('${doc}')" style="color:#ff6b6b; border-color:#ff6b6b;">Delete</button>
       </div>
@@ -7203,7 +7203,7 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <div id="cleanupModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-  <div style="background:var(--bg2); padding:20px; border-radius:8px; width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+  <div style="background:var(--bg-secondary); padding:20px; border-radius:8px; width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
     <h3 style="margin-top:0;">Sandbox Auto-Cleanup</h3>
     <label style="display:block; margin-bottom:12px; cursor:pointer;">
       <input type="checkbox" id="cleanupEnabled" style="margin-right:8px;"> Enable Auto-Cleanup
@@ -7221,7 +7221,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 <div id="settingsModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
-  <div style="background:var(--bg2); padding:24px; border-radius:8px; width:500px; box-shadow:0 10px 30px rgba(0,0,0,0.5); max-height:90vh; overflow-y:auto;">
+  <div style="background:var(--bg-secondary); padding:24px; border-radius:8px; width:500px; box-shadow:0 10px 30px rgba(0,0,0,0.5); max-height:90vh; overflow-y:auto;">
     <h3 style="margin-top:0;">API Key Settings</h3>
     <p style="font-size:12px; color:var(--text-dim); margin-bottom:16px;">Keys are saved to your persistent disk and applied on restart.</p>
     
