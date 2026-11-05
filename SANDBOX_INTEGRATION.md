@@ -180,3 +180,34 @@ Requires Factory rebuild (not Restart) to install the ~350MB of packages. After 
 - XLSX renamed .xls: temp copy -> openpyxl -> table
 - Real .xls: xlrd -> table
 - Corrupt: combined error from all engines
+
+
+## BI Tools (Part 716)
+
+### New Tools
+- `read_bi_file` — reads any Office/BI file from workspace OR sandbox
+- `export_table` — writes CSV/TSV/JSON to workspace OR sandbox
+
+### Supported Formats
+- .xlsx/.xls/.xlsm — sheets as JSON
+- .docx/.doc — paragraphs + tables
+- .pptx/.ppt — slides as text
+- .pbix — Power BI metadata + report pages
+- .twb/.twbx — Tableau datasources + worksheets + calculated fields
+
+### Workspace vs Sandbox
+All tools accept `kind` (read) or `source_kind`/`target_kind` (export):
+- `workspace` → `/data/workspace` (Library → Workspace)
+- `sandbox` → `/data/sandbox` (Library → Sandbox)
+
+### Keyword Router Routes
+| Pattern | Tool |
+|---------|------|
+| Read/show/inspect X.xls | read_bi_file |
+| Inspect the Power BI report X.pbix | read_bi_file |
+| Analyze the Tableau workbook X.twbx | read_bi_file |
+| Save as X.csv | export_table |
+| Export the data to CSV | export_table |
+
+### Library Search + Sort
+Frontend search filters by name, sort dropdown handles name/size/modified.

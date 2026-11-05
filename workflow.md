@@ -3781,3 +3781,48 @@ Click real_test.xls -> isLegacyXls = true -> GET /api/{kind}/file/real_test.xls/
 
 ## 3. Error Reporting
 Returns comprehensive error: 'Unknown file format. xlrd: <error> | LibreOffice: <error>'
+
+
+---
+
+# BI Tools Workflows (Part 716)
+
+## 1. Reading an Excel file in workspace
+User: "Read sales.xls"
+-> keyword router: read_bi_file (file=sales.xls, kind=workspace)
+-> OfficePreview.parse_xls() -> sheets as JSON
+-> Agent formats as table
+
+## 2. Inspecting a Power BI report
+User: "Inspect the Power BI report quarterly.pbix"
+-> read_bi_file (file=quarterly.pbix)
+-> parse_pbix() returns Report/Layout structure (pages, visuals)
+-> Agent describes report structure
+
+## 3. Reading a sandbox file
+User: "Read sandbox file report.pbix"
+-> read_bi_file (file=report.pbix, kind=sandbox)
+-> read_sandbox_file route skips BI extensions → falls through to read_bi_file
+
+## 4. Exporting extracted data as CSV
+User: "Save as my_data.csv"
+-> export_table (filename=my_data.csv, target_kind=sandbox)
+-> CSV written to /data/sandbox/my_data.csv
+-> Appears in Library → Sandbox
+
+## 5. Exporting to workspace
+User: "Save to workspace as report.csv"
+-> export_table (filename=report.csv, target_kind=workspace)
+-> File written to /data/workspace/report.csv
+-> Appears in Library → Workspace
+
+## 6. Saving from existing source
+User: "Export sales.xlsx to CSV"
+-> export_table (source_file=sales.xlsx, source_kind=workspace, filename=export.csv)
+-> Backend reads .xlsx via openpyxl, writes CSV to sandbox
+-> Returns {ok: true, row_count: N}
+
+## 7. Library search + sort (frontend)
+Type in search box -> getLibraryItems filters by name
+Change sort dropdown -> getLibraryItems reorders
+No backend call needed — all client-side

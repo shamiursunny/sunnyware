@@ -6433,3 +6433,49 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Support .xlsm (macro-enabled) via openpyxl
 - Caching for repeated .xls conversions
 - Real BIFF .xls test with Office 97-2003 file
+
+
+---
+
+# BI Tools Handoff (Part 716)
+
+## New Tools
+- `src/sunnyware/tools/read_bi_file.py` — unified Office/BI reader (workspace + sandbox)
+- `src/sunnyware/tools/export_table.py` — tabular data export (workspace + sandbox)
+
+## Registered in tools/__init__.py
+- ReadBiFileTool + ExportTableTool imports and _TOOLS entries
+
+## Keyword Router Routes (keyword_router.py)
+- `read_bi_file`: verbs (read/show/inspect/analyze) + filename with Office/BI extension
+- `export_table`: "export/save X to/as CSV", "save as X.csv", "save the results as X.csv"
+- Extension alternation fixed (xlsm before xls, twbx before twb) — avoids truncation
+- Non-capturing verb groups to avoid capturing verb as filename
+- BI extension guard on read_sandbox_file (skip BI files)
+
+## Jarvis + Orchestrator
+- `jarvis_agent.py` tool_keywords extended
+- `orchestrator.py` aliases: readbi, read_bi, bi, export, exportcsv
+
+## Prompts
+- Explicit tool guidance for read_bi_file + export_table
+- Workspace vs sandbox distinction
+
+## Frontend (chat.html)
+- Library search input (oninput → onLibSearch → filter)
+- Sort dropdown (onchange → onLibSort → sort by name/size/modified)
+- State: _libSearchQuery, _libSortMode
+- getLibraryItems applies search filter + sort before return
+
+## Known Limitations
+- read_bi_file returns data structure but does NOT modify the source file
+- export_table writes new CSV/JSON/TSV — no in-place editing of .pbix/.twb
+- Power BI .pbix cannot be edited (proprietary binary)
+- Tableau .twb cannot be edited via AI (XML structure, but not full semantic model)
+- Looker Studio has no offline format — users must export PDF/XLSX/CSV first
+
+## Next Steps
+- Looker Studio — no native format, already handled via PDF/XLSX exports
+- .xlsm macros (VBA) — only data is read, macros are ignored
+- Tableau calculated field editing — read-only
+- Power BI report editing — not supported

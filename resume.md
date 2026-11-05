@@ -3860,3 +3860,44 @@ me the exact git commands to commit + push both remotes."
 *Part 715 logged: 2026-11-05*
 
 ---
+
+
+---
+
+---
+
+### Part 716 Update (2026-11-05): BI File Read/Export Tools + Library Search
+
+- **New tool `read_bi_file`** (src/sunnyware/tools/read_bi_file.py):
+  - Reads any Office/BI file from workspace OR sandbox (kind parameter)
+  - Supports: .xlsx .xls .xlsm .docx .doc .pptx .ppt .pbix .twb .twbx
+  - Returns structured data (sheets, paragraphs, slides, report structure)
+
+- **New tool `export_table`** (src/sunnyware/tools/export_table.py):
+  - Exports tabular data to CSV/TSV/JSON
+  - Both source and target can be workspace OR sandbox
+  - Accepts rows (JSON array) or source_file (xlsx/xls/csv)
+
+- **Keyword router** (keyword_router.py):
+  - 12 new routes verified for `read_bi_file` + `export_table`
+  - Patterns for "read X.xls", "inspect Power BI report", "save as X.csv", "export to CSV"
+  - Non-capturing verb groups + extension ordering fix
+  - "save the results as X.csv" support
+
+- **Jarvis + Orchestrator**:
+  - tool_keywords extended with BI terms
+  - Aliases: readbi, read_bi, bi, export, exportcsv
+
+- **Prompts** (prompts.py):
+  - Explicit examples for read_bi_file + export_table
+  - Workspace/sandbox target guidance
+
+- **Frontend** (chat.html):
+  - Library search box (filter by filename)
+  - Sort dropdown (newest, oldest, name A→Z/Z→A, size largest/smallest)
+
+- **Sandbox whitelist**: Added xlrd (for BIFF .xls in python_eval)
+
+*Part 716 logged: 2026-11-05*
+
+---
