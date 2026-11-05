@@ -68,7 +68,12 @@ def _build_tools_schema(role=None) -> list:
             continue
         props = {}
         required = []
-        for pname, pmeta in (t.get("parameters") or {}).items():
+        params = t.get("parameters")
+        if not isinstance(params, dict):
+            params = {}
+        for pname, pmeta in params.items():
+            if not isinstance(pmeta, dict):
+                pmeta = {}
             props[pname] = {
                 "type": pmeta.get("type", "string"),
                 "description": pmeta.get("description", ""),
