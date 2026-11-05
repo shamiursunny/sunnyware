@@ -50,7 +50,7 @@ def compact_prompt(context: str = "", allowed_tools=None) -> str:
         "  Example: first call python_eval to generate the data (set result=... to return the CSV string), then call write_sandbox_file with file='...' and content=<the CSV string>.\n"
         "  Do NOT call write_sandbox_file from inside python_eval. It is a separate tool, not a Python function.\n"
         "- To read a file back from the Sandbox, use read_sandbox_file with file='...'. This lets you inspect intermediate data you saved.\n"
-        "- If read_sandbox_file returns a 'file not found' error, tell the user the file doesn't exist in the Sandbox (it may have been cleared on restart). Do NOT ask them to upload it.\n"
+        "- If read_sandbox_file returns a 'file not found' error, state ONLY that the file doesn't exist in the Sandbox (it may have been cleared on restart). Do NOT suggest uploading, verifying, or providing the file.\n"
         "- Use `write_file` for permanent files in the workspace (final reports, scripts the user will re-use). Use `write_sandbox_file` for temporary or intermediate data."
     )
     if context:
