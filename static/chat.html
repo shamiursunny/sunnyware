@@ -1453,6 +1453,25 @@ body.light-mode .code-head {
 #fullscreenFileViewer .ffv-btn:hover { background: #252a37; }
 #fullscreenFileViewer .ffv-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 #ffvClose { padding: 6px 10px !important; font-weight: bold; }
+#ffvJump { padding: 6px 10px; border-radius: 6px; border: 1px solid #232a38; background: #1a1d26; color: #e7ecf3; font-size: 13px; max-width: 240px; }
+#ffvJump option { background: #1a1d26; color: #e7ecf3; }
+#ffvZoomRow { display: flex; align-items: center; gap: 4px; }
+#ffvZoomLevel { font-size: 12px; color: #8892a6; min-width: 44px; text-align: center; }
+.ffv-docx { background: #0d0d0f; border: 1px solid #2a2a2e; border-radius: 8px; padding: 24px; color: #e6e6ea; font-family: Georgia, serif; line-height: 1.7; }
+.ffv-docx-p { margin: 0 0 12px; font-size: 14px; }
+.ffv-slide { background: #0d0d0f; border: 1px solid #2a2a2e; border-radius: 8px; padding: 20px; margin-bottom: 14px; }
+.ffv-slide-num { font-size: 11px; color: #8892a6; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.ffv-slide-title { color: #e7ecf3; font-size: 18px; margin: 0 0 12px; font-weight: 600; }
+.ffv-slide-p { color: #c9c9d1; font-size: 13px; margin: 0 0 6px; line-height: 1.6; }
+.ffv-bio { background: #0d0d0f; border: 1px solid #2a2a2e; border-radius: 8px; padding: 24px; color: #e6e6ea; }
+.ffv-bio h3 { color: #e7ecf3; font-size: 15px; margin: 20px 0 10px; border-bottom: 1px solid #2a2a2e; padding-bottom: 8px; }
+.ffv-bio h3:first-child { margin-top: 0; }
+.ffv-bio ul { padding-left: 20px; margin: 0 0 12px; }
+.ffv-bio li { font-size: 13px; line-height: 1.7; color: #c9c9d1; }
+.ffv-bio li strong { color: #e7ecf3; }
+.ffv-pbix-list { font-family: "SF Mono", Menlo, monospace; font-size: 11.5px !important; max-height: 300px; overflow-y: auto; }
+.ffv-img-zoom-wrap { display: flex; justify-content: center; align-items: center; min-height: 100%; overflow: auto; }
+.ffv-img-zoom-wrap img { max-width: 100%; max-height: calc(100vh - 120px); object-fit: contain; border-radius: 6px; transition: transform 0.15s ease; }
 #ffvBody { flex: 1; overflow: auto; padding: 24px; }
 .ffv-pre { margin: 0; padding: 20px; background: #0d0d0f; border-radius: 8px; font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 13px; line-height: 1.6; white-space: pre-wrap; word-break: break-word; color: #e6e6ea; border: 1px solid #2a2a2e; }
 .ffv-img-wrap { display: flex; justify-content: center; align-items: center; min-height: 100%; }
@@ -1890,6 +1909,13 @@ body.light-mode .code-head {
     <button class="ffv-btn" id="ffvPrev" title="Previous (←)">←</button>
     <span id="ffvCounter">—</span>
     <button class="ffv-btn" id="ffvNext" title="Next (→)">→</button>
+    <select id="ffvJump" title="Jump to file"></select>
+    <div id="ffvZoomRow">
+      <button class="ffv-btn" id="ffvZoomOut" title="Zoom out">−</button>
+      <span id="ffvZoomLevel">100%</span>
+      <button class="ffv-btn" id="ffvZoomIn" title="Zoom in">+</button>
+      <button class="ffv-btn" id="ffvZoomReset" title="Reset zoom">1:1</button>
+    </div>
     <button class="ffv-btn" id="ffvDownload" title="Download this file">Download</button>
   </div>
   <div id="ffvBody"></div>
@@ -5348,6 +5374,30 @@ async function deleteSandboxFile(name) {
 
 /* Part 711: Universal full-screen file viewer */
 let _ffvState = { kind: 'sandbox', index: 0, items: [] };
+let _ffvZoom = 1.0;
+
+function populateFFVJump() {
+  const sel = document.getElementById('ffvJump');
+  if (!sel) return;
+  sel.innerHTML = '';
+  _ffvState.items.forEach((it, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = (idx+1) + '. ' + (it.name || '(unnamed)');
+    if (idx === _ffvState.index) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+function applyFFVZoom() {
+  const img = document.querySelector('#ffvBody .ffv-img-zoom-wrap img');
+  if (img) img.style.transform = 'scale(' + _ffvZoom + ')';
+  const lbl = document.getElementById('ffvZoomLevel');
+  if (lbl) lbl.textContent = Math.round(_ffvZoom * 100) + '%';
+}
+
+function ffvZoom(delta) { _ffvZoom = Math.max(0.25, Math.min(5, _ffvZoom + delta)); applyFFVZoom(); }
+function ffvZoomReset() { _ffvZoom = 1.0; applyFFVZoom(); }
 
 function openFullscreenFileViewer(kind, index) {
   const items = getLibraryItems(kind);
@@ -5367,6 +5417,10 @@ function renderFFVFile() {
   document.getElementById('ffvCounter').textContent = (index + 1) + ' / ' + items.length;
   document.getElementById('ffvPrev').disabled = index === 0;
   document.getElementById('ffvNext').disabled = index === items.length - 1;
+  populateFFVJump();
+  _ffvZoom = 1.0;
+  const _zr = document.getElementById('ffvZoomRow');
+  if (_zr) _zr.style.display = ['png','jpg','jpeg','gif','webp','svg','bmp'].includes((f.name||'').split('.').pop().toLowerCase()) ? 'flex' : 'none';
   const body = document.getElementById('ffvBody');
   body.innerHTML = '<div class="ffv-loading">Loading…</div>';
   const ext = (f.name || '').split('.').pop().toLowerCase();
@@ -5375,6 +5429,11 @@ function renderFFVFile() {
   const isCsv = ext === 'csv' || ext === 'tsv';
   const isJson = ext === 'json';
   const isExcel = ext === 'xlsx' || ext === 'xls';
+  const isDocx = ext === 'docx';
+  const isPptx = ext === 'pptx';
+  const isTwb = ext === 'twb';
+  const isTwbx = ext === 'twbx';
+  const isPbix = ext === 'pbix';
   (async () => {
     let content = '', type = 'text', mime = '';
     try {
@@ -5403,7 +5462,7 @@ function renderFFVFile() {
       if (type === 'image' || isImage) {
         let src = content;
         if (mime && !content.startsWith('data:')) src = 'data:' + mime + ';base64,' + content;
-        body.innerHTML = '<div class="ffv-img-wrap"><img src="' + esc(src) + '" alt=""></div>';
+        body.innerHTML = '<div class="ffv-img-zoom-wrap"><img src="' + esc(src) + '" alt=""></div>';
       } else if (type === 'pdf' || isPdf) {
         let src = content;
         if (!content.startsWith('data:')) src = 'data:application/pdf;base64,' + content;
@@ -5444,6 +5503,73 @@ function renderFFVFile() {
           }
         } catch (e) {
           body.innerHTML = '<div class="ffv-error">Excel preview failed: ' + esc(e.message) + '</div>';
+        }
+      } else if (isDocx || isPptx || isTwb || isTwbx || isPbix) {
+        body.innerHTML = '<div class="ffv-loading">Loading office document…</div>';
+        try {
+          const _k = (kind === 'sandbox') ? 'sandbox' : 'workspace';
+          const xr = await fetch('/api/' + _k + '/file/' + encodeURIComponent(f.name) + '/office-preview');
+          const xd = await xr.json();
+          if (xd.error) { body.innerHTML = '<div class="ffv-error">' + esc(xd.error) + '</div>'; return; }
+          if (isDocx) {
+            let html = '';
+            if (xd.paragraphs && xd.paragraphs.length) {
+              html += '<div class="ffv-docx">';
+              xd.paragraphs.forEach(pp => { html += '<p class="ffv-docx-p">' + esc(pp.text) + '</p>'; });
+              html += '</div>';
+            }
+            if (xd.tables && xd.tables.length) {
+              xd.tables.forEach((tb, i) => {
+                html += '<h3 style="color:#e7ecf3;margin:16px 0 8px;">Table ' + (i+1) + '</h3>';
+                html += '<div class="ffv-table-wrap"><table class="ffv-table"><thead><tr>';
+                tb.headers.forEach(h => html += '<th>' + esc(h) + '</th>');
+                html += '</tr></thead><tbody>';
+                tb.rows.forEach(r => { html += '<tr>'; r.forEach(c => html += '<td>' + esc(c) + '</td>'); html += '</tr>'; });
+                html += '</tbody></table></div>';
+              });
+            }
+            body.innerHTML = html || '<div class="ffv-empty">Empty document</div>';
+          } else if (isPptx) {
+            let html = '';
+            (xd.slides || []).forEach(s => {
+              html += '<div class="ffv-slide">';
+              html += '<div class="ffv-slide-num">Slide ' + s.index + '</div>';
+              if (s.title) html += '<h3 class="ffv-slide-title">' + esc(s.title) + '</h3>';
+              (s.texts || []).forEach(tx => { html += '<p class="ffv-slide-p">' + esc(tx) + '</p>'; });
+              html += '</div>';
+            });
+            body.innerHTML = html || '<div class="ffv-empty">No slides</div>';
+          } else if (isTwb || isTwbx) {
+            let html = '<div class="ffv-bio">';
+            if (xd.twbx_contents) html += '<p style="color:#8892a6;font-size:12px;">.twbx archive: ' + xd.twbx_contents.length + ' files</p>';
+            html += '<h3>Data Sources (' + (xd.datasources||[]).length + ')</h3><ul>';
+            (xd.datasources || []).forEach(d => {
+              html += '<li><strong>' + esc(d.name) + '</strong>';
+              if (d.connection) html += ' · ' + esc(d.connection);
+              if (d.tables && d.tables.length) html += ' · ' + d.tables.map(esc).join(', ');
+              html += '</li>';
+            });
+            html += '</ul><h3>Worksheets (' + (xd.worksheets||[]).length + ')</h3><ul>';
+            (xd.worksheets || []).forEach(w => { html += '<li><strong>' + esc(w.name) + '</strong>' + (w.mark_type ? ' · ' + esc(w.mark_type) : '') + '</li>'; });
+            html += '</ul><h3>Dashboards (' + (xd.dashboards||[]).length + ')</h3><ul>';
+            (xd.dashboards || []).forEach(d => { html += '<li><strong>' + esc(d.name) + '</strong> · ' + d.zones + ' zones</li>'; });
+            html += '</ul></div>';
+            body.innerHTML = html;
+          } else if (isPbix) {
+            let html = '<div class="ffv-bio">';
+            html += '<h3>Power BI Report</h3>';
+            html += '<p>Version: <strong>' + esc(xd.version || '?') + '</strong></p>';
+            html += '<p>File size: <strong>' + fmtSize(xd.file_size || 0) + '</strong></p>';
+            html += '<ul><li>Report: ' + (xd.has_report ? 'Yes' : 'No') + '</li>';
+            html += '<li>Data Model: ' + (xd.has_datamodel ? 'Yes' : 'No') + '</li>';
+            html += '<li>Security: ' + (xd.has_security_bindings ? 'Yes' : 'No') + '</li></ul>';
+            html += '<h3>Contents (' + xd.total_files + ' files)</h3><ul class="ffv-pbix-list">';
+            (xd.contents || []).forEach(c => { html += '<li>' + esc(c) + '</li>'; });
+            html += '</ul></div>';
+            body.innerHTML = html;
+          }
+        } catch (e) {
+          body.innerHTML = '<div class="ffv-error">Office preview failed: ' + esc(e.message) + '</div>';
         }
       } else if (isCsv) {
         body.innerHTML = renderCsvAsTable(content);
@@ -5549,6 +5675,14 @@ document.addEventListener('DOMContentLoaded', function() {
   if (dlBtn) dlBtn.addEventListener('click', downloadCurrentFFVFile);
   const zbtn = document.getElementById('downloadZipBtn');
   if (zbtn) zbtn.addEventListener('click', downloadSandboxZip);
+  const _jumpSel = document.getElementById('ffvJump');
+  if (_jumpSel) _jumpSel.addEventListener('change', (e) => {
+    const idx = parseInt(e.target.value);
+    if (!isNaN(idx)) { _ffvState.index = idx; renderFFVFile(); }
+  });
+  const _zi = document.getElementById('ffvZoomIn'); if (_zi) _zi.addEventListener('click', () => ffvZoom(0.25));
+  const _zo = document.getElementById('ffvZoomOut'); if (_zo) _zo.addEventListener('click', () => ffvZoom(-0.25));
+  const _zr2 = document.getElementById('ffvZoomReset'); if (_zr2) _zr2.addEventListener('click', ffvZoomReset);
 });
 
 function openFileModal(id){
