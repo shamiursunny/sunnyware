@@ -3545,3 +3545,19 @@ Fixed regex for conversation/discussion matching.
 **New**: Branch button on AI messages, branched chats indented in sidebar with tree line, delegation tool pills with purple glow, filter chip text color fixed.
 
 *Workflow updated: 2026-11-04*
+
+---
+
+### Part 698b Update (2026-11-04): Fix Light Mode Text Contrast
+
+**Fix**: User bubbles in light mode now use white text; AI bubbles use black text. No more invisible messages.
+
+*Workflow updated: 2026-11-04*
+
+---
+
+### Part 698b Update (2026-11-04): Fix Light Mode Text Contrast
+
+**Fix**: User bubbles in light mode now use white text; AI bubbles use black text. No more invisible messages.
+
+*Workflow updated: 2026-11-04*

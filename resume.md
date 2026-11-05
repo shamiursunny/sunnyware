@@ -3666,3 +3666,19 @@ me the exact git commands to commit + push both remotes."
 - **Filter Chip Fix**: The selected filter chip ("All", "Today", etc.) now uses `var(--accent-text)` for proper contrast in both dark and light modes.
 
 *Part 698 logged: 2026-11-04*
+
+---
+
+### Part 698b Update (2026-11-04): Fix Light Mode Text Contrast
+
+- **Bug Fix**: In light mode, the user message bubble had a black background but black text, making it invisible. Enforced white text for user bubbles and black text for AI bubbles in light mode.
+
+*Part 698b logged: 2026-11-04*
+
+---
+
+### Part 698b Update (2026-11-04): Fix Light Mode Text Contrast
+
+- **Bug Fix**: In light mode, the user message bubble had a black background but black text, making it invisible. Enforced white text for user bubbles and black text for AI bubbles in light mode.
+
+*Part 698b logged: 2026-11-04*

@@ -6185,3 +6185,18 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Verify the three features and choose next feature.
 
 *Handoff updated: 2026-11-04*
+
+---
+
+### Part 698b Update (2026-11-04): Fix Light Mode Text Contrast
+
+**Status:** ✅ Implemented and verified.
+
+**What was done:**
+- `static/chat.html`: Added `body.light-mode .msg.user .msg-bubble { color: #ffffff !important; }`
+- `static/chat.html`: Added `body.light-mode .msg.ai .msg-bubble { color: #1a1d26 !important; }`
+
+**Next Steps (Part 699):**
+- Choose the next feature.
+
+*Handoff updated: 2026-11-04*
