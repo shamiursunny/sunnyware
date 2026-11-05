@@ -554,6 +554,7 @@ async def list_workspace_files():
 async def list_sandbox_files():
     """List files in the agent sandbox directory."""
     from .. import paths
+    import datetime
     sb = paths.sandbox()
     if not sb.exists():
         return {"files": []}

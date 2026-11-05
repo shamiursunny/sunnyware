@@ -5703,6 +5703,7 @@ async function downloadCurrentFFVFile() {
 
 
 async function openCleanupSettings() {
+  console.log('[Cleanup] Opening modal...');
   try {
     const r = await fetch('/api/settings/cleanup');
     const cfg = await r.json();
@@ -7142,7 +7143,7 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
 </div>
 
-<div id="cleanupModal" class="modal hidden" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+<div id="cleanupModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
   <div style="background:var(--bg2); padding:20px; border-radius:8px; width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
     <h3 style="margin-top:0;">Sandbox Auto-Cleanup</h3>
     <label style="display:block; margin-bottom:12px; cursor:pointer;">
