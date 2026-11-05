@@ -1512,12 +1512,22 @@ body.light-mode .code-head {
     <div id="searchResultCount" style="display:none;padding:2px 14px 6px;font-size:11px;color:var(--text-tertiary);"></div>
 
     <div style="display:flex;align-items:center;justify-content:space-between;padding:6px 14px;font-size:11px;color:var(--text-tertiary);font-weight:600;letter-spacing:0.5px;text-transform:uppercase;">
-      <span id="chat-list-header-title">Chats</span>
+            <span id="chat-list-header-title">Chats</span>
       <div style="display:flex; align-items:center; gap:4px;">
-        <!-- Import button -->
-        <button class="icon-btn" id="sidebarImportBtn" title="Import chats" style="width:24px;height:24px;color:var(--text-tertiary);">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+<div style="position:relative" id="chatOptionsWrap">
+        <button class="icon-btn" id="chatOptionsBtn" title="Chat options" disabled style="opacity:.35">
+          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
         </button>
+        <div class="dropdown" id="chatOptionsMenu" style="left:auto;right:0;min-width:210px">
+          <button class="dropdown-item" id="optSelectMessages" onclick="toggleMessageSelection(); document.getElementById('chatOptionsMenu').classList.remove('open');"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><div class="dd-info"><div class="dd-name">Select messages</div><div class="dd-desc">Pick messages to share</div></div></button>
+          <button class="dropdown-item" id="optSelectAll"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><div class="dd-info"><div class="dd-name">Select all chats</div><div class="dd-desc">Select every chat in the list</div></div></button>
+          <button class="dropdown-item" id="optClearSelection"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg><div class="dd-info"><div class="dd-name">Clear selection</div><div class="dd-desc">Deselect all chats</div></div></button>
+          <div class="dropdown-sep"></div>
+          <button class="dropdown-item" id="optImportChats" onclick="document.getElementById('sidebarImportInput').click(); document.getElementById('chatOptionsMenu').classList.remove('open');"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg><div class="dd-info"><div class="dd-name">Import chats</div><div class="dd-desc">Restore chats from a JSON backup</div></div></button>
+          <button class="dropdown-item" id="optExportSelected"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg><div class="dd-info"><div class="dd-name">Export selected</div><div class="dd-desc">Download selected chats as Markdown</div></div></button>
+          <button class="dropdown-item" id="optDeleteSelected"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--danger)"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z"/></svg><div class="dd-info"><div class="dd-name" style="color:var(--danger)">Delete selected</div><div class="dd-desc">Delete selected chats</div></div></button>
+        </div>
+      </div>
         <input type="file" id="sidebarImportInput" accept=".json" style="display:none;" onchange="importChats(this)">
         <!-- Exit selection button -->
         <button class="icon-btn" id="exitSelectionBtn" onclick="clearSelection()" title="Exit selection" style="display:none;width:24px;height:24px;">
@@ -1589,17 +1599,7 @@ body.light-mode .code-head {
 
       <!-- Chat options dropdown -->
 
-      <div style="position:relative" id="chatOptionsWrap">
-
-        <button class="icon-btn" id="chatOptionsBtn" title="Chat options" disabled style="opacity:.35">
-
-          <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
-
-        </button>
-
-        <div class="dropdown" id="chatOptionsMenu" style="left:auto;right:0;min-width:210px">
-
-          <button class="dropdown-item" id="optSelectMessages" onclick="toggleMessageSelection(); document.getElementById('chatOptionsMenu').classList.remove('open');"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><div class="dd-info"><div class="dd-name">Select messages</div><div class="dd-desc">Pick messages to share</div></div></button>
+      <!-- chatOptionsWrap moved to sidebar --></button>
           <button class="dropdown-item" id="optSelectAll"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg><div class="dd-info"><div class="dd-name">Select all chats</div><div class="dd-desc">Select every chat in the list</div></div></button>
 
           <button class="dropdown-item" id="optClearSelection"><svg class="dd-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg><div class="dd-info"><div class="dd-name">Clear selection</div><div class="dd-desc">Deselect all chats</div></div></button>
@@ -3566,13 +3566,6 @@ function chatItemEl(c){
 
 $('#searchInput').oninput=e=>renderChatList(e.target.value);
 
-// Sidebar import button handler
-document.addEventListener('click', (e) => {
-  if (e.target.closest('#sidebarImportBtn')) {
-    e.preventDefault();
-    document.getElementById('sidebarImportInput').click();
-  }
-});
 
 function selectChat(id){
   if(window.innerWidth <= 900 && typeof closeSidebar === 'function') closeSidebar();
