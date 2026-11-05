@@ -50,3 +50,7 @@ https://huggingface.co/datasets/Zap11/llama-cpp-python-wheels/resolve/main/llama
 lxml
 html5lib
 beautifulsoup4
+
+sqlalchemy
+psycopg2-binary
+pymysql

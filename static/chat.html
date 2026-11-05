@@ -2728,6 +2728,54 @@ let toastTimer;
 
 function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>t.classList.remove('show'),2400); }
 
+let _recognition = null;
+let _isListening = false;
+
+function toggleVoiceInput() {
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SR) { toast('Speech recognition not supported in this browser.'); return; }
+    const btn = document.getElementById('micBtn');
+    const input = document.getElementById('composerInput') || document.querySelector('textarea');
+
+    if (_isListening && _recognition) {
+        _recognition.stop();
+        _isListening = false;
+        if (btn) { btn.style.background = ''; btn.textContent = String.fromCodePoint(0x1F3A4); }
+        return;
+    }
+
+    _recognition = new SR();
+    _recognition.lang = 'en-US';
+    _recognition.interimResults = false;
+    _recognition.maxAlternatives = 1;
+
+    _recognition.onstart = () => {
+        _isListening = true;
+        if (btn) { btn.style.background = '#ff6b6b'; btn.textContent = 'REC'; }
+        toast('Listening...');
+    };
+
+    _recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        if (input) input.value = transcript;
+        toast('Heard: ' + transcript);
+    };
+
+    _recognition.onerror = (event) => {
+        toast('Voice error: ' + event.error);
+        _isListening = false;
+        if (btn) { btn.style.background = ''; btn.textContent = String.fromCodePoint(0x1F3A4); }
+    };
+
+    _recognition.onend = () => {
+        _isListening = false;
+        if (btn) { btn.style.background = ''; btn.textContent = String.fromCodePoint(0x1F3A4); }
+    };
+
+    _recognition.start();
+}
+
+
 async function openSettingsModal() {
   try {
     const r = await fetch('/api/settings/keys');
