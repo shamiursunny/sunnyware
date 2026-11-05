@@ -12,6 +12,7 @@ from .read_bi_file import ReadBiFileTool
 from .edit_tableau_field import EditTableauFieldTool
 from .tableau_extra import AddTableauFilterTool, RemoveTableauFieldTool, ExtractPbixAssetsTool
 from .data_tools import GenerateChartTool, CleanDatasetTool
+from .sql_tool import QuerySqliteTool
 from .export_table import ExportTableTool
 from .calculator import CalculatorTool
 from .web_fetch import WebFetchTool
@@ -109,6 +110,7 @@ _TOOLS = {
     ExtractPbixAssetsTool.name: ExtractPbixAssetsTool(),
     GenerateChartTool.name: GenerateChartTool(),
     CleanDatasetTool.name: CleanDatasetTool(),
+    QuerySqliteTool.name: QuerySqliteTool(),
     ExportTableTool.name: ExportTableTool(),
     CalculatorTool.name: CalculatorTool(),
     SearchLibraryTool.name: SearchLibraryTool(),
