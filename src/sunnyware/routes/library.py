@@ -597,7 +597,7 @@ async def list_sandbox_files():
         out.append({
             "name": f.name,
             "size": stat.st_size,
-            "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+            "modified": datetime.datetime.fromtimestamp(stat.st_mtime).isoformat(),
             "type": f.suffix.lstrip(".").lower() or "file",
         })
     out.sort(key=lambda x: x["modified"], reverse=True)
