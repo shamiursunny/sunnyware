@@ -972,6 +972,8 @@ async def _run_agent_body(
             tools=tools_schema if use_native_tools else None,
         )
 
+        if not isinstance(result, dict):
+            return {"error": f"Invalid response type: {type(result).__name__}"}
         if not result.get("ok"):
             return {
                 "ok": False,
@@ -1036,7 +1038,11 @@ async def _run_agent_body(
             })
             for call in native_calls:
                 try:
+                    if not isinstance(call, dict):
+                        continue
                     fn = call["function"]
+                    if not isinstance(fn, dict):
+                        continue
                     tool_name = fn["name"]
                     args_raw = fn.get("arguments", "{}")
                     tool_args = json.loads(args_raw) if isinstance(args_raw, str) else args_raw
@@ -1143,6 +1149,8 @@ async def _run_agent_body(
         parsed = _parse_json_response(content)
 
         if parsed is not None and "tool" in parsed:
+            if not isinstance(parsed, dict):
+                continue
             tool_name = str(parsed.get("tool", ""))
             tool_args = parsed.get("args") or {}
             if not isinstance(tool_args, dict):
