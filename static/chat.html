@@ -5723,7 +5723,6 @@ async function downloadLibZip() {
         return;
     }
     const blob = await r.blob();
-    // If response is small, it's likely a JSON error message instead of a ZIP
     if (blob.size < 300) {
       try {
         const txt = await blob.text();
@@ -5741,6 +5740,138 @@ async function downloadLibZip() {
     toast('Downloaded ' + label + ' ZIP');
   } catch(e) { toast('ZIP failed: ' + e.message); }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+  const closeBtn = document.getElementById('ffvClose');
+  if (closeBtn) closeBtn.addEventListener('click', closeFullscreenFileViewer);
+  const prevBtn = document.getElementById('ffvPrev');
+  if (prevBtn) prevBtn.addEventListener('click', () => ffvNav(-1));
+  const nextBtn = document.getElementById('ffvNext');
+  if (nextBtn) nextBtn.addEventListener('click', () => ffvNav(1));
+  const dlBtn = document.getElementById('ffvDownload');
+  if (dlBtn) dlBtn.addEventListener('click', downloadCurrentFFVFile);
+  const zbtn = document.getElementById('downloadZipBtn');
+  if (zbtn) zbtn.addEventListener('click', downloadLibZip);
+  const _jumpSel = document.getElementById('ffvJump');
+  if (_jumpSel) _jumpSel.addEventListener('change', (e) => {
+    const idx = parseInt(e.target.value);
+    if (!isNaN(idx)) { _ffvState.index = idx; renderFFVFile(); }
+  });
+  const _zi = document.getElementById('ffvZoomIn'); if (_zi) _zi.addEventListener('click', () => ffvZoom(0.25));
+  const _zo = document.getElementById('ffvZoomOut'); if (_zo) _zo.addEventListener('click', () => ffvZoom(-0.25));
+  const _zr2 = document.getElementById('ffvZoomReset'); if (_zr2) _zr2.addEventListener('click', ffvZoomReset);
+});
+
+function openFileModal(id){
+
+  const f=files.find(x=>x.id===id); if(!f){ toast('File was deleted from Library'); return; }
+
+  modalFileId=id;
+
+  const prev=$('#fmPreview');
+
+  if(f.type==='image'&&f.dataUrl) prev.innerHTML=`<img src="${f.dataUrl}" alt="">`;
+
+  else if(f.textContent!==undefined) prev.innerHTML=`<pre>${esc(f.textContent.slice(0,4000))}</pre>`;
+
+  else prev.innerHTML=`<div class="fm-icon">${fileIcon(f.type)}</div>`;
+
+  $('#fmName').textContent=f.name;
+
+  $('#fmMeta').textContent=`${f.kind==='generated'?'AI Generated':'Uploaded'} · ${f.type.toUpperCase()} · ${fmtSize(f.size)} · ${fmtDate(f.date)}`;
+
+  $('#fileModal').classList.add('open');
+
+}
+
+$('#fmClose').onclick=()=>$('#fileModal').classList.remove('open');
+
+$('#fileModal').onclick=e=>{ if(e.target.id==='fileModal')e.target.classList.remove('open'); };
+
+$('#fmDownload').onclick=()=>{ const f=files.find(x=>x.id===modalFileId); if(f){ downloadFile(f); toast('Downloading '+f.name); } };
+
+$('#fmDelete').onclick=()=>{
+
+  const f=files.find(x=>x.id===modalFileId); if(!f)return;
+
+  $('#fileModal').classList.remove('open');
+
+  showConfirm('Delete file?','"'+f.name+'" will be permanently removed from your Library.','Delete',()=>{ files=files.filter(x=>x.id!==f.id); saveAll(); renderLibrary(); renderMessages(); toast('File deleted'); });
+
+};
+
+
+
+/* drag & drop */
+
+const mainView=$('#mainView'), dragOverlay=$('#dragOverlay');
+
+let dragDepth=0;
+
+['dragenter','dragover'].forEach(ev=>mainView.addEventListener(ev,e=>{ e.preventDefault(); dragDepth++; dragOverlay.classList.add('show'); }));
+
+mainView.addEventListener('dragleave',e=>{ e.preventDefault(); dragDepth--; if(dragDepth<=0){dragDepth=0;dragOverlay.classList.remove('show');} });
+
+mainView.addEventListener('drop',e=>{
+
+  e.preventDefault(); dragDepth=0; dragOverlay.classList.remove('show');
+
+  if(e.dataTransfer.files.length){ addUploadedFiles(e.dataTransfer.files); setView('library'); libKind='upload'; document.querySelectorAll('.lib-tab').forEach(x=>x.classList.toggle('active',x.dataset.kind==='upload')); renderLibrary(); }
+
+});
+
+
+
+/* ==================== COMPOSER ATTACH (goes to library) ==================== */
+
+$('#attachBtn').onclick=()=>$('#fileInput').click();
+
+$('#fileInput').onchange=e=>{
+  const arr=[...e.target.files]; if(!arr.length)return;
+  arr.forEach(async f=>{
+    const formData = new FormData();
+    formData.append('file', f);
+    try {
+      const r = await fetch('/api/rag/upload', { method: 'POST', body: formData });
+      const d = await r.json();
+      if (d.ok) {
+        const entry = { id: uid(), name: d.filename, type: fileTypeOf(f.name), kind: 'upload', size: f.size, date: new Date().toISOString(), mime: f.type||'application/octet-stream', rag: true };
+        if (f.size < 500 * 1024 && (f.type.startsWith('text/') || ['.txt','.md','.csv','.json','.py','.js','.html','.css'].some(ext => f.name.toLowerCase().endsWith(ext)))) {
+          try { entry.textContent = await f.text(); } catch(e) {}
+        }
+        files.unshift(entry);
+        saveAll();  // Persist the file so the chip survives refresh
+        
+        // Also save to library files so it shows in the Library tab
+        fetch('/api/library/files', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...entry, content: entry.textContent || '' })
+        }).catch(e => console.error('Library sync failed', e));
+        
+        pendingAttach.push(entry.id);
+        const preview=$('#attachPreview'); preview.classList.remove('hidden');
+        const chip=document.createElement('span'); chip.className='attach-chip';
+        chip.innerHTML=`${fileIcon(entry.type)}<span class="chip-name">${esc(entry.name)}</span><button>&times;</button>`;
+        chip.querySelector('button').onclick=()=>{ pendingAttach=pendingAttach.filter(x=>x!==entry.id); chip.remove(); if(!pendingAttach.length)preview.classList.add('hidden'); };
+        preview.appendChild(chip);
+        if (typeof sendBtn !== 'undefined') sendBtn.disabled = false;
+        toast('Uploaded to RAG store');
+      } else {
+        console.error('RAG upload failed:', d.error);
+        alert('Upload failed: ' + (d.error || 'unknown'));
+      }
+    } catch(err) {
+      console.error('RAG upload error:', err);
+      alert('Upload error: ' + err.message);
+    }
+  });
+  e.target.value = '';
+};
+
+// Part 197: Tools Dropdown Logic
+let _forcedTool = '';
+let _allTools = [];
 
 async function loadToolsMenu() {
   if (_allTools.length > 0) {
