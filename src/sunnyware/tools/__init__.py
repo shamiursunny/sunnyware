@@ -14,6 +14,7 @@ from .tableau_extra import AddTableauFilterTool, RemoveTableauFieldTool, Extract
 from .data_tools import GenerateChartTool, CleanDatasetTool
 from .sql_tool import QuerySqliteTool
 from .report_scrape_tools import ScrapeWebpageTool, GenerateReportTool
+from .plan_tool import ExecutePlanTool
 from .export_table import ExportTableTool
 from .calculator import CalculatorTool
 from .web_fetch import WebFetchTool
@@ -114,6 +115,7 @@ _TOOLS = {
     QuerySqliteTool.name: QuerySqliteTool(),
     ScrapeWebpageTool.name: ScrapeWebpageTool(),
     GenerateReportTool.name: GenerateReportTool(),
+    ExecutePlanTool.name: ExecutePlanTool(),
     ExportTableTool.name: ExportTableTool(),
     CalculatorTool.name: CalculatorTool(),
     SearchLibraryTool.name: SearchLibraryTool(),
