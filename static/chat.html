@@ -2401,6 +2401,13 @@ window.fetch = function(url, options) {
 
 const LS_CHATS='sunny_chats_v2', LS_FILES='sunny_files_v1', LS_THEME='sunny_theme';
 
+// ── Mobile optimization flags ──
+const IS_MOBILE = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
+const MOBILE_MAX_MESSAGES = 15;    // Very aggressive on mobile
+const DESKTOP_MAX_MESSAGES = 100;  // Lighter on desktop too
+const MOBILE_MAX_CHATS_IN_MEMORY = 20;  // Only keep 20 most recent chats
+
+
 let chats=[], files=[], activeChatId=null, isGenerating=false, editingId=null;
 let _currentAbortController = null;
 
@@ -2983,6 +2990,13 @@ function loadAll(){
   }
 
   try{ chats=JSON.parse(localStorage.getItem(LS_CHATS))||[]; }catch(e){ chats=[]; }
+  
+  // On mobile, keep only the most recent chats in memory
+  if (IS_MOBILE && chats.length > MOBILE_MAX_CHATS_IN_MEMORY) {
+    chats.sort((a, b) => new Date(b.updated || 0) - new Date(a.updated || 0));
+    chats = chats.slice(0, MOBILE_MAX_CHATS_IN_MEMORY);
+    console.log('[mobile] trimmed chats in memory to', chats.length);
+  }
 
   // Load Library files from backend, then merge RAG documents
   fetch('/api/library/files').then(r=>r.json()).then(data=>{
@@ -3794,7 +3808,7 @@ function msgEl(m){
         let src = (img.base64 && img.base64.length > 100) ? 'data:image/'+img.format+';base64,'+img.base64 : (img.url || '');
         if(!src) return '';
         return `<div class="gen-img-container" style="position:relative; display:inline-block; margin:12px 0; max-width:100%;">
-          <img src="${src}" alt="${img.prompt||'image'}" style="max-width:100%;border-radius:8px;border:1px solid var(--border);" onerror="this.style.display='none'" />
+          <img src="${src}" alt="${img.prompt||'image'}" loading="lazy" style="max-width:100%;border-radius:8px;border:1px solid var(--border);" onerror="this.style.display='none'" />
           <div class="gen-img-actions" style="position:absolute; top:8px; right:8px; display:flex; gap:6px; opacity:0; transition:opacity 0.2s;">
             <button class="gen-img-btn" onclick="openFullscreenImage(this.closest('.gen-img-container').querySelector('img').src)" title="Fullscreen">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
@@ -4049,7 +4063,7 @@ function renderMessages(){
   $('#chatOptionsBtn').disabled=!has; $('#chatOptionsBtn').style.opacity=has?1:.35;
   if (chats.length > 0) { $('#chatOptionsBtn').disabled = false; $('#chatOptionsBtn').style.opacity = 1; }
 
-  const MAX_RENDERED = window.innerWidth < 768 ? 40 : 100;
+  const MAX_RENDERED = IS_MOBILE ? MOBILE_MAX_MESSAGES : DESKTOP_MAX_MESSAGES;
   if(has) {
     let lastDay = null;
     const messagesToRender = chat.messages.length > MAX_RENDERED
@@ -4067,8 +4081,8 @@ function renderMessages(){
     });
   }
 
-  // Part 682: Apply syntax highlighting
-  if (window.hljs) {
+  // Part 682: Apply syntax highlighting (skip on mobile to save memory)
+  if (window.hljs && !IS_MOBILE) {
     try { hljs.highlightAll(); } catch(e) {}
   }
 
