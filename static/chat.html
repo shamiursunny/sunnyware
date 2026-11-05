@@ -1745,7 +1745,7 @@ body.light-mode .code-head {
 
           </button>
 
-          <button class="btn btn-outline btn-sm hidden" id="downloadZipBtn" title="Download all Sandbox files as ZIP">Download ZIP</button>
+          <button class="btn btn-outline btn-sm hidden" id="downloadZipBtn" onclick="downloadLibZip()" title="Download files as ZIP">Download ZIP</button>
           <input type="file" id="libFileInput" multiple hidden accept="*/*">
 
         </div>
@@ -5702,6 +5702,7 @@ async function downloadCurrentFFVFile() {
 
 async function downloadLibZip() {
   try {
+    alert('DEBUG: Fetching ZIP for kind: ' + (typeof libKind !== 'undefined' ? libKind : 'undefined'));
     const kind = (typeof libKind !== 'undefined' ? libKind : '').toLowerCase();
     let endpoint = '/api/sandbox/download-zip';
     let label = 'sandbox';
