@@ -811,8 +811,11 @@ async def agent_stream(req: Request):
                 prompt, session_uuid=session_uuid, model=model, on_event=_cb,
                 role=role,
             )
+            # Safety: ensure result is always a dict
+            if not isinstance(result, dict):
+                result = {"ok": False, "error": f"Agent returned {type(result).__name__}: {str(result)[:200]}"}
             # Part 203: record token usage for quota tracking
-            _record_token_usage(req, result.get("tokens_used", 0) if isinstance(result, dict) else 0)
+            _record_token_usage(req, result.get("tokens_used", 0))
             if session_uuid:
                 if result.get("ok"):
                     await _memory.log_event(
