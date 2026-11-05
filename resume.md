@@ -3701,3 +3701,67 @@ me the exact git commands to commit + push both remotes."
 - **Verification**: All menu items (Select messages, Select all chats, Clear selection, Import chats, Export selected, Delete selected) work correctly from the sidebar.
 
 *Part 705 logged: 2026-11-05*
+
+
+---
+
+### Part 707 Update (2026-11-05): Sandbox Tab Foundation — write_sandbox_file
+
+- **New Tool**: Created `write_sandbox_file` at `src/sunnyware/tools/write_sandbox_file.py` — writes files to `/data/sandbox/` with `category = "Sandbox"`.
+- **New Endpoint**: `GET /api/sandbox/files` in `routes/library.py` — lists sandbox files with name, size, modified, type.
+- **Sandbox Path Helper**: Added `sandbox_path(rel)` to `tools/_sandbox.py` so `python_eval` code can save files to the sandbox (injected into `build_globals()`).
+- **System Prompt**: Clarified in `prompts.py` that `write_sandbox_file` is a SEPARATE tool call, NOT a Python function inside `python_eval`.
+- **Frontend**: The Sandbox tab in Library now displays files (the fetch logic was already present but the endpoint was missing).
+- **Debug Findings**: `paths.sandbox()` already had a writability fallback (`/data` → `./data` → `/tmp`), so no path patch was needed.
+
+*Part 707 logged: 2026-11-05*
+
+---
+
+### Part 708 Update (2026-11-05): read_sandbox_file + Full Agent Integration
+
+- **New Tool**: Created `read_sandbox_file` at `src/sunnyware/tools/read_sandbox_file.py` — reads files back from `/data/sandbox/` with `category = "Sandbox"`.
+- **Registry**: Both tools registered in `tools/__init__.py`; `list_tools()` now exposes the `category` attribute.
+- **Keyword Router**: Sandbox intent detection added to `keyword_router.py` at the **top** of `keyword_route()` (moved there after discovering an earlier block was intercepting prompts). Patterns:
+  - `write/save/create a file called X to sandbox` → `write_sandbox_file`
+  - `read/open/show/get X from sandbox` → `read_sandbox_file`
+  - `show me X in sandbox` → `read_sandbox_file`
+- **Jarvis Integration**: Added `sandbox`, `save to sandbox`, `read sandbox` to `tool_keywords` in `jarvis_agent.py`.
+- **Orchestrator Aliases**: Added `sandbox`, `writesandbox`, `read_sandbox`, `readsandbox` in `orchestrator.py`.
+- **Dropdown Fix**: `routes/meta.py` now respects the explicit `category` attribute; custom category ordering puts **"Sandbox"** first.
+- **System Prompt**: Added explicit examples `write_sandbox_file(file='demo.csv', content='a,b')` and `read_sandbox_file(file='demo.csv')`. Instructed LLM to never suggest "please upload" for missing sandbox files.
+
+*Part 708 logged: 2026-11-05*
+
+---
+
+### Part 709 Update (2026-11-05): Sandbox Preview Modal + Hover Actions
+
+- **New Endpoints** in `routes/library.py`:
+  - `GET /api/sandbox/file/{name}` — returns text content or base64 for images (with truncation at 500KB).
+  - `DELETE /api/sandbox/file/{name}` — deletes a single file from disk.
+  - `POST /api/sandbox/clear` — deletes all files (no UI button; callable via API).
+- **Preview Modal**: Clicking a sandbox card opens a new `#sandboxFileModal` with content rendered as `<pre>` (text) or `<img>` (images), plus Download/Delete/Close buttons.
+- **Hover Actions**: Sandbox cards now show download and delete icons on hover; both work per-file.
+- **JS Helpers**: Added `openSandboxFileModal`, `downloadSandboxFile`, `deleteSandboxFile`, `clearSandbox` in `chat.html`.
+- **Bug Fix**: The `Path` class was not imported in `routes/library.py` — all sandbox file endpoints returned 500. Added `from pathlib import Path`.
+
+*Part 709 logged: 2026-11-05*
+
+---
+
+### Part 710 Update (2026-11-05): Select All Fix Across All Tabs + Clear Sandbox Removed
+
+- **Root Cause**: Sandbox and Workspace items only had a `name` field, no `id`. When `selected.add(f.id)` was called, it added `undefined` to the Set — which deduplicates to `size === 1` regardless of how many files were selected. Toolbar always showed "Delete (1)".
+- **Fix**: `getLibraryItems()` now normalizes every item: `return items.map(f => f.id ? f : {...f, id: f.name || ''});` — applies to **all 4 tabs** (Uploaded, Workspace, Sandbox, AI Generated).
+- **Delete Routing Fix**: The bulk delete handler in `chat.html` now checks `libKind` and calls the correct endpoint:
+  - `sandbox` → `DELETE /api/sandbox/file/{name}`
+  - `upload` → `DELETE /api/library/files/{id}`
+  - `workspace`/`generated` → frontend-only removal (no backend endpoint)
+- **Clear Sandbox Removed**: The "Clear Sandbox" toolbar button was removed as redundant (Select All → Delete does the same). The `POST /api/sandbox/clear` endpoint still exists for programmatic use.
+- **Verification**: Backend deletion confirmed via `(await fetch('/api/sandbox/files').then(r => r.json()))` returning `{files: []}` after bulk delete.
+- **Docs Created**: `SANDBOX_INTEGRATION.md` (new), sandbox sections appended to `workflow.md` and `handoff.md`.
+
+*Part 710 logged: 2026-11-05*
+
+---

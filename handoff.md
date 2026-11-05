@@ -6233,3 +6233,52 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 - Choose the next feature.
 
 *Handoff updated: 2026-11-05*
+
+
+---
+
+# Sandbox & Library Handoff (Parts 707-710)
+
+## Backend Files Modified
+- src/sunnyware/tools/write_sandbox_file.py - New tool, category=Sandbox
+- src/sunnyware/tools/read_sandbox_file.py - New tool, category=Sandbox
+- src/sunnyware/tools/__init__.py - Register + expose category
+- src/sunnyware/keyword_router.py - Sandbox detection at top of keyword_route()
+- src/sunnyware/routes/library.py - CRUD endpoints + Path import
+- src/sunnyware/routes/meta.py - Respects explicit category, Sandbox first
+- src/sunnyware/prompts.py - Tool examples + missing-file handling
+- src/sunnyware/jarvis_agent.py - Sandbox keywords
+- src/sunnyware/orchestrator.py - Aliases
+
+## Frontend
+- static/chat.html - Preview modal, hover actions, select-all fix, per-tab delete routing, removed Clear Sandbox button
+
+## Design Decisions
+1. Keyword router first - Sandbox prompts matched at top to avoid file-required errors
+2. Tool category - Both tools use category=Sandbox
+3. Delete routing - libKind switch: sandbox->/api/sandbox/file/, upload->/api/library/files/
+4. Stable IDs - getLibraryItems() normalizes id, fixing Select All count bug
+5. Clear Sandbox removed (redundant with Select All -> Delete)
+6. Path fallback - /data -> ./data -> /tmp
+
+## Testing Checklist
+- [x] Write via keyword router
+- [x] Write via LLM
+- [x] Read via keyword router
+- [x] Read via LLM
+- [x] Preview modal shows content
+- [x] Hover download/delete work
+- [x] Select All correct count on all 4 tabs
+- [x] Bulk delete removes disk files
+- [x] Missing file graceful error
+- [x] Sandbox category at top of dropdown
+
+## Known Limitations
+1. Ephemeral on HF Spaces (needs bucket mount)
+2. Workspace/AI Generated - frontend-only delete
+3. POST /api/sandbox/clear has no UI button
+
+## Next Steps
+1. Auto-cleanup 7-day-old files
+2. Download All as ZIP
+3. Persistent sandbox via bucket
