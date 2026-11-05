@@ -1488,7 +1488,66 @@ body.light-mode .code-head {
 
   <!-- Part 682: Syntax highlighting -->
   <link rel="stylesheet" href="/static/github-dark.min.css">
-  <script src="/static/highlight.min.js"></script>
+  <script src="/static/highlight.min.js">
+async function loadMemoryTab() {
+  document.getElementById('libGrid').classList.add('hidden');
+  document.getElementById('memoryContainer').classList.remove('hidden');
+  const list = document.getElementById('memoryList');
+  list.innerHTML = '<div>Loading...</div>';
+  try {
+    const r = await fetch('/api/rag/documents');
+    const data = await r.json();
+    if (!data.documents || data.documents.length === 0) {
+      list.innerHTML = '<div>No documents in AI memory yet.</div>';
+      return;
+    }
+    list.innerHTML = data.documents.map(doc => `
+      <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg2); padding:10px; border-radius:6px; border:1px solid var(--border);">
+        <span>[Doc] ${doc}</span>
+        <button class="btn btn-outline btn-sm" onclick="deleteMemoryDoc('${doc}')" style="color:#ff6b6b; border-color:#ff6b6b;">Delete</button>
+      </div>
+    `).join('');
+  } catch(e) {
+    list.innerHTML = '<div>Failed to load memory documents.</div>';
+  }
+}
+async function uploadMemoryFile(file) {
+  if (!file) return;
+  const formData = new FormData();
+  formData.append('file', file);
+  toast('Uploading and indexing...');
+  try {
+    const r = await fetch('/api/rag/upload', { method: 'POST', body: formData });
+    const data = await r.json();
+    if (r.ok) {
+      toast('File added to AI Memory');
+      loadMemoryTab();
+    } else {
+      toast('Upload failed: ' + (data.error || 'Unknown error'));
+    }
+  } catch(e) { toast('Upload failed'); }
+}
+async function deleteMemoryDoc(source) {
+  if (!confirm('Delete this document from AI memory?')) return;
+  try {
+    const r = await fetch('/api/rag/delete?source=' + encodeURIComponent(source), { method: 'DELETE' });
+    if (r.ok) { toast('Deleted from memory'); loadMemoryTab(); }
+    else { toast('Delete failed'); }
+  } catch(e) { toast('Delete failed'); }
+}
+document.addEventListener('DOMContentLoaded', () => {
+  const dz = document.getElementById('memoryDropZone');
+  if (dz) {
+    dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.style.borderColor = 'var(--accent)'; });
+    dz.addEventListener('dragleave', (e) => { e.preventDefault(); dz.style.borderColor = 'var(--border)'; });
+    dz.addEventListener('drop', (e) => {
+      e.preventDefault(); dz.style.borderColor = 'var(--border)';
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) uploadMemoryFile(e.dataTransfer.files[0]);
+    });
+  }
+});
+
+</script>
 </head>
 
 <body>
@@ -1709,6 +1768,7 @@ body.light-mode .code-head {
             <button class="lib-tab" data-kind="sandbox" id="sandboxTab">Sandbox</button>
 
             <button class="lib-tab" data-kind="generated" id="aiGeneratedTab">AI Generated</button>
+            <button class="lib-tab" data-kind="memory" id="memoryTab">Memory</button>
 
           </div>
 
@@ -5122,7 +5182,17 @@ document.querySelectorAll('.lib-tab').forEach(t=>t.onclick=()=>{
 
   document.querySelectorAll('.lib-tab').forEach(x=>x.classList.remove('active')); t.classList.add('active');
 
-  libKind=t.dataset.kind; exitSelectMode(); 
+  libKind=t.dataset.kind; exitSelectMode();
+  if(libKind === 'memory') {
+      document.getElementById('libGrid').classList.add('hidden');
+      document.getElementById('memoryContainer').classList.remove('hidden');
+      loadMemoryTab();
+      return;
+  } else {
+      document.getElementById('libGrid').classList.remove('hidden');
+      const mc = document.getElementById('memoryContainer');
+      if(mc) mc.classList.add('hidden');
+  } 
   if(libKind==='workspace' || libKind==='generated') { loadWorkspaceFiles().then(()=>renderLibrary()); }
   else if(libKind==='sandbox') { loadSandboxFiles().then(()=>renderLibrary()); }
   const _dzb = document.getElementById('downloadZipBtn'); if(_dzb) _dzb.classList.toggle('hidden', selectMode);
@@ -5294,7 +5364,7 @@ function renderLibrary(){
                 headers: {'Content-Type': 'application/json'},
                 body: JSON.stringify({new_name: nn})
             }).then(r => {
-                if (r.ok) { toast('Renamed'); loadLibrary(); }
+                if (r.ok) { toast('Renamed'); renderLibrary(); }
                 else { toast('Rename failed'); }
             }).catch(() => toast('Rename failed'));
         }
