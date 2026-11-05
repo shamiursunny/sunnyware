@@ -303,6 +303,23 @@ def ws_path(rel: str):
 
 
 # ── Globals for exec ──
+
+def sandbox_path(rel: str):
+    """Resolve a sandbox-relative path, jailed. Use this for temp files."""
+    from .. import paths as _paths
+    sb = _paths.sandbox().resolve()
+    if not rel:
+        raise PermissionError("empty path not allowed")
+    if rel.startswith("/") or rel.startswith("\\"):
+        raise PermissionError("absolute paths not allowed")
+    target = (sb / rel).resolve()
+    # Ensure target is inside sb
+    s = str(sb) + "/"
+    if not (str(target) == str(sb) or str(target).startswith(s)):
+        raise PermissionError(f"path escapes sandbox: {rel}")
+    return str(target)
+
+
 def build_globals() -> dict:
     """Build the exec() namespace with preloaded popular libraries."""
     sb = safe_builtins()
@@ -324,6 +341,7 @@ def build_globals() -> dict:
         ("tabulate",      "tabulate"),
         ("Path",          "__jailed_path__"),  # injected below
         ("ws_path",       None),  # injected below
+        ("sandbox_path",  None),  # injected below
         ("_workspace",    None),  # injected below
     ]
     g["_JailedPath"] = _make_jailed_path()
@@ -355,6 +373,7 @@ def build_globals() -> dict:
             pass
 
     g["ws_path"] = ws_path
+    g["sandbox_path"] = sandbox_path
     try:
         from .. import paths as _paths
         g["_workspace"] = str(_paths.workspace())

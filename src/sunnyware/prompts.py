@@ -46,7 +46,9 @@ def compact_prompt(context: str = "", allowed_tools=None) -> str:
         "- If the user asks to read a CSV file, use the `csv_query` tool.\n"
         "- NEVER say 'I cannot read PDF files'. You HAVE the tools to do so.\n"
         "- If a file is uploaded, use `rag_search` to find and read its content.\n"
-        "- If you clean, transform, or generate data (like CSV or SQL dumps) and want to save it, use `write_sandbox_file` so it appears in the Sandbox tab in the Library.\n"
+        "- If you clean, transform, or generate data (like CSV or SQL dumps) and want to save it, use `write_sandbox_file` as a SEPARATE tool call.\n"
+        "  Example: first call python_eval to generate the data (set result=... to return the CSV string), then call write_sandbox_file with file='...' and content=<the CSV string>.\n"
+        "  Do NOT call write_sandbox_file from inside python_eval. It is a separate tool, not a Python function.\n"
         "- Use `write_file` for permanent files in the workspace (final reports, scripts the user will re-use). Use `write_sandbox_file` for temporary or intermediate data."
     )
     if context:
