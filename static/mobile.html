@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Sunnyware — Mobile</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #212121;
+  color: #ececec;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #3f3f3f;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #171717;
+  flex-shrink: 0;
+}
+.header .logo {
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #7c5cff, #00d4ff);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 14px; color: white;
+}
+.header .title { font-weight: 700; font-size: 15px; flex: 1; }
+.header a { color: #8892a6; font-size: 12px; text-decoration: none; }
+
+.messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+.msg {
+  max-width: 90%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 15px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  white-space: pre-wrap;
+}
+.msg.user { align-self: flex-end; background: #2f2f2f; color: #ececec; border-bottom-right-radius: 4px; }
+.msg.ai { align-self: flex-start; background: transparent; border-left: 2px solid #7c5cff; padding-left: 12px; }
+.msg.ai .tool { display: inline-block; padding: 2px 8px; border-radius: 99px; background: #3a3a3a; font-size: 11px; margin-bottom: 4px; color: #a78bfa; }
+.msg.ai .role { font-size: 11px; color: #8892a6; font-weight: 600; margin-bottom: 4px; }
+.msg.err { align-self: flex-start; background: #5c1a1a; color: #ffcccc; border: 1px solid #e5484d; font-size: 13px; }
+
+.composer {
+  padding: 8px 12px calc(12px + env(safe-area-inset-bottom));
+  background: #171717;
+  border-top: 1px solid #3f3f3f;
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+.composer textarea {
+  flex: 1;
+  background: #2f2f2f;
+  border: 1px solid #3f3f3f;
+  border-radius: 20px;
+  padding: 10px 14px;
+  color: #ececec;
+  font-family: inherit;
+  font-size: 15px;
+  resize: none;
+  max-height: 120px;
+  outline: none;
+  min-height: 40px;
+}
+.composer textarea:focus { border-color: #7c5cff; }
+.btn {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  border: none;
+  background: #7c5cff;
+  color: white;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  transition: opacity 0.15s;
+}
+.btn:active { opacity: 0.7; }
+.btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.btn.attach { background: #3a3a3a; font-size: 20px; }
+.attach-preview {
+  padding: 6px 12px;
+  display: flex; gap: 6px; flex-wrap: wrap;
+  background: #171717;
+  border-top: 1px solid #3f3f3f;
+}
+.attach-chip {
+  background: #2f2f2f; border: 1px solid #3f3f3f;
+  padding: 4px 10px; border-radius: 99px;
+  font-size: 12px; display: flex; align-items: center; gap: 6px;
+}
+.attach-chip button { background: none; border: none; color: #8892a6; cursor: pointer; font-size: 14px; padding: 0; }
+.empty {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 30px; text-align: center; color: #8892a6;
+}
+.empty .orb {
+  width: 60px; height: 60px; border-radius: 16px;
+  background: linear-gradient(135deg, #7c5cff, #00d4ff);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; color: white; font-weight: 800;
+  margin-bottom: 16px;
+}
+.empty h1 { font-size: 22px; color: #ececec; margin-bottom: 8px; font-weight: 700; }
+.empty p { font-size: 14px; line-height: 1.5; max-width: 280px; }
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo">S</div>
+  <div class="title">Sunnyware</div>
+  <a href="/ui">Desktop</a>
+</div>
+<div class="messages" id="messages">
+  <div class="empty" id="empty">
+    <div class="orb">S</div>
+    <h1>How can I help?</h1>
+    <p>Chat with Sunnyware. Upload a file to read PDFs, CSVs, or text documents.</p>
+  </div>
+</div>
+<div class="attach-preview" id="attachPreview" style="display:none;"></div>
+<div class="composer">
+  <button class="btn attach" id="attachBtn" title="Attach">+</button>
+  <textarea id="input" rows="1" placeholder="Message..."></textarea>
+  <button class="btn" id="sendBtn" disabled>&#8593;</button>
+</div>
+<input type="file" id="fileInput" multiple hidden>
+
+<script>
+const API_KEY = localStorage.getItem('sunnyware_admin_key') || '';
+const SESSION_KEY = 'sunny_mobile_session_' + Date.now();
+const messagesEl = document.getElementById('messages');
+const emptyEl = document.getElementById('empty');
+const inputEl = document.getElementById('input');
+const sendBtn = document.getElementById('sendBtn');
+const attachBtn = document.getElementById('attachBtn');
+const attachPreview = document.getElementById('attachPreview');
+const fileInput = document.getElementById('fileInput');
+
+let pendingFiles = [];
+let isStreaming = false;
+let currentAiMsg = null;
+
+function authHeaders() {
+  const h = { 'Content-Type': 'application/json' };
+  if (API_KEY) h['X-API-Key'] = API_KEY;
+  return h;
+}
+
+function autoResize() {
+  inputEl.style.height = 'auto';
+  inputEl.style.height = Math.min(inputEl.scrollHeight, 120) + 'px';
+  sendBtn.disabled = (!inputEl.value.trim() && pendingFiles.length === 0) || isStreaming;
+}
+
+inputEl.addEventListener('input', autoResize);
+inputEl.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    send();
+  }
+});
+
+attachBtn.onclick = () => fileInput.click();
+fileInput.onchange = async (e) => {
+  const files = Array.from(e.target.files);
+  fileInput.value = '';
+  for (const f of files) {
+    try {
+      const fd = new FormData();
+      fd.append('file', f);
+      const res = await fetch('/api/rag/upload', { method: 'POST', body: fd, headers: { 'X-API-Key': API_KEY } });
+      if (res.ok) {
+        pendingFiles.push(f.name);
+        renderAttachPreview();
+        autoResize();
+      } else {
+        alert('Upload failed: ' + res.status);
+      }
+    } catch (err) {
+      alert('Upload error: ' + err.message);
+    }
+  }
+};
+
+function renderAttachPreview() {
+  if (pendingFiles.length === 0) {
+    attachPreview.style.display = 'none';
+    attachPreview.innerHTML = '';
+    return;
+  }
+  attachPreview.style.display = 'flex';
+  attachPreview.innerHTML = pendingFiles.map((name, i) =>
+    '<div class="attach-chip">FILE: ' + escapeHtml(name) + '<button data-i="' + i + '">x</button></div>'
+  ).join('');
+  attachPreview.querySelectorAll('button').forEach(btn => {
+    btn.onclick = () => {
+      pendingFiles.splice(+btn.dataset.i, 1);
+      renderAttachPreview();
+      autoResize();
+    };
+  });
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function addMsg(role, text) {
+  if (emptyEl) emptyEl.style.display = 'none';
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  if (role === 'ai') {
+    div.innerHTML = '<div class="role">Sunnyware</div><div class="body"></div>';
+  } else {
+    div.textContent = text;
+  }
+  if (role === 'ai') div.querySelector('.body').textContent = text;
+  messagesEl.appendChild(div);
+  messagesEl.scrollTop = messagesEl.scrollHeight;
+  return div;
+}
+
+async function send() {
+  const text = inputEl.value.trim();
+  if ((!text && pendingFiles.length === 0) || isStreaming) return;
+
+  addMsg('user', text || '(attached files)');
+  inputEl.value = '';
+  autoResize();
+  const filesForRequest = [...pendingFiles];
+  pendingFiles = [];
+  renderAttachPreview();
+
+  isStreaming = true;
+  sendBtn.disabled = true;
+
+  let fullPrompt = text || 'Read and summarize the attached files.';
+  if (filesForRequest.length > 0) {
+    fullPrompt = '[Attached File: ' + filesForRequest.join(', ') + ']' + String.fromCharCode(10) + fullPrompt;
+  }
+
+  try {
+    const res = await fetch('/api/agent/stream', {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({
+        input: fullPrompt,
+        session_id: SESSION_KEY,
+        role: 'general',
+        forced_tool: filesForRequest.length > 0 ? 'rag_search' : ''
+      })
+    });
+    if (!res.ok) {
+      addMsg('err', 'HTTP ' + res.status + ': ' + (await res.text()).slice(0, 200));
+      return;
+    }
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let accumulated = '';
+    currentAiMsg = addMsg('ai', '');
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const chunks = buffer.split(String.fromCharCode(10) + String.fromCharCode(10));
+      buffer = chunks.pop();
+      for (const chunk of chunks) {
+        const line = chunk.split(String.fromCharCode(10)).find(l => l.startsWith('data: '));
+        if (!line) continue;
+        const data = line.slice(6).trim();
+        if (!data || data === '[DONE]') continue;
+        let ev;
+        try { ev = JSON.parse(data); } catch(e) { continue; }
+        const t = ev.type || ev.event || '';
+        if (t === 'tool_call') {
+          const toolName = ev.name || ev.tool || '';
+          const roleEl = currentAiMsg.querySelector('.role');
+          if (roleEl && toolName) {
+            roleEl.innerHTML = 'Sunnyware <span class="tool">' + escapeHtml(toolName) + '</span>';
+          }
+        } else if (t === 'content' || t === 'delta' || t === 'answer') {
+          const delta = ev.text || ev.content || ev.delta || '';
+          if (delta) {
+            accumulated += delta;
+            currentAiMsg.querySelector('.body').textContent = accumulated;
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+          }
+        } else if (t === 'final') {
+          if (ev.answer) accumulated = ev.answer;
+          if (ev.error) throw new Error(ev.error);
+          currentAiMsg.querySelector('.body').textContent = accumulated;
+        } else if (t === 'error') {
+          throw new Error(ev.error || ev.message || 'stream error');
+        }
+      }
+    }
+
+    if (!accumulated) currentAiMsg.querySelector('.body').textContent = '(no response)';
+  } catch (err) {
+    addMsg('err', 'Error: ' + err.message);
+  } finally {
+    isStreaming = false;
+    autoResize();
+  }
+}
+
+sendBtn.onclick = send;
+</script>
+</body>
+</html>
