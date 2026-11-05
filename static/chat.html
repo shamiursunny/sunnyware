@@ -5702,7 +5702,6 @@ async function downloadCurrentFFVFile() {
 
 async function downloadLibZip() {
   try {
-    alert('DEBUG: Fetching ZIP for kind: ' + (typeof libKind !== 'undefined' ? libKind : 'undefined'));
     const kind = (typeof libKind !== 'undefined' ? libKind : '').toLowerCase();
     let endpoint = '/api/sandbox/download-zip';
     let label = 'sandbox';
@@ -5715,31 +5714,28 @@ async function downloadLibZip() {
         label = 'workspace';
     }
 
-    console.log('[ZIP] fetching', endpoint);
     const r = await fetch(endpoint);
     if (!r.ok) {
-        const errText = await r.text();
-        console.error('[ZIP] failed', r.status, errText);
-        toast('ZIP download failed (HTTP ' + r.status + ')');
+        const text = await r.text();
+        alert('FAILED: HTTP ' + r.status + '\n' + text);
         return;
     }
+
+    const contentType = r.headers.get('Content-Type') || '';
+    if (contentType.includes('application/json')) {
+        const text = await r.text();
+        alert('BACKEND ERROR: ' + text);
+        return;
+    }
+
     const blob = await r.blob();
-    if (blob.size < 300) {
-      try {
-        const txt = await blob.text();
-        const j = JSON.parse(txt);
-        if (j.error) { toast('ZIP failed: ' + j.error); return; }
-        toast('ZIP failed: ' + txt);
-        return;
-      } catch(e) {}
-    }
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = label + '-' + new Date().toISOString().slice(0, 10) + '.zip';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    toast('Downloaded ' + label + ' ZIP');
-  } catch(e) { toast('ZIP failed: ' + e.message); }
+    alert('SUCCESS: Downloaded ' + label + ' ZIP');
+  } catch(e) { alert('FAILED (exception): ' + e.message); }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
