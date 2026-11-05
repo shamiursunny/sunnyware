@@ -196,51 +196,73 @@ async def download_uploaded_zip():
     from fastapi.responses import Response
     import io, zipfile, base64
     pool = app_state.get_pool()
+    
+    # If no DB, try local fallback directories
     if not pool:
-        return {"error": "no database"}
-    await _ensure_table()
-    owner = _owner()
-    async with pool.acquire() as conn:
-        rows = await conn.fetch(
-            "SELECT name, type, content FROM library_files WHERE owner_key = $1 ORDER BY created_at DESC",
-            owner,
-        )
-    if not rows:
-        return {"error": "no uploaded files"}
-    buf = io.BytesIO()
-    used_names = set()
-    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
-        for r in rows:
-            name = r["name"] or "untitled"
-            # Dedupe names
-            if name in used_names:
-                stem, dot, ext = name.rpartition(".")
-                i = 2
-                while f"{stem}_{i}.{ext}" in used_names:
-                    i += 1
-                name = f"{stem}_{i}.{ext}"
-            used_names.add(name)
-            content = r["content"] or ""
-            ftype = (r["type"] or "").lower()
-            # Images: content is data URL or base64
-            try:
-                if ftype == "image" or content.startswith("data:"):
-                    if content.startswith("data:"):
-                        b64 = content.split(",", 1)[-1]
+        from .. import paths
+        for d in [paths.data_root() / "library", paths.data_root() / "uploads"]:
+            if d.exists() and any(d.iterdir()):
+                buf = io.BytesIO()
+                count = 0
+                with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+                    for f in d.iterdir():
+                        if f.is_file():
+                            zf.write(f, arcname=f.name)
+                            count += 1
+                buf.seek(0)
+                return Response(
+                    content=buf.read(),
+                    media_type="application/zip",
+                    headers={"Content-Disposition": f'attachment; filename="uploaded-{count}-files.zip"'},
+                )
+        return {"error": "no database and no local uploaded files found"}
+    
+    try:
+        await _ensure_table()
+        owner = _owner()
+        async with pool.acquire() as conn:
+            rows = await conn.fetch(
+                "SELECT name, type, content FROM library_files WHERE owner_key = $1 ORDER BY created_at DESC",
+                owner,
+            )
+        if not rows:
+            return {"error": "no uploaded files in database"}
+            
+        buf = io.BytesIO()
+        used_names = set()
+        with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+            for r in rows:
+                name = r["name"] or "untitled"
+                if name in used_names:
+                    stem, dot, ext = name.rpartition(".")
+                    i = 2
+                    while f"{stem}_{i}.{ext}" in used_names:
+                        i += 1
+                    name = f"{stem}_{i}.{ext}"
+                used_names.add(name)
+                content = r["content"] or ""
+                ftype = (r["type"] or "").lower()
+                try:
+                    if ftype == "image" or content.startswith("data:"):
+                        if content.startswith("data:"):
+                            b64 = content.split(",", 1)[-1]
+                        else:
+                            b64 = content
+                        zf.writestr(name, base64.b64decode(b64))
                     else:
-                        b64 = content
-                    zf.writestr(name, base64.b64decode(b64))
-                else:
+                        zf.writestr(name, content)
+                except Exception:
                     zf.writestr(name, content)
-            except Exception:
-                zf.writestr(name, content)
-    buf.seek(0)
-    return Response(
-        content=buf.read(),
-        media_type="application/zip",
-        headers={"Content-Disposition": f'attachment; filename="uploaded-{len(rows)}-files.zip"'},
-    )
-
+        buf.seek(0)
+        return Response(
+            content=buf.read(),
+            media_type="application/zip",
+            headers={"Content-Disposition": f'attachment; filename="uploaded-{len(rows)}-files.zip"'},
+        )
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return {"error": f"ZIP generation failed: {str(e)}"}
 
 @router.get("/api/sandbox/file/{filename}")
 async def get_sandbox_file(filename: str):
