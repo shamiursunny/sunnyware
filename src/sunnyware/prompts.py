@@ -45,7 +45,9 @@ def compact_prompt(context: str = "", allowed_tools=None) -> str:
         "- If the user asks to read an Excel file (.xlsx, .xls), use the `excel_read` tool.\n"
         "- If the user asks to read a CSV file, use the `csv_query` tool.\n"
         "- NEVER say 'I cannot read PDF files'. You HAVE the tools to do so.\n"
-        "- If a file is uploaded, use `rag_search` to find and read its content."
+        "- If a file is uploaded, use `rag_search` to find and read its content.\n"
+        "- If you clean, transform, or generate data (like CSV or SQL dumps) and want to save it, use `write_sandbox_file` so it appears in the Sandbox tab in the Library.\n"
+        "- Use `write_file` for permanent files in the workspace (final reports, scripts the user will re-use). Use `write_sandbox_file` for temporary or intermediate data."
     )
     if context:
         base += "\n\nRelevant context from your memory of past sessions:\n" + context

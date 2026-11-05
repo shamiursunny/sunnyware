@@ -6,6 +6,7 @@ from .echo import EchoTool
 from .current_time import CurrentTimeTool
 from .read_file import ReadFileTool
 from .write_file import WriteFileTool
+from .write_sandbox_file import WriteSandboxFileTool
 from .calculator import CalculatorTool
 from .web_fetch import WebFetchTool
 from .memory_search import MemorySearchTool
@@ -93,6 +94,7 @@ _TOOLS = {
     CurrentTimeTool.name: CurrentTimeTool(),
     ReadFileTool.name: ReadFileTool(),
     WriteFileTool.name: WriteFileTool(),
+    WriteSandboxFileTool.name: WriteSandboxFileTool(),
     CalculatorTool.name: CalculatorTool(),
     SearchLibraryTool.name: SearchLibraryTool(),
     WebFetchTool.name: WebFetchTool(),
