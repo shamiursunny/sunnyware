@@ -1447,6 +1447,16 @@ body.light-mode .code-head {
 </head>
 
 <body>
+<script>
+// Mobile redirect: phones get the lightweight page
+(function() {
+  var isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
+  var bypass = window.location.search.indexOf('desktop=1') !== -1 || localStorage.getItem('sunnyforce_desktop') === '1';
+  if (isMobile && !bypass && !window.location.pathname.includes('/mobile')) {
+    window.location.replace('/static/mobile.html');
+  }
+})();
+</script>
 
 <!-- Part 224a: Impersonation banner -->
 <div id="impersonation-banner" style="display:none;position:fixed;top:0;left:0;right:0;background:#e74c3c;color:#fff;padding:10px 16px;text-align:center;z-index:9999;font-weight:600;font-size:13px;box-shadow:0 2px 8px rgba(0,0,0,0.4);">

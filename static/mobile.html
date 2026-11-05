@@ -135,7 +135,7 @@ body {
   <div class="empty" id="empty">
     <div class="orb">S</div>
     <h1>How can I help?</h1>
-    <p>Chat with Sunnyware. Upload a file to read PDFs, CSVs, or text documents.</p>
+    <p>Chat with Sunnyware. Tap <b>+</b> to upload a file (PDF, CSV, text).</p>
   </div>
 </div>
 <div class="attach-preview" id="attachPreview" style="display:none;"></div>
@@ -144,7 +144,7 @@ body {
   <textarea id="input" rows="1" placeholder="Message..."></textarea>
   <button class="btn" id="sendBtn" disabled>&#8593;</button>
 </div>
-<input type="file" id="fileInput" multiple hidden>
+<input type="file" id="fileInput" multiple hidden accept="*/*">
 
 <script>
 const API_KEY = localStorage.getItem('sunnyware_admin_key') || '';
@@ -181,7 +181,10 @@ inputEl.addEventListener('keydown', (e) => {
   }
 });
 
-attachBtn.onclick = () => fileInput.click();
+attachBtn.onclick = () => {
+  fileInput.value = '';
+  fileInput.click();
+};
 fileInput.onchange = async (e) => {
   const files = Array.from(e.target.files);
   fileInput.value = '';
