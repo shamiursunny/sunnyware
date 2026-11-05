@@ -41,7 +41,35 @@ async def _ensure_table():
 @router.get("/api/library/files")
 async def list_files():
     pool = app_state.get_pool()
-    if not pool: return {"files": []}
+    if not pool:
+        from .. import paths
+        import datetime, base64
+        d = paths.data_root() / "uploads"
+        if d.exists():
+            out = []
+            for f in d.iterdir():
+                if f.is_file():
+                    content = ""
+                    ext = f.suffix.lower()
+                    if ext in [".png", ".jpg", ".jpeg", ".gif"]:
+                        try:
+                            content = "data:image/" + ext[1:] + ";base64," + base64.b64encode(f.read_bytes()).decode()
+                        except: pass
+                    else:
+                        try:
+                            content = f.read_text(encoding="utf-8")
+                        except: pass
+                    out.append({
+                        "id": f.name,
+                        "name": f.name,
+                        "type": "image" if ext in [".png", ".jpg", ".jpeg", ".gif"] else "file",
+                        "size": f.stat().st_size,
+                        "kind": "upload",
+                        "content": content,
+                        "created_at": datetime.datetime.fromtimestamp(f.stat().st_mtime).isoformat()
+                    })
+            return {"files": out}
+        return {"files": []}
     await _ensure_table()
     owner = _owner()
     async with pool.acquire() as conn:
@@ -54,19 +82,41 @@ async def list_files():
             out.append(d)
         return {"files": out}
 
+
 @router.post("/api/library/files")
 async def save_file(req: Request):
     pool = app_state.get_pool()
-    if not pool:
-        # DB unavailable — accept the upload but return a warning instead of failing
-        return JSONResponse({"ok": True, "db": False, "warning": "No database configured — file saved locally only"})
-    await _ensure_table()
-    owner = _owner()
     body = await req.json()
     content = body.get("content", "")
     size = body.get("size") or 0
 
-    # Derive size from content when missing (e.g. text files uploaded before sync fix)
+    if not pool:
+        from .. import paths
+        import base64, datetime
+        d = paths.data_root() / "uploads"
+        d.mkdir(parents=True, exist_ok=True)
+        name = body.get("name", "Untitled")
+        target = d / name
+        i = 1
+        while target.exists():
+            stem, dot, ext = name.rpartition(".")
+            if not dot: stem, ext = name, ""
+            target = d / f"{stem}_{i}{dot}{ext}"
+            i += 1
+        try:
+            if content.startswith("data:"):
+                b64 = content.split(",", 1)[-1]
+                target.write_bytes(base64.b64decode(b64))
+            else:
+                target.write_text(content, encoding="utf-8")
+        except Exception as e:
+            return JSONResponse({"error": f"Failed to save locally: {e}"}, status_code=500)
+        return JSONResponse({"ok": True, "db": False, "warning": "Saved locally (no DB)", "id": target.name, "created_at": datetime.datetime.now().isoformat()})
+
+    await _ensure_table()
+    owner = _owner()
+
+    # Derive size from content when missing
     if not size and content:
         if isinstance(content, str):
             if content.startswith('data:'):
@@ -79,14 +129,12 @@ async def save_file(req: Request):
             else:
                 size = len(content.encode('utf-8'))
 
-    # Part 258: Prevent DoS via massive base64 payloads (max 5MB)
     if len(content) > 5 * 1024 * 1024:
         return JSONResponse(
-            {"error": "File too large", "detail": "Max size is 5MB"}, 
+            {"error": "File too large", "detail": "Max size is 5MB"},
             status_code=413
         )
 
-    # Part 259: Limit to 100 files per user to prevent storage abuse
     async with pool.acquire() as conn:
         count = await conn.fetchval("SELECT COUNT(*) FROM library_files WHERE owner_key = $1", owner)
         if count >= 100:
@@ -101,46 +149,23 @@ async def save_file(req: Request):
         """, owner, body.get("name", "Untitled"), body.get("type", "file"), size, body.get("kind", "upload"), content)
         return {"id": str(row["id"]), "created_at": row["created_at"].isoformat()}
 
+
 @router.delete("/api/library/files/{file_id}")
 async def delete_file(file_id: str):
     pool = app_state.get_pool()
-    if not pool: return {"deleted": False}
+    if not pool:
+        from .. import paths
+        d = paths.data_root() / "uploads"
+        target = d / file_id
+        if target.exists():
+            target.unlink()
+            return {"deleted": True}
+        return {"deleted": False}
     await _ensure_table()
     owner = _owner()
-    # Part 258: validate UUID before casting to prevent 500 errors
-    import uuid
-    try:
-        uuid.UUID(file_id)
-    except ValueError:
-        return JSONResponse({"error": "Invalid file ID"}, status_code=400)
-
     async with pool.acquire() as conn:
-        res = await conn.execute("DELETE FROM library_files WHERE id = $1::uuid AND owner_key = $2", file_id, owner)
-        return {"deleted": res.startswith("DELETE 1")}
-
-from datetime import datetime
-
-@router.get("/api/workspace/files")
-async def list_workspace_files():
-    """List files in the agent workspace directory."""
-    from .. import paths
-    ws = paths.workspace()
-    if not ws.exists():
-        return {"files": []}
-    out = []
-    for f in ws.iterdir():
-        if not f.is_file():
-            continue
-        stat = f.stat()
-        out.append({
-            "name": f.name,
-            "size": stat.st_size,
-            "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
-            "type": f.suffix.lstrip(".").lower() or "file",
-        })
-    out.sort(key=lambda x: x["modified"], reverse=True)
-    return {"files": out}
-
+        await conn.execute("DELETE FROM library_files WHERE id = $1::uuid AND owner_key = $2", file_id, owner)
+        return {"deleted": True}
 
 @router.get("/api/sandbox/download-zip")
 async def download_sandbox_zip():
