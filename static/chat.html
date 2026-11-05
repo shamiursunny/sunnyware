@@ -747,9 +747,21 @@ body.message-selection-mode #messageSelectionBar { display: flex; }
 /* Light mode message contrast fixes (targeting data-theme) */
 [data-theme="light"] .msg.user .msg-bubble { color: #ffffff !important; }
 [data-theme="light"] .msg.ai .msg-bubble { color: #1a1d26 !important; }
-[data-theme="light"] .code-block {
+[data-theme="light"] .code-block,
+body.light-mode .code-block {
   background: #f8f9fb !important;
-  border-color: #e2e5ec !important;
+  border: 1px solid #e2e5ec !important;
+  box-shadow: none !important;
+}
+[data-theme="light"] .code-block pre,
+body.light-mode .code-block pre {
+  background: transparent !important;
+  padding: 14px !important;
+}
+[data-theme="light"] .code-head,
+body.light-mode .code-head {
+  background: #f0f2f5 !important;
+  border-bottom: 1px solid #e2e5ec !important;
 }
 [data-theme="light"] .code-head {
   background: #f0f2f5 !important;
