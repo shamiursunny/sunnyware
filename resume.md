@@ -3765,3 +3765,28 @@ me the exact git commands to commit + push both remotes."
 *Part 710 logged: 2026-11-05*
 
 ---
+
+
+---
+
+### Part 711 Update (2026-11-05): Universal Full-Screen File Viewer + ZIP Download
+
+- **Full-Screen Viewer**: New overlay (#fullscreenFileViewer) opens on click of any file card in ANY Library tab (Uploaded, Workspace, Sandbox, AI Generated).
+- **Navigation**: Header shows X <- N / M -> Download. Left/Right buttons + keyboard arrows navigate; Esc closes; Up/Down scroll.
+- **File-type rendering**: Text/code/MD -> monospace pre; CSV/TSV -> formatted table; JSON -> pretty; Image -> centered; PDF -> embedded iframe; Excel -> table (workspace via excel_read, sandbox via new /xlsx endpoint); Binary (.docx/.zip) -> friendly message.
+- **New Backend Endpoints**: GET /api/workspace/file/{name}, GET /api/sandbox/download-zip.
+- **Download ZIP button**: #downloadZipBtn in Sandbox toolbar; visible only on Sandbox tab; hidden in select mode.
+
+*Part 711 logged: 2026-11-05*
+
+---
+
+### Part 712 Update (2026-11-05): Sandbox XLSX Table Rendering
+
+- **New Endpoint**: GET /api/sandbox/file/{filename}/xlsx in routes/library.py - parses xlsx via openpyxl, returns {sheets: {name: {headers, rows}}}.
+- **Frontend**: renderFFVFile() branches on kind - Sandbox xlsx calls the new endpoint, workspace calls /api/tools/excel_read.
+- **Result**: .xlsx files in Sandbox tab now render as formatted tables.
+
+*Part 712 logged: 2026-11-05*
+
+---

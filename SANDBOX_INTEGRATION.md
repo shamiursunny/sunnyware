@@ -76,3 +76,24 @@ All endpoints use `paths.sandbox()` which falls back to `./data/sandbox` or `/tm
 - Auto-cleanup of files older than 7 days on startup.
 - "Download All as ZIP" button in the Sandbox tab.
 - Preview modal for Workspace / AI Generated files.
+
+
+## Full-Screen File Viewer (Parts 711-712)
+
+The Sandbox tab - and every other Library tab - opens files in a universal full-screen viewer.
+
+### Viewer Features
+- Click any file card -> full-screen overlay with X/N/M navigation
+- File-type rendering: CSV=table, JSON=pretty, Image=centered, PDF=iframe, XLSX=table, Binary=friendly message
+
+### New Endpoints (Parts 711-712)
+- GET /api/workspace/file/{name} - workspace file reader
+- GET /api/sandbox/download-zip - stream all sandbox files as ZIP
+- GET /api/sandbox/file/{name}/xlsx - parse xlsx in sandbox
+
+### ZIP Download
+- Download ZIP button visible only on Sandbox tab (hidden in select mode)
+- Downloads sandbox-YYYY-MM-DD.zip
+
+### Binary Guard
+Returns type:binary for .xlsx/.xls/.docx/.doc/.pptx/.ppt/.zip/.gz/.tar - except .xlsx in sandbox which routes to /xlsx endpoint (parses to tables).

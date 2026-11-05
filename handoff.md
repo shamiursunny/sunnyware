@@ -6282,3 +6282,39 @@ SUNNYWARE_AGENT_TIMEOUT = 300
 1. Auto-cleanup 7-day-old files
 2. Download All as ZIP
 3. Persistent sandbox via bucket
+
+
+---
+
+# File Viewer & ZIP Handoff (Parts 711-712)
+
+## New Backend Endpoints
+- GET /api/workspace/file/{name} - read workspace file (binary-guarded)
+- GET /api/sandbox/download-zip - stream all sandbox files as ZIP
+- GET /api/sandbox/file/{name}/xlsx - parse xlsx in sandbox via openpyxl
+
+## Frontend (static/chat.html)
+- #fullscreenFileViewer overlay + CSS
+- JS: openFullscreenFileViewer, renderFFVFile, renderCsvAsTable, ffvNav, closeFullscreenFileViewer, downloadWorkspaceFile, downloadCurrentFFVFile, downloadSandboxZip
+- Keyboard: Esc/Left/Right navigation
+- Card click routes ALL tabs to full-screen viewer
+- #downloadZipBtn with visibility toggles
+
+## Design Decisions
+1. Unified viewer, not per-tab modals
+2. _ffvState = {kind, index, items}
+3. Sandbox xlsx uses dedicated /xlsx endpoint (not excel_read)
+4. Binary guard at API layer prevents frontend garbage
+5. ZIP button hidden unless Sandbox tab + not in select mode
+
+## Known Limitations
+1. Excel preview caps at 500 shown rows (backend 2000)
+2. Binary guard is extension-based, not MIME
+3. CSV delimiter is tab-or-comma only
+
+## Next Steps
+1. .docx preview via python-docx
+2. .pptx preview via python-pptx
+3. Image zoom controls
+4. Semicolon-delimited CSV support
+5. Jump-to-file dropdown in viewer header

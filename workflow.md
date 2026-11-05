@@ -3628,3 +3628,41 @@ Fix in getLibraryItems():
 ## 8. Missing File
 LLM says: The file X does not exist in the Sandbox
 LLM must NOT say: please upload the file
+
+
+---
+
+# Full-Screen File Viewer Workflows (Parts 711-712)
+
+## 1. Opening the Viewer
+Click any file card in any tab -> openFullscreenFileViewer(kind, index)
+-> overlay opens, renderFFVFile() called
+
+## 2. Rendering per File Type
+- CSV/TSV -> renderCsvAsTable
+- JSON -> JSON.parse + stringify(_, null, 2)
+- Image -> img centered
+- PDF -> iframe
+- XLSX -> Sandbox: /api/sandbox/file/{name}/xlsx | Workspace: /api/tools/excel_read
+- Binary (.docx/.zip) -> friendly guard message
+- Text -> pre
+
+## 3. Navigation
+_ffvState = {kind, index, items}
+Header buttons + keyboard ArrowLeft/Right -> ffvNav(-1/+1)
+Esc -> close
+
+## 4. Download Current File
+#ffvDownload -> downloadCurrentFFVFile() (per-kind logic)
+
+## 5. Download Sandbox as ZIP
+#downloadZipBtn (Sandbox tab only) -> GET /api/sandbox/download-zip
+
+## 6. Binary Guard
+/api/workspace/file/ and /api/sandbox/file/ return type:binary for office/zip formats
+
+## 7. Sandbox XLSX Flow (Part 712)
+Click test.xlsx in Sandbox -> renderFFVFile detects kind==='sandbox' && isExcel
+-> GET /api/sandbox/file/test.xlsx/xlsx
+-> openpyxl parses -> {sheets: {Sheet1: {headers, rows}}}
+-> rendered as table
