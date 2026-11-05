@@ -70,6 +70,14 @@ async def _preload_local_task():
 
 @asynccontextmanager
 async def lifespan(app):
+    # Run auto-cleanup on startup
+    try:
+        from . import sandbox_cleanup
+        res = sandbox_cleanup.run_cleanup()
+        log.info("startup_cleanup", **res)
+    except Exception as e:
+        log.error("startup_cleanup_error", err=str(e))
+
     try:
         from . import local_llm as _jarvis_local
         if _jarvis_local.is_enabled():
@@ -336,6 +344,13 @@ except Exception:
 
 
 # FALLBACK: init state at import time (HF Spaces skips lifespan)
+try:
+    from . import sandbox_cleanup
+    res = sandbox_cleanup.run_cleanup()
+    log.info("fallback_cleanup", **res)
+except Exception as e:
+    pass
+
 
 # Part 284: Start Jarvis preload for HF Spaces (lifespan is skipped)
 try:

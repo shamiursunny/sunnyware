@@ -38,6 +38,28 @@ async def _ensure_table():
             CREATE INDEX IF NOT EXISTS idx_library_owner ON library_files(owner_key);
         """)
 
+@router.get("/api/settings/cleanup")
+async def get_cleanup_settings():
+    from .. import sandbox_cleanup
+    return sandbox_cleanup.get_config()
+
+@router.post("/api/settings/cleanup")
+async def save_cleanup_settings(req: Request):
+    from .. import sandbox_cleanup
+    body = await req.json()
+    cfg = sandbox_cleanup.get_config()
+    if "enabled" in body:
+        cfg["enabled"] = bool(body["enabled"])
+    if "ttl_days" in body:
+        cfg["ttl_days"] = int(body["ttl_days"])
+    sandbox_cleanup.save_config(cfg)
+    return {"ok": True, "config": cfg}
+
+@router.post("/api/settings/cleanup/run")
+async def trigger_cleanup():
+    from .. import sandbox_cleanup
+    return sandbox_cleanup.run_cleanup(force=True)
+
 @router.get("/api/library/files")
 async def list_files():
     pool = app_state.get_pool()

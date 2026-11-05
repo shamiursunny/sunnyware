@@ -1745,6 +1745,7 @@ body.light-mode .code-head {
 
           </button>
 
+          <button class="btn btn-outline btn-sm" onclick="openCleanupSettings()" title="Sandbox Auto-Cleanup Settings">⚙️ Cleanup</button>
           <button class="btn btn-outline btn-sm hidden" id="downloadZipBtn" onclick="downloadLibZip()" title="Download files as ZIP">Download ZIP</button>
           <input type="file" id="libFileInput" multiple hidden accept="*/*">
 
@@ -5700,6 +5701,43 @@ async function downloadCurrentFFVFile() {
   if (fullFile) downloadFile(fullFile);
 }
 
+
+async function openCleanupSettings() {
+  try {
+    const r = await fetch('/api/settings/cleanup');
+    const cfg = await r.json();
+    document.getElementById('cleanupEnabled').checked = cfg.enabled;
+    document.getElementById('cleanupTtl').value = cfg.ttl_days;
+    document.getElementById('cleanupModal').style.display = 'flex';
+  } catch(e) { toast('Failed to load settings'); }
+}
+function closeCleanupSettings() {
+  document.getElementById('cleanupModal').style.display = 'none';
+}
+async function saveCleanupSettings() {
+  const enabled = document.getElementById('cleanupEnabled').checked;
+  const ttl = parseInt(document.getElementById('cleanupTtl').value) || 7;
+  try {
+    const r = await fetch('/api/settings/cleanup', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({enabled, ttl_days: ttl})
+    });
+    if (r.ok) { toast('Settings saved'); closeCleanupSettings(); }
+    else { toast('Failed to save settings'); }
+  } catch(e) { toast('Failed to save settings'); }
+}
+async function runCleanupNow() {
+  toast('Running cleanup...');
+  try {
+    const r = await fetch('/api/settings/cleanup/run', { method: 'POST' });
+    const data = await r.json();
+    if (r.ok) toast('Deleted ' + data.deleted + ' old files');
+    else toast('Cleanup failed');
+    closeCleanupSettings();
+  } catch(e) { toast('Cleanup failed'); }
+}
+
 async function downloadLibZip() {
   try {
     const kind = (typeof libKind !== 'undefined' ? libKind : '').toLowerCase();
@@ -5717,14 +5755,16 @@ async function downloadLibZip() {
     const r = await fetch(endpoint);
     if (!r.ok) {
         const text = await r.text();
-        alert('FAILED: HTTP ' + r.status + '\n' + text);
+        toast('ZIP download failed (HTTP ' + r.status + ')');
         return;
     }
 
     const contentType = r.headers.get('Content-Type') || '';
     if (contentType.includes('application/json')) {
         const text = await r.text();
-        alert('BACKEND ERROR: ' + text);
+        let errMsg = text;
+        try { errMsg = JSON.parse(text).error || text; } catch(e) {}
+        toast('ZIP failed: ' + errMsg);
         return;
     }
 
@@ -5734,8 +5774,8 @@ async function downloadLibZip() {
     a.download = label + '-' + new Date().toISOString().slice(0, 10) + '.zip';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    alert('SUCCESS: Downloaded ' + label + ' ZIP');
-  } catch(e) { alert('FAILED (exception): ' + e.message); }
+    toast('Downloaded ' + label + ' ZIP');
+  } catch(e) { toast('ZIP failed: ' + e.message); }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -7101,6 +7141,24 @@ document.addEventListener('DOMContentLoaded', () => {
     <div id="fullscreenContentBody"></div>
   </div>
 </div>
+
+<div id="cleanupModal" class="modal hidden" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+  <div style="background:var(--bg2); padding:20px; border-radius:8px; width:320px; box-shadow:0 10px 30px rgba(0,0,0,0.5);">
+    <h3 style="margin-top:0;">Sandbox Auto-Cleanup</h3>
+    <label style="display:block; margin-bottom:12px; cursor:pointer;">
+      <input type="checkbox" id="cleanupEnabled" style="margin-right:8px;"> Enable Auto-Cleanup
+    </label>
+    <label style="display:block; margin-bottom:16px;">
+      Keep files for <input type="number" id="cleanupTtl" value="7" min="1" style="width:60px; margin:0 4px; padding:4px; background:var(--bg1); border:1px solid var(--border); border-radius:4px; color:var(--text);"> days
+    </label>
+    <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:20px;">
+      <button class="btn btn-outline btn-sm" onclick="runCleanupNow()">Run Now</button>
+      <button class="btn btn-primary btn-sm" onclick="saveCleanupSettings()">Save</button>
+      <button class="btn btn-outline btn-sm" onclick="closeCleanupSettings()">Close</button>
+    </div>
+  </div>
+</div>
+
 </body>
 
 </html>
