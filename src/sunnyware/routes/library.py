@@ -194,6 +194,50 @@ async def get_sandbox_file(filename: str):
         return {"error": f"read failed: {type(e).__name__}: {e}"}
 
 
+@router.get("/api/workspace/file/{filename}/xlsx")
+async def get_workspace_xlsx(filename: str):
+    """Parse an xlsx file in the workspace and return sheets as JSON."""
+    from pathlib import Path as _Path
+    try:
+        from .. import paths
+        name = _Path(filename).name
+        target = paths.workspace() / name
+        if not target.exists():
+            return {"error": f"file not found: {name}"}
+        if target.suffix.lower() not in (".xlsx", ".xls"):
+            return {"error": "not an xlsx file"}
+        try:
+            import openpyxl
+        except ImportError:
+            return {"error": "openpyxl not installed"}
+        wb = openpyxl.load_workbook(str(target), data_only=True, read_only=True)
+        sheets = {}
+        for sheet_name in wb.sheetnames:
+            ws = wb[sheet_name]
+            rows_iter = ws.iter_rows(values_only=True)
+            try:
+                headers_row = next(rows_iter, None)
+            except StopIteration:
+                headers_row = None
+            if not headers_row:
+                sheets[sheet_name] = {"headers": [], "rows": []}
+                continue
+            headers = [str(h) if h is not None else f"col{i+1}" for i, h in enumerate(headers_row)]
+            rows = []
+            for r in rows_iter:
+                if all(c is None for c in r):
+                    continue
+                row_dict = {}
+                for i, h in enumerate(headers):
+                    row_dict[h] = r[i] if i < len(r) else None
+                rows.append(row_dict)
+            sheets[sheet_name] = {"headers": headers, "rows": rows[:2000]}
+        wb.close()
+        return {"ok": True, "name": name, "sheets": sheets}
+    except Exception as e:
+        return {"error": f"xlsx parse failed: {type(e).__name__}: {e}"}
+
+
 @router.get("/api/workspace/file/{filename}")
 async def get_workspace_file(filename: str):
     """Read a single workspace file's content (text / image / pdf / base64)."""
