@@ -5,6 +5,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 from .. import state as app_state
 from .. import tenant as tenant_ctx
+from pathlib import Path
 
 router = APIRouter()
 
