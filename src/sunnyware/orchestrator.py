@@ -1140,7 +1140,7 @@ async def _run_agent_body(
                     # Part 469: Force LLM to answer using the tool result
                     messages.append({
                         "role": "user",
-                        "content": "The tool '" + tool_name + "' ran successfully and returned: " + json.dumps(_truncate_tool_result(tool_result)) + ". Now provide a brief, direct answer to the user's original question. Do not call any more tools."
+                        "content": "The user's original question was: '" + prompt[:200] + "'. The tool '" + tool_name + "' ran successfully and returned: " + json.dumps(_truncate_tool_result(tool_result)) + ". Now provide a brief, direct answer to the user's original question. Do not call any more tools."
                     })
             # Part 271: Force final answer after 2 tool calls to prevent loops
             if (len(steps) >= 2 or _dup_streak >= 2) and steps:
