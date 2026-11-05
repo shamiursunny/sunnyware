@@ -526,6 +526,28 @@ async def clear_sandbox():
                 errors.append(f"{f.name}: {e}")
     return {"ok": True, "deleted": count, "errors": errors}
 
+@router.get("/api/workspace/files")
+async def list_workspace_files():
+    """List all files in the workspace directory."""
+    from .. import paths
+    import datetime
+    ws = paths.workspace()
+    out = []
+    if ws.exists():
+        for f in ws.iterdir():
+            if f.is_file():
+                out.append({
+                    "id": f.name,
+                    "name": f.name,
+                    "type": f.suffix.lstrip(".").lower() or "file",
+                    "size": f.stat().st_size,
+                    "kind": "workspace",
+                    "created_at": datetime.datetime.fromtimestamp(f.stat().st_mtime).isoformat()
+                })
+    # Sort by created_at descending
+    out.sort(key=lambda x: x["created_at"], reverse=True)
+    return {"files": out}
+
 @router.get("/api/sandbox/files")
 async def list_sandbox_files():
     """List files in the agent sandbox directory."""
