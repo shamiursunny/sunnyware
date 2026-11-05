@@ -1,4 +1,3 @@
-from . import get_tool
 
 class ExecutePlanTool:
     name = "execute_plan"
@@ -24,6 +23,8 @@ class ExecutePlanTool:
     }
 
     async def run(self, steps: list) -> dict:
+        from . import get_tool
+
         results = []
         for i, step in enumerate(steps):
             tool_name = step.get("tool")
