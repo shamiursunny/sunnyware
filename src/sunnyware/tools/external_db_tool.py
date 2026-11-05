@@ -1,4 +1,3 @@
-import pandas as pd
 from pathlib import Path
 
 class QueryExternalDbTool:
@@ -16,6 +15,7 @@ class QueryExternalDbTool:
     }
 
     async def run(self, connection_string: str, sql_query: str, db_type: str = "postgres") -> dict:
+        import pandas as pd
         try:
             from sqlalchemy import create_engine
             if db_type == "mysql":

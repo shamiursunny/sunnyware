@@ -1,4 +1,3 @@
-import pandas as pd
 from pathlib import Path
 from .. import paths
 
@@ -19,6 +18,7 @@ class GenerateChartTool:
     }
 
     async def run(self, filename: str, chart_type: str, x_column: str, y_column: str, title: str = "Chart", kind: str = "sandbox") -> dict:
+        import pandas as pd
         base = paths.sandbox() if kind == "sandbox" else paths.workspace()
         target = base / Path(filename).name
         if not target.exists():
@@ -77,6 +77,7 @@ class CleanDatasetTool:
     }
 
     async def run(self, filename: str, output_filename: str, drop_nulls: bool = False, fill_value: str = None, kind: str = "sandbox") -> dict:
+        import pandas as pd
         base = paths.sandbox() if kind == "sandbox" else paths.workspace()
         target = base / Path(filename).name
         if not target.exists():

@@ -1,4 +1,3 @@
-import pandas as pd
 import sqlite3
 from pathlib import Path
 from .. import paths
@@ -18,6 +17,7 @@ class QuerySqliteTool:
     }
 
     async def run(self, filename: str, sql_query: str, table_name: str = "data", kind: str = "sandbox") -> dict:
+        import pandas as pd
         base = paths.sandbox() if kind == "sandbox" else paths.workspace()
         target = base / Path(filename).name
         if not target.exists():

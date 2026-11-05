@@ -1,5 +1,3 @@
-import pandas as pd
-import requests
 from pathlib import Path
 from .. import paths
 
@@ -18,6 +16,8 @@ class ScrapeWebpageTool:
     }
 
     async def run(self, url: str, output_filename: str, table_index: int = 0, kind: str = "sandbox") -> dict:
+        import pandas as pd
+        import requests
         try:
             headers = {'User-Agent': 'Mozilla/5.0'}
             response = requests.get(url, headers=headers)
@@ -58,6 +58,7 @@ class GenerateReportTool:
     }
 
     async def run(self, filename: str, title: str, output_filename: str, kind: str = "sandbox") -> dict:
+        import pandas as pd
         base = paths.sandbox() if kind == "sandbox" else paths.workspace()
         target = base / Path(filename).name
         if not target.exists():
