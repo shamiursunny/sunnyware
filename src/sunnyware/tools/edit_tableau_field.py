@@ -7,6 +7,30 @@ class EditTableauFieldTool:
     description = "Edit a calculated field formula, filter value, or parameter in a Tableau .twb workbook. Requires file, field_name, and new_value."
     keywords = ["edit tableau", "update tableau field", "change tableau formula"]
 
+    parameters = {
+        "type": "object",
+        "properties": {
+            "filename": {
+                "type": "string",
+                "description": "The name of the Tableau file (e.g., workbook.twb or workbook.twbx)"
+            },
+            "field_name": {
+                "type": "string",
+                "description": "The exact name of the calculated field, filter, or parameter to edit"
+            },
+            "new_value": {
+                "type": "string",
+                "description": "The new formula (for calculated fields) or the new value (for filters/parameters)"
+            },
+            "kind": {
+                "type": "string",
+                "enum": ["sandbox", "workspace"],
+                "description": "The location of the file (default: sandbox)"
+            }
+        },
+        "required": ["filename", "field_name", "new_value"]
+    }
+
     async def run(self, filename: str, field_name: str, new_value: str, kind: str = "sandbox") -> dict:
         base = paths.sandbox() if kind == "sandbox" else paths.workspace()
         target = base / Path(filename).name
