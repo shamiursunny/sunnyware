@@ -50,8 +50,9 @@ ALLOWED_MODULES = frozenset({
     # viz
     "matplotlib", "matplotlib.pyplot", "seaborn", "plotly",
     "plotly.express", "plotly.graph_objects",
-    # excel / output
+    # excel / output / office
     "openpyxl", "xlsxwriter", "tabulate",
+    "docx", "pptx",         # python-docx, python-pptx (Part 713)
     # Part 111: actuarial / insurance / risk-management
     "chainladder",           # P&C loss reserving (IBNR)
     "lifelib",               # Life/pension actuarial models
