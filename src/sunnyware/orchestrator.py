@@ -880,10 +880,21 @@ async def _run_agent_body(
                 from .tools import get_tool
                 _tool_obj = get_tool(_tool_name)
                 if _tool_obj:
+                    # Emit tool_call BEFORE running so the frontend always sees it
+                    try:
+                        await _emit(on_event, {
+                            "type": "tool_call", "tool": _tool_name,
+                            "args": _tool_args, "protocol": "jarvis",
+                        })
+                    except Exception:
+                        pass
                     try:
                         import time as _time
                         _t0 = _time.time()
-                        _tool_result = await _tool_obj.run(**_tool_args)
+                        try:
+                            _tool_result = await _tool_obj.run(**_tool_args)
+                        except Exception as _tool_exc:
+                            _tool_result = {"error": f"{type(_tool_exc).__name__}: {_tool_exc}"}
                         # Part 697b: log tool call for analytics (jarvis bypass path)
                         try:
                             from . import analytics_hooks as _ah
