@@ -6174,25 +6174,6 @@ document.querySelectorAll('#toolsMenu .dropdown-item').forEach(el => {
   };
 });
 
-// Part 195: Real Voice Input via Web Speech API
-
-    _recognition.onresult = function(event) {
-      const input = $('#chatInput');
-      let finalTranscript = '';
-
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) {
-          finalTranscript += event.results[i][0].transcript;
-        }
-      }
-
-      if (finalTranscript) {
-        const currentText = input.value.trim();
-        input.value = currentText ? currentText + ' ' + finalTranscript : finalTranscript;
-        // Trigger input event to auto-resize and enable send button
-        input.dispatchEvent(new Event('input', { bubbles: true }));
-      }
-    };
 
 
     _recognition.onend = function() {
