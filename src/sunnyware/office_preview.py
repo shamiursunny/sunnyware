@@ -245,41 +245,72 @@ def _extract_sheets_from_xlrd(xls_path: Path) -> dict:
     return sheets
 
 
-def parse_xls(path: Path) -> dict:
-    """Parse .xls file. 3-level fallback: openpyxl -> xlrd -> LibreOffice."""
-    direct_error = ""
-    xlrd_error = ""
-    lo_error = ""
-
-    # Strategy 1: direct openpyxl (works if file is actually XLSX content)
+def _detect_office_magic(path: Path) -> str:
+    """Detect file magic bytes: 'zip' (XLSX/DOCX/PPTX), 'ole' (BIFF/XLS/DOC/PPT), or 'unknown'."""
     try:
-        sheets = _extract_sheets_from_xlsx(path)
-        return {"ok": True, "name": path.name, "sheets": sheets, "engine": "openpyxl-direct"}
-    except Exception as e:
-        direct_error = f"{type(e).__name__}: {str(e)[:120]}"
+        with open(str(path), "rb") as f:
+            head = f.read(8)
+    except Exception:
+        return "unknown"
+    if head[:4] == b"PK\x03\x04":
+        return "zip"
+    if head[:4] == b"\xd0\xcf\x11\xe0":
+        return "ole"
+    return "unknown"
 
-    # Strategy 2: xlrd (purpose-built for BIFF .xls)
+
+def parse_xls(path: Path) -> dict:
+    """Parse .xls file. Detects real format by magic bytes and routes accordingly."""
+    magic = _detect_office_magic(path)
+
+    # Strategy A: ZIP magic -> it's really XLSX content, copy to temp .xlsx and read
+    if magic == "zip":
+        import tempfile, shutil
+        try:
+            with tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
+                tmp_path = Path(tmp.name)
+            shutil.copy(str(path), str(tmp_path))
+            try:
+                sheets = _extract_sheets_from_xlsx(tmp_path)
+                return {"ok": True, "name": path.name, "sheets": sheets,
+                        "engine": "xlsx-in-xls-extension"}
+            finally:
+                try: tmp_path.unlink()
+                except Exception: pass
+        except Exception as e:
+            return {"error": f"XLSX content parse failed: {type(e).__name__}: {str(e)[:200]}"}
+
+    # Strategy B: OLE/BIFF magic -> real legacy .xls, use xlrd
+    if magic == "ole":
+        try:
+            sheets = _extract_sheets_from_xlrd(path)
+            return {"ok": True, "name": path.name, "sheets": sheets, "engine": "xlrd"}
+        except ImportError:
+            xlrd_err = "xlrd not installed"
+        except Exception as e:
+            xlrd_err = f"{type(e).__name__}: {str(e)[:150]}"
+        # Fall back to LibreOffice
+        try:
+            converted = _libreoffice_convert(path, "xlsx")
+            sheets = _extract_sheets_from_xlsx(converted)
+            return {"ok": True, "name": path.name, "sheets": sheets, "engine": "libreoffice"}
+        except Exception as e:
+            return {"error": f"BIFF parse failed. xlrd: {xlrd_err} | LibreOffice: {type(e).__name__}: {str(e)[:150]}"}
+
+    # Strategy C: Unknown magic -> try all engines
+    errors = []
     try:
         sheets = _extract_sheets_from_xlrd(path)
-        return {"ok": True, "name": path.name, "sheets": sheets, "engine": "xlrd"}
-    except ImportError:
-        xlrd_error = "xlrd not installed"
+        return {"ok": True, "name": path.name, "sheets": sheets, "engine": "xlrd-fallback"}
     except Exception as e:
-        xlrd_error = f"{type(e).__name__}: {str(e)[:120]}"
-
-    # Strategy 3: LibreOffice conversion -> openpyxl
+        errors.append(f"xlrd: {type(e).__name__}: {str(e)[:100]}")
     try:
         converted = _libreoffice_convert(path, "xlsx")
         sheets = _extract_sheets_from_xlsx(converted)
-        return {"ok": True, "name": path.name, "sheets": sheets, "engine": "libreoffice"}
-    except FileNotFoundError:
-        lo_error = "LibreOffice not installed"
+        return {"ok": True, "name": path.name, "sheets": sheets, "engine": "libreoffice-fallback"}
     except Exception as e:
-        lo_error = f"{type(e).__name__}: {str(e)[:120]}"
-
-    return {
-        "error": f"All .xls readers failed. openpyxl: {direct_error} | xlrd: {xlrd_error} | LibreOffice: {lo_error}"
-    }
+        errors.append(f"LibreOffice: {type(e).__name__}: {str(e)[:100]}")
+    return {"error": f"Unknown file format. {' | '.join(errors)}"}
 
 
 
