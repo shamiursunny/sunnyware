@@ -239,13 +239,13 @@ def _make_import():
 
         # Permanent ban — even library internals can't reach these
         base = (name or "").split(".")[0]
+        is_user_code = (globals is not None and globals.get("__sandbox__") is True)
         if is_user_code and base in ALWAYS_BANNED:
             raise ImportError("module '" + name + "' is permanently banned")
 
         # Detect caller type via __name__ in caller's globals dict.
         # Only block when we can POSITIVELY identify user-exec context.
         # Unknown/None globals (C extensions) are trusted.
-        is_user_code = (globals is not None and globals.get("__sandbox__") is True)
 
         # User code path — apply whitelist
         if is_user_code:
