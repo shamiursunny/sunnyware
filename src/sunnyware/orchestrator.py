@@ -973,9 +973,13 @@ async def _run_agent_body(
         )
 
         if not isinstance(result, dict):
-            return {"error": f"Invalid response type: {type(result).__name__}"}
-        if not isinstance(result, dict):
-            result = {"ok": False, "error": f"Invalid response type: {type(result).__name__}"}
+            return {
+                "ok": False,
+                "error": f"LLM returned {type(result).__name__}: {str(result)[:200]}",
+                "steps": steps,
+                "iterations": iteration + 1,
+                "attachments": _attachments,
+            }
         if not result.get("ok"):
             return {
                 "ok": False,

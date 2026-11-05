@@ -842,7 +842,10 @@ async def agent_stream(req: Request):
                              "steps_count": len(result.get("steps", [])),
                              "provider": result.get("provider")})
         except Exception as e:
-            await queue.put({"type": "error", "error": f"{type(e).__name__}: {e}"})
+            import traceback
+            tb = traceback.format_exc()
+            print(f"[STREAM ERROR] {type(e).__name__}: {e}\n{tb}", flush=True)
+            await queue.put({"type": "error", "error": f"{type(e).__name__}: {e}\n{tb}"})
         finally:
             await queue.put({"type": "__END__"})
 
