@@ -225,13 +225,16 @@ async def readiness():
     except Exception as e:
         checks["python_eval"] = "error: " + type(e).__name__
 
+    # Always return 200 so HF Spaces considers the process healthy.
+    # Use the JSON `status` field for detailed state (ok / degraded).
+    # (A 503 would cause HF Spaces to restart the Space unnecessarily.)
     return JSONResponse(
         {
             "status": "ok" if all_ok else "degraded",
             "checks": checks,
             "author": meta.AUTHOR_NAME,
         },
-        status_code=200 if all_ok else 503,
+        status_code=200,
     )
 
 @router.get("/metrics")
