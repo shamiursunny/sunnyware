@@ -5124,7 +5124,7 @@ document.querySelectorAll('.lib-tab').forEach(t=>t.onclick=()=>{
   libKind=t.dataset.kind; exitSelectMode(); 
   if(libKind==='workspace' || libKind==='generated') { loadWorkspaceFiles().then(()=>renderLibrary()); }
   else if(libKind==='sandbox') { loadSandboxFiles().then(()=>renderLibrary()); }
-  const _dzb = document.getElementById('downloadZipBtn'); if(_dzb) _dzb.classList.toggle('hidden', libKind !== 'sandbox' || selectMode);
+  const _dzb = document.getElementById('downloadZipBtn'); if(_dzb) _dzb.classList.toggle('hidden', selectMode);
   else { renderLibrary(); }
 
 });
@@ -5186,7 +5186,7 @@ function syncSelectUI(){
   $('#cancelSelectBtn').classList.toggle('hidden',!selectMode);
 
   $('#uploadBtn').classList.toggle('hidden',selectMode);
-  const _dzb2 = document.getElementById('downloadZipBtn'); if(_dzb2) _dzb2.classList.toggle('hidden', libKind !== 'sandbox' || selectMode);
+  const _dzb2 = document.getElementById('downloadZipBtn'); if(_dzb2) _dzb2.classList.toggle('hidden', selectMode);
 
 }
 
@@ -5700,17 +5700,31 @@ async function downloadCurrentFFVFile() {
   if (fullFile) downloadFile(fullFile);
 }
 
-async function downloadSandboxZip() {
+async function downloadLibZip() {
   try {
-    const r = await fetch('/api/sandbox/download-zip');
-    if (!r.ok) { toast('ZIP download failed'); return; }
+    const kind = libKind;
+    const endpoint = kind === 'upload' ? '/api/library/download-zip'
+                    : (kind === 'workspace' || kind === 'generated') ? '/api/workspace/download-zip'
+                    : '/api/sandbox/download-zip';
+    const label = kind === 'upload' ? 'uploaded'
+                 : (kind === 'workspace' || kind === 'generated') ? 'workspace'
+                 : 'sandbox';
+    const r = await fetch(endpoint);
+    if (!r.ok) { toast('ZIP download failed (HTTP ' + r.status + ')'); return; }
     const blob = await r.blob();
+    if (blob.size < 200) {
+      try {
+        const txt = await blob.text();
+        const j = JSON.parse(txt);
+        if (j.error) { toast('ZIP failed: ' + j.error); return; }
+      } catch(e) {}
+    }
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'sandbox-' + new Date().toISOString().slice(0, 10) + '.zip';
+    a.download = label + '-' + new Date().toISOString().slice(0, 10) + '.zip';
     document.body.appendChild(a); a.click(); a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    toast('Downloaded Sandbox ZIP');
+    toast('Downloaded ' + label + ' ZIP');
   } catch(e) { toast('ZIP failed: ' + e.message); }
 }
 
@@ -5724,7 +5738,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const dlBtn = document.getElementById('ffvDownload');
   if (dlBtn) dlBtn.addEventListener('click', downloadCurrentFFVFile);
   const zbtn = document.getElementById('downloadZipBtn');
-  if (zbtn) zbtn.addEventListener('click', downloadSandboxZip);
+  if (zbtn) zbtn.addEventListener('click', downloadLibZip);
   const _jumpSel = document.getElementById('ffvJump');
   if (_jumpSel) _jumpSel.addEventListener('change', (e) => {
     const idx = parseInt(e.target.value);

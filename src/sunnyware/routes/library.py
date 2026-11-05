@@ -166,6 +166,82 @@ async def download_sandbox_zip():
     )
 
 
+@router.get("/api/workspace/download-zip")
+async def download_workspace_zip():
+    """Package all workspace files into a single ZIP."""
+    from fastapi.responses import Response
+    from .. import paths
+    import io, zipfile
+    ws = paths.workspace()
+    if not ws.exists():
+        return {"error": "workspace does not exist"}
+    buf = io.BytesIO()
+    count = 0
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for f in ws.iterdir():
+            if f.is_file():
+                zf.write(f, arcname=f.name)
+                count += 1
+    buf.seek(0)
+    return Response(
+        content=buf.read(),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="workspace-{count}-files.zip"'},
+    )
+
+
+@router.get("/api/library/download-zip")
+async def download_uploaded_zip():
+    """Package all uploaded files (from DB) into a single ZIP."""
+    from fastapi.responses import Response
+    import io, zipfile, base64
+    pool = app_state.get_pool()
+    if not pool:
+        return {"error": "no database"}
+    await _ensure_table()
+    owner = _owner()
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            "SELECT name, type, content FROM library_files WHERE owner_key = $1 ORDER BY created_at DESC",
+            owner,
+        )
+    if not rows:
+        return {"error": "no uploaded files"}
+    buf = io.BytesIO()
+    used_names = set()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as zf:
+        for r in rows:
+            name = r["name"] or "untitled"
+            # Dedupe names
+            if name in used_names:
+                stem, dot, ext = name.rpartition(".")
+                i = 2
+                while f"{stem}_{i}.{ext}" in used_names:
+                    i += 1
+                name = f"{stem}_{i}.{ext}"
+            used_names.add(name)
+            content = r["content"] or ""
+            ftype = (r["type"] or "").lower()
+            # Images: content is data URL or base64
+            try:
+                if ftype == "image" or content.startswith("data:"):
+                    if content.startswith("data:"):
+                        b64 = content.split(",", 1)[-1]
+                    else:
+                        b64 = content
+                    zf.writestr(name, base64.b64decode(b64))
+                else:
+                    zf.writestr(name, content)
+            except Exception:
+                zf.writestr(name, content)
+    buf.seek(0)
+    return Response(
+        content=buf.read(),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="uploaded-{len(rows)}-files.zip"'},
+    )
+
+
 @router.get("/api/sandbox/file/{filename}")
 async def get_sandbox_file(filename: str):
     """Read a single sandbox file's content (text or base64 for images)."""
