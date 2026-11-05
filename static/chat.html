@@ -1691,6 +1691,7 @@ body.light-mode .code-head {
 
           </button>
 
+          <button class="btn btn-outline btn-sm hidden" id="clearSandboxBtn" title="Delete all files in Sandbox">Clear Sandbox</button>
           <input type="file" id="libFileInput" multiple hidden accept="*/*">
 
         </div>
@@ -1836,6 +1837,21 @@ body.light-mode .code-head {
 </div>
 
 
+
+<div class="modal-overlay" id="sandboxFileModal">
+  <div class="modal file-modal">
+    <div id="sfmPreview" class="fm-preview"></div>
+    <div class="fm-name" id="sfmName"></div>
+    <div class="fm-meta" id="sfmMeta"></div>
+    <div class="fm-actions">
+      <button class="btn btn-primary" id="sfmDownload">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:-2px;margin-right:5px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Download
+      </button>
+      <button class="btn btn-danger" id="sfmDelete">Delete</button>
+      <button class="btn btn-outline" id="sfmClose" style="margin-left:auto">Close</button>
+    </div>
+  </div>
+</div>
 
 <div class="toast" id="toast"></div>
 
@@ -5171,16 +5187,28 @@ function renderLibrary(){
 
       </div>`;
 
+    const _isSandbox = libKind === 'sandbox';
+    const _itemId = f.id || f.name || '';
     card.onclick=e=>{
 
       if(selectMode){
-        if(selected.has(f.id)){ selected.delete(f.id); } else { selected.add(f.id); }
+        if(selected.has(_itemId)){ selected.delete(_itemId); } else { selected.add(_itemId); }
         syncSelectUI(); renderLibrary(); return;
       }
 
-      if(e.target.closest('.fh-dl')){ downloadFile(f); return; }
+      if(e.target.closest('.fh-dl')){
+        if(_isSandbox) { downloadSandboxFile(f.name); }
+        else { downloadFile(f); }
+        return;
+      }
 
-      if(e.target.closest('.fh-del')){ showConfirm('Delete file?','"'+f.name+'" will be permanently removed from your Library.','Delete',()=>{ files=files.filter(x=>x.id!==f.id); saveAll(); renderLibrary(); renderMessages(); toast('File deleted'); }); return; }
+      if(e.target.closest('.fh-del')){
+        if(_isSandbox) { deleteSandboxFile(f.name); }
+        else { showConfirm('Delete file?','"'+f.name+'" will be permanently removed from your Library.','Delete',()=>{ files=files.filter(x=>x.id!==f.id); saveAll(); renderLibrary(); renderMessages(); toast('File deleted'); }); }
+        return;
+      }
+
+      if(_isSandbox) { openSandboxFileModal(f.name); return; }
 
       openFileModal(f.id);
 
@@ -5195,6 +5223,91 @@ function renderLibrary(){
 
 
 /* file detail modal */
+
+/* Part 709: Sandbox file preview + per-file download/delete */
+let _sandboxModalFile = null;
+
+async function openSandboxFileModal(name) {
+  _sandboxModalFile = name;
+  const prev = document.getElementById('sfmPreview');
+  const nameEl = document.getElementById('sfmName');
+  const metaEl = document.getElementById('sfmMeta');
+  prev.innerHTML = '<div style="padding:20px;color:var(--text-tertiary)">Loading…</div>';
+  nameEl.textContent = name;
+  metaEl.textContent = '';
+  document.getElementById('sandboxFileModal').classList.add('open');
+  try {
+    const r = await fetch('/api/sandbox/file/' + encodeURIComponent(name));
+    const d = await r.json();
+    if (d.error) {
+      prev.innerHTML = '<div style="padding:20px;color:var(--danger)">' + esc(d.error) + '</div>';
+      return;
+    }
+    if (d.type === 'image') {
+      prev.innerHTML = '<img src="data:' + esc(d.mime) + ';base64,' + d.content + '" alt="">';
+    } else {
+      prev.innerHTML = '<pre>' + esc(d.content.slice(0, 6000)) + '</pre>';
+    }
+    const szText = typeof fmtSize === 'function' ? fmtSize(d.size) : (d.size + ' B');
+    metaEl.textContent = (d.type || 'text').toUpperCase() + ' · ' + szText;
+  } catch (e) {
+    prev.innerHTML = '<div style="padding:20px;color:var(--danger)">Error: ' + esc(e.message) + '</div>';
+  }
+}
+
+async function downloadSandboxFile(name) {
+  try {
+    const r = await fetch('/api/sandbox/file/' + encodeURIComponent(name));
+    const d = await r.json();
+    if (d.error) { toast('Download failed: ' + d.error); return; }
+    if (d.type === 'image') {
+      const byteString = atob(d.content);
+      const bytes = new Uint8Array(byteString.length);
+      for (let i = 0; i < byteString.length; i++) bytes[i] = byteString.charCodeAt(i);
+      const blob = new Blob([bytes], {type: d.mime});
+      download(name, blob);
+    } else {
+      download(name, d.content, 'text/plain');
+    }
+    toast('Downloaded ' + name);
+  } catch (e) {
+    toast('Download failed: ' + e.message);
+  }
+}
+
+async function deleteSandboxFile(name) {
+  if (!confirm('Delete "' + name + '" from the Sandbox?')) return;
+  try {
+    const r = await fetch('/api/sandbox/file/' + encodeURIComponent(name), {method:'DELETE'});
+    const d = await r.json();
+    if (d.ok) {
+      sandboxFiles = (sandboxFiles || []).filter(f => f.name !== name);
+      renderLibrary();
+      toast('Deleted ' + name);
+    } else {
+      toast('Delete failed: ' + (d.error || 'unknown'));
+    }
+  } catch (e) {
+    toast('Delete failed: ' + e.message);
+  }
+}
+
+async function clearSandbox() {
+  if (!confirm('Delete ALL files in the Sandbox? This cannot be undone.')) return;
+  try {
+    const r = await fetch('/api/sandbox/clear', {method:'POST'});
+    const d = await r.json();
+    if (d.ok) {
+      sandboxFiles = [];
+      renderLibrary();
+      toast('Cleared ' + (d.deleted || 0) + ' file(s) from Sandbox');
+    } else {
+      toast('Clear failed');
+    }
+  } catch (e) {
+    toast('Clear failed: ' + e.message);
+  }
+}
 
 function openFileModal(id){
 
@@ -5923,6 +6036,24 @@ function autoSaveAttachmentsFromMessage(text, chat) {
 /* ==================== INIT ==================== */
 
 loadAll(); renderChatList(); renderMessages(); renderLibrary(); autoGrow();
+
+// Part 709: Sandbox modal + clear button wiring
+(function wireSandboxEvents() {
+  const csb = document.getElementById('clearSandboxBtn');
+  if(csb) csb.addEventListener('click', clearSandbox);
+  const sfmClose = document.getElementById('sfmClose');
+  if(sfmClose) sfmClose.addEventListener('click', () => document.getElementById('sandboxFileModal').classList.remove('open'));
+  const sfmOverlay = document.getElementById('sandboxFileModal');
+  if(sfmOverlay) sfmOverlay.addEventListener('click', (e) => { if(e.target === sfmOverlay) sfmOverlay.classList.remove('open'); });
+  const sfmDl = document.getElementById('sfmDownload');
+  if(sfmDl) sfmDl.addEventListener('click', () => { if(_sandboxModalFile) downloadSandboxFile(_sandboxModalFile); });
+  const sfmDel = document.getElementById('sfmDelete');
+  if(sfmDel) sfmDel.addEventListener('click', () => {
+    if(!_sandboxModalFile) return;
+    document.getElementById('sandboxFileModal').classList.remove('open');
+    deleteSandboxFile(_sandboxModalFile);
+  });
+})();
 
 (async () => {
   try { await loadRoles(); } catch(e) { console.warn('[init] roles failed:', e); }

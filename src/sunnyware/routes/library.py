@@ -140,6 +140,65 @@ async def list_workspace_files():
     out.sort(key=lambda x: x["modified"], reverse=True)
     return {"files": out}
 
+
+@router.get("/api/sandbox/file/{filename}")
+async def get_sandbox_file(filename: str):
+    """Read a single sandbox file's content (text or base64 for images)."""
+    from .. import paths
+    import base64
+    name = Path(filename).name
+    target = paths.sandbox() / name
+    if not target.exists() or not target.is_file():
+        return {"error": "file not found"}
+    ext = target.suffix.lower()
+    try:
+        if ext in (".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".bmp"):
+            data = base64.b64encode(target.read_bytes()).decode()
+            mime = "image/svg+xml" if ext == ".svg" else f"image/{ext[1:]}"
+            return {"ok": True, "name": name, "type": "image", "content": data,
+                    "mime": mime, "size": target.stat().st_size}
+        content = target.read_text(encoding="utf-8", errors="replace")
+        if len(content) > 500_000:
+            content = content[:500_000] + "\n\n... (truncated)"
+        return {"ok": True, "name": name, "type": "text", "content": content,
+                "size": target.stat().st_size}
+    except Exception as e:
+        return {"error": f"read failed: {type(e).__name__}: {e}"}
+
+
+@router.delete("/api/sandbox/file/{filename}")
+async def delete_sandbox_file(filename: str):
+    """Delete a single file from the sandbox."""
+    from .. import paths
+    name = Path(filename).name
+    target = paths.sandbox() / name
+    if not target.exists():
+        return {"ok": False, "error": "file not found"}
+    try:
+        target.unlink()
+        return {"ok": True, "deleted": name}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
+@router.post("/api/sandbox/clear")
+async def clear_sandbox():
+    """Delete all files in the sandbox."""
+    from .. import paths
+    sb = paths.sandbox()
+    if not sb.exists():
+        return {"ok": True, "deleted": 0}
+    count = 0
+    errors = []
+    for f in sb.iterdir():
+        if f.is_file():
+            try:
+                f.unlink()
+                count += 1
+            except Exception as e:
+                errors.append(f"{f.name}: {e}")
+    return {"ok": True, "deleted": count, "errors": errors}
+
 @router.get("/api/sandbox/files")
 async def list_sandbox_files():
     """List files in the agent sandbox directory."""
