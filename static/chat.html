@@ -7086,12 +7086,12 @@ window.addEventListener('resize', () => {
 }, { passive: true });
 
 
-// Part 683: Settings modal
-function openSettingsModal() {
+// Part 683: Appearance modal (theme/font) - renamed to avoid conflict with API keys modal
+function openAppearanceModal() {
   document.getElementById('settingsModalBackdrop').classList.add('open');
   loadSettings();
 }
-function closeSettingsModal() {
+function closeAppearanceModal() {
   document.getElementById('settingsModalBackdrop').classList.remove('open');
 }
 function setTheme(theme) {
@@ -7191,7 +7191,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
       <button class="settings-danger-btn" onclick="clearLocalHistory()">Clear</button>
     </div>
-    <button class="settings-close" onclick="closeSettingsModal()">Close</button>
+    <button class="settings-close" onclick="closeAppearanceModal()">Close</button>
   </div>
 </div>
 
