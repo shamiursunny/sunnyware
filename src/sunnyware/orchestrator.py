@@ -860,7 +860,6 @@ async def _run_agent_body(
         from . import jarvis_agent as _jarvis
         _jarvis_result = await _jarvis.jarvis_route(prompt)
         if _jarvis_result:
-            _tool_name = _jarvis_result.get("tool")
             if isinstance(_jarvis_result, str):
                 try:
                     import json
@@ -870,6 +869,7 @@ async def _run_agent_body(
             if not isinstance(_jarvis_result, dict):
                 _jarvis_result = {}
             _tool_args = _jarvis_result.get("args", {})
+            _tool_name = _jarvis_result.get("tool")
             if not isinstance(_tool_args, dict):
                 _tool_args = {}
             if _allowed_set is None or _tool_name in _allowed_set:
