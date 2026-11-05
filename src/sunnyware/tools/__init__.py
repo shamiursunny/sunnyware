@@ -11,6 +11,7 @@ from .read_sandbox_file import ReadSandboxFileTool
 from .read_bi_file import ReadBiFileTool
 from .edit_tableau_field import EditTableauFieldTool
 from .tableau_extra import AddTableauFilterTool, RemoveTableauFieldTool, ExtractPbixAssetsTool
+from .data_tools import GenerateChartTool, CleanDatasetTool
 from .export_table import ExportTableTool
 from .calculator import CalculatorTool
 from .web_fetch import WebFetchTool
@@ -106,6 +107,8 @@ _TOOLS = {
     AddTableauFilterTool.name: AddTableauFilterTool(),
     RemoveTableauFieldTool.name: RemoveTableauFieldTool(),
     ExtractPbixAssetsTool.name: ExtractPbixAssetsTool(),
+    GenerateChartTool.name: GenerateChartTool(),
+    CleanDatasetTool.name: CleanDatasetTool(),
     ExportTableTool.name: ExportTableTool(),
     CalculatorTool.name: CalculatorTool(),
     SearchLibraryTool.name: SearchLibraryTool(),
