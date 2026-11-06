@@ -134,7 +134,7 @@ _TOOL_RESULT_B64_FIELDS = ("image_base64", "image_data", "chart_base64")
 _DIRECT_ANSWER_TOOLS = {
     "calculator", "current_time", "get_current_time", "time_now",
     "data_stats", "data_describe", "data_correlation", "csv_groupby",
-    "image_generate", "list_files", "web_search", "web_fetch", "email_send", "email_configured", "marketaux_news", "research_search", "ddg_news", "arxiv_search",
+    "image_generate", "list_files", "web_search", "web_fetch", "email_send", "email_configured", "marketaux_news", "research_search", "ddg_news", "arxiv_search", "domain_research",
     "read_file", "read_sandbox_file", "write_file", "write_sandbox_file", "delete_file",
     "excel_read", "pdf_read", "read_bi_file", "export_table",
     "sql_sandbox_create", "sql_sandbox_load_csv", "sql_sandbox_execute", "sql_sandbox_list", "query_external_db",
@@ -476,6 +476,20 @@ The provided text: `{text}`
             title = (r.get("title") or "")[:80]
             url = r.get("url") or "#"
             out += f"| {i} | {title} | [Read]({url}) |\n"
+        return out
+
+    if tool_name == "domain_research":
+        if tool_result.get("error"):
+            return f"**Domain Research failed:** {tool_result['error']}"
+        results = tool_result.get("results", [])
+        if not results:
+            return f"**No results found for '{tool_result.get('query')}' in {tool_result.get('domain')}.**"
+        out = f"**{tool_result.get('domain').capitalize()} Research ({len(results)} results):**\n\n"
+        out += "| Source | Title | Link |\n|---|---|---|\n"
+        for r in results:
+            title = (r.get("title") or "")[:80]
+            url = r.get("url") or "#"
+            out += f"| {r.get('source', '')} | {title} | [Read]({url}) |\n"
         return out
 
     # --- Generic Fallback for any unformatted direct tool ---

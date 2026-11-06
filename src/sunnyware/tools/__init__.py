@@ -26,6 +26,7 @@ from .vision_analyze import VisionAnalyzeTool
 from .live_market_stream import LiveMarketStreamTool
 from .ddg_news import DDGNewsTool
 from .arxiv_search import ArxivSearchTool
+from .domain_research import DomainResearchTool
 from .calculator import CalculatorTool
 from .web_fetch import WebFetchTool
 from .memory_search import MemorySearchTool
@@ -138,6 +139,7 @@ _TOOLS = {
     LiveMarketStreamTool.name: LiveMarketStreamTool(),
     DDGNewsTool.name: DDGNewsTool(),
     ArxivSearchTool.name: ArxivSearchTool(),
+    DomainResearchTool.name: DomainResearchTool(),
     CalculatorTool.name: CalculatorTool(),
     TechnicalAnalysisTool.name: TechnicalAnalysisTool(),
     MLForecastTool.name: MLForecastTool(),
