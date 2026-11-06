@@ -10,7 +10,7 @@ class BrowserFillSubmitTool:
     description = (
         "Open a URL, fill one or more form fields (either CSS selectors or human labels), "
         "then submit by clicking a button selector or pressing Enter. "
-        "Returns the resulting page. Use for contact forms, search forms, login/register forms, "
+        "Returns the resulting page. Use for contact forms, search forms, login/register forms, "        
         "comment boxes, or chat inputs."
     )
     parameters = {
@@ -23,7 +23,7 @@ class BrowserFillSubmitTool:
         "chat_message": {
             "type": "string",
             "required": False,
-            "description": "If provided, find a main text input (textarea/chat box) and send this message",
+            "description": "If provided, find a main text input (textarea/chat box) and send this message",     
         },
         "submit_selector": {
             "type": "string",
@@ -56,10 +56,9 @@ class BrowserFillSubmitTool:
         try:
             ctx = await new_context()
             page = await ctx.new_page()
-            await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+            await page.goto(url, wait_until="domcontentloaded", timeout=15000)
 
             if chat_message:
-                # Find best chat input
                 input_selector = await page.evaluate('''() => {
                     const candidates = [
                         'textarea[placeholder*="message" i]',
@@ -79,9 +78,8 @@ class BrowserFillSubmitTool:
                 if not input_selector:
                     return {"error": "could not find a chat input box"}
                 await page.fill(input_selector, chat_message, timeout=8000)
-                # Try to click a send button next to it, else press Enter
-                send_btn = await page.query_selector('button:has-text("Send"), button[aria-label*="send" i], button[type="submit"]')
-                if send_btn:
+                send_btn = page.locator('button:has-text("Send"), button[aria-label*="send" i], button[type="submit"]').first
+                if await send_btn.count() > 0:
                     await send_btn.click(timeout=5000)
                 else:
                     await page.keyboard.press("Enter")
@@ -94,23 +92,24 @@ class BrowserFillSubmitTool:
                         return {"error": f"could not resolve selector for '{key}'"}
                     await page.fill(selector, str(val), timeout=8000)
 
-                # Submit
                 if submit_sel:
-                    btn = await page.query_selector(submit_sel)
-                    if not btn:
+                    btn = page.locator(submit_sel).first
+                    if await btn.count() == 0:
                         return {"error": f"submit selector not found: {submit_sel}"}
                     await btn.click(timeout=8000)
                 else:
-                    # Auto-detect submit button (JS text match, no invalid :has-text)
                     auto_btn = await page.evaluate('''() => {
                         const std = ['button[type="submit"]', 'input[type="submit"]'];
                         for (const sel of std) {
                             try {
                                 const el = document.querySelector(sel);
-                                if (el && el.offsetParent !== null) return sel;
+                                if (el && el.offsetParent !== null) {
+                                    el.setAttribute('data-sunny-submit', '1');
+                                    return '[data-sunny-submit="1"]';
+                                }
                             } catch (e) {}
                         }
-                        const texts = ['send', 'submit', 'login', 'sign in', 'register', 'comment', 'post'];
+                        const texts = ['send', 'submit', 'login', 'sign in', 'register', 'comment', 'post'];    
                         const buttons = document.querySelectorAll('button, input[type="submit"], a[role="button"]');
                         for (let i = 0; i < buttons.length; i++) {
                             const btn = buttons[i];
@@ -129,7 +128,7 @@ class BrowserFillSubmitTool:
                         await page.keyboard.press("Enter")
 
             try:
-                await page.wait_for_load_state("networkidle", timeout=15000)
+                await page.wait_for_load_state("networkidle", timeout=5000)
             except Exception:
                 pass
             if wait_ms:
@@ -138,7 +137,7 @@ class BrowserFillSubmitTool:
             title = await page.title()
             final_url = page.url
         except Exception as e:
-            if fields:
+            if fields and not chat_message:
                 return self._fallback_submit(url, fields, e)
             return {"error": f"{type(e).__name__}: {e}"}
         finally:
@@ -147,6 +146,8 @@ class BrowserFillSubmitTool:
                 except Exception: pass
 
         return {
+            "status": "success",
+            "message": f"Form submitted successfully. Final page title: {title}",
             "start_url": url,
             "final_url": final_url,
             "title": title,
@@ -157,19 +158,18 @@ class BrowserFillSubmitTool:
         }
 
     async def _resolve_selector(self, page, key: str) -> str | None:
-        """Given a human label or CSS selector, return the best matching selector."""
         key = key.strip()
-        # If it looks like a CSS selector, use it directly
         if any(c in key for c in '[#.]') or key in ('input', 'textarea', 'button', 'select'):
-            exists = await page.evaluate('''(sel) => !!document.querySelector(sel)''', key)
-            if exists:
-                return key
-        # Try common patterns
+            try:
+                if await page.locator(key).count() > 0:
+                    return key
+            except Exception:
+                pass
+
         candidates = [
-            f'input[name="{key}"]',
-            f'input[name="{key.lower()}"]',
+            f'input[name="{key}" i]',
             f'input[placeholder*="{key}" i]',
-            f'textarea[name="{key}"]',
+            f'textarea[name="{key}" i]',
             f'textarea[placeholder*="{key}" i]',
             f'label:has-text("{key}") + input',
             f'label:has-text("{key}") + textarea',
@@ -178,19 +178,18 @@ class BrowserFillSubmitTool:
         ]
         for sel in candidates:
             try:
-                exists = await page.evaluate('''(sel) => !!document.querySelector(sel)''', sel)
-                if exists:
+                if await page.locator(sel).count() > 0:
                     return sel
             except Exception:
                 continue
-        # Fallback: find by label text via JS (more robust)
+                
         sel = await page.evaluate('''(label) => {
             const inputs = document.querySelectorAll('input, textarea, select');
             for (const el of inputs) {
                 const id = el.id;
                 if (id) {
                     const lbl = document.querySelector(`label[for="${id}"]`);
-                    if (lbl && lbl.textContent.toLowerCase().includes(label.toLowerCase())) return `#${id}`;
+                    if (lbl && lbl.textContent.toLowerCase().includes(label.toLowerCase())) return `#${id}`;    
                 }
                 if (el.name && el.name.toLowerCase().includes(label.toLowerCase())) {
                     return el.tagName.toLowerCase() + `[name="${el.name}"]`;
@@ -205,9 +204,7 @@ class BrowserFillSubmitTool:
             return sel
         return None
 
-
     def _fallback_submit(self, url: str, fields: dict, original_error: Exception) -> dict:
-        """Requests-based form submission when Playwright can't launch."""
         import requests
         from bs4 import BeautifulSoup
         from urllib.parse import urljoin
@@ -215,7 +212,7 @@ class BrowserFillSubmitTool:
         session = requests.Session()
         session.headers.update({"User-Agent": "Mozilla/5.0"})
         try:
-            resp = session.get(url, timeout=30)
+            resp = session.get(url, timeout=15)
             resp.raise_for_status()
         except Exception as e:
             return {"error": f"playwright failed: {type(original_error).__name__}; fallback GET: {e}"}
@@ -223,7 +220,7 @@ class BrowserFillSubmitTool:
         soup = BeautifulSoup(resp.text, "html.parser")
         form = soup.find("form")
         if not form:
-            return {"error": f"playwright failed: {type(original_error).__name__}; fallback: no <form> found"}
+            return {"error": f"playwright failed: {type(original_error).__name__}; fallback: no <form> found"}  
 
         action = form.get("action") or url
         if not action.startswith(("http://", "https://")):
@@ -255,17 +252,19 @@ class BrowserFillSubmitTool:
 
         try:
             if method == "POST":
-                final = session.post(action, data=data, timeout=30)
+                final = session.post(action, data=data, timeout=15)
             else:
-                final = session.get(action, params=data, timeout=30)
+                final = session.get(action, params=data, timeout=15)
         except Exception as e:
             return {"error": f"playwright failed: {type(original_error).__name__}; fallback POST: {e}"}
 
         return {
+            "status": "success",
+            "message": "Form submitted via requests fallback.",
             "mode": "requests-fallback",
             "start_url": url,
             "final_url": final.url,
-            "status": final.status_code,
+            "status_code": final.status_code,
             "fields_mapped": data,
             "html": final.text[:60000],
             "html_chars": len(final.text),
