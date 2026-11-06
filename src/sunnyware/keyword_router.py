@@ -122,7 +122,7 @@ def keyword_route(prompt: str) -> Optional[dict]:
     # --- Legal Citation (lenient) ---
     _legal_match = re.search(r'(?:legal\s+)?citation\s+(?:check|verify|lookup|validate)\s+(.+)', prompt, re.IGNORECASE)
     if _legal_match:
-        return {"tool": "legal_citation_check", "args": {"citation": _legal_match.group(1).strip()}}
+        return {"tool": "legal_citation_check", "args": {"action": "verify_text", "text": _legal_match.group(1).strip()}}
 
     # --- Calculator ---
     num = _extract_number(prompt)
