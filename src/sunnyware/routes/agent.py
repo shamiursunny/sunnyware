@@ -744,6 +744,12 @@ async def agent_stream(req: Request):
 
     forced_tool = body.get("forced_tool", "")
     if forced_tool:
+        # Ignore forced_tool if the user is explicitly asking for a Quant/Chart tool
+        quant_keywords = ["technical analysis", "forecast", "candlestick", "correlation", "heatmap", "pro chart", "aggregate", "ml forecast"]
+        if any(k in prompt.lower() for k in quant_keywords):
+            forced_tool = ""
+            
+    if forced_tool:
         if not prompt.startswith("IMPORTANT SYSTEM INSTRUCTION:"):
             prompt = f"IMPORTANT SYSTEM INSTRUCTION: You MUST use the '{forced_tool}' tool for this request. Do not attempt to answer from your own knowledge.\n\nUser request: {prompt}"
         from ..runtime import log
