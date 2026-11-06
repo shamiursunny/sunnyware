@@ -111,15 +111,15 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if _news_match:
         return {"tool": "ddg_news", "args": {"query": _news_match.group(1).strip()}}
 
-    # --- arXiv ---
-    _arxiv_match = re.search(r'(?:arxiv|academic papers|research papers|preprints)\s+(?:for\s+|about\s+)?(.+)', prompt, re.IGNORECASE)
-    if _arxiv_match:
-        return {"tool": "arxiv_search", "args": {"query": _arxiv_match.group(1).strip()}}
-
     # --- Domain Research (requires "papers" to avoid conflict with insurance/legal) ---
     _domain_match = re.search(r'(finance|investment|insurance|legal)\s+(?:research\s+)?(?:papers?|journals?|articles?)\s+(?:for|on|about)\s+(.+)', prompt, re.IGNORECASE)
     if _domain_match:
         return {"tool": "domain_research", "args": {"query": _domain_match.group(2).strip(), "domain": _domain_match.group(1).lower()}}
+
+    # --- arXiv ---
+    _arxiv_match = re.search(r'(?:arxiv|academic papers|preprints)\s+(?:for\s+|about\s+)?(.+)', prompt, re.IGNORECASE)
+    if _arxiv_match:
+        return {"tool": "arxiv_search", "args": {"query": _arxiv_match.group(1).strip()}}
 
     # --- Live Market Stream ---
     if ("stream" in prompt.lower() or "live" in prompt.lower()) and ("price" in prompt.lower() or "market" in prompt.lower()):
