@@ -73,6 +73,21 @@ def _extract_timezone(prompt: str) -> str:
 def keyword_route(prompt: str) -> Optional[dict]:
     import re as _re_bi
     _p_low_bi = prompt.lower()
+    
+    # --- Quant & ML Routes (v1.5.0) — Bulletproof ---
+    _ta_match = re.search(r'technical analysis.*?([\w\-]+\.csv)', prompt, re.IGNORECASE)
+    if _ta_match:
+        return {"tool": "technical_analysis", "args": {"filename": _ta_match.group(1)}}
+
+    _ml_match = re.search(r'(?:forecast|predict)\s+([\w]+).*?([\w\-]+\.csv)', prompt, re.IGNORECASE)
+    if _ml_match:
+        return {"tool": "ml_forecast", "args": {"target_column": _ml_match.group(1), "filename": _ml_match.group(2), "periods": 5}}
+
+    _pro_chart = re.search(r'(?:candlestick|correlation|heatmap).*?([\w\-]+\.csv)', prompt, re.IGNORECASE)
+    if _pro_chart:
+        chart_type = "candlestick" if "candlestick" in prompt.lower() else "correlation"
+        return {"tool": "pro_chart", "args": {"chart_type": chart_type, "filename": _pro_chart.group(1)}}
+
     """
     Match obvious tool intent using keywords and regex extraction.
     Returns {"tool": name, "args": {...}} or None.
@@ -114,18 +129,6 @@ def keyword_route(prompt: str) -> Optional[dict]:
                 return {"tool": "read_sandbox_file", "args": {"file": _m_read.group(1).strip()}}
 
     p = prompt.lower()
-    # --- Quant & ML Routes (v1.5.0) ---
-    _ta_match = re.search(r'\b(?:technical analysis|calculate rsi|calculate macd)\s+(?:for\s+)?([\w\-./\\]+\.[a-zA-Z0-9]+)', prompt, re.IGNORECASE)
-    if _ta_match:
-        return {"tool": "technical_analysis", "args": {"filename": _ta_match.group(1)}}
-
-    _ml_match = re.search(r'\b(?:forecast|predict)\s+([\w]+)\s+(?:in|for|from)\s+([\w\-./\\]+\.[a-zA-Z0-9]+)', prompt, re.IGNORECASE)
-    if _ml_match:
-        return {"tool": "ml_forecast", "args": {"target_column": _ml_match.group(1), "filename": _ml_match.group(2), "periods": 5}}
-
-    _pro_chart = re.search(r'\b(?:create|make|generate)\s+(?:a\s+)?(candlestick|correlation)\s+(?:chart|heatmap)\s+(?:from\s+)?([\w\-./\\]+\.[a-zA-Z0-9]+)', prompt, re.IGNORECASE)
-    if _pro_chart:
-        return {"tool": "pro_chart", "args": {"chart_type": _pro_chart.group(1).lower(), "filename": _pro_chart.group(2)}}
 
 
 
