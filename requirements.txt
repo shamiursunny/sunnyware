@@ -54,3 +54,12 @@ beautifulsoup4
 sqlalchemy
 psycopg2-binary
 pymysql
+importlib_metadata==8.7.1
+matplotlib==3.11.2
+mplfinance==0.12.10b0
+pandas==3.1.1
+plotly==6.5.2
+scikit-learn==1.9.1
+seaborn==0.13.2
+ta==0.11.0
+tzdata==2026.2

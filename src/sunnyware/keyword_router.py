@@ -114,6 +114,20 @@ def keyword_route(prompt: str) -> Optional[dict]:
                 return {"tool": "read_sandbox_file", "args": {"file": _m_read.group(1).strip()}}
 
     p = prompt.lower()
+    # --- Quant & ML Routes (v1.5.0) ---
+    _ta_match = re.search(r'\b(?:technical analysis|calculate rsi|calculate macd)\s+(?:for\s+)?([\w\-./\\]+\.[a-zA-Z0-9]+)', prompt, re.IGNORECASE)
+    if _ta_match:
+        return {"tool": "technical_analysis", "args": {"filename": _ta_match.group(1)}}
+
+    _ml_match = re.search(r'\b(?:forecast|predict)\s+([\w]+)\s+(?:in|for|from)\s+([\w\-./\\]+\.[a-zA-Z0-9]+)', prompt, re.IGNORECASE)
+    if _ml_match:
+        return {"tool": "ml_forecast", "args": {"target_column": _ml_match.group(1), "filename": _ml_match.group(2), "periods": 5}}
+
+    _pro_chart = re.search(r'\b(?:create|make|generate)\s+(?:a\s+)?(candlestick|correlation)\s+(?:chart|heatmap)\s+(?:from\s+)?([\w\-./\\]+\.[a-zA-Z0-9]+)', prompt, re.IGNORECASE)
+    if _pro_chart:
+        return {"tool": "pro_chart", "args": {"chart_type": _pro_chart.group(1).lower(), "filename": _pro_chart.group(2)}}
+
+
 
     # --- export_table (save data as CSV/JSON) ---
     # Export patterns: "export/save X to/as CSV" OR "save as X.csv"

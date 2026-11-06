@@ -141,6 +141,7 @@ _DIRECT_ANSWER_TOOLS = {
     "generate_chart", "generate_report", "scrape_webpage",
     "edit_tableau_field", "add_tableau_filter", "remove_tableau_field", "extract_pbix_assets",
     "date_calc", "email_list_sent"
+, "technical_analysis", "ml_forecast", "pro_chart", "aggregate_market_data", "advanced_chart", "bi_export"
 }
 
 
@@ -254,6 +255,26 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
     if tool_name == "email_list_sent":
         emails = tool_result.get("emails", [])
         return f"**Sent Emails ({len(emails)})**\n" + "\n".join([f"- {e.get('subject', '(no subject)')} to {e.get('to', '?')}" for e in emails[:10]])
+
+    # --- Quant & ML Formatters (v1.5.0) ---
+    if tool_name == "technical_analysis":
+        m = tool_result.get("metrics", {})
+        out = "**Technical Analysis Results:**\n"
+        if "current_rsi" in m: out += f"- **RSI (14):** {m['current_rsi']}\n"
+        if "macd" in m: out += f"- **MACD:** {m['macd']} (Signal: {m['macd_signal']})\n"
+        if "sma_20" in m: out += f"- **SMA (20):** {m['sma_20']}\n"
+        if "bb_high" in m: out += f"- **Bollinger High:** {m['bb_high']}\n- **Bollinger Low:** {m['bb_low']}\n"
+        return out + f"\n*Saved enriched data to {tool_result.get('message', '')}*"
+
+    if tool_name == "ml_forecast":
+        preds = tool_result.get("predictions", [])
+        out = "**ML Forecast (Linear Regression):**\n"
+        for i, p in enumerate(preds, 1):
+            out += f"- Step {i}: **{p}**\n"
+        return out + f"\n*{tool_result.get('message', '')}*"
+
+    if tool_name == "pro_chart":
+        return f"**{tool_result.get('message', 'Chart generated successfully.')}** ✅"
 
     # --- Generic Fallback for any unformatted direct tool ---
     # If we reach here, the tool was in _DIRECT_ANSWER_TOOLS but had no specific formatter.

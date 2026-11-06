@@ -18,6 +18,8 @@ from .report_scrape_tools import ScrapeWebpageTool, GenerateReportTool
 from .plan_tool import ExecutePlanTool
 from .external_db_tool import QueryExternalDbTool
 from .export_table import ExportTableTool
+from .quant_tools import TechnicalAnalysisTool, MLForecastTool
+from .pro_chart import ProChartTool
 from .calculator import CalculatorTool
 from .web_fetch import WebFetchTool
 from .memory_search import MemorySearchTool
@@ -124,7 +126,7 @@ _TOOLS = {
     ExecutePlanTool.name: ExecutePlanTool(),
     QueryExternalDbTool.name: QueryExternalDbTool(),
     ExportTableTool.name: ExportTableTool(),
-    CalculatorTool.name: CalculatorTool(),
+    CalculatorTool.name: CalculatorTool(), TechnicalAnalysisTool(), MLForecastTool(), ProChartTool(),
     SearchLibraryTool.name: SearchLibraryTool(),
     WebFetchTool.name: WebFetchTool(),
     MemorySearchTool.name: MemorySearchTool(),
