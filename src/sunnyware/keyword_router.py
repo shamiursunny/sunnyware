@@ -71,11 +71,13 @@ def _extract_timezone(prompt: str) -> str:
 
 
 def keyword_route(prompt: str) -> Optional[dict]:
+    print(f"[keyword_router] DEBUG: Received prompt: '{prompt}'", flush=True)
     import re as _re_bi
     _p_low_bi = prompt.lower()
     
     # --- Quant & ML Routes (v1.5.0) — Bulletproof ---
     _ta_match = re.search(r'technical analysis.*?([\w\-]+\.csv)', prompt, re.IGNORECASE)
+    print(f"[keyword_router] DEBUG: TA match result: {_ta_match}", flush=True)
     if _ta_match:
         return {"tool": "technical_analysis", "args": {"filename": _ta_match.group(1)}}
 
