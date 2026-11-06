@@ -155,7 +155,7 @@ async def get_browser():
 
         try:
             _browser = await _playwright.chromium.launch(
-                headless=True, args=args,
+                headless=True, args=args, timeout=15000,
             )
             return _browser
         except Exception as first_err:
@@ -172,7 +172,7 @@ async def get_browser():
             _chmod_cache()
             try:
                 _browser = await _playwright.chromium.launch(
-                    headless=True, args=args,
+                    headless=True, args=args, timeout=15000,
                 )
                 return _browser
             except Exception as second_err:
@@ -188,7 +188,7 @@ async def get_browser():
                 await _ensure_installed()
                 _chmod_cache()
                 _browser = await _playwright.chromium.launch(
-                    headless=True, args=args,
+                    headless=True, args=args, timeout=15000,
                 )
                 return _browser
 
