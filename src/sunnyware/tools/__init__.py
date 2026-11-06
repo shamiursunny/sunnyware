@@ -239,4 +239,4 @@ def get_tool(name: str):
 def tool_names() -> list:
     return list(_TOOLS.keys())
 
-print(f"[tools] Loaded {len(TOOLS)} tools", flush=True)
+print(f"[tools] Loaded {len(_TOOLS)} tools", flush=True)
