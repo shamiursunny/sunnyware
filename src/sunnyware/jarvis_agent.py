@@ -227,21 +227,22 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
     print(f"[jarvis] ROUTE CALLED with prompt: {prompt[:50]}", flush=True)
 
     # Part 473: Math check BEFORE tool_keywords bypass
-    _skip_math = "system instruction" in p.lower() or ".csv" in p.lower() or ".xlsx" in p.lower()
+    _skip_math = "system instruction" in prompt.lower() or ".csv" in prompt.lower() or ".xlsx" in prompt.lower()
     
     if not _skip_math:
         import re as _re
-    # Part 622: Normalize unicode math operators so "5 × 7?" and "10 ÷ 2" match
-    _norm = (
-        prompt.replace("×", "*").replace("✕", "*").replace("⨯", "*")
-              .replace("÷", "/").replace("／", "/")
-              .replace("−", "-").replace("–", "-").replace("—", "-")
-              .replace("＋", "+")
-    )
-    _math = _re.search(r'(-?\d+(?:\.\d+)?\s*[\+\-\*\/\%\^]\s*-?\d+(?:\.\d+)?)', _norm)
-    if _math and all(c in "0123456789+-*/%^() ." for c in _math.group(1).strip()):
-        print("[jarvis] Math expression detected, routing to calculator", flush=True)
-        return {"tool": "calculator", "args": {"expression": _math.group(1).strip()}}
+        # Part 622: Normalize unicode math operators
+        _norm = (
+            prompt.replace("×", "*").replace("✕", "*").replace("⨯", "*")
+                  .replace("÷", "/").replace("／", "/")
+                  .replace("−", "-").replace("–", "-").replace("—", "-")
+                  .replace("＋", "+")
+        )
+        # Match full math expression like "1/2 + 2" (greedy)
+        _math = _re.search(r'(-?\d+(?:\.\d+)?(?:\s*[\+\-\*\/\%\^]\s*-?\d+(?:\.\d+)?)+)', _norm)
+        if _math and all(c in "0123456789+-*/%^() ." for c in _math.group(1).strip()):
+            print("[jarvis] Math expression detected, routing to calculator", flush=True)
+            return {"tool": "calculator", "args": {"expression": _math.group(1).strip()}}
 
     tool_keywords = ["calculate", "math", "time", "weather", "search", "web", "http", "file", "read", "write", "pdf", "excel", "sql", "csv", "email", "webhook", "schedule", "kpi", "chart", "narrate", "financial", "stock", "option", "risk", "insurance", "python", "run code", "query", "select", "insert", "update", "delete", "list", "show", "tip", "percent", "percentage", "split", "average", "sandbox", "save to sandbox", "read sandbox", "read_bi_file", "export_table", "power bi", "tableau", "pbi", "bi file", "export to csv", "mean", "median", "std", "stddev", "standard deviation", "stats", "statistics", "describe", "correlation", "correlate", "group by", "groupby", "aggregate", "fetch page", "get page", "download page", "email configured", "send email", "pbix", "scrape", "date", "report", "calculator", "create", "rsi", "macd", "forecast", "predict", "technical analysis", "aggregate", "unify", "candlestick", "heatmap", "scatter", "power bi", "tableau"]
     p_lower = prompt.lower()
