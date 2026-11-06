@@ -960,14 +960,42 @@ async def _run_agent_body(
                             + "Answer the question directly and concisely. "
                             + "Use beautiful markdown formatting (bullet points, bold text, tables)."
                         )
-                        _final_res = await llm_client.chat(
-                            prompt=_final_prompt,
-                            model=model,
-                            system=None,
-                            history=None,
-                            tools=None,
-                        )
-                        _ans = (_final_res.get("content") or "").strip() if _final_res.get("ok") else ""
+                        # v1.3.0 Streaming: try to stream the final answer token-by-token
+                        _ans_chunks = []
+                        _final_res = {}
+                        _streamed = False
+                        try:
+                            async for _chunk in llm_client.stream_chat(
+                                prompt=_final_prompt,
+                                model=model,
+                                system=None,
+                                history=None,
+                                timeout=60.0,
+                            ):
+                                _ans_chunks.append(_chunk)
+                                try:
+                                    await _emit(on_event, {"type": "content", "content": _chunk, "text": _chunk})
+                                except Exception:
+                                    pass
+                            _streamed = bool(_ans_chunks)
+                        except Exception as _stream_err:
+                            print(f"[stream] Fallback to chat(): {type(_stream_err).__name__}: {_stream_err}", flush=True)
+
+                        if _streamed:
+                            _ans = "".join(_ans_chunks).strip()
+                        else:
+                            try:
+                                _final_res = await llm_client.chat(
+                                    prompt=_final_prompt,
+                                    model=model,
+                                    system=None,
+                                    history=None,
+                                    tools=None,
+                                )
+                            except Exception:
+                                _final_res = {}
+                            _ans = (_final_res.get("content") or "").strip() if isinstance(_final_res, dict) and _final_res.get("ok") else ""
+
                         if not _ans:
                             _ans = "Result: " + json.dumps(_tool_result)
                         steps.append({
@@ -983,8 +1011,8 @@ async def _run_agent_body(
                             "answer": _ans,
                             "steps": steps,
                             "iterations": 2,
-                            "provider": _final_res.get("provider") if _final_res else "none",
-                            "resolved_model": _final_res.get("resolved_model") if _final_res else "none",
+                            "provider": (_final_res or {}).get("provider") or ("stream" if _streamed else "none"),
+                            "resolved_model": (_final_res or {}).get("resolved_model") or ("stream" if _streamed else "none"),
                             "attachments": _attachments,
                         }
                     except Exception as _je:
