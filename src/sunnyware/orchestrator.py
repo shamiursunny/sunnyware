@@ -409,37 +409,44 @@ The provided text: `{text}`
     if tool_name == "marketaux_news":
         if tool_result.get("error"):
             return f"**Marketaux News failed:** {tool_result['error']}"
-        articles = tool_result.get("data", tool_result.get("articles", []))
+        articles = tool_result.get("articles", [])
         if not articles:
             return "**Marketaux News:** No articles found."
         out = f"**Financial News ({len(articles)} articles):**\n\n"
-        out += "| Title | Source | Sentiment | URL |\n|---|---|---|---|\n"
+        out += "| Title | Source | Sentiment | Link |\n|---|---|---|---|\n"
         for a in articles[:10]:
-            title = a.get("title", "")[:80]
-            source = a.get("source", "")
-            sent = a.get("sentiment", a.get("sentiment_score", ""))
-            url = a.get("url", "")
-            out += f"| {title} | {source} | {sent} | [link]({url}) |\n"
+            title = (a.get("title") or "")[:80]
+            source = a.get("source") or ""
+            url = a.get("url") or "#"
+            if not url.startswith("http"):
+                url = "#"
+            entities = a.get("entities") or []
+            sent = "N/A"
+            if entities:
+                score = entities[0].get("sentiment_score")
+                if score is not None:
+                    sent = f"{score:.2f}"
+            out += f"| {title} | {source} | {sent} | [Read]({url}) |\n"
         return out
 
     if tool_name == "research_search":
         if tool_result.get("error"):
             return f"**Research Search failed:** {tool_result['error']}"
-        # research_search returns a merged dict with source labels
-        if isinstance(tool_result, dict):
-            out = "**Unified Research Search:**\n\n"
-            for source, results in tool_result.items():
-                if isinstance(results, list) and results:
-                    out += f"**{source}:**\n"
-                    for r in results[:5]:
-                        if isinstance(r, dict):
-                            title = r.get("title", r.get("display", str(r)))[:120]
-                            out += f"- {title}\n"
-                    out += "\n"
-            if out == "**Unified Research Search:**\n\n":
-                return "**Research Search:** No results found."
-            return out
-        return f"**Research Search:**\n```json\n{str(tool_result)[:2000]}\n```"
+        results = tool_result.get("results", [])
+        sources = tool_result.get("sources_used", [])
+        out = f"**Unified Research Search** (sources: {', '.join(sources) if sources else 'none'})\n\n"
+        if not results:
+            return out + "No results found."
+        out += "| # | Result |\n|---|---|\n"
+        for i, r in enumerate(results[:15], 1):
+            if isinstance(r, dict):
+                title = r.get("title") or r.get("display") or str(r)
+            else:
+                title = str(r)
+            out += f"| {i} | {title} |\n"
+        if len(results) > 15:
+            out += f"\n*({len(results) - 15} more results not shown)*"
+        return out
 
     # --- Generic Fallback for any unformatted direct tool ---
     # If we reach here, the tool was in _DIRECT_ANSWER_TOOLS but had no specific formatter.
