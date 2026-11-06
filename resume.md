@@ -4003,3 +4003,14 @@ me the exact git commands to commit + push both remotes."
 - **Expected savings**: 60-80% reduction in cloud LLM tokens for tool-triggered queries.
 
 *Part 726 logged: 2026-11-06*
+
+
+---
+
+### Part 727 Update (2026-11-06): v1.4.0 — 40 Direct-Answer Tools + 100% 0-Token Errors
+
+- **Expanded to 40 direct-answer tools**: Added 26 new tools to `_DIRECT_ANSWER_TOOLS` (read/write/delete files, excel/pdf, SQL sandbox, chart generation, tableau, scraping, etc.).
+- **0-Token Error Handling**: Tool failures (e.g., missing files) now return instantly via `_format_direct_answer` without falling back to the LLM. Saves ~1000-1500 tokens per failed tool call.
+- **Routing Fixes**: Moved `generate_chart` before `excel_read` to prevent `.xlsx` hijacking. Added `create X.txt` and `write X to Y.txt` routes. Relaxed `delete_file` regex.
+- **Jarvis Gatekeeper**: Updated with new keywords (`pbix`, `scrape`, `date`, `report`, `calculator`, `create`) so prompts don't bypass the router.
+- **Total Token Savings**: 60-80% for tool-triggered queries, 100% for direct-answer tools (success or failure).

@@ -249,3 +249,9 @@ Frontend search filters by name, sort dropdown handles name/size/modified.
 - **`list_files` tool**: Supports `kind=sandbox|workspace` parameter
 - **Stats tools**: `data_stats`, `data_describe`, `data_correlation`, `csv_groupby`
 - **Batch 1 tools**: `image_generate`, `list_files`, `web_search`, `web_fetch`, `email_send`, `email_configured`
+
+
+## Part 727 (v1.4.0 — 40 Tools)
+
+- **40 direct-answer tools**: 0 tokens per call, even on failure.
+- **Error handling**: `_format_direct_answer` intercepts tool errors and formats them locally.

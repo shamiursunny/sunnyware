@@ -3924,3 +3924,23 @@ User: `search the web for python tutorials`
 User: `explain quantum computing`
 → No tool keywords match → bypass jarvis
 → Main LLM loop runs
+
+
+---
+
+# Part 727 Workflows: v1.4.0
+
+## Direct-Answer Tool Failure (0 tokens)
+User: `generate a bar chart from test.csv`
+→ jarvis gatekeeper matches "chart"
+→ keyword_route returns `{"tool": "generate_chart", ...}`
+→ Tool runs, returns `{"error": "File not found"}`
+→ Orchestrator calls `_format_direct_answer`
+→ Returns `**generate_chart failed:** File not found` (0 LLM tokens)
+
+## File Writing (0 tokens)
+User: `write hello to sunny.txt`
+→ jarvis matches "write"
+→ keyword_route returns `{"tool": "write_file", "args": {"path": "sunny.txt", "content": "hello"}}`
+→ Tool runs, returns `{"ok": True}`
+→ `_format_direct_answer` returns `**File saved:** sunny.txt ✅`

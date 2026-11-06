@@ -6624,3 +6624,21 @@ The app now passes all production tests:
 - Expand direct-answer: `pdf_read`, `excel_read`, `sql_sandbox_*`, `generate_chart`, `generate_report`, `scrape_webpage`, `add_tableau_*`, `extract_pbix_assets`, `query_external_db`
 - Vision (multimodal LLM)
 - Jupyter kernel for persistent Python state
+
+
+---
+
+# Part 727 Handoff: v1.4.0
+
+## What Changed
+- **`_DIRECT_ANSWER_TOOLS` expanded to 40 tools**.
+- **Catch-all error formatter** in `_format_direct_answer`.
+- **Removed error checks** in orchestrator (Jarvis and Native paths) to force local formatting.
+- **Router fixes** for `generate_chart`, `sql_sandbox_create`, `write_file`, and `delete_file`.
+
+## Architecture
+| Tier | Tools | Tokens | Speed |
+|------|-------|--------|-------|
+| 1: Direct | 40 tools (even on failure) | **0** | <1s |
+| 2: Streamed | Non-deterministic tools | ~500-1000 | 2-5s |
+| 3: Chat | Generic questions | ~1500 | 5-10s |
