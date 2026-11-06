@@ -106,6 +106,16 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if _vision_match:
         return {"tool": "vision_analyze", "args": {"filename": _vision_match.group(1), "prompt": prompt}}
 
+    # --- DDG News ---
+    _news_match = re.search(r'(?:general news|current events|latest news)\s+(?:for\s+|about\s+)?(.+)', prompt, re.IGNORECASE)
+    if _news_match:
+        return {"tool": "ddg_news", "args": {"query": _news_match.group(1).strip()}}
+
+    # --- arXiv ---
+    _arxiv_match = re.search(r'(?:arxiv|academic papers|research papers|preprints)\s+(?:for\s+|about\s+)?(.+)', prompt, re.IGNORECASE)
+    if _arxiv_match:
+        return {"tool": "arxiv_search", "args": {"query": _arxiv_match.group(1).strip()}}
+
     # --- Live Market Stream ---
     if ("stream" in prompt.lower() or "live" in prompt.lower()) and ("price" in prompt.lower() or "market" in prompt.lower()):
         _sym = re.search(r'(?:for|of)\s+([a-zA-Z]{1,5})\b', prompt, re.IGNORECASE)

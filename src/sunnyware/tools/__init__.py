@@ -24,6 +24,8 @@ from .aggregate_market import AggregateMarketDataTool
 from .python_session import PythonSessionTool
 from .vision_analyze import VisionAnalyzeTool
 from .live_market_stream import LiveMarketStreamTool
+from .ddg_news import DDGNewsTool
+from .arxiv_search import ArxivSearchTool
 from .calculator import CalculatorTool
 from .web_fetch import WebFetchTool
 from .memory_search import MemorySearchTool
@@ -134,6 +136,8 @@ _TOOLS = {
     PythonSessionTool.name: PythonSessionTool(),
     VisionAnalyzeTool.name: VisionAnalyzeTool(),
     LiveMarketStreamTool.name: LiveMarketStreamTool(),
+    DDGNewsTool.name: DDGNewsTool(),
+    ArxivSearchTool.name: ArxivSearchTool(),
     CalculatorTool.name: CalculatorTool(),
     TechnicalAnalysisTool.name: TechnicalAnalysisTool(),
     MLForecastTool.name: MLForecastTool(),

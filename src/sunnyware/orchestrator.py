@@ -134,7 +134,7 @@ _TOOL_RESULT_B64_FIELDS = ("image_base64", "image_data", "chart_base64")
 _DIRECT_ANSWER_TOOLS = {
     "calculator", "current_time", "get_current_time", "time_now",
     "data_stats", "data_describe", "data_correlation", "csv_groupby",
-    "image_generate", "list_files", "web_search", "web_fetch", "email_send", "email_configured", "marketaux_news", "research_search",
+    "image_generate", "list_files", "web_search", "web_fetch", "email_send", "email_configured", "marketaux_news", "research_search", "ddg_news", "arxiv_search",
     "read_file", "read_sandbox_file", "write_file", "write_sandbox_file", "delete_file",
     "excel_read", "pdf_read", "read_bi_file", "export_table",
     "sql_sandbox_create", "sql_sandbox_load_csv", "sql_sandbox_execute", "sql_sandbox_list", "query_external_db",
@@ -446,6 +446,36 @@ The provided text: `{text}`
             out += f"| {i} | {title} |\n"
         if len(results) > 15:
             out += f"\n*({len(results) - 15} more results not shown)*"
+        return out
+
+    if tool_name == "ddg_news":
+        if tool_result.get("error"):
+            return f"**News Search failed:** {tool_result['error']}"
+        results = tool_result.get("results", [])
+        if not results:
+            return "**DDG News:** No articles found."
+        out = f"**General News ({len(results)} articles):**\n\n"
+        out += "| Title | Source | Date | Link |\n|---|---|---|---|\n"
+        for r in results[:10]:
+            title = (r.get("title") or "")[:80]
+            source = r.get("source") or ""
+            date = r.get("date") or ""
+            url = r.get("url") or "#"
+            out += f"| {title} | {source} | {date} | [Read]({url}) |\n"
+        return out
+
+    if tool_name == "arxiv_search":
+        if tool_result.get("error"):
+            return f"**arXiv Search failed:** {tool_result['error']}"
+        results = tool_result.get("results", [])
+        if not results:
+            return "**arXiv Search:** No papers found."
+        out = f"**arXiv Papers ({len(results)} results):**\n\n"
+        out += "| # | Title | Link |\n|---|---|---|\n"
+        for i, r in enumerate(results[:10], 1):
+            title = (r.get("title") or "")[:80]
+            url = r.get("url") or "#"
+            out += f"| {i} | {title} | [Read]({url}) |\n"
         return out
 
     # --- Generic Fallback for any unformatted direct tool ---
