@@ -1,5 +1,8 @@
 import asyncio
+import types
+from pathlib import Path
 from . import _sandbox
+from .. import paths
 
 # Global dictionary to hold persistent sessions
 _SESSIONS = {}
@@ -21,7 +24,35 @@ class PythonSessionTool:
         # 1. Get or create the session globals
         if session_id not in _SESSIONS:
             _SESSIONS[session_id] = _sandbox.build_globals()
-        
+            
+            # --- SMART PATH RESOLUTION PROXY ---
+            import pandas as real_pd
+            
+            pd_proxy = types.ModuleType("pandas")
+            pd_proxy.__dict__.update(real_pd.__dict__)
+            
+            def _patched_read(file_method):
+                def wrapper(filepath, *args, **kwargs):
+                    if isinstance(filepath, str):
+                        p = Path(filepath)
+                        if not p.exists():
+                            # 1. Check Workspace
+                            ws_file = paths.workspace() / p.name
+                            if ws_file.exists():
+                                filepath = str(ws_file)
+                            else:
+                                # 2. Check Sandbox
+                                sb_file = paths.sandbox() / p.name
+                                if sb_file.exists():
+                                    filepath = str(sb_file)
+                    return file_method(filepath, *args, **kwargs)
+                return wrapper
+            
+            pd_proxy.read_csv = _patched_read(real_pd.read_csv)
+            pd_proxy.read_excel = _patched_read(real_pd.read_excel)
+            _SESSIONS[session_id]["pd"] = pd_proxy
+            # -----------------------------------
+
         g = _SESSIONS[session_id]
         
         # 2. Validate the code
@@ -29,10 +60,10 @@ class PythonSessionTool:
         if errors:
             return {"error": "code rejected", "reasons": errors}
             
-        # 3. Execute in a thread to avoid blocking the event loop
+        # 3. Execute in a thread
         res = await asyncio.to_thread(_sandbox.exec_code, code, g)
         
-        # 4. Capture any matplotlib/plotly charts
+        # 4. Capture charts
         chart = _sandbox.capture_chart(g.get("plt"))
         if chart:
             res.update(chart)
