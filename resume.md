@@ -4035,3 +4035,9 @@ me the exact git commands to commit + push both remotes."
 - **New Tool**: `python_session` allows the agent to keep variables (DataFrames, models) alive across multiple messages.
 - **Zero Overhead**: Reuses the existing `_sandbox.build_globals()` securely.
 - **Markdown Integration**: Automatically converts DataFrames to Markdown tables in the chat UI.
+
+### Part 732 Update (2026-11-06): v1.6.0 Phase 3 — Vision / Multimodal
+
+- **New Tool**: `vision_analyze` uses Gemini 2.5 Flash to analyze images.
+- **Multimodal**: Agent can now "see" the charts it generates and describe the trends.
+- **0-Token Routing**: Fully wired into the direct-answer router.
