@@ -4050,3 +4050,12 @@ me the exact git commands to commit + push both remotes."
 - **Phase 4**: Live Market Stream (`live_market_stream` using REST polling)
 - **Total**: 109 tools registered, 44+ direct-answer (0-token)
 - **Workspace Sync**: Library uploads automatically sync to Workspace (Master)
+
+### Part 735 Update (2026-11-06): v1.8.0 — Free News & Research Layer
+
+- **New Tools**: `ddg_news` (DuckDuckGo) and `arxiv_search` (arXiv).
+- **0 Tokens**: All four news/research tools now emit direct answers with no LLM calls.
+- **52 Direct-Answer Tools**: Up from 48, with full formatters.
+- **Free APIs Only**: No paid API keys required for the new tools.
+
+*Part 735 logged: 2026-11-06*
