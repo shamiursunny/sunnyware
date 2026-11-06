@@ -131,7 +131,7 @@ _TOOL_RESULT_B64_FIELDS = ("image_base64", "image_data", "chart_base64")
 # Part 621: Deterministic tools whose results should NOT be reformatted by an LLM.
 # These tools return exact answers (calculator output, exact time, etc.) and the
 # tiny Qwen2.5-0.5B model cannot reliably format them without hallucinating.
-_DIRECT_ANSWER_TOOLS = {"calculator", "current_time", "get_current_time", "time_now", "data_stats", "data_describe", "data_correlation", "csv_groupby"}
+_DIRECT_ANSWER_TOOLS = {"calculator", "current_time", "get_current_time", "time_now", "data_stats", "data_describe", "data_correlation", "csv_groupby", "image_generate", "list_files", "web_search", "web_fetch", "email_send", "email_configured"}
 
 
 def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
@@ -178,6 +178,72 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
         if len(rows) > 20:
             lines.append(f"| ... | ({len(rows) - 20} more) |")
         return "\n".join(lines)
+
+    # 3. Image generation (v1.3.0)
+    if tool_name == "image_generate" and tool_result.get("ok"):
+        url = tool_result.get("url") or tool_result.get("image_url") or ""
+        prompt = tool_result.get("prompt", "")
+        model = tool_result.get("model", "pollinations")
+        if url:
+            return f"![{prompt}]({url})\n\n*Generated with {model}*"
+        return "**Image generated** (no URL returned)"
+
+    # 4. List files (v1.3.0)
+    if tool_name == "list_files":
+        files = tool_result.get("entries") or tool_result.get("files") or []
+        kind = tool_result.get("kind", "workspace")
+        if tool_result.get("error"):
+            return f"**List files failed:** {tool_result['error']}"
+        if not files:
+            return f"**No files found in {kind}**"
+        lines = [f"**Files in {kind} ({len(files)})**", "", "| Name | Type | Size |", "|---|---|---|"]
+        for f in files[:30]:
+            name = f.get("name", "?")
+            ftype = f.get("type", "file")
+            size = f.get("size") or f.get("size_bytes") or 0
+            if isinstance(size, int) and size > 1024:
+                sz_str = f"{size/1024:.1f} KB"
+            else:
+                sz_str = f"{size} B" if size else "?"
+            lines.append(f"| {name} | {ftype} | {sz_str} |")
+        if len(files) > 30:
+            lines.append(f"| ... | | ({len(files) - 30} more) |")
+        return "\n".join(lines)
+
+    # 5. Web search (v1.3.0)
+    if tool_name == "web_search" and tool_result.get("ok"):
+        results = tool_result.get("results", [])
+        if not results:
+            return "**No search results**"
+        lines = [f"**Search results ({len(results)})**", ""]
+        for i, r in enumerate(results[:10], 1):
+            title = r.get("title", "?")
+            url = r.get("url", "")
+            snippet = (r.get("snippet") or r.get("content") or "")[:200]
+            lines.append(f"**{i}. {title}**")
+            if url:
+                lines.append(f"   [{url}]({url})")
+            if snippet:
+                lines.append(f"   {snippet}")
+            lines.append("")
+        return "\n".join(lines)
+
+    # 6. Web fetch (v1.3.0)
+    if tool_name == "web_fetch" and tool_result.get("ok"):
+        url = tool_result.get("url", "")
+        content = (tool_result.get("content") or "")[:2000]
+        return f"**Fetched:** {url}\n\n```\n{content}\n```"
+
+    # 7. Email send (v1.3.0)
+    if tool_name == "email_send" and tool_result.get("ok"):
+        return f"**Email sent** ✅\n- To: {tool_result.get('to', '?')}\n- Subject: {tool_result.get('subject', '(no subject)')}"
+
+    # 8. Email configured (v1.3.0)
+    if tool_name == "email_configured":
+        ok = tool_result.get("ok") or tool_result.get("configured")
+        if ok:
+            return f"**Email configured** ✅\n- Host: {tool_result.get('host', '?')}\n- User: {tool_result.get('user', '?')}"
+        return "**Email not configured**\n- Set SMTP_HOST, SMTP_USER, SMTP_PASS env vars"
     # 2. Time (current_time tool)
     if "utc_human" in tool_result:
         day = tool_result.get("day_of_week", "")
