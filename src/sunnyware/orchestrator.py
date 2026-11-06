@@ -390,9 +390,20 @@ The provided text: `{text}`
 *Note: CourtListener verifies case-law citations (e.g., `410 U.S. 113`), not statutes like U.S.C. For statutes, please consult the official code or a legal database (e.g., uscode.house.gov).*"""
         citations = tool_result.get("citations", [])
         out = f"**Legal Citation Check:** Found {count} citation(s)\n\n"
-        out += "| Citation | Status | Details |\n|---|---|---|\n"
+        out += "| Citation | Status | Case Name / Details |\n|---|---|---|\n"
         for c in citations[:10]:
-            out += f"| {c.get('citation', '')} | {c.get('status', '')} | {c.get('error_message', '')} |\n"
+            status = c.get('status', '')
+            details = c.get('error_message', '')
+            cluster = c.get('cluster') or c.get('clusters', [])
+            if isinstance(cluster, dict):
+                case_name = cluster.get('case_name', '')
+                if case_name:
+                    details = f"**{case_name}**"
+            elif isinstance(cluster, list) and len(cluster) > 0:
+                case_name = cluster[0].get('case_name', '')
+                if case_name:
+                    details = f"**{case_name}**"
+            out += f"| {c.get('citation', '')} | {status} | {details} |\n"
         return out
 
     # --- Generic Fallback for any unformatted direct tool ---
