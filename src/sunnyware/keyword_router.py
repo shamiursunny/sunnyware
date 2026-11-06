@@ -398,6 +398,13 @@ def keyword_route(prompt: str) -> Optional[dict]:
         tz = _extract_timezone(prompt)
         return {"tool": "current_time", "args": {"timezone": tz}}
 
+
+
+    # --- browser_click (click the button on URL) ---
+    _click_btn = re.search(r'click\s+(?:the\s+)?button\s+(?:on|at)\s+(https?://[^\s]+)', prompt, re.IGNORECASE)
+    if _click_btn:
+        return {"tool": "browser_click", "args": {"selector": "button", "url": _click_btn.group(1).strip()}}
+
     # --- browser_click (click X on URL) ---
     _click_match = re.search(r'click\s+(?:on\s+)?(.+?)\s+(?:on|at)\s+(https?://[^\s]+)', prompt, re.IGNORECASE)
     if _click_match:
@@ -413,10 +420,7 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if _extract_links:
         return {"tool": "browser_extract", "args": {"selector": "a[href]", "url": _extract_links.group(1).strip()}}
 
-    # --- browser_click (click the button on URL) ---
-    _click_btn = re.search(r'click\s+(?:the\s+)?button\s+(?:on|at)\s+(https?://[^\s]+)', prompt, re.IGNORECASE)
-    if _click_btn:
-        return {"tool": "browser_click", "args": {"selector": "button", "url": _click_btn.group(1).strip()}}
+
 
     # --- browser_extract (extract X from URL) ---
     _extract_match = re.search(r'extract\s+(.+?)\s+(?:from|on)\s+(https?://[^\s]+)', prompt, re.IGNORECASE)

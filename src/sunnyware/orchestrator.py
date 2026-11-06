@@ -520,14 +520,15 @@ The provided text: `{text}`
     if tool_name == "browser_extract":
         if tool_result.get("error"):
             return f"**Extraction failed:** {tool_result['error']}"
-        items = tool_result.get("items", [])
-        if not items:
+        rows = tool_result.get("rows", [])
+        if not rows:
             return f"**browser_extract:** No items found."
-        out = f"**Browser Extract ({len(items)} items):**\n\n"
-        out += "| # | Text |\n|---|---|\n"
-        for i, item in enumerate(items[:10], 1):
-            text = (item.get("text") or str(item))[:100]
-            out += f"| {i} | {text} |\n"
+        out = f"**Browser Extract ({len(rows)} items):**\n\n"
+        out += "| # | Text | Link |\n|---|---|---|\n"
+        for i, item in enumerate(rows[:10], 1):
+            text = (item.get("text") or "")[:80]
+            href = item.get("href") or item.get("src") or ""
+            out += f"| {i} | {text} | {href} |\n"
         return out
 
     if tool_name == "html_to_text":

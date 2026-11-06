@@ -3,6 +3,7 @@
 """HF Space entrypoint — persists models on /data (Linux) or ./data (Windows)."""
 
 import os
+os.environ["PLAYWRIGHT_BROWSERS_PATH"] = "/data/.cache/ms-playwright"
 import subprocess
 import sys
 

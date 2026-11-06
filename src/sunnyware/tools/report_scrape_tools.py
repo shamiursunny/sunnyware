@@ -24,12 +24,18 @@ class ScrapeWebpageTool:
             response.raise_for_status()
             
             # Extract tables using pandas
-            tables = pd.read_html(response.text)
+            try:
+                tables = pd.read_html(response.text)
+            except ValueError as e:
+                if "No tables found" in str(e):
+                    return {"error": "No HTML tables found on this page. The site likely uses a JavaScript framework (like React/Vue). Try 'extract all links' or 'screenshot' instead."}
+                raise e
+
             if not tables:
                 return {"error": "No tables found on the page"}
             if table_index >= len(tables):
                 return {"error": f"Table index {table_index} out of range. Found {len(tables)} tables."}
-                
+
             df = tables[table_index]
             out_path = paths.sandbox() / Path(output_filename).name
             df.to_csv(out_path, index=False)
