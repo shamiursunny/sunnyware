@@ -15,8 +15,8 @@ class ArxivSearchTool:
     }
 
     async def run(self, query: str, max_results: int = 5) -> dict:
-        url = f"http://export.arxiv.org/api/query?search_query=all:{query}&max_results={max_results}"
-        async with httpx.AsyncClient(timeout=20.0) as client:
+        url = f"https://export.arxiv.org/api/query?search_query=all:{query}&max_results={max_results}"
+        async with httpx.AsyncClient(timeout=20.0, follow_redirects=True) as client:
             resp = await client.get(url)
             if resp.status_code != 200:
                 return {"error": f"arXiv API error: {resp.status_code}"}
