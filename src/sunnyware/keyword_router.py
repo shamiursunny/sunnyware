@@ -571,19 +571,6 @@ def keyword_route(prompt: str) -> Optional[dict]:
             return {"tool": "sql_sandbox_drop", "args": {"name": m.group(1)}}
         return None
 
-    # --- sql_sandbox_create ---
-    if any(kw in p for kw in ["create sql sandbox", "create a sql sandbox",
-                               "create sandbox", "create a sandbox",
-                               "new sql sandbox", "make a sql sandbox",
-                               "make sandbox"]):
-        import re as _re_cr
-        m = _re_cr.search(
-            r'(?:create|new|make)\s+(?:a\s+)?(?:sql\s+)?sandbox\s+(?:named\s+)?([a-z_][a-z0-9_]*)',
-            prompt, _re_cr.IGNORECASE
-        )
-        if m:
-            return {"tool": "sql_sandbox_create", "args": {"name": m.group(1)}}
-        return None
 
     # --- sql_sandbox_load_csv (must come before generic csv handler) ---
     if any(kw in p for kw in ["load", "import"]) and "sandbox" in p and any(x in p for x in [".csv", ".tsv"]):
@@ -633,6 +620,24 @@ def keyword_route(prompt: str) -> Optional[dict]:
                                "my sql sandboxes", "all sql sandboxes"]):
         return {"tool": "sql_sandbox_list", "args": {}}
 
+    # --- generate_chart (v1.4.0) — BEFORE csv_query so .csv doesn't hijack ---
+    _chart_m = re.search(
+        r"\b(?:generate|create|make|build|draw)\s+(?:a\s+)?(?:bar|line|pie|histogram|donut|scatter)?\s*(?:chart|graph|plot|visualization)\b.*?([\w\-./\\]+\.[a-zA-Z0-9]+)",
+        prompt, re.IGNORECASE
+    )
+    if _chart_m:
+        fname = _chart_m.group(1)
+        ctype_m = re.search(r"\b(bar|line|pie|histogram|donut|scatter)\b", prompt, re.IGNORECASE)
+        chart_type = ctype_m.group(1).lower() if ctype_m else "bar"
+        return {
+            "tool": "generate_chart",
+            "args": {
+                "filename": fname,
+                "chart_type": "bar" if chart_type == "histogram" else ("pie" if chart_type == "donut" else chart_type),
+                "x_column": "x",
+                "y_column": "y",
+            }
+        }
     # --- excel_read (must have .xlsx) ---
     if "excel" in p or ".xlsx" in p:
         fname = _extract_filename(prompt, ["xlsx"])
@@ -643,13 +648,18 @@ def keyword_route(prompt: str) -> Optional[dict]:
             # write needs structured data (sheets array) — let LLM handle
             return None
 
-    # --- delete_file ---
-    if any(kw in p for kw in ["delete file", "remove file", "delete the file"]):
-        import re as _re_df
-        m = _re_df.search(r'(?:delete|remove)\s+(?:the\s+)?file\s+([\w\-./\\]+\.[\w]+)', prompt, _re_df.IGNORECASE)
-        if m:
-            return {"tool": "delete_file", "args": {"path": m.group(1)}}
-        return None
+    # --- delete_file (accepts "delete X.txt" OR "delete file X.txt") ---
+    _df_m = re.search(
+        r'\b(?:delete|remove)\s+(?:the\s+)?(?:file\s+)?([\w\-./\\]+\.[a-zA-Z0-9]+)',
+        prompt, re.IGNORECASE
+    )
+    if _df_m:
+        return {"tool": "delete_file", "args": {"path": _df_m.group(1)}}
+
+
+    # --- sql_sandbox_create (v1.4.0) ---
+    if re.search(r"\b(?:create|new|start|make)\s+(?:a\s+)?(?:sql|sqlite|database)\s+(?:sandbox|db|database)\b", prompt, re.IGNORECASE) or        re.search(r"\bsql\s+(?:sandbox|db|database)\s+(?:create|new|start)\b", prompt, re.IGNORECASE):
+        return {"tool": "sql_sandbox_create", "args": {"name": "sandbox"}}
 
     # --- csv_query (must have .csv) ---
     if ".csv" in p or "csv file" in p:
@@ -931,6 +941,7 @@ def keyword_route(prompt: str) -> Optional[dict]:
     _em_m = _re_b1.search(r"send\s+(?:an?\s+)?email\s+to\s+(\S+@\S+)(?:\s+(?:about|saying|with subject)\s+(.+))?", prompt, _re_b1.IGNORECASE)
     if _em_m:
         return {"tool": "email_send", "args": {"to": _em_m.group(1), "subject": (_em_m.group(2) or "Message from Sunnyware").strip()[:100], "body": _em_m.group(2) or "Sent from Sunnyware"}}
+
 
     # --- edit_tableau_field ---
     m = re.search(r"(?:edit|update|change|modify)\s+(?:the\s+)?(?:tableau\s+)?(?:field|calc|calculation|filter|parameter)\s+['\"]?(.+?)['\"]?\s+(?:to|as)\s+['\"]?(.+?)['\"]?(?:\s+in\s+([\w\-\.]+\.twbx?))?", prompt, re.IGNORECASE)
