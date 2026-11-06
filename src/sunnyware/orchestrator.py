@@ -1108,8 +1108,7 @@ async def _run_agent_body(
                         })
                         # Part 622: Deterministic tools return instantly without LLM
                         if (_tool_name in _DIRECT_ANSWER_TOOLS
-                                and isinstance(_tool_result, dict)
-                                and not _tool_result.get("error")):
+                                and isinstance(_tool_result, dict)):
                             _direct = _format_direct_answer(_tool_name, _tool_result)
                             try:
                                 await _emit(on_event, {"type": "answer", "content": _direct})
@@ -1336,8 +1335,7 @@ async def _run_agent_body(
                 # immediately WITHOUT calling an LLM to "format" the answer. This
                 # prevents 15s local timeouts and 28s retry loops on trivial math.
                 if (tool_name in _DIRECT_ANSWER_TOOLS
-                        and isinstance(tool_result, dict)
-                        and not tool_result.get("error")):
+                        and isinstance(tool_result, dict)):
                     _direct = _format_direct_answer(tool_name, tool_result)
                     try:
                         await _emit(on_event, {"type": "answer", "content": _direct})
