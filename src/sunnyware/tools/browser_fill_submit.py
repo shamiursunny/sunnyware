@@ -2,27 +2,33 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Browser form fill + submit tool (Part 63)."""
 
+import re
+
 
 class BrowserFillSubmitTool:
     name = "browser_fill_submit"
     description = (
-        "Open a URL, fill one or more form fields (CSS selector -> value), "
+        "Open a URL, fill one or more form fields (either CSS selectors or human labels), "
         "then submit by clicking a button selector or pressing Enter. "
-        "Returns the resulting page. Use for search forms, login forms "
-        "(with user-provided tokens only — never store passwords), or any "
-        "multi-field POST workflow."
+        "Returns the resulting page. Use for contact forms, search forms, login/register forms, "
+        "comment boxes, or chat inputs."
     )
     parameters = {
         "url": {"type": "string", "required": True, "description": "Form URL"},
         "fields": {
             "type": "object",
-            "required": True,
-            "description": "Map of CSS selector -> value to fill",
+            "required": False,
+            "description": "Map of field label (e.g., 'Name', 'Email') or CSS selector -> value to fill",
+        },
+        "chat_message": {
+            "type": "string",
+            "required": False,
+            "description": "If provided, find a main text input (textarea/chat box) and send this message",
         },
         "submit_selector": {
             "type": "string",
             "required": False,
-            "description": "CSS selector of submit button (else press Enter)",
+            "description": "CSS selector of submit button (else auto-detect)",
         },
         "wait_ms": {"type": "integer", "required": False, "description": "Extra wait after submit (default 1500)"},
         "max_chars": {"type": "integer", "required": False, "description": "HTML cap (default 60000)"},
@@ -34,8 +40,9 @@ class BrowserFillSubmitTool:
         err = _v(url)
         if err: return {"error": err}
         fields = args.get("fields") or {}
-        if not isinstance(fields, dict) or not fields:
-            return {"error": "fields must be a non-empty object"}
+        chat_message = (args.get("chat_message") or "").strip()
+        if not isinstance(fields, dict):
+            return {"error": "fields must be an object"}
         if len(fields) > 20:
             return {"error": "too many fields (max 20)"}
         try:
@@ -50,21 +57,77 @@ class BrowserFillSubmitTool:
             ctx = await new_context()
             page = await ctx.new_page()
             await page.goto(url, wait_until="domcontentloaded", timeout=30000)
-            for sel, val in fields.items():
-                try:
-                    await page.fill(str(sel), str(val), timeout=8000)
-                except Exception as e:
-                    return {"error": f"fill '{sel}' failed: {type(e).__name__}: {e}"}
-            if submit_sel:
-                btn = await page.query_selector(submit_sel)
-                if not btn:
-                    return {"error": f"submit selector not found: {submit_sel}"}
-                await btn.click(timeout=8000)
-            else:
-                try:
+
+            if chat_message:
+                # Find best chat input
+                input_selector = await page.evaluate('''() => {
+                    const candidates = [
+                        'textarea[placeholder*="message" i]',
+                        'textarea[placeholder*="chat" i]',
+                        'input[placeholder*="message" i]',
+                        'input[placeholder*="chat" i]',
+                        'textarea:not([readonly])',
+                        'input[type="text"]:not([readonly])',
+                        'div[contenteditable="true"]'
+                    ];
+                    for (const sel of candidates) {
+                        const el = document.querySelector(sel);
+                        if (el && el.offsetParent !== null) return sel;
+                    }
+                    return null;
+                }''')
+                if not input_selector:
+                    return {"error": "could not find a chat input box"}
+                await page.fill(input_selector, chat_message, timeout=8000)
+                # Try to click a send button next to it, else press Enter
+                send_btn = await page.query_selector('button:has-text("Send"), button[aria-label*="send" i], button[type="submit"]')
+                if send_btn:
+                    await send_btn.click(timeout=5000)
+                else:
                     await page.keyboard.press("Enter")
-                except Exception:
-                    pass
+            else:
+                if not fields:
+                    return {"error": "either fields or chat_message is required"}
+                for key, val in fields.items():
+                    selector = await self._resolve_selector(page, str(key))
+                    if not selector:
+                        return {"error": f"could not resolve selector for '{key}'"}
+                    await page.fill(selector, str(val), timeout=8000)
+
+                # Submit
+                if submit_sel:
+                    btn = await page.query_selector(submit_sel)
+                    if not btn:
+                        return {"error": f"submit selector not found: {submit_sel}"}
+                    await btn.click(timeout=8000)
+                else:
+                    # Auto-detect submit button (JS text match, no invalid :has-text)
+                    auto_btn = await page.evaluate('''() => {
+                        const std = ['button[type="submit"]', 'input[type="submit"]'];
+                        for (const sel of std) {
+                            try {
+                                const el = document.querySelector(sel);
+                                if (el && el.offsetParent !== null) return sel;
+                            } catch (e) {}
+                        }
+                        const texts = ['send', 'submit', 'login', 'sign in', 'register', 'comment', 'post'];
+                        const buttons = document.querySelectorAll('button, input[type="submit"], a[role="button"]');
+                        for (let i = 0; i < buttons.length; i++) {
+                            const btn = buttons[i];
+                            if (btn.offsetParent === null) continue;
+                            const label = (btn.textContent || btn.value || '').toLowerCase().trim();
+                            if (texts.some(t => label.includes(t))) {
+                                btn.setAttribute('data-sunny-submit', '1');
+                                return '[data-sunny-submit="1"]';
+                            }
+                        }
+                        return null;
+                    }''')
+                    if auto_btn:
+                        await page.click(auto_btn, timeout=8000)
+                    else:
+                        await page.keyboard.press("Enter")
+
             try:
                 await page.wait_for_load_state("networkidle", timeout=15000)
             except Exception:
@@ -85,8 +148,57 @@ class BrowserFillSubmitTool:
             "start_url": url,
             "final_url": final_url,
             "title": title,
-            "fields_filled": len(fields),
+            "fields_filled": len(fields) if fields else 1,
             "html": html[:max_chars],
             "html_chars": len(html),
             "truncated": len(html) > max_chars,
         }
+
+    async def _resolve_selector(self, page, key: str) -> str | None:
+        """Given a human label or CSS selector, return the best matching selector."""
+        key = key.strip()
+        # If it looks like a CSS selector, use it directly
+        if any(c in key for c in '[#.]') or key in ('input', 'textarea', 'button', 'select'):
+            exists = await page.evaluate('''(sel) => !!document.querySelector(sel)''', key)
+            if exists:
+                return key
+        # Try common patterns
+        candidates = [
+            f'input[name="{key}"]',
+            f'input[name="{key.lower()}"]',
+            f'input[placeholder*="{key}" i]',
+            f'textarea[name="{key}"]',
+            f'textarea[placeholder*="{key}" i]',
+            f'label:has-text("{key}") + input',
+            f'label:has-text("{key}") + textarea',
+            f'input[aria-label*="{key}" i]',
+            f'textarea[aria-label*="{key}" i]',
+        ]
+        for sel in candidates:
+            try:
+                exists = await page.evaluate('''(sel) => !!document.querySelector(sel)''', sel)
+                if exists:
+                    return sel
+            except Exception:
+                continue
+        # Fallback: find by label text via JS (more robust)
+        sel = await page.evaluate('''(label) => {
+            const inputs = document.querySelectorAll('input, textarea, select');
+            for (const el of inputs) {
+                const id = el.id;
+                if (id) {
+                    const lbl = document.querySelector(`label[for="${id}"]`);
+                    if (lbl && lbl.textContent.toLowerCase().includes(label.toLowerCase())) return `#${id}`;
+                }
+                if (el.name && el.name.toLowerCase().includes(label.toLowerCase())) {
+                    return el.tagName.toLowerCase() + `[name="${el.name}"]`;
+                }
+                if (el.placeholder && el.placeholder.toLowerCase().includes(label.toLowerCase())) {
+                    return el.tagName.toLowerCase() + (el.name ? `[name="${el.name}"]` : '');
+                }
+            }
+            return null;
+        }''', key)
+        if sel:
+            return sel
+        return None

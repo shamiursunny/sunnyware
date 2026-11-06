@@ -8,6 +8,22 @@ Only matches when the prompt contains an UNMISTAKABLE keyword.
 If there is any ambiguity, returns None and lets Needle 3 handle it.
 """
 import re
+
+def _parse_fields(s: str) -> dict:
+    """Parse 'Name: John, Email: john@example.com' into a dict."""
+    fields = {}
+    for part in re.split(r'[;,]', s):
+        part = part.strip()
+        if not part:
+            continue
+        if ':' in part:
+            k, v = part.split(':', 1)
+        elif '=' in part:
+            k, v = part.split('=', 1)
+        else:
+            continue
+        fields[k.strip().lower()] = v.strip()
+    return fields
 from typing import Optional
 
 
@@ -414,6 +430,47 @@ def keyword_route(prompt: str) -> Optional[dict]:
     _fill_match = re.search(r'fill\s+(.+?)\s+and\s+submit\s+(?:on|at)\s+(https?://[^\s]+)', prompt, re.IGNORECASE)
     if _fill_match:
         return {"tool": "browser_fill_submit", "args": {"url": _fill_match.group(2).strip()}}
+
+    # --- browser_fill_submit (contact/register/login forms) ---
+    _form_match = re.search(r'(?:fill|submit|complete|send)\s+(?:the\s+)?(contact\s+)?form\s+(?:on|at)\s+(https?://[^\s]+)\s+with\s+(.+)', prompt, re.IGNORECASE)
+    if _form_match:
+        url = _form_match.group(2).strip()
+        fields = _parse_fields(_form_match.group(3).strip())
+        return {"tool": "browser_fill_submit", "args": {"url": url, "fields": fields}}
+
+    # --- register / sign up ---
+    _reg_match = re.search(r'(?:register|sign\s*up)\s+(?:on|at)\s+(https?://[^\s]+)\s+with\s+(.+)', prompt, re.IGNORECASE)
+    if _reg_match:
+        url = _reg_match.group(1).strip()
+        fields = _parse_fields(_reg_match.group(2).strip())
+        return {"tool": "browser_fill_submit", "args": {"url": url, "fields": fields}}
+
+    # --- login / sign in ---
+    _login_match = re.search(r'(?:log\s*in|sign\s*in)\s+(?:on|at)\s+(https?://[^\s]+)\s+with\s+(.+)', prompt, re.IGNORECASE)
+    if _login_match:
+        url = _login_match.group(1).strip()
+        fields = _parse_fields(_login_match.group(2).strip())
+        return {"tool": "browser_fill_submit", "args": {"url": url, "fields": fields}}
+
+    # --- like ---
+    _like_match = re.search(r'like\s+(?:the\s+)?(?:post\s+)?(?:on|at)\s+(https?://[^\s]+)', prompt, re.IGNORECASE)
+    if _like_match:
+        url = _like_match.group(1).strip()
+        return {"tool": "browser_click", "args": {"selector": "button:has-text('Like'), button[aria-label*='like' i], .like-button", "url": url}}
+
+    # --- comment ---
+    _comment_match = re.search(r'comment\s+(?:on|at)\s+(https?://[^\s]+)\s+with\s+(.+)', prompt, re.IGNORECASE)
+    if _comment_match:
+        url = _comment_match.group(1).strip()
+        msg = _comment_match.group(2).strip()
+        return {"tool": "browser_fill_submit", "args": {"url": url, "chat_message": msg}}
+
+    # --- chat ---
+    _chat_match = re.search(r'chat\s+with\s+(https?://[^\s]+)\s*(?:saying|with message|:)?\s*(.*)', prompt, re.IGNORECASE)
+    if _chat_match:
+        url = _chat_match.group(1).strip()
+        msg = _chat_match.group(2).strip() or "Hello"
+        return {"tool": "browser_fill_submit", "args": {"url": url, "chat_message": msg}}
 
     # --- browser_extract (extract all links from URL) ---
     _extract_links = re.search(r'extract\s+all\s+links\s+(?:from|on)\s+(https?://[^\s]+)', prompt, re.IGNORECASE)
