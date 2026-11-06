@@ -183,6 +183,25 @@ async def save_file(req: Request):
             INSERT INTO library_files (owner_key, name, type, size, kind, content)
             VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, created_at
         """, owner, body.get("name", "Untitled"), body.get("type", "file"), size, body.get("kind", "upload"), content)
+        
+        # --- SYNC TO WORKSPACE (Master) ---
+        try:
+            from .. import paths
+            import shutil, base64, os
+            ws = paths.workspace()
+            ws.mkdir(parents=True, exist_ok=True)
+            fname = body.get("name", "Untitled")
+            dest = ws / fname
+            
+            if content.startswith("data:"):
+                b64 = content.split(",", 1)[-1]
+                dest.write_bytes(base64.b64decode(b64))
+            else:
+                dest.write_text(content, encoding="utf-8")
+            print(f"[library] Synced upload {fname} to workspace")
+        except Exception as e:
+            print(f"[library] Failed to sync upload to workspace: {e}")
+            
         return {"id": str(row["id"]), "created_at": row["created_at"].isoformat()}
 
 
@@ -197,11 +216,28 @@ async def delete_file(file_id: str):
             target.unlink()
             return {"deleted": True}
         return {"deleted": False}
+
     await _ensure_table()
     owner = _owner()
     async with pool.acquire() as conn:
+        row = await conn.fetchrow("SELECT name FROM library_files WHERE id = $1::uuid AND owner_key = $2", file_id, owner)
+        if not row:
+            return {"deleted": False}
+        
+        fname = row["name"]
         await conn.execute("DELETE FROM library_files WHERE id = $1::uuid AND owner_key = $2", file_id, owner)
-        return {"deleted": True}
+
+    # --- SYNC DELETE TO WORKSPACE (Master) ---
+    try:
+        from .. import paths
+        ws_file = paths.workspace() / fname
+        if ws_file.exists():
+            ws_file.unlink()
+            print(f"[library] Deleted {fname} from workspace")
+    except Exception as e:
+        print(f"[library] Failed to delete from workspace: {e}")
+
+    return {"deleted": True}
 
 @router.get("/api/sandbox/download-zip")
 async def download_sandbox_zip(files: str = None):
