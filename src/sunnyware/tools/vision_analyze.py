@@ -33,9 +33,38 @@ class VisionAnalyzeTool:
         except Exception as e:
             return {"error": f"Failed to read image: {e}"}
 
+        # Try Groq first (vision model, free)
+        groq_key = os.environ.get("GROQ_API_KEY")
+        if groq_key:
+            try:
+                async with httpx.AsyncClient(timeout=30.0) as client:
+                    resp = await client.post(
+                        "https://api.groq.com/openai/v1/chat/completions",
+                        headers={"Authorization": f"Bearer {groq_key}"},
+                        json={
+                            "model": "llama-3.2-11b-vision-preview",
+                            "messages": [{
+                                "role": "user",
+                                "content": [
+                                    {"type": "text", "text": prompt},
+                                    {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{img_b64}"}}
+                                ]
+                            }],
+                            "max_tokens": 1024
+                        }
+                    )
+                    resp.raise_for_status()
+                    data = resp.json()
+                    text = data["choices"][0]["message"]["content"]
+                    return {"ok": True, "analysis": text}
+            except Exception as e:
+                # Fall through to Gemini if Groq fails
+                pass
+
+        # Fallback to Gemini
         api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
         if not api_key:
-            return {"error": "Gemini API key not found in environment."}
+            return {"error": "No vision API key found (GROQ_API_KEY or GEMINI_API_KEY)."}
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
         
