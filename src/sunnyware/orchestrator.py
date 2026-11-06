@@ -1128,8 +1128,10 @@ async def _run_agent_body(
                             "result": _tool_result,
                         })
                         # Part 622: Deterministic tools return instantly without LLM
+                        print(f"[orchestrator] Checking direct answer for {_tool_name}, result={_tool_result}", flush=True)
                         if (_tool_name in _DIRECT_ANSWER_TOOLS
                                 and isinstance(_tool_result, dict)):
+                            print(f"[orchestrator] Emitting direct answer for {_tool_name}", flush=True)
                             _direct = _format_direct_answer(_tool_name, _tool_result)
                             try:
                                 await _emit(on_event, {"type": "answer", "content": _direct})

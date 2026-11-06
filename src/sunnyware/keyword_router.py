@@ -14,7 +14,8 @@ from typing import Optional
 def _extract_number(prompt: str) -> Optional[str]:
     """Try to extract a math expression or number from the prompt."""
     # Look for explicit math expressions like "25 * 4" or "2**10"
-    math_match = re.search(r'(\d+\s*[\+\-\*/\*\*]+\s*\d+[\d\s\+\-\*/\*\*]*?)', prompt)
+    # Match full math expressions like "1/2 + 2", "25 * 4", or "2**10"
+    math_match = re.search(r'(\d+(?:\s*[\+\-\*/\*\*]\s*\d+)+)', prompt)
     if math_match:
         return math_match.group(1).strip()
     # Look for "square root of X"
@@ -71,13 +72,12 @@ def _extract_timezone(prompt: str) -> str:
 
 
 def keyword_route(prompt: str) -> Optional[dict]:
-    print(f"[keyword_router] DEBUG: Received prompt: '{prompt}'", flush=True)
     import re as _re_bi
     _p_low_bi = prompt.lower()
-    
-    # --- Quant & ML Routes (v1.5.0) — Bulletproof ---
+    p = prompt.lower()
+
+    # --- Quant & ML Routes (v1.5.0) ---
     _ta_match = re.search(r'technical analysis.*?([\w\-]+\.csv)', prompt, re.IGNORECASE)
-    print(f"[keyword_router] DEBUG: TA match result: {_ta_match}", flush=True)
     if _ta_match:
         return {"tool": "technical_analysis", "args": {"filename": _ta_match.group(1)}}
 
@@ -89,6 +89,58 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if _pro_chart:
         chart_type = "candlestick" if "candlestick" in prompt.lower() else "correlation"
         return {"tool": "pro_chart", "args": {"chart_type": chart_type, "filename": _pro_chart.group(1)}}
+
+    # --- Calculator ---
+    num = _extract_number(prompt)
+    if num:
+        return {"tool": "calculator", "args": {"expression": num}}
+
+    # --- Web Search ---
+    if any(kw in p for kw in ["search the web", "google", "search web"]):
+        q = prompt.lower().split("for")[-1].strip() if "for" in prompt.lower() else prompt
+        return {"tool": "web_search", "args": {"query": q}}
+
+    # --- Web Fetch ---
+    if "fetch" in p or "get page" in p:
+        url = _extract_url(prompt)
+        if url: return {"tool": "web_fetch", "args": {"url": url}}
+
+    # --- Email ---
+    if "email" in p:
+        return {"tool": "email_configured", "args": {}}
+
+    # --- PDF / Excel ---
+    if ".pdf" in p:
+        m = re.search(r'([\w\-]+\.pdf)', prompt, re.IGNORECASE)
+        if m: return {"tool": "pdf_read", "args": {"file": m.group(1)}}
+    if ".xlsx" in p:
+        m = re.search(r'([\w\-]+\.xlsx)', prompt, re.IGNORECASE)
+        if m: return {"tool": "excel_read", "args": {"file": m.group(1)}}
+
+    # --- SQL Sandbox ---
+    if "sql sandbox create" in p or "create sql sandbox" in p:
+        return {"tool": "sql_sandbox_create", "args": {"name": "sandbox"}}
+    if "sql sandbox load csv" in p or "load csv" in p:
+        m = re.search(r'([\w\-]+\.csv)', prompt, re.IGNORECASE)
+        return {"tool": "sql_sandbox_load_csv", "args": {"file": m.group(1) if m else ""}}
+    if "sql sandbox execute" in p or "execute sql" in p:
+        q = prompt.split(":")[-1].strip() if ":" in prompt else prompt
+        return {"tool": "sql_sandbox_execute", "args": {"sql": q}}
+    if "sql sandbox list" in p or "list sql sandbox" in p:
+        return {"tool": "sql_sandbox_list", "args": {}}
+
+    # --- Browser ---
+    if "browser goto" in p:
+        m = re.search(r'https?://[^\s]+', prompt)
+        return {"tool": "browser_goto", "args": {"url": m.group(0) if m else ""}}
+
+    # --- Chart from data ---
+    if "chart" in p and "[" in p:
+        return {"tool": "chart_from_data", "args": {"data": prompt.split("chart")[-1].strip(), "chart_type": "bar"}}
+
+    # --- Research ---
+    if "research search" in p:
+        return {"tool": "research_search", "args": {"query": prompt.split("research search")[-1].strip()}}
 
     """
     Match obvious tool intent using keywords and regex extraction.

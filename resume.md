@@ -4014,3 +4014,11 @@ me the exact git commands to commit + push both remotes."
 - **Routing Fixes**: Moved `generate_chart` before `excel_read` to prevent `.xlsx` hijacking. Added `create X.txt` and `write X to Y.txt` routes. Relaxed `delete_file` regex.
 - **Jarvis Gatekeeper**: Updated with new keywords (`pbix`, `scrape`, `date`, `report`, `calculator`, `create`) so prompts don't bypass the router.
 - **Total Token Savings**: 60-80% for tool-triggered queries, 100% for direct-answer tools (success or failure).
+
+### Part 729 Update (2026-11-06): v1.5.0 — Advanced Quant & BI Engine
+
+- **New Quant Tools**: Added `technical_analysis` (RSI, MACD, SMA, Bollinger), `ml_forecast` (Scikit-Learn), and `pro_chart` (Candlestick/Heatmap).
+- **BI Integration**: Automated data enrichment for Power BI/Tableau.
+- **0-Token Execution**: These tools bypass the LLM entirely and run in <1s.
+- **Workspace Sync**: Uploads via Library automatically sync to the Workspace (Master) folder.
+- **Router Priority**: Quant routes moved to the top of `keyword_router.py`. Fixed math regex in `jarvis_agent.py`.
