@@ -134,7 +134,7 @@ _TOOL_RESULT_B64_FIELDS = ("image_base64", "image_data", "chart_base64")
 _DIRECT_ANSWER_TOOLS = {
     "calculator", "current_time", "get_current_time", "time_now",
     "data_stats", "data_describe", "data_correlation", "csv_groupby",
-    "image_generate", "list_files", "web_search", "web_fetch", "email_send", "email_configured", "marketaux_news", "research_search", "ddg_news", "arxiv_search", "domain_research",
+    "image_generate", "list_files", "web_search", "web_fetch", "browser_goto", "browser_screenshot", "browser_click", "browser_fill_submit", "browser_extract", "html_to_text", "url_metadata", "scrape_webpage", "email_send", "email_configured", "marketaux_news", "research_search", "ddg_news", "arxiv_search", "domain_research",
     "read_file", "read_sandbox_file", "write_file", "write_sandbox_file", "delete_file",
     "excel_read", "pdf_read", "read_bi_file", "export_table",
     "sql_sandbox_create", "sql_sandbox_load_csv", "sql_sandbox_execute", "sql_sandbox_list", "query_external_db",
@@ -490,6 +490,74 @@ The provided text: `{text}`
             title = (r.get("title") or "")[:80]
             url = r.get("url") or "#"
             out += f"| {r.get('source', '')} | {title} | [Read]({url}) |\n"
+        return out
+
+    if tool_name in ("browser_goto", "browser_click", "browser_fill_submit"):
+        if tool_result.get("error"):
+            return f"**{tool_name} failed:** {tool_result['error']}"
+        title = tool_result.get("title", "")
+        url = tool_result.get("url", "")
+        out = f"**{tool_name}:**"
+        if title: out += f" {title}"
+        if url: out += f" — {url}"
+        if tool_result.get("screenshot") or tool_result.get("saved_path"):
+            out += f"\n- Screenshot: `{tool_result.get('saved_path', tool_result.get('screenshot'))}`"
+        return out
+
+    if tool_name == "browser_screenshot":
+        if tool_result.get("error"):
+            return f"**Screenshot failed:** {tool_result['error']}"
+        saved = tool_result.get("saved_path") or tool_result.get("screenshot")
+        title = tool_result.get("title", "")
+        url = tool_result.get("url", "")
+        out = f"**Screenshot:** {title or url}\n"
+        if saved:
+            out += f"- Saved to: `{saved}`\n"
+        if tool_result.get("image_base64"):
+            out += f"- Preview: base64 image ({len(tool_result['image_base64'])} chars)\n"
+        return out
+
+    if tool_name == "browser_extract":
+        if tool_result.get("error"):
+            return f"**Extraction failed:** {tool_result['error']}"
+        items = tool_result.get("items", [])
+        if not items:
+            return f"**browser_extract:** No items found."
+        out = f"**Browser Extract ({len(items)} items):**\n\n"
+        out += "| # | Text |\n|---|---|\n"
+        for i, item in enumerate(items[:10], 1):
+            text = (item.get("text") or str(item))[:100]
+            out += f"| {i} | {text} |\n"
+        return out
+
+    if tool_name == "html_to_text":
+        if tool_result.get("error"):
+            return f"**HTML conversion failed:** {tool_result['error']}"
+        text = tool_result.get("text", tool_result.get("result", ""))
+        return f"**HTML to Text:**\n```\n{text[:2000]}\n```"
+
+    if tool_name == "url_metadata":
+        if tool_result.get("error"):
+            return f"**URL metadata failed:** {tool_result['error']}"
+        title = tool_result.get("title", "")
+        desc = tool_result.get("description", "")
+        out = f"**URL Metadata:** {title}\n"
+        if desc: out += f"- Description: {desc[:200]}\n"
+        return out
+
+    if tool_name == "scrape_webpage":
+        if tool_result.get("error"):
+            return f"**Scrape failed:** {tool_result['error']}"
+        data = tool_result.get("data", tool_result.get("rows", []))
+        if not data:
+            return "**Scrape:** No data extracted."
+        out = f"**Scraped ({len(data)} rows):**\n\n"
+        keys = list(data[0].keys()) if isinstance(data[0], dict) else []
+        if keys:
+            out += "| " + " | ".join(keys) + " |\n"
+            out += "| " + " | ".join(["---"] * len(keys)) + " |\n"
+            for row in data[:10]:
+                out += "| " + " | ".join(str(row.get(k, "")) for k in keys) + " |\n"
         return out
 
     # --- Generic Fallback for any unformatted direct tool ---

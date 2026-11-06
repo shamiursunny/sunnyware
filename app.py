@@ -3,6 +3,15 @@
 """HF Space entrypoint — persists models on /data (Linux) or ./data (Windows)."""
 
 import os
+import subprocess
+import sys
+
+# Install Playwright browsers on startup (HF Space has no pre-installed Chromium)
+try:
+    subprocess.run([sys.executable, "-m", "playwright", "install", "chromium"], check=False, timeout=120)
+except Exception:
+    pass
+
 from pathlib import Path
 
 

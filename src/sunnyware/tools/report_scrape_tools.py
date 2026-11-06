@@ -15,7 +15,7 @@ class ScrapeWebpageTool:
         "required": ["url", "output_filename"]
     }
 
-    async def run(self, url: str, output_filename: str, table_index: int = 0, kind: str = "sandbox") -> dict:
+    async def run(self, url: str, output_filename: str = None, table_index: int = 0, kind: str = "sandbox") -> dict:
         import pandas as pd
         import requests
         try:

@@ -408,6 +408,16 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if _fill_match:
         return {"tool": "browser_fill_submit", "args": {"url": _fill_match.group(2).strip()}}
 
+    # --- browser_extract (extract all links from URL) ---
+    _extract_links = re.search(r'extract\s+all\s+links\s+(?:from|on)\s+(https?://[^\s]+)', prompt, re.IGNORECASE)
+    if _extract_links:
+        return {"tool": "browser_extract", "args": {"selector": "a[href]", "url": _extract_links.group(1).strip()}}
+
+    # --- browser_click (click the button on URL) ---
+    _click_btn = re.search(r'click\s+(?:the\s+)?button\s+(?:on|at)\s+(https?://[^\s]+)', prompt, re.IGNORECASE)
+    if _click_btn:
+        return {"tool": "browser_click", "args": {"selector": "button", "url": _click_btn.group(1).strip()}}
+
     # --- browser_extract (extract X from URL) ---
     _extract_match = re.search(r'extract\s+(.+?)\s+(?:from|on)\s+(https?://[^\s]+)', prompt, re.IGNORECASE)
     if _extract_match:
