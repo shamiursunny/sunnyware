@@ -141,7 +141,7 @@ _DIRECT_ANSWER_TOOLS = {
     "generate_chart", "generate_report", "scrape_webpage",
     "edit_tableau_field", "add_tableau_filter", "remove_tableau_field", "extract_pbix_assets",
     "date_calc", "email_list_sent"
-, "technical_analysis", "ml_forecast", "pro_chart", "aggregate_market_data", "python_session", "advanced_chart", "bi_export"
+, "technical_analysis", "ml_forecast", "pro_chart", "aggregate_market_data", "python_session", "vision_analyze", "advanced_chart", "bi_export"
 }
 
 
@@ -328,6 +328,11 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
         if not out:
             out = "Execution completed with no output."
         return out
+
+    if tool_name == "vision_analyze":
+        if tool_result.get("error"):
+            return f"**Vision Analysis failed:** {tool_result['error']}"
+        return f"**Vision Analysis:**\n\n{tool_result.get('analysis', 'No analysis returned.')}\n"
 
     # --- Generic Fallback for any unformatted direct tool ---
     # If we reach here, the tool was in _DIRECT_ANSWER_TOOLS but had no specific formatter.

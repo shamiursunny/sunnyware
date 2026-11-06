@@ -101,6 +101,11 @@ def keyword_route(prompt: str) -> Optional[dict]:
         code = prompt.split(":", 1)[1].strip()
         return {"tool": "python_session", "args": {"code": code, "session_id": "default"}}
 
+    # --- Vision Analyze ---
+    _vision_match = re.search(r'(?:analyze|look at|describe)\s+(?:the\s+)?(?:image|chart|file)\s+([\w\-]+\.(?:png|jpg|jpeg))', prompt, re.IGNORECASE)
+    if _vision_match:
+        return {"tool": "vision_analyze", "args": {"filename": _vision_match.group(1), "prompt": prompt}}
+
     # --- Calculator ---
     num = _extract_number(prompt)
     if num:

@@ -22,6 +22,7 @@ from .quant_tools import TechnicalAnalysisTool, MLForecastTool
 from .pro_chart import ProChartTool
 from .aggregate_market import AggregateMarketDataTool
 from .python_session import PythonSessionTool
+from .vision_analyze import VisionAnalyzeTool
 from .calculator import CalculatorTool
 from .web_fetch import WebFetchTool
 from .memory_search import MemorySearchTool
@@ -130,6 +131,7 @@ _TOOLS = {
     ExportTableTool.name: ExportTableTool(),
     AggregateMarketDataTool.name: AggregateMarketDataTool(),
     PythonSessionTool.name: PythonSessionTool(),
+    VisionAnalyzeTool.name: VisionAnalyzeTool(),
     CalculatorTool.name: CalculatorTool(),
     TechnicalAnalysisTool.name: TechnicalAnalysisTool(),
     MLForecastTool.name: MLForecastTool(),
