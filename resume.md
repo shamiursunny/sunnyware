@@ -4059,3 +4059,12 @@ me the exact git commands to commit + push both remotes."
 - **Free APIs Only**: No paid API keys required for the new tools.
 
 *Part 735 logged: 2026-11-06*
+
+### Part 736 Update (2026-11-06): v1.9.0 — Domain Research Engine
+
+- **New Tool**: `domain_research` covers finance, investment, insurance, and legal papers via OpenAlex, arXiv (q-fin), and DOAJ.
+- **53 Direct-Answer Tools**: Up from 52, all operating at 0 LLM tokens.
+- **Free APIs Only**: OpenAlex, arXiv, DOAJ, DuckDuckGo — no paid API keys.
+- **News & Research Layer Complete**: `domain_research`, `arxiv_search`, `ddg_news`, `marketaux_news`, `research_search`.
+
+*Part 736 logged: 2026-11-06*
