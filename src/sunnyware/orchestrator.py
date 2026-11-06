@@ -151,9 +151,10 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
         return str(tool_result)
 
     # --- DIRECT-TOOL-ERROR-FORMATTER ---
-    if tool_result.get("ok") is False or "error" in tool_result:
-        err = tool_result.get("error", tool_result.get("message", "Unknown error"))
-        return "**%s failed:** %s" % (tool_name, err)
+    err = tool_result.get("error")
+    if tool_result.get("ok") is False or (err is not None and str(err).strip() not in ("", "None", "null")):
+        err_msg = err or tool_result.get("message", "Unknown error")
+        return "**%s failed:** %s" % (tool_name, err_msg)
     # 1. Calculator
     if "expression" in tool_result and "result" in tool_result:
         return "**%s = %s**" % (tool_result['expression'], tool_result['result'])
