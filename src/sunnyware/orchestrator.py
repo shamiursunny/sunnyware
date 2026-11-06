@@ -141,7 +141,7 @@ _DIRECT_ANSWER_TOOLS = {
     "generate_chart", "generate_report", "scrape_webpage",
     "edit_tableau_field", "add_tableau_filter", "remove_tableau_field", "extract_pbix_assets",
     "date_calc", "email_list_sent"
-, "technical_analysis", "ml_forecast", "pro_chart", "aggregate_market_data", "advanced_chart", "bi_export"
+, "technical_analysis", "ml_forecast", "pro_chart", "aggregate_market_data", "python_session", "advanced_chart", "bi_export"
 }
 
 
@@ -285,6 +285,38 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
             out += "| Provider | Symbol | Price | High | Low |\n|---|---|---|---|---|\n"
             for r in data:
                 out += f"| {r.get('provider')} | {r.get('symbol')} | {r.get('price')} | {r.get('high')} | {r.get('low')} |\n"
+        return out
+
+    if tool_name == "python_session":
+        out = ""
+        if tool_result.get("error"):
+            out += f"**Error:** {tool_result['error']}\n"
+        if tool_result.get("stdout"):
+            out += f"**Output:**\n```\n{tool_result['stdout']}\n```\n"
+        if tool_result.get("result"):
+            result = tool_result["result"]
+            # If it looks like JSON (from a DataFrame), try to render as a markdown table
+            try:
+                import json
+                data = json.loads(result)
+                if isinstance(data, list) and data and isinstance(data[0], dict):
+                    # It's a list of records -> markdown table
+                    keys = list(data[0].keys())
+                    out += "| " + " | ".join(keys) + " |\n"
+                    out += "| " + " | ".join(["---"] * len(keys)) + " |\n"
+                    for row in data[:20]:  # limit to 20 rows
+                        out += "| " + " | ".join(str(row.get(k, "")) for k in keys) + " |\n"
+                    if len(data) > 20:
+                        out += f"\n*({len(data) - 20} more rows not shown)*\n"
+                else:
+                    out += f"**Result:**\n```\n{result}\n```\n"
+            except Exception:
+                # Not JSON, just print it
+                out += f"**Result:**\n```\n{result}\n```\n"
+        if tool_result.get("image_base64"):
+            out += f"**Chart:**\n![chart](data:image/png;base64,{tool_result['image_base64']})\n"
+        if not out:
+            out = "Execution completed with no output."
         return out
 
     # --- Generic Fallback for any unformatted direct tool ---
