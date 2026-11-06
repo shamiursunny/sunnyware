@@ -136,6 +136,8 @@ async def get_browser():
         # Singleton is dead (or was never set) — reset and relaunch
         _browser = None
         await _ensure_installed()
+        # Ensure cached browser binaries are executable (fixes EACCES on cold start)
+        _chmod_cache()
         # Ensure Playwright sees the cached browser
         os.environ["PLAYWRIGHT_BROWSERS_PATH"] = str(_cache_dir())
         from playwright.async_api import async_playwright
