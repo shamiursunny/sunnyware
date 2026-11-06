@@ -60,7 +60,20 @@ class PythonSessionTool:
         if errors:
             return {"error": "code rejected", "reasons": errors}
             
-        # 3. Execute in a thread
+        # 3. Auto-capture last expression (IPython-style)
+        import ast
+        try:
+            tree = ast.parse(code, mode="exec")
+            if tree.body and isinstance(tree.body[-1], ast.Expr):
+                # Convert last expression to: result = <expr>
+                last = tree.body.pop()
+                assign = ast.Assign(targets=[ast.Name(id="result", ctx=ast.Store())], value=last.value)
+                tree.body.append(assign)
+                code = ast.unparse(tree)
+        except Exception:
+            pass  # fallback to original code
+
+        # 4. Execute in a thread
         res = await asyncio.to_thread(_sandbox.exec_code, code, g)
         
         # 4. Capture charts
