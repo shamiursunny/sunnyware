@@ -131,7 +131,17 @@ _TOOL_RESULT_B64_FIELDS = ("image_base64", "image_data", "chart_base64")
 # Part 621: Deterministic tools whose results should NOT be reformatted by an LLM.
 # These tools return exact answers (calculator output, exact time, etc.) and the
 # tiny Qwen2.5-0.5B model cannot reliably format them without hallucinating.
-_DIRECT_ANSWER_TOOLS = {"calculator", "current_time", "get_current_time", "time_now", "data_stats", "data_describe", "data_correlation", "csv_groupby", "image_generate", "list_files", "web_search", "web_fetch", "email_send", "email_configured"}
+_DIRECT_ANSWER_TOOLS = {
+    "calculator", "current_time", "get_current_time", "time_now",
+    "data_stats", "data_describe", "data_correlation", "csv_groupby",
+    "image_generate", "list_files", "web_search", "web_fetch", "email_send", "email_configured",
+    "read_file", "read_sandbox_file", "write_file", "write_sandbox_file", "delete_file",
+    "excel_read", "pdf_read", "read_bi_file", "export_table",
+    "sql_sandbox_create", "sql_sandbox_load_csv", "sql_sandbox_execute", "sql_sandbox_list", "query_external_db",
+    "generate_chart", "generate_report", "scrape_webpage",
+    "edit_tableau_field", "add_tableau_filter", "remove_tableau_field", "extract_pbix_assets",
+    "date_calc", "email_list_sent"
+}
 
 
 def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
@@ -187,6 +197,67 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
         if url:
             return f"![{prompt}]({url})\n\n*Generated with {model}*"
         return "**Image generated** (no URL returned)"
+
+    # --- Expanded Direct Formatters (v1.4.0) ---
+    if tool_name in ("read_file", "read_sandbox_file"):
+        content = tool_result.get("content", "")
+        if isinstance(content, str):
+            content = content[:2000] + ("\n...(truncated)" if len(tool_result.get("content", "")) > 2000 else "")
+        return f"**File: {tool_result.get('file', 'unknown')}**\n```\n{content}\n```"
+
+    if tool_name in ("write_file", "write_sandbox_file"):
+        return f"**File saved:** `{tool_result.get('path', tool_result.get('file', '?'))}` ✅"
+
+    if tool_name == "delete_file":
+        return f"**File deleted:** `{tool_result.get('file', '?')}` ✅"
+
+    if tool_name == "excel_read":
+        data = tool_result.get("data", tool_result.get("content", ""))
+        return f"**Excel Data:**\n```\n{str(data)[:2000]}\n```"
+
+    if tool_name == "pdf_read":
+        text = tool_result.get("text", tool_result.get("content", ""))
+        return f"**PDF Text:**\n```\n{str(text)[:2000]}\n```"
+
+    if tool_name == "read_bi_file":
+        return f"**BI File Inspected:** `{tool_result.get('file', '?')}`\n- Type: {tool_result.get('type', 'unknown')}\n- Keys: {list(tool_result.keys())}"
+
+    if tool_name in ("sql_sandbox_create", "sql_sandbox_load_csv", "sql_sandbox_execute"):
+        return f"**SQL Result:**\n```json\n{json.dumps(tool_result, indent=2)[:2000]}\n```"
+
+    if tool_name == "sql_sandbox_list":
+        return f"**Tables:** {', '.join(tool_result.get('tables', []))}"
+
+    if tool_name == "query_external_db":
+        return f"**External DB Result:**\n```json\n{json.dumps(tool_result.get('data', []), indent=2)[:2000]}\n```"
+
+    if tool_name in ("generate_chart", "generate_report"):
+        return f"**Output saved:** `{tool_result.get('file', 'output')}` ✅"
+
+    if tool_name == "scrape_webpage":
+        return f"**Scraped data saved to:** `{tool_result.get('output_filename', 'data.csv')}` ✅"
+
+    if tool_name in ("edit_tableau_field", "add_tableau_filter", "remove_tableau_field"):
+        return f"**Tableau Update:** {tool_result.get('message', 'Success')} ✅"
+
+    if tool_name == "extract_pbix_assets":
+        return f"**PBIX Extracted:** Found {len(tool_result.get('assets', []))} assets."
+
+    if tool_name == "date_calc":
+        return f"**Date Calculation:** {tool_result.get('result', tool_result.get('date', ''))}"
+
+    if tool_name == "email_list_sent":
+        emails = tool_result.get("emails", [])
+        return f"**Sent Emails ({len(emails)})**\n" + "\n".join([f"- {e.get('subject', '(no subject)')} to {e.get('to', '?')}" for e in emails[:10]])
+
+    # --- Generic Fallback for any unformatted direct tool ---
+    # If we reach here, the tool was in _DIRECT_ANSWER_TOOLS but had no specific formatter.
+    # We format it as JSON to prevent falling through to the LLM.
+    if tool_result.get("ok") is not False:
+        try:
+            return f"**{tool_name} executed successfully:**\n```json\n{json.dumps(tool_result, indent=2)[:3000]}\n```"
+        except Exception:
+            return f"**{tool_name} executed successfully.**"
 
     # 4. List files (v1.3.0)
     if tool_name == "list_files":
