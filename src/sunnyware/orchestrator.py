@@ -141,8 +141,10 @@ _DIRECT_ANSWER_TOOLS = {
     "generate_chart", "generate_report", "scrape_webpage",
     "edit_tableau_field", "add_tableau_filter", "remove_tableau_field", "extract_pbix_assets",
     "date_calc", "email_list_sent"
-, "technical_analysis", "ml_forecast", "pro_chart", "aggregate_market_data", "python_session", "vision_analyze", "live_market_stream", "advanced_chart", "bi_export"
+, "technical_analysis", "ml_forecast", "pro_chart", "aggregate_market_data", "python_session", "vision_analyze", "live_market_stream", "advanced_chart", "bi_export", "insurance_research", "legal_citation_check"
 }
+print(f"[orchestrator] DIRECT_ANSWER_TOOLS = {sorted(_DIRECT_ANSWER_TOOLS)}", flush=True)
+
 
 
 def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
@@ -346,6 +348,24 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
             out += "| Timestamp | Symbol | Price | Volume |\n|---|---|---|---|\n"
             for row in preview:
                 out += f"| {row.get('timestamp')} | {row.get('symbol')} | {row.get('price')} | {row.get('volume')} |\n"
+        return out
+
+    if tool_name == "insurance_research":
+        if tool_result.get("error"):
+            return f"**Insurance Research failed:** {tool_result['error']}"
+        if isinstance(tool_result, str):
+            return f"**Insurance Research:**\n{tool_result}"
+        import json as _json
+        return f"**Insurance Research:**\n```json\n{_json.dumps(tool_result, indent=2)[:2000]}\n```"
+
+    if tool_name == "legal_citation_check":
+        if tool_result.get("error"):
+            return f"**Legal Citation Check failed:** {tool_result['error']}"
+        status = tool_result.get("status", tool_result.get("valid", "Unknown"))
+        details = tool_result.get("details", tool_result.get("message", ""))
+        out = f"**Legal Citation Check:** {status}\n"
+        if details:
+            out += f"\n**Details:** {details}\n"
         return out
 
     # --- Generic Fallback for any unformatted direct tool ---
@@ -915,6 +935,7 @@ async def _call_tool(tool, args_dict: dict):
     except Exception as e:
         return {"error": f"{type(e).__name__}: {e}"}
 
+# Force rebuild v1 for direct tools
 async def run_agent(
     prompt: str,
     session_uuid: Optional[str] = None,
@@ -929,6 +950,7 @@ async def run_agent(
     Part 119: also records per-role run/success/failure/latency metrics.
     Every metric call is wrapped in try/except and never affects behavior.
     """
+    print(f"[orchestrator] DIRECT_ANSWER_TOOLS has {len(_DIRECT_ANSWER_TOOLS)} tools", flush=True)
     from .tools.delegate_to_agent import _CURRENT_ROLE
     _role_token = _CURRENT_ROLE.set(role or "general")
 
