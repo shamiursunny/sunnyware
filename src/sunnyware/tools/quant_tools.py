@@ -25,7 +25,11 @@ class TechnicalAnalysisTool:
         base = paths.sandbox() if kind == "sandbox" else paths.workspace()
         target = base / Path(filename).name
         if not target.exists():
-            return {"error": f"File {filename} not found"}
+            # Fallback to workspace if not found in sandbox
+            target = paths.workspace() / Path(filename).name
+            base = paths.workspace()
+            if not target.exists():
+                return {"error": f"File {filename} not found in sandbox or workspace"}
 
         try:
             df = pd.read_csv(target)
@@ -88,7 +92,11 @@ class MLForecastTool:
         base = paths.sandbox() if kind == "sandbox" else paths.workspace()
         target = base / Path(filename).name
         if not target.exists():
-            return {"error": f"File {filename} not found"}
+            # Fallback to workspace if not found in sandbox
+            target = paths.workspace() / Path(filename).name
+            base = paths.workspace()
+            if not target.exists():
+                return {"error": f"File {filename} not found in sandbox or workspace"}
 
         try:
             df = pd.read_csv(target)
