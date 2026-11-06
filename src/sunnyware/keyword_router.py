@@ -507,15 +507,6 @@ def keyword_route(prompt: str) -> Optional[dict]:
         if q_match:
             return {"tool": "image_generate", "args": {"prompt": q_match.group(1).strip()}}
 
-    # --- list_files ---
-    if any(kw in p for kw in ["list files", "show files", "what files", "workspace files", "list workspace"]):
-        import re as _re_lf
-        # Extract optional subpath: "list files in reports" / "list files under /data"
-        m = _re_lf.search(r'(?:list|show|what)\s+(?:the\s+)?files?\s+(?:in|under|inside|within)\s+([\w\-./\\]+)', prompt, _re_lf.IGNORECASE)
-        args = {}
-        if m:
-            args["path"] = m.group(1).strip()
-        return {"tool": "list_files", "args": args}
 
     # --- pdf_read (must have .pdf extension, and not be a compare/diff prompt) ---
     if ".pdf" in p and not any(kw in p for kw in ["create", "generate", "make", "build", "write a pdf", "compare", "diff"]):
@@ -751,10 +742,6 @@ def keyword_route(prompt: str) -> Optional[dict]:
         method = "POST" if any(w in p for w in ["post", "put", "update"]) else "GET"
         return {"tool": "api_call", "args": {"url": url, "method": method}}
 
-    # --- list_files (clear phrases) ---
-    if any(kw in p for kw in ["list files", "list the files", "what files are",
-                               "show me the files", "show the files"]):
-        return {"tool": "list_files", "args": {}}
 
     # --- rag_list (clear phrases) ---
     if any(kw in p for kw in ["list rag documents", "list all documents in my rag",
@@ -904,6 +891,33 @@ def keyword_route(prompt: str) -> Optional[dict]:
     )
     if _grp_match:
         return {"tool": "csv_groupby", "args": {"filename": _grp_match.group(1), "group_col": _grp_match.group(2), "agg_func": _grp_match.group(3).lower(), "agg_col": _grp_match.group(4)}}
+
+    # --- Batch 1 tools (v1.3.0 Part 725) ---
+    import re as _re_b1
+
+    # list_files
+    if _re_b1.search(r"\b(?:list|show)\s+(?:all\s+)?(?:files|sandbox files|workspace files)\b", prompt, _re_b1.IGNORECASE):
+        kind = "workspace" if "workspace" in prompt.lower() else "sandbox"
+        return {"tool": "list_files", "args": {"kind": kind}}
+
+    # web_search
+    _search_m = _re_b1.search(r"(?:search|google|look up)\s+(?:the\s+)?(?:web\s+)?(?:for\s+)?(.+)", prompt, _re_b1.IGNORECASE)
+    if _search_m and any(w in prompt.lower() for w in ("search", "google", "web")):
+        return {"tool": "web_search", "args": {"query": _search_m.group(1).strip()}}
+
+    # web_fetch
+    _fetch_m = _re_b1.search(r"(?:fetch|get|download|read)\s+(?:the\s+)?(?:page\s+)?(https?://\S+)", prompt, _re_b1.IGNORECASE)
+    if _fetch_m:
+        return {"tool": "web_fetch", "args": {"url": _fetch_m.group(1)}}
+
+    # email_configured
+    if _re_b1.search(r"\b(?:is\s+)?email\s+(?:configured|setup|ready|working)\b", prompt, _re_b1.IGNORECASE):
+        return {"tool": "email_configured", "args": {}}
+
+    # email_send
+    _em_m = _re_b1.search(r"send\s+(?:an?\s+)?email\s+to\s+(\S+@\S+)(?:\s+(?:about|saying|with subject)\s+(.+))?", prompt, _re_b1.IGNORECASE)
+    if _em_m:
+        return {"tool": "email_send", "args": {"to": _em_m.group(1), "subject": (_em_m.group(2) or "Message from Sunnyware").strip()[:100], "body": _em_m.group(2) or "Sent from Sunnyware"}}
 
     # --- edit_tableau_field ---
     m = re.search(r"(?:edit|update|change|modify)\s+(?:the\s+)?(?:tableau\s+)?(?:field|calc|calculation|filter|parameter)\s+['\"]?(.+?)['\"]?\s+(?:to|as)\s+['\"]?(.+?)['\"]?(?:\s+in\s+([\w\-\.]+\.twbx?))?", prompt, re.IGNORECASE)
