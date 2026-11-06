@@ -895,14 +895,27 @@ def keyword_route(prompt: str) -> Optional[dict]:
     # --- Batch 1 tools (v1.3.0 Part 725) ---
     import re as _re_b1
 
-    # list_files
-    if _re_b1.search(r"\b(?:list|show)\s+(?:all\s+)?(?:files|sandbox files|workspace files)\b", prompt, _re_b1.IGNORECASE):
-        kind = "workspace" if "workspace" in prompt.lower() else "sandbox"
-        return {"tool": "list_files", "args": {"kind": kind}}
+    # list_files (supports kind=sandbox/workspace OR subpath)
+    _lf_m = _re_b1.search(
+        r"\b(?:list|show)\s+(?:all\s+)?(?:the\s+)?(?:files|sandbox files|workspace files)\b(?:\s+(?:in|under|inside|within)\s+([\w\-./\\]+))?",
+        prompt, _re_b1.IGNORECASE
+    )
+    if _lf_m:
+        args = {}
+        subpath = (_lf_m.group(1) or "").strip()
+        if subpath:
+            low = subpath.lower()
+            if low == "sandbox":
+                args["kind"] = "sandbox"
+            elif low == "workspace":
+                args["kind"] = "workspace"
+            else:
+                args["path"] = subpath
+        return {"tool": "list_files", "args": args}
 
-    # web_search
-    _search_m = _re_b1.search(r"(?:search|google|look up)\s+(?:the\s+)?(?:web\s+)?(?:for\s+)?(.+)", prompt, _re_b1.IGNORECASE)
-    if _search_m and any(w in prompt.lower() for w in ("search", "google", "web")):
+    # web_search (only when explicitly asking to search the web)
+    _search_m = _re_b1.search(r"\b(?:search|google|look up)\s+(?:the\s+)?(?:web\s+)?(?:for\s+)?(.+)", prompt, _re_b1.IGNORECASE)
+    if _search_m and any(w in prompt.lower() for w in ("web", "google", "internet", "online")):
         return {"tool": "web_search", "args": {"query": _search_m.group(1).strip()}}
 
     # web_fetch
