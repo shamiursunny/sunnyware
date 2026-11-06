@@ -2,6 +2,9 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Browser session manager with optimized launch args."""
 
+import os
+import stat
+import subprocess
 import urllib.parse
 from playwright.async_api import async_playwright
 
@@ -20,6 +23,13 @@ async def get_browser():
     if not _playwright:
         _playwright = await async_playwright().start()
     
+    # Aggressively fix EACCES (Permission Denied) across the entire directory
+    try:
+        if os.path.exists("/data/.cache/ms-playwright"):
+            subprocess.run(["chmod", "-R", "+x", "/data/.cache/ms-playwright"], check=False, timeout=5)
+    except Exception as e:
+        print(f"[browser] chmod warning: {e}")
+
     args = [
         "--no-sandbox",
         "--no-zygote",                    # Fixes the startup hang
