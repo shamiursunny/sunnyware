@@ -60,18 +60,14 @@ class PythonSessionTool:
         if errors:
             return {"error": "code rejected", "reasons": errors}
             
-        # 3. Auto-capture last expression (IPython-style)
-        import ast
-        try:
-            tree = ast.parse(code, mode="exec")
-            if tree.body and isinstance(tree.body[-1], ast.Expr):
-                # Convert last expression to: result = <expr>
-                last = tree.body.pop()
-                assign = ast.Assign(targets=[ast.Name(id="result", ctx=ast.Store())], value=last.value)
-                tree.body.append(assign)
-                code = ast.unparse(tree)
-        except Exception:
-            pass  # fallback to original code
+        # 3. Auto-capture last expression (IPython-style heuristic)
+        code_stripped = code.strip()
+        if code_stripped and "\n" not in code_stripped:
+            # Don't auto-assign if it's a control flow or assignment
+            if not code_stripped.startswith(("import ", "from ", "def ", "class ", "if ", "for ", "while ", "try ", "with ", "return ", "print(", "result =")):
+                # Simple check to see if it's a basic assignment like "df = ..."
+                if "=" not in code_stripped.split("(")[0]:
+                    code = f"result = {code_stripped}"
 
         # 4. Execute in a thread
         res = await asyncio.to_thread(_sandbox.exec_code, code, g)

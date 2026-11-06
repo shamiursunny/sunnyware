@@ -315,7 +315,16 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
                 # Not JSON, just print it
                 out += f"**Result:**\n```\n{result}\n```\n"
         if tool_result.get("image_base64"):
-            out += f"**Chart:**\n![chart](data:image/png;base64,{tool_result['image_base64']})\n"
+            # Save to workspace and return a link
+            import base64
+            from .. import paths
+            img_data = tool_result["image_base64"]
+            img_path = paths.workspace() / "session_chart.png"
+            try:
+                img_path.write_bytes(base64.b64decode(img_data))
+                out += f"**Chart saved to:** `session_chart.png`\n"
+            except Exception as e:
+                out += f"**Chart generated but failed to save:** {e}\n"
         if not out:
             out = "Execution completed with no output."
         return out
