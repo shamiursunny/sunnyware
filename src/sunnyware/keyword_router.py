@@ -89,6 +89,41 @@ def _extract_timezone(prompt: str) -> str:
 
 def keyword_route(prompt: str) -> Optional[dict]:
     print(f"[keyword_router] DEBUG: Checking prompt: '{prompt[:50]}'", flush=True)
+
+    # --- browser_fill_submit (contact/register/login forms) ---
+    _form_match = re.search(r'(?:fill|submit|complete|send)\s+(?:the\s+)?(contact\s+)?form\s+(?:on|at)\s+(https?://[^\s]+)\s+with\s+(.+)', prompt, re.IGNORECASE)
+    if _form_match:
+        url = _form_match.group(2).strip()
+        fields = _parse_fields(_form_match.group(3).strip())
+        return {"tool": "browser_fill_submit", "args": {"url": url, "fields": fields}}
+
+    # --- register / sign up ---
+    _reg_match = re.search(r'(?:register|sign\s*up)\s+(?:on|at)\s+(https?://[^\s]+)\s+with\s+(.+)', prompt, re.IGNORECASE)
+    if _reg_match:
+        url = _reg_match.group(1).strip()
+        fields = _parse_fields(_reg_match.group(2).strip())
+        return {"tool": "browser_fill_submit", "args": {"url": url, "fields": fields}}
+
+    # --- login / sign in ---
+    _login_match = re.search(r'(?:log\s*in|sign\s*in)\s+(?:on|at)\s+(https?://[^\s]+)\s+with\s+(.+)', prompt, re.IGNORECASE)
+    if _login_match:
+        url = _login_match.group(1).strip()
+        fields = _parse_fields(_login_match.group(2).strip())
+        return {"tool": "browser_fill_submit", "args": {"url": url, "fields": fields}}
+
+    # --- like ---
+    _like_match = re.search(r'like\s+(?:the\s+)?(?:post\s+)?(?:on|at)\s+(https?://[^\s]+)', prompt, re.IGNORECASE)
+    if _like_match:
+        url = _like_match.group(1).strip()
+        return {"tool": "browser_click", "args": {"selector": "button:has-text('Like'), button[aria-label*='like' i], .like-button", "url": url}}
+
+    # --- comment ---
+    _comment_match = re.search(r'comment\s+(?:on|at)\s+(https?://[^\s]+)\s+with\s+(.+)', prompt, re.IGNORECASE)
+    if _comment_match:
+        url = _comment_match.group(1).strip()
+        msg = _comment_match.group(2).strip()
+        return {"tool": "browser_fill_submit", "args": {"url": url, "chat_message": msg}}
+
     import re as _re_bi
     _p_low_bi = prompt.lower()
     p = prompt.lower()
@@ -431,39 +466,6 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if _fill_match:
         return {"tool": "browser_fill_submit", "args": {"url": _fill_match.group(2).strip()}}
 
-    # --- browser_fill_submit (contact/register/login forms) ---
-    _form_match = re.search(r'(?:fill|submit|complete|send)\s+(?:the\s+)?(contact\s+)?form\s+(?:on|at)\s+(https?://[^\s]+)\s+with\s+(.+)', prompt, re.IGNORECASE)
-    if _form_match:
-        url = _form_match.group(2).strip()
-        fields = _parse_fields(_form_match.group(3).strip())
-        return {"tool": "browser_fill_submit", "args": {"url": url, "fields": fields}}
-
-    # --- register / sign up ---
-    _reg_match = re.search(r'(?:register|sign\s*up)\s+(?:on|at)\s+(https?://[^\s]+)\s+with\s+(.+)', prompt, re.IGNORECASE)
-    if _reg_match:
-        url = _reg_match.group(1).strip()
-        fields = _parse_fields(_reg_match.group(2).strip())
-        return {"tool": "browser_fill_submit", "args": {"url": url, "fields": fields}}
-
-    # --- login / sign in ---
-    _login_match = re.search(r'(?:log\s*in|sign\s*in)\s+(?:on|at)\s+(https?://[^\s]+)\s+with\s+(.+)', prompt, re.IGNORECASE)
-    if _login_match:
-        url = _login_match.group(1).strip()
-        fields = _parse_fields(_login_match.group(2).strip())
-        return {"tool": "browser_fill_submit", "args": {"url": url, "fields": fields}}
-
-    # --- like ---
-    _like_match = re.search(r'like\s+(?:the\s+)?(?:post\s+)?(?:on|at)\s+(https?://[^\s]+)', prompt, re.IGNORECASE)
-    if _like_match:
-        url = _like_match.group(1).strip()
-        return {"tool": "browser_click", "args": {"selector": "button:has-text('Like'), button[aria-label*='like' i], .like-button", "url": url}}
-
-    # --- comment ---
-    _comment_match = re.search(r'comment\s+(?:on|at)\s+(https?://[^\s]+)\s+with\s+(.+)', prompt, re.IGNORECASE)
-    if _comment_match:
-        url = _comment_match.group(1).strip()
-        msg = _comment_match.group(2).strip()
-        return {"tool": "browser_fill_submit", "args": {"url": url, "chat_message": msg}}
 
     # --- chat ---
     _chat_match = re.search(r'chat\s+with\s+(https?://[^\s]+)\s*(?:saying|with message|:)?\s*(.*)', prompt, re.IGNORECASE)
