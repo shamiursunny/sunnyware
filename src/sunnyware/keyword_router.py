@@ -398,6 +398,26 @@ def keyword_route(prompt: str) -> Optional[dict]:
         tz = _extract_timezone(prompt)
         return {"tool": "current_time", "args": {"timezone": tz}}
 
+    # --- browser_click (click X on URL) ---
+    _click_match = re.search(r'click\s+(?:on\s+)?(.+?)\s+(?:on|at)\s+(https?://[^\s]+)', prompt, re.IGNORECASE)
+    if _click_match:
+        return {"tool": "browser_click", "args": {"selector": _click_match.group(1).strip(), "url": _click_match.group(2).strip()}}
+
+    # --- browser_fill_submit (fill X and submit on URL) ---
+    _fill_match = re.search(r'fill\s+(.+?)\s+and\s+submit\s+(?:on|at)\s+(https?://[^\s]+)', prompt, re.IGNORECASE)
+    if _fill_match:
+        return {"tool": "browser_fill_submit", "args": {"url": _fill_match.group(2).strip()}}
+
+    # --- browser_extract (extract X from URL) ---
+    _extract_match = re.search(r'extract\s+(.+?)\s+(?:from|on)\s+(https?://[^\s]+)', prompt, re.IGNORECASE)
+    if _extract_match:
+        return {"tool": "browser_extract", "args": {"selector": _extract_match.group(1).strip(), "url": _extract_match.group(2).strip()}}
+
+    # --- scrape_webpage (scrape URL) ---
+    _scrape_match = re.search(r'scrape\s+(https?://[^\s]+)', prompt, re.IGNORECASE)
+    if _scrape_match:
+        return {"tool": "scrape_webpage", "args": {"url": _scrape_match.group(1).strip()}}
+
     # --- browser_screenshot (URL + screenshot trigger) ---
     if any(kw in p for kw in ["screenshot of ", "take a screenshot", "take screenshot",
                                 "capture http", "capture the site", "capture the page",
