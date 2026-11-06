@@ -141,7 +141,7 @@ _DIRECT_ANSWER_TOOLS = {
     "generate_chart", "generate_report", "scrape_webpage",
     "edit_tableau_field", "add_tableau_filter", "remove_tableau_field", "extract_pbix_assets",
     "date_calc", "email_list_sent"
-, "technical_analysis", "ml_forecast", "pro_chart", "aggregate_market_data", "python_session", "vision_analyze", "advanced_chart", "bi_export"
+, "technical_analysis", "ml_forecast", "pro_chart", "aggregate_market_data", "python_session", "vision_analyze", "live_market_stream", "advanced_chart", "bi_export"
 }
 
 
@@ -333,6 +333,20 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
         if tool_result.get("error"):
             return f"**Vision Analysis failed:** {tool_result['error']}"
         return f"**Vision Analysis:**\n\n{tool_result.get('analysis', 'No analysis returned.')}\n"
+
+    if tool_name == "live_market_stream":
+        if tool_result.get("error"):
+            return f"**Stream failed:** {tool_result['error']}"
+        msg = tool_result.get("message", "")
+        file = tool_result.get("file", "")
+        preview = tool_result.get("preview", [])
+        out = f"**{msg}**\n- Saved to: `{file}`\n"
+        if preview:
+            out += "\n**Preview:**\n"
+            out += "| Timestamp | Symbol | Price | Volume |\n|---|---|---|---|\n"
+            for row in preview:
+                out += f"| {row.get('timestamp')} | {row.get('symbol')} | {row.get('price')} | {row.get('volume')} |\n"
+        return out
 
     # --- Generic Fallback for any unformatted direct tool ---
     # If we reach here, the tool was in _DIRECT_ANSWER_TOOLS but had no specific formatter.
