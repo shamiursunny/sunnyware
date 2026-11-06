@@ -115,6 +115,7 @@ async def rag_upload(
         )
     finally:
         # ── Save a permanent copy to the workspace so file tools can read it ──
+        print(f"[rag] Upload sync: tmp_path={tmp_path}, exists={tmp_path.exists() if tmp_path else False}", flush=True)
         if tmp_path and tmp_path.exists():
             try:
                 from .. import paths as _paths
@@ -131,10 +132,12 @@ async def rag_upload(
                         counter += 1
                 import shutil
                 shutil.copy2(tmp_path, dest)
+                print(f"[rag] Copied upload to workspace: {dest}")
                 # Also save the exact filename so tools can find it by the original name
                 orig_dest = ws / filename
                 if not orig_dest.exists():
                     shutil.copy2(tmp_path, orig_dest)
+                    print(f"[rag] Copied upload to workspace (original name): {orig_dest}")
             except Exception as _save_err:
                 import logging
                 logging.getLogger(__name__).warning("Failed to save upload to workspace: %s", _save_err)

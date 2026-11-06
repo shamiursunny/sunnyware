@@ -145,7 +145,17 @@ async def save_file(req: Request):
                 target.write_bytes(base64.b64decode(b64))
             else:
                 target.write_text(content, encoding="utf-8")
+                
+            # --- SYNC TO WORKSPACE ---
+            ws = paths.workspace()
+            ws.mkdir(parents=True, exist_ok=True)
+            ws_target = ws / target.name
+            import shutil
+            shutil.copy2(target, ws_target)
+            print(f"[library] Synced {target.name} to workspace: {ws_target}", flush=True)
+            
         except Exception as e:
+            print(f"[library] Sync failed: {e}", flush=True)
             return JSONResponse({"error": f"Failed to save locally: {e}"}, status_code=500)
         return JSONResponse({"ok": True, "db": False, "warning": "Saved locally (no DB)", "id": target.name, "created_at": datetime.datetime.now().isoformat()})
 
