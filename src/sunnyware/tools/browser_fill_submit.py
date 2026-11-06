@@ -2,9 +2,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Browser form fill + submit tool (Part 63)."""
 
-import re
-
-
 class BrowserFillSubmitTool:
     name = "browser_fill_submit"
     description = (
@@ -77,20 +74,31 @@ class BrowserFillSubmitTool:
                 }''')
                 if not input_selector:
                     return {"error": "could not find a chat input box"}
-                await page.fill(input_selector, chat_message, timeout=8000)
+                
+                # Type sequentially to trigger React/Vue state changes
+                await page.locator(input_selector).first.press_sequentially(chat_message, delay=30)
+                await page.wait_for_timeout(1000) # wait for button to enable
+                
                 send_btn = page.locator('button:has-text("Send"), button[aria-label*="send" i], button[type="submit"]').first
                 if await send_btn.count() > 0:
-                    await send_btn.click(timeout=5000)
+                    try:
+                        await send_btn.click(timeout=5000)
+                    except Exception:
+                        await page.keyboard.press("Enter")
                 else:
                     await page.keyboard.press("Enter")
             else:
                 if not fields:
                     return {"error": "either fields or chat_message is required"}
+                
                 for key, val in fields.items():
                     selector = await self._resolve_selector(page, str(key))
                     if not selector:
+                        # Drop to fallback if a field can't be resolved
+                        if fields and not chat_message:
+                            return self._fallback_submit(url, fields, Exception(f"could not resolve selector for '{key}'"))
                         return {"error": f"could not resolve selector for '{key}'"}
-                    await page.fill(selector, str(val), timeout=8000)
+                    await page.locator(selector).first.fill(str(val), timeout=8000)
 
                 if submit_sel:
                     btn = page.locator(submit_sel).first
@@ -134,6 +142,9 @@ class BrowserFillSubmitTool:
             if wait_ms:
                 await page.wait_for_timeout(wait_ms)
             html = await page.content()
+            
+            body_text = await page.locator("body").inner_text()
+            body_text = " ".join(body_text.split())[:150]
             title = await page.title()
             final_url = page.url
         except Exception as e:
@@ -147,10 +158,10 @@ class BrowserFillSubmitTool:
 
         return {
             "status": "success",
-            "message": f"Form submitted successfully. Final page title: {title}",
+            "message": f"Success! Page reads: {body_text}...",
             "start_url": url,
             "final_url": final_url,
-            "title": title,
+            "title": f"Success: {title}",
             "fields_filled": len(fields) if fields else 1,
             "html": html[:max_chars],
             "html_chars": len(html),
@@ -227,6 +238,14 @@ class BrowserFillSubmitTool:
             action = urljoin(url, action)
         method = (form.get("method") or "GET").upper()
 
+        aliases = {
+            'name': ['name', 'username', 'custname', 'first_name', 'fullname'],
+            'email': ['email', 'custemail', 'mail', 'e-mail'],
+            'message': ['message', 'comment', 'comments', 'body', 'msg', 'text'],
+            'password': ['password', 'pass', 'passwd'],
+            'subject': ['subject', 'title', 'topic']
+        }
+
         data = {}
         available = []
         for inp in form.find_all(["input", "textarea"]):
@@ -241,9 +260,18 @@ class BrowserFillSubmitTool:
                 lbl = soup.find("label", attrs={"for": inp_id})
                 if lbl:
                     label_text = lbl.get_text(strip=True).lower()
+            
             for field_key, value in fields.items():
                 fk = field_key.lower()
+                match = False
                 if fk in name.lower() or fk in placeholder or fk in label_text:
+                    match = True
+                if not match and fk in aliases:
+                    for alias in aliases[fk]:
+                        if alias in name.lower() or alias in placeholder or alias in label_text:
+                            match = True
+                            break
+                if match:
                     data[name] = value
                     break
 
@@ -260,7 +288,7 @@ class BrowserFillSubmitTool:
 
         return {
             "status": "success",
-            "message": "Form submitted via requests fallback.",
+            "message": f"Form submitted via requests fallback. Mapped fields: {list(data.keys())}",
             "mode": "requests-fallback",
             "start_url": url,
             "final_url": final.url,

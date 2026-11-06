@@ -170,7 +170,7 @@ async def get_browser():
                 # Non-permission error: reset singleton so next call retries
                 _browser = None
                 raise
-            print("[browser] launch failed with permission error, chmod retry")
+            print("")
             _chmod_cache()
             try:
                 _browser = await _playwright.chromium.launch(
