@@ -352,7 +352,19 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
 
     if tool_name == "insurance_research":
         if tool_result.get("error"):
-            return f"**Insurance Research failed:** {tool_result['error']}"
+            err = str(tool_result.get("error", "Unknown error"))
+            if "HTTP 500" in err or "500" in err:
+                return """**Insurance Research – Temporary API Issue**
+
+The SEC EDGAR API returned a temporary error (HTTP 500). This is usually transient and resolves on retry.
+
+**Suggestions:**
+- Wait a few seconds and try again.
+- Try a different query (e.g., "insurance research for Microsoft").
+- Use `web_search` if the issue persists.
+
+**Error details:** """ + err
+            return f"**Insurance Research failed:** {err}"
         filings = tool_result.get("filings", [])
         if not filings:
             return f"**Insurance Research:** No filings found for {tool_result.get('query', '?')}."
@@ -371,7 +383,11 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
         count = tool_result.get("citation_count", 0)
         if count == 0:
             text = tool_result.get("text", "")
-            return f"**Legal Citation Check:** No citations found in the provided text.\n\n*Note: CourtListener verifies case-law citations (e.g., 410 U.S. 113), not statutes like U.S.C. For statutes, please consult the official code or a legal database.*"
+            return f"""**Legal Citation Check – No Citations Found**
+
+The provided text: `{text}`
+
+*Note: CourtListener verifies case-law citations (e.g., `410 U.S. 113`), not statutes like U.S.C. For statutes, please consult the official code or a legal database (e.g., uscode.house.gov).*"""
         citations = tool_result.get("citations", [])
         out = f"**Legal Citation Check:** Found {count} citation(s)\n\n"
         out += "| Citation | Status | Details |\n|---|---|---|\n"

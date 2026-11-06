@@ -113,6 +113,21 @@ class InsuranceResearchTool:
     }
 
     async def run(self, args: dict) -> dict:
+        import asyncio
+        last_error = None
+        for attempt in range(3):
+            try:
+                result = await self._run_impl(args)
+                if not result.get('error') or 'HTTP 500' not in str(result.get('error', '')):
+                    return result
+                last_error = result
+            except Exception as e:
+                last_error = {'error': str(e)}
+            if attempt < 2:
+                await asyncio.sleep(1)
+        return last_error or {'error': 'All retry attempts failed'}
+
+    async def _run_impl(self, args: dict) -> dict:
         action = (args.get("action") or "").strip().lower()
         if not action:
             return {"error": "action is required"}
