@@ -72,6 +72,7 @@ def _extract_timezone(prompt: str) -> str:
 
 
 def keyword_route(prompt: str) -> Optional[dict]:
+    print(f"[keyword_router] DEBUG: Checking prompt: '{prompt[:50]}'", flush=True)
     import re as _re_bi
     _p_low_bi = prompt.lower()
     p = prompt.lower()
@@ -94,6 +95,11 @@ def keyword_route(prompt: str) -> Optional[dict]:
     _agg_match = re.search(r'(?:aggregate|multi-provider)\s+(?:stock\s+)?(?:data\s+)?(?:for\s+)?([a-zA-Z]{1,5})\b', prompt, re.IGNORECASE)
     if _agg_match:
         return {"tool": "aggregate_market_data", "args": {"symbol": _agg_match.group(1).upper()}}
+
+    # --- Persistent Python Session ---
+    if "run in session:" in p or "python session:" in p:
+        code = prompt.split(":", 1)[1].strip()
+        return {"tool": "python_session", "args": {"code": code, "session_id": "default"}}
 
     # --- Calculator ---
     num = _extract_number(prompt)
