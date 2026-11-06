@@ -4029,3 +4029,9 @@ me the exact git commands to commit + push both remotes."
 - **Data Merging**: Uses Pandas to flatten provider-specific JSON into a unified dataframe.
 - **Local Storage**: Saves the unified data to a local SQLite DB in the workspace.
 - **0-Token**: Fully integrated into the direct-answer router.
+
+### Part 731 Update (2026-11-06): v1.6.0 Phase 2 — Persistent Python Kernel
+
+- **New Tool**: `python_session` allows the agent to keep variables (DataFrames, models) alive across multiple messages.
+- **Zero Overhead**: Reuses the existing `_sandbox.build_globals()` securely.
+- **Markdown Integration**: Automatically converts DataFrames to Markdown tables in the chat UI.
