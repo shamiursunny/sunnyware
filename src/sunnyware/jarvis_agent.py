@@ -227,7 +227,10 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
     print(f"[jarvis] ROUTE CALLED with prompt: {prompt[:50]}", flush=True)
 
     # Part 473: Math check BEFORE tool_keywords bypass
-    import re as _re
+    _skip_math = "system instruction" in p.lower() or ".csv" in p.lower() or ".xlsx" in p.lower()
+    
+    if not _skip_math:
+        import re as _re
     # Part 622: Normalize unicode math operators so "5 × 7?" and "10 ÷ 2" match
     _norm = (
         prompt.replace("×", "*").replace("✕", "*").replace("⨯", "*")
