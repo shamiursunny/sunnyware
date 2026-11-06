@@ -23,6 +23,7 @@ from .pro_chart import ProChartTool
 from .aggregate_market import AggregateMarketDataTool
 from .python_session import PythonSessionTool
 from .vision_analyze import VisionAnalyzeTool
+from .live_market_stream import LiveMarketStreamTool
 from .calculator import CalculatorTool
 from .web_fetch import WebFetchTool
 from .memory_search import MemorySearchTool
@@ -132,6 +133,7 @@ _TOOLS = {
     AggregateMarketDataTool.name: AggregateMarketDataTool(),
     PythonSessionTool.name: PythonSessionTool(),
     VisionAnalyzeTool.name: VisionAnalyzeTool(),
+    LiveMarketStreamTool.name: LiveMarketStreamTool(),
     CalculatorTool.name: CalculatorTool(),
     TechnicalAnalysisTool.name: TechnicalAnalysisTool(),
     MLForecastTool.name: MLForecastTool(),
@@ -236,3 +238,5 @@ def get_tool(name: str):
 
 def tool_names() -> list:
     return list(_TOOLS.keys())
+
+print(f"[tools] Loaded {len(TOOLS)} tools", flush=True)
