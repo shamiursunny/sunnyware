@@ -145,6 +145,8 @@ async def get_browser():
 
         args = [
             "--no-sandbox",
+            "--no-zygote",
+            "--single-process",
             "--disable-setuid-sandbox",
             "--disable-dev-shm-usage",
             "--disable-gpu",

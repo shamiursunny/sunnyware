@@ -138,6 +138,8 @@ class BrowserFillSubmitTool:
             title = await page.title()
             final_url = page.url
         except Exception as e:
+            if fields:
+                return self._fallback_submit(url, fields, e)
             return {"error": f"{type(e).__name__}: {e}"}
         finally:
             if ctx:
@@ -202,3 +204,71 @@ class BrowserFillSubmitTool:
         if sel:
             return sel
         return None
+
+
+    def _fallback_submit(self, url: str, fields: dict, original_error: Exception) -> dict:
+        """Requests-based form submission when Playwright can't launch."""
+        import requests
+        from bs4 import BeautifulSoup
+        from urllib.parse import urljoin
+
+        session = requests.Session()
+        session.headers.update({"User-Agent": "Mozilla/5.0"})
+        try:
+            resp = session.get(url, timeout=30)
+            resp.raise_for_status()
+        except Exception as e:
+            return {"error": f"playwright failed: {type(original_error).__name__}; fallback GET: {e}"}
+
+        soup = BeautifulSoup(resp.text, "html.parser")
+        form = soup.find("form")
+        if not form:
+            return {"error": f"playwright failed: {type(original_error).__name__}; fallback: no <form> found"}
+
+        action = form.get("action") or url
+        if not action.startswith(("http://", "https://")):
+            action = urljoin(url, action)
+        method = (form.get("method") or "GET").upper()
+
+        data = {}
+        available = []
+        for inp in form.find_all(["input", "textarea"]):
+            name = inp.get("name")
+            if not name:
+                continue
+            available.append(name)
+            inp_id = inp.get("id") or ""
+            placeholder = (inp.get("placeholder") or "").lower()
+            label_text = ""
+            if inp_id:
+                lbl = soup.find("label", attrs={"for": inp_id})
+                if lbl:
+                    label_text = lbl.get_text(strip=True).lower()
+            for field_key, value in fields.items():
+                fk = field_key.lower()
+                if fk in name.lower() or fk in placeholder or fk in label_text:
+                    data[name] = value
+                    break
+
+        if not data:
+            return {"error": f"playwright failed: {type(original_error).__name__}; fallback: could not map fields. available: {available}"}
+
+        try:
+            if method == "POST":
+                final = session.post(action, data=data, timeout=30)
+            else:
+                final = session.get(action, params=data, timeout=30)
+        except Exception as e:
+            return {"error": f"playwright failed: {type(original_error).__name__}; fallback POST: {e}"}
+
+        return {
+            "mode": "requests-fallback",
+            "start_url": url,
+            "final_url": final.url,
+            "status": final.status_code,
+            "fields_mapped": data,
+            "html": final.text[:60000],
+            "html_chars": len(final.text),
+            "truncated": len(final.text) > 60000,
+            "note": f"playwright failed: {type(original_error).__name__}",
+        }

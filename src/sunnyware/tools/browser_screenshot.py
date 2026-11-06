@@ -70,7 +70,7 @@ class BrowserScreenshotTool:
                 png = await page.screenshot(type="png", full_page=full_page)
             title = await page.title()
         except Exception as e:
-            return {"error": f"{type(e).__name__}: {e}"}
+            return self._fallback_screenshot(url, e)
         finally:
             if ctx:
                 try: await ctx.close()
@@ -102,4 +102,37 @@ class BrowserScreenshotTool:
             "saved_path": saved_path,
             "image_base64": base64.b64encode(png).decode("ascii"),
             "image_format": "png",
+        }
+
+    def _fallback_screenshot(self, url: str, original_error: Exception) -> dict:
+        """External screenshot API when Playwright can't launch."""
+        import requests, base64
+        from datetime import datetime
+        api_url = f"https://image.thum.io/get/width/1280/crop/800/{url}"
+        try:
+            resp = requests.get(api_url, timeout=30, headers={"User-Agent": "Mozilla/5.0"})
+            resp.raise_for_status()
+            png = resp.content
+            if len(png) < 1000:
+                return {"error": f"screenshot failed: {type(original_error).__name__}; external API returned empty image"}
+        except Exception as e:
+            return {"error": f"screenshot failed: {type(original_error).__name__}; fallback: {e}"}
+        ts = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+        name = f"screenshot-{ts}.png"
+        root = _workspace_root()
+        try:
+            root.mkdir(parents=True, exist_ok=True)
+            (root / name).write_bytes(png)
+            saved_path = str((root / name).resolve())
+        except Exception:
+            saved_path = None
+        return {
+            "url": url,
+            "title": url,
+            "bytes": len(png),
+            "saved_path": saved_path,
+            "image_base64": base64.b64encode(png).decode("ascii"),
+            "image_format": "png",
+            "mode": "external-fallback",
+            "note": f"playwright failed: {type(original_error).__name__}",
         }
