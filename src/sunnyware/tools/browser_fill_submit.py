@@ -288,6 +288,7 @@ class BrowserFillSubmitTool:
 
         return {
             "status": "success",
+            "title": "Success: Form submitted via requests fallback",
             "message": f"Form submitted via requests fallback. Mapped fields: {list(data.keys())}",
             "mode": "requests-fallback",
             "start_url": url,
