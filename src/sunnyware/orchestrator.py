@@ -134,7 +134,7 @@ _TOOL_RESULT_B64_FIELDS = ("image_base64", "image_data", "chart_base64")
 _DIRECT_ANSWER_TOOLS = {
     "calculator", "current_time", "get_current_time", "time_now",
     "data_stats", "data_describe", "data_correlation", "csv_groupby",
-    "image_generate", "list_files", "web_search", "web_fetch", "email_send", "email_configured",
+    "image_generate", "list_files", "web_search", "web_fetch", "email_send", "email_configured", "marketaux_news", "research_search",
     "read_file", "read_sandbox_file", "write_file", "write_sandbox_file", "delete_file",
     "excel_read", "pdf_read", "read_bi_file", "export_table",
     "sql_sandbox_create", "sql_sandbox_load_csv", "sql_sandbox_execute", "sql_sandbox_list", "query_external_db",
@@ -405,6 +405,41 @@ The provided text: `{text}`
                     details = f"**{case_name}**"
             out += f"| {c.get('citation', '')} | {status} | {details} |\n"
         return out
+
+    if tool_name == "marketaux_news":
+        if tool_result.get("error"):
+            return f"**Marketaux News failed:** {tool_result['error']}"
+        articles = tool_result.get("data", tool_result.get("articles", []))
+        if not articles:
+            return "**Marketaux News:** No articles found."
+        out = f"**Financial News ({len(articles)} articles):**\n\n"
+        out += "| Title | Source | Sentiment | URL |\n|---|---|---|---|\n"
+        for a in articles[:10]:
+            title = a.get("title", "")[:80]
+            source = a.get("source", "")
+            sent = a.get("sentiment", a.get("sentiment_score", ""))
+            url = a.get("url", "")
+            out += f"| {title} | {source} | {sent} | [link]({url}) |\n"
+        return out
+
+    if tool_name == "research_search":
+        if tool_result.get("error"):
+            return f"**Research Search failed:** {tool_result['error']}"
+        # research_search returns a merged dict with source labels
+        if isinstance(tool_result, dict):
+            out = "**Unified Research Search:**\n\n"
+            for source, results in tool_result.items():
+                if isinstance(results, list) and results:
+                    out += f"**{source}:**\n"
+                    for r in results[:5]:
+                        if isinstance(r, dict):
+                            title = r.get("title", r.get("display", str(r)))[:120]
+                            out += f"- {title}\n"
+                    out += "\n"
+            if out == "**Unified Research Search:**\n\n":
+                return "**Research Search:** No results found."
+            return out
+        return f"**Research Search:**\n```json\n{str(tool_result)[:2000]}\n```"
 
     # --- Generic Fallback for any unformatted direct tool ---
     # If we reach here, the tool was in _DIRECT_ANSWER_TOOLS but had no specific formatter.
