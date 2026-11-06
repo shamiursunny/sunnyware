@@ -6591,3 +6591,36 @@ The app now passes all production tests:
 - General queries return the capabilities list.
 - UI loads without errors.
 - Slack bot integration returns correct results.
+
+
+---
+
+# Part 726 Handoff: v1.3.0 — Token Savings + Streaming
+
+## New Files
+- `src/sunnyware/tools/stats_tools.py` — DataStatsTool, DataDescribeTool, DataCorrelationTool, CsvGroupByTool
+
+## Modified Files
+- `src/sunnyware/orchestrator.py` — Streaming in jarvis path + 10 new format handlers + 10 new tools in `_DIRECT_ANSWER_TOOLS`
+- `src/sunnyware/keyword_router.py` — 9 new routes + removed 2 old `list_files` routes + `web_search` requires explicit web terms
+- `src/sunnyware/jarvis_agent.py` — 21 new tool_keywords
+- `src/sunnyware/tools/list_files.py` — Supports `kind=sandbox|workspace`, returns `entries`
+- `src/sunnyware/tools/__init__.py` — Registered 4 stats tools
+
+## Architecture
+
+| Tier | Tools | Tokens | Speed |
+|------|-------|--------|-------|
+| 1: Direct | 14 tools | **0** | <1s |
+| 2: Streamed | Non-deterministic | ~500-1000 | 2-5s |
+| 3: Chat | Generic questions | ~1500 | 5-10s |
+
+## Test Results
+- Full suite: 353 passed, 2 skipped, 0 failed
+- Router direct: 79 passed
+- Agent stream: 13 passed
+
+## Next Steps (v1.4.0 candidates)
+- Expand direct-answer: `pdf_read`, `excel_read`, `sql_sandbox_*`, `generate_chart`, `generate_report`, `scrape_webpage`, `add_tableau_*`, `extract_pbix_assets`, `query_external_db`
+- Vision (multimodal LLM)
+- Jupyter kernel for persistent Python state

@@ -3894,3 +3894,33 @@ User: "Query postgresql://user:pass@host/db for all users"
 
 ## 5. Voice Input
 User clicks the mic button -> browser captures speech -> text inserted into the input field.
+
+
+---
+
+# Part 726 Workflows: v1.3.0
+
+## 1. Direct-answer routing (0 tokens)
+User: `mean of [10, 20, 30, 40, 50]`
+→ jarvis gatekeeper matches "mean"
+→ keyword_route returns `{"tool": "data_stats", "args": {"values": [...]}}`
+→ tool runs instantly (numpy)
+→ `_format_direct_answer` returns table (0 LLM tokens)
+
+## 2. List files in sandbox (0 tokens)
+User: `list files in sandbox`
+→ keyword router matches `list_files` with `{"kind": "sandbox"}`
+→ tool lists `/data/sandbox/` (7 files)
+→ formatted table returned
+
+## 3. Streamed final answer
+User: `search the web for python tutorials`
+→ keyword router matches `web_search`
+→ tool runs, returns results
+→ jarvis path calls `stream_chat()` for LLM formatting
+→ tokens stream via `_emit({"type": "content"})`
+
+## 4. Generic chat (full tokens)
+User: `explain quantum computing`
+→ No tool keywords match → bypass jarvis
+→ Main LLM loop runs

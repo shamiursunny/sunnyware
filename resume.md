@@ -3986,3 +3986,20 @@ me the exact git commands to commit + push both remotes."
 - **Removed duplicate `isinstance` checks** in `orchestrator.py`.
 - **Added traceback logging** to `agent.py` error events for easier debugging.
 - **Restored `tool.run(**tool_args)`** — Keyword argument unpacking was lost.
+
+
+---
+
+### Part 726 Update (2026-11-06): v1.3.0 — Token Savings + Streaming
+
+- **Streaming final-answer tokens**: Jarvis path now streams `content` events for non-deterministic tools via `llm_client.stream_chat()`. Falls back to `chat()` if streaming unavailable.
+- **14 direct-answer tools (0 LLM tokens)**: Expanded `_DIRECT_ANSWER_TOOLS` from 4 to 14:
+  - Stats tools: `data_stats`, `data_describe`, `data_correlation`, `csv_groupby`
+  - Batch 1 tools: `image_generate`, `list_files`, `web_search`, `web_fetch`, `email_send`, `email_configured`
+- **New stats tools** (`stats_tools.py`): numpy-backed direct formatting (mean/median/std/correlation/groupby) — eliminates 800-1200 tokens per query.
+- **Jarvis gatekeeper updated**: Added 21 new keywords so router is reached instead of falling through to LLM.
+- **Keyword router fixes**: Removed 2 competing `list_files` routes; fixed `web_search` to require explicit web/google/internet terms (was hijacking "reSEARCH").
+- **Bug fixes**: `list_files` supports `kind=sandbox|workspace`; format handler uses `entries` + `kind`.
+- **Expected savings**: 60-80% reduction in cloud LLM tokens for tool-triggered queries.
+
+*Part 726 logged: 2026-11-06*

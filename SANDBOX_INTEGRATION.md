@@ -240,3 +240,12 @@ Frontend search filters by name, sort dropdown handles name/size/modified.
 - **Planner**: `execute_plan` runs multiple tools sequentially.
 - **External DB**: `query_external_db` uses SQLAlchemy to query Postgres/MySQL.
 - **Voice**: `toggleVoiceInput()` uses the Web Speech API (no backend dependency).
+
+
+## Part 726 (v1.3.0 — Token Savings)
+
+- **14 direct-answer tools**: 0 LLM tokens per call
+- **Streaming**: `llm_client.stream_chat()` used for non-deterministic tool formatting
+- **`list_files` tool**: Supports `kind=sandbox|workspace` parameter
+- **Stats tools**: `data_stats`, `data_describe`, `data_correlation`, `csv_groupby`
+- **Batch 1 tools**: `image_generate`, `list_files`, `web_search`, `web_fetch`, `email_send`, `email_configured`
