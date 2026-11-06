@@ -865,6 +865,46 @@ def keyword_route(prompt: str) -> Optional[dict]:
         return {"tool": "kpi_watch_run", "args": {}}
 
 
+    # --- Stats tools (Part 725) ---
+    import re as _re_stats
+
+    # data_stats (mean/median/std of a list)
+    _stats_match = _re_stats.search(
+        r"(?:mean|median|average|std|stddev|standard deviation|min|max|stats|statistics)\s+(?:of\s+)?\[([\d\.,\s\-]+)\]",
+        prompt, _re_stats.IGNORECASE
+    )
+    if _stats_match:
+        try:
+            _vals = [float(x.strip()) for x in _stats_match.group(1).split(",") if x.strip()]
+            if _vals:
+                return {"tool": "data_stats", "args": {"values": _vals}}
+        except Exception:
+            pass
+
+    # data_describe
+    _desc_match = _re_stats.search(
+        r"describe\s+([\w\-\.]+\.(?:csv|xlsx?|xls))",
+        prompt, _re_stats.IGNORECASE
+    )
+    if _desc_match:
+        return {"tool": "data_describe", "args": {"filename": _desc_match.group(1)}}
+
+    # data_correlation
+    _corr_match = _re_stats.search(
+        r"correlation\s+between\s+(?:column\s+)?['\"]?(\w+)['\"]?\s+and\s+['\"]?(\w+)['\"]?\s+in\s+([\w\-\.]+\.(?:csv|xlsx?|xls))",
+        prompt, _re_stats.IGNORECASE
+    )
+    if _corr_match:
+        return {"tool": "data_correlation", "args": {"col_x": _corr_match.group(1), "col_y": _corr_match.group(2), "filename": _corr_match.group(3)}}
+
+    # csv_groupby
+    _grp_match = _re_stats.search(
+        r"group\s+([\w\-\.]+\.(?:csv|xlsx?|xls))\s+by\s+['\"]?(\w+)['\"]?\s+(?:and\s+)?(sum|mean|count|min|max)\s+['\"]?(\w+)['\"]?",
+        prompt, _re_stats.IGNORECASE
+    )
+    if _grp_match:
+        return {"tool": "csv_groupby", "args": {"filename": _grp_match.group(1), "group_col": _grp_match.group(2), "agg_func": _grp_match.group(3).lower(), "agg_col": _grp_match.group(4)}}
+
     # --- edit_tableau_field ---
     m = re.search(r"(?:edit|update|change|modify)\s+(?:the\s+)?(?:tableau\s+)?(?:field|calc|calculation|filter|parameter)\s+['\"]?(.+?)['\"]?\s+(?:to|as)\s+['\"]?(.+?)['\"]?(?:\s+in\s+([\w\-\.]+\.twbx?))?", prompt, re.IGNORECASE)
     if m:

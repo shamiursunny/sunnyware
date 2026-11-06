@@ -131,7 +131,7 @@ _TOOL_RESULT_B64_FIELDS = ("image_base64", "image_data", "chart_base64")
 # Part 621: Deterministic tools whose results should NOT be reformatted by an LLM.
 # These tools return exact answers (calculator output, exact time, etc.) and the
 # tiny Qwen2.5-0.5B model cannot reliably format them without hallucinating.
-_DIRECT_ANSWER_TOOLS = {"calculator", "current_time", "get_current_time", "time_now"}
+_DIRECT_ANSWER_TOOLS = {"calculator", "current_time", "get_current_time", "time_now", "data_stats", "data_describe", "data_correlation", "csv_groupby"}
 
 
 def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
@@ -141,6 +141,43 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
     # 1. Calculator
     if "expression" in tool_result and "result" in tool_result:
         return "**%s = %s**" % (tool_result['expression'], tool_result['result'])
+
+    # 2. Stats tools (Part 725)
+    if tool_name == "data_stats" and tool_result.get("ok"):
+        return ("**Statistics (n={count})**\n"
+                "- Mean: **{mean:.4f}**\n"
+                "- Median: **{median:.4f}**\n"
+                "- Std Dev: **{std:.4f}**\n"
+                "- Min: {min:.4f} | Max: {max:.4f}\n"
+                "- Sum: {sum:.4f}\n"
+                "- Q25: {q25:.4f} | Q75: {q75:.4f}").format(**tool_result)
+
+    if tool_name == "data_describe" and tool_result.get("ok"):
+        shape = tool_result.get("shape", {})
+        cols = tool_result.get("columns", [])
+        missing = tool_result.get("missing", {})
+        lines = [f"**Dataset Description**", f"- Rows: **{shape.get('rows')}** | Columns: **{shape.get('cols')}**", f"- Columns: {', '.join(cols)}"]
+        missing_lines = [f"  - {k}: {v} missing" for k, v in missing.items() if v > 0]
+        if missing_lines:
+            lines.append("- Missing values:\n" + "\n".join(missing_lines))
+        return "\n".join(lines)
+
+    if tool_name == "data_correlation" and tool_result.get("ok"):
+        r = tool_result.get("pearson_r", 0)
+        strength = "strong" if abs(r) > 0.7 else "moderate" if abs(r) > 0.4 else "weak"
+        return f"**Pearson Correlation (n={tool_result.get('n')})**\n- r = **{r:.4f}** ({strength} {'positive' if r > 0 else 'negative'} correlation)"
+
+    if tool_name == "csv_groupby" and tool_result.get("ok"):
+        rows = tool_result.get("rows", [])
+        gcol = tool_result.get("group_col")
+        acol = tool_result.get("agg_col")
+        afunc = tool_result.get("agg_func")
+        lines = [f"**Grouped by `{gcol}` ({afunc} of `{acol}`)**", "| " + gcol + " | " + afunc + "(" + acol + ") |", "|---|---|"]
+        for row in rows[:20]:
+            lines.append(f"| {row.get(gcol)} | {row.get(acol)} |")
+        if len(rows) > 20:
+            lines.append(f"| ... | ({len(rows) - 20} more) |")
+        return "\n".join(lines)
     # 2. Time (current_time tool)
     if "utc_human" in tool_result:
         day = tool_result.get("day_of_week", "")

@@ -12,6 +12,7 @@ from .read_bi_file import ReadBiFileTool
 from .edit_tableau_field import EditTableauFieldTool
 from .tableau_extra import AddTableauFilterTool, RemoveTableauFieldTool, ExtractPbixAssetsTool
 from .data_tools import GenerateChartTool, CleanDatasetTool
+from .stats_tools import DataStatsTool, DataDescribeTool, DataCorrelationTool, CsvGroupByTool
 from .sql_tool import QuerySqliteTool
 from .report_scrape_tools import ScrapeWebpageTool, GenerateReportTool
 from .plan_tool import ExecutePlanTool
@@ -113,6 +114,10 @@ _TOOLS = {
     ExtractPbixAssetsTool.name: ExtractPbixAssetsTool(),
     GenerateChartTool.name: GenerateChartTool(),
     CleanDatasetTool.name: CleanDatasetTool(),
+    DataStatsTool.name: DataStatsTool(),
+    DataDescribeTool.name: DataDescribeTool(),
+    DataCorrelationTool.name: DataCorrelationTool(),
+    CsvGroupByTool.name: CsvGroupByTool(),
     QuerySqliteTool.name: QuerySqliteTool(),
     ScrapeWebpageTool.name: ScrapeWebpageTool(),
     GenerateReportTool.name: GenerateReportTool(),
