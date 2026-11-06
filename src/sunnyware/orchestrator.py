@@ -276,6 +276,17 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
     if tool_name == "pro_chart":
         return f"**{tool_result.get('message', 'Chart generated successfully.')}** ✅"
 
+    if tool_name == "aggregate_market_data":
+        msg = tool_result.get("message", "")
+        records = tool_result.get("records", 0)
+        data = tool_result.get("data", [])
+        out = f"**{msg}** (Merged {records} records)\n\n"
+        if data:
+            out += "| Provider | Symbol | Price | High | Low |\n|---|---|---|---|---|\n"
+            for r in data:
+                out += f"| {r.get('provider')} | {r.get('symbol')} | {r.get('price')} | {r.get('high')} | {r.get('low')} |\n"
+        return out
+
     # --- Generic Fallback for any unformatted direct tool ---
     # If we reach here, the tool was in _DIRECT_ANSWER_TOOLS but had no specific formatter.
     # We format it as JSON to prevent falling through to the LLM.

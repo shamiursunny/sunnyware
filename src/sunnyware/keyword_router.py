@@ -90,6 +90,11 @@ def keyword_route(prompt: str) -> Optional[dict]:
         chart_type = "candlestick" if "candlestick" in prompt.lower() else "correlation"
         return {"tool": "pro_chart", "args": {"chart_type": chart_type, "filename": _pro_chart.group(1)}}
 
+    # --- Multi-Provider Aggregator ---
+    _agg_match = re.search(r'(?:aggregate|multi-provider)\s+(?:stock\s+)?(?:data\s+)?(?:for\s+)?([a-zA-Z]{1,5})\b', prompt, re.IGNORECASE)
+    if _agg_match:
+        return {"tool": "aggregate_market_data", "args": {"symbol": _agg_match.group(1).upper()}}
+
     # --- Calculator ---
     num = _extract_number(prompt)
     if num:

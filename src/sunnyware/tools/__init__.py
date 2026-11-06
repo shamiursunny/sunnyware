@@ -20,6 +20,7 @@ from .external_db_tool import QueryExternalDbTool
 from .export_table import ExportTableTool
 from .quant_tools import TechnicalAnalysisTool, MLForecastTool
 from .pro_chart import ProChartTool
+from .aggregate_market import AggregateMarketDataTool
 from .calculator import CalculatorTool
 from .web_fetch import WebFetchTool
 from .memory_search import MemorySearchTool
@@ -126,6 +127,7 @@ _TOOLS = {
     ExecutePlanTool.name: ExecutePlanTool(),
     QueryExternalDbTool.name: QueryExternalDbTool(),
     ExportTableTool.name: ExportTableTool(),
+    AggregateMarketDataTool.name: AggregateMarketDataTool(),
     CalculatorTool.name: CalculatorTool(),
     TechnicalAnalysisTool.name: TechnicalAnalysisTool(),
     MLForecastTool.name: MLForecastTool(),
