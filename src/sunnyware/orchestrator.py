@@ -353,19 +353,30 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
     if tool_name == "insurance_research":
         if tool_result.get("error"):
             return f"**Insurance Research failed:** {tool_result['error']}"
-        if isinstance(tool_result, str):
-            return f"**Insurance Research:**\n{tool_result}"
-        import json as _json
-        return f"**Insurance Research:**\n```json\n{_json.dumps(tool_result, indent=2)[:2000]}\n```"
+        filings = tool_result.get("filings", [])
+        if not filings:
+            return f"**Insurance Research:** No filings found for {tool_result.get('query', '?')}."
+        out = f"**Insurance Research – SEC Filings for {tool_result.get('query', '?')}:**\n\n"
+        out += "| Date | Company | Accession |\n|---|---|---|\n"
+        for f in filings[:10]:
+            display = f.get('display', [''])[0] if f.get('display') else ''
+            out += f"| {f.get('file_date', '')} | {display} | {f.get('accession', '')} |\n"
+        total = tool_result.get('total_hits', len(filings))
+        out += f"\n*Showing {len(filings)} of {total} results*"
+        return out
 
     if tool_name == "legal_citation_check":
         if tool_result.get("error"):
             return f"**Legal Citation Check failed:** {tool_result['error']}"
-        status = tool_result.get("status", tool_result.get("valid", "Unknown"))
-        details = tool_result.get("details", tool_result.get("message", ""))
-        out = f"**Legal Citation Check:** {status}\n"
-        if details:
-            out += f"\n**Details:** {details}\n"
+        count = tool_result.get("citation_count", 0)
+        if count == 0:
+            text = tool_result.get("text", "")
+            return f"**Legal Citation Check:** No citations found in the provided text.\n\n*Note: CourtListener verifies case-law citations (e.g., 410 U.S. 113), not statutes like U.S.C. For statutes, please consult the official code or a legal database.*"
+        citations = tool_result.get("citations", [])
+        out = f"**Legal Citation Check:** Found {count} citation(s)\n\n"
+        out += "| Citation | Status | Details |\n|---|---|---|\n"
+        for c in citations[:10]:
+            out += f"| {c.get('citation', '')} | {c.get('status', '')} | {c.get('error_message', '')} |\n"
         return out
 
     # --- Generic Fallback for any unformatted direct tool ---
