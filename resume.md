@@ -4022,3 +4022,10 @@ me the exact git commands to commit + push both remotes."
 - **0-Token Execution**: These tools bypass the LLM entirely and run in <1s.
 - **Workspace Sync**: Uploads via Library automatically sync to the Workspace (Master) folder.
 - **Router Priority**: Quant routes moved to the top of `keyword_router.py`. Fixed math regex in `jarvis_agent.py`.
+
+### Part 730 Update (2026-11-06): v1.6.0 Phase 1 — Multi-Provider Aggregator
+
+- **New Tool**: `aggregate_market_data` fetches stock quotes from Finnhub and Tiingo simultaneously.
+- **Data Merging**: Uses Pandas to flatten provider-specific JSON into a unified dataframe.
+- **Local Storage**: Saves the unified data to a local SQLite DB in the workspace.
+- **0-Token**: Fully integrated into the direct-answer router.
