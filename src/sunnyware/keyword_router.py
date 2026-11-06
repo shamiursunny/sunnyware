@@ -106,6 +106,14 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if _vision_match:
         return {"tool": "vision_analyze", "args": {"filename": _vision_match.group(1), "prompt": prompt}}
 
+    # --- Live Market Stream ---
+    if ("stream" in prompt.lower() or "live" in prompt.lower()) and ("price" in prompt.lower() or "market" in prompt.lower()):
+        _sym = re.search(r'(?:for|of)\s+([a-zA-Z]{1,5})\b', prompt, re.IGNORECASE)
+        if not _sym:
+            _sym = re.search(r'\b([A-Z]{2,5})\b', prompt)
+        if _sym:
+            return {"tool": "live_market_stream", "args": {"symbol": _sym.group(1).upper(), "duration_seconds": 10}}
+
     # --- Calculator ---
     num = _extract_number(prompt)
     if num:
