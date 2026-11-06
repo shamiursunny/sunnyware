@@ -114,6 +114,16 @@ def keyword_route(prompt: str) -> Optional[dict]:
         if _sym:
             return {"tool": "live_market_stream", "args": {"symbol": _sym.group(1).upper(), "duration_seconds": 10}}
 
+    # --- Insurance Research (lenient) ---
+    _ins_match = re.search(r'insurance\s+(?:research|data)\s+(?:for\s+|on\s+)?(.+)', prompt, re.IGNORECASE)
+    if _ins_match:
+        return {"tool": "insurance_research", "args": {"action": "search_filings", "query": _ins_match.group(1).strip()}}
+
+    # --- Legal Citation (lenient) ---
+    _legal_match = re.search(r'(?:legal\s+)?citation\s+(?:check|verify|lookup|validate)\s+(.+)', prompt, re.IGNORECASE)
+    if _legal_match:
+        return {"tool": "legal_citation_check", "args": {"citation": _legal_match.group(1).strip()}}
+
     # --- Calculator ---
     num = _extract_number(prompt)
     if num:
