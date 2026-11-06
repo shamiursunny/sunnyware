@@ -77,4 +77,9 @@ class PythonSessionTool:
         if chart:
             res.update(chart)
             
+        # Clean up numpy scalar types for nicer output
+        if isinstance(res.get("result"), str) and res["result"].startswith("np."):
+            import re
+            res["result"] = re.sub(r'np\.\w+\((.*?)\)', r'\1', res["result"])
+            
         return res
