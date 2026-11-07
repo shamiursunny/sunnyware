@@ -1,10 +1,10 @@
-============================= test session starts =============================
-platform win32 -- Python 3.11.9, pytest-9.1.1, pluggy-1.6.0 -- H:\sunnyware\.venv\Scripts\python.exe
+============================= test session starts ==============================
+platform linux -- Python 3.11.18, pytest-8.3.5, pluggy-1.7.0 -- /opt/hostedtoolcache/Python/3.11.18/x64/bin/python
 cachedir: .pytest_cache
-rootdir: H:\sunnyware
+rootdir: /home/runner/work/sunnyware/sunnyware
 configfile: pytest.ini
-plugins: anyio-4.15.1, asyncio-1.4.1.post1
-asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+plugins: asyncio-0.24.0, anyio-4.9.0
+asyncio: mode=Mode.AUTO, default_loop_scope=None
 collecting ... collected 341 items / 1 deselected / 340 selected
 
 tests/test_agent_memory_direct.py::test_write_and_read PASSED            [  0%]
@@ -319,7 +319,7 @@ tests/test_rag_vector_store.py::test_score_large_distance PASSED         [ 90%]
 tests/test_rag_vector_store.py::test_score_negative_distance_safety PASSED [ 91%]
 tests/test_rag_vector_store.py::test_score_rounding PASSED               [ 91%]
 tests/test_rag_vector_store.py::test_preserves_distance_and_metadata PASSED [ 91%]
-tests/test_streaming.py::test_stream_chat_yields_chunks PASSED           [ 92%]
+tests/test_streaming.py::test_stream_chat_yields_chunks SKIPPED (No ...) [ 92%]
 tests/test_streaming.py::test_orchestrator_emits_content_events SKIPPED  [ 92%]
 tests/test_tenant.py::test_default_empty PASSED                          [ 92%]
 tests/test_tenant.py::test_set_get PASSED                                [ 92%]
@@ -348,16 +348,16 @@ tests/test_tools_misc.py::test_weather_rejects_empty_city PASSED         [ 99%]
 tests/test_version.py::test_version_is_semver PASSED                     [ 99%]
 tests/test_version.py::test_version_not_zero PASSED                      [100%]
 
-============================== warnings summary ===============================
-.venv\Lib\site-packages\fastapi\testclient.py:1
-  H:\sunnyware\.venv\Lib\site-packages\fastapi\testclient.py:1: StarletteDeprecationWarning: Using `httpx` with `starlette.testclient` is deprecated; install `httpx2` instead.
-    from starlette.testclient import TestClient as TestClient  # noqa
-
+=============================== warnings summary ===============================
 tests/test_rag_admin_http.py::test_rag_add_document_invalid_json
-  H:\sunnyware\.venv\Lib\site-packages\httpx\_models.py:408: DeprecationWarning: Use 'content=<...>' to upload raw bytes/text content.
+  /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/httpx2/_models.py:414: DeprecationWarning: Use 'content=<...>' to upload raw bytes/text content.
     headers, stream = encode_request(
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-===== 339 passed, 1 skipped, 1 deselected, 2 warnings in 82.44s (0:01:22) =====
+=========== 338 passed, 2 skipped, 1 deselected, 1 warning in 32.48s ===========
 
 --- STDERR ---
+/opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
