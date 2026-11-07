@@ -33,28 +33,24 @@ def test_api_call_post_routing():
     assert result["tool"] == "api_call"
     assert result["args"]["method"] == "POST"
 
-@pytest.mark.xfail(reason="route not yet implemented — see ROADMAP.md", strict=False)
 def test_date_calc_add_days_routing():
     """'add N days to date' routes to date_calc."""
     result = keyword_route("add 5 days to 2026-11-01")
     assert result == {"tool": "date_calc", "args": {"action": "add", "date": "2026-11-01", "days": 5}}
 
 
-@pytest.mark.xfail(reason="route not yet implemented — see ROADMAP.md", strict=False)
 def test_date_calc_subtract_days_routing():
     """'subtract N days from date' routes to date_calc with negative days."""
     result = keyword_route("subtract 3 days from 2026-11-01")
     assert result == {"tool": "date_calc", "args": {"action": "add", "date": "2026-11-01", "days": -3}}
 
 
-@pytest.mark.xfail(reason="route not yet implemented — see ROADMAP.md", strict=False)
 def test_date_calc_diff_routing():
     """'days between date1 and date2' routes to date_calc diff."""
     result = keyword_route("days between 2026-11-01 and 2026-12-01")
     assert result == {"tool": "date_calc", "args": {"action": "diff", "date": "2026-11-01", "date2": "2026-12-01"}}
 
 
-@pytest.mark.xfail(reason="route not yet implemented — see ROADMAP.md", strict=False)
 def test_date_calc_weekday_routing():
     """'what day of the week is date' routes to date_calc weekday."""
     result = keyword_route("what day of the week is 2026-11-01")
@@ -109,21 +105,18 @@ def test_kpi_watch_add_routing_ge():
     assert result["args"]["comparison"] == "ge"
     assert result["args"]["threshold_value"] == 100.0
 
-@pytest.mark.xfail(reason="route not yet implemented — see ROADMAP.md", strict=False)
 def test_email_list_sent_default_routing():
     """'list sent emails' routes to email_list_sent with empty args."""
     result = keyword_route("list sent emails")
     assert result == {"tool": "email_list_sent", "args": {}}
 
 
-@pytest.mark.xfail(reason="route not yet implemented — see ROADMAP.md", strict=False)
 def test_email_list_sent_with_limit_routing():
     """'show recent 10 sent emails' routes to email_list_sent with limit=10."""
     result = keyword_route("show recent 10 sent emails")
     assert result == {"tool": "email_list_sent", "args": {"limit": 10}}
 
 
-@pytest.mark.xfail(reason="route not yet implemented — see ROADMAP.md", strict=False)
 def test_email_list_sent_what_routing():
     """'what emails have i sent' routes to email_list_sent."""
     result = keyword_route("what emails have i sent")
@@ -231,17 +224,14 @@ def test_auditor_full_spec_routing():
     result = keyword_route("auditor full spec")
     assert result == {"tool": "auditor_full_spec", "args": {}}
 
-@pytest.mark.xfail(reason="route not yet implemented — see ROADMAP.md", strict=False)
 def test_insurance_data_states_routing():
     result = keyword_route("insurance data states")
     assert result == {"tool": "insurance_data", "args": {"action": "states"}}
 
-@pytest.mark.xfail(reason="route not yet implemented — see ROADMAP.md", strict=False)
 def test_insurance_data_discover_routing():
     result = keyword_route("discover insurance data for complaints")
     assert result == {"tool": "insurance_data", "args": {"action": "discover", "query": "for complaints"}}
 
-@pytest.mark.xfail(reason="route not yet implemented — see ROADMAP.md", strict=False)
 def test_insurance_research_filings_routing():
     result = keyword_route("insurance research filings IBNR")
     assert result == {"tool": "insurance_research", "args": {"action": "search_filings", "query": "IBNR"}}
@@ -362,7 +352,6 @@ def test_webhook_add_no_name_returns_none():
     result = keyword_route("create a webhook")
     assert result is None
 
-@pytest.mark.xfail(reason="route not yet implemented — see ROADMAP.md", strict=False)
 def test_schedule_add_hourly_routing():
     result = keyword_route("schedule a task named daily_check every hour to check email")
     assert result["tool"] == "schedule_add"
@@ -427,7 +416,6 @@ def test_list_files_under_routing():
     result = keyword_route("show files under /data")
     assert result == {"tool": "list_files", "args": {"path": "/data"}}
 
-@pytest.mark.xfail(reason="route not yet implemented — see ROADMAP.md", strict=False)
 def test_email_send_body_stripped():
     import os
     os.environ['RESEND_API_KEY'] = 'dummy'
@@ -436,7 +424,6 @@ def test_email_send_body_stripped():
     assert result["args"]["to"] == "bob@example.com"
     assert "hello" in result["args"]["body"]
 
-@pytest.mark.xfail(reason="route not yet implemented — see ROADMAP.md", strict=False)
 def test_email_send_to_extracted():
     import os
     os.environ['RESEND_API_KEY'] = 'dummy'

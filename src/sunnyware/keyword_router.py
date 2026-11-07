@@ -128,6 +128,49 @@ def keyword_route(prompt: str) -> Optional[dict]:
     _p_low_bi = prompt.lower()
     p = prompt.lower()
 
+    # --- Date calc (must precede calculator and generic patterns) ---
+    _dc = re.search(r'add\s+(\d+)\s+days?\s+to\s+(\d{4}-\d{2}-\d{2})', prompt, re.IGNORECASE)
+    if _dc:
+        return {"tool": "date_calc", "args": {"action": "add", "date": _dc.group(2), "days": int(_dc.group(1))}}
+    _dc = re.search(r'subtract\s+(\d+)\s+days?\s+from\s+(\d{4}-\d{2}-\d{2})', prompt, re.IGNORECASE)
+    if _dc:
+        return {"tool": "date_calc", "args": {"action": "add", "date": _dc.group(2), "days": -int(_dc.group(1))}}
+    _dc = re.search(r'days?\s+between\s+(\d{4}-\d{2}-\d{2})\s+and\s+(\d{4}-\d{2}-\d{2})', prompt, re.IGNORECASE)
+    if _dc:
+        return {"tool": "date_calc", "args": {"action": "diff", "date": _dc.group(1), "date2": _dc.group(2)}}
+    _dc = re.search(r'what\s+day\s+of\s+the\s+week\s+is\s+(\d{4}-\d{2}-\d{2})', prompt, re.IGNORECASE)
+    if _dc:
+        return {"tool": "date_calc", "args": {"action": "weekday", "date": _dc.group(1)}}
+
+    # --- Email send/list (must precede generic "email" catch-all) ---
+    if re.search(r'^list\s+sent\s+emails?\s*$', prompt, re.IGNORECASE):
+        return {"tool": "email_list_sent", "args": {}}
+    _em_lim = re.search(r'show\s+(?:recent\s+)?(\d+)\s+sent\s+emails?', prompt, re.IGNORECASE)
+    if _em_lim:
+        return {"tool": "email_list_sent", "args": {"limit": int(_em_lim.group(1))}}
+    if re.search(r'what\s+emails?\s+have\s+i\s+sent', prompt, re.IGNORECASE):
+        return {"tool": "email_list_sent", "args": {}}
+    _em_send = re.search(r'send\s+(?:an?\s+)?email\s+to\s+([^\s,]+@[^\s,]+)(?:\s+(.+))?', prompt, re.IGNORECASE)
+    if _em_send:
+        body = (_em_send.group(2) or '').strip()
+        return {"tool": "email_send", "args": {"to": _em_send.group(1), "subject": "", "body": body}}
+
+    # --- Insurance data/research specifics (before generic) ---
+    if re.search(r'^insurance\s+data\s+states\s*$', prompt, re.IGNORECASE):
+        return {"tool": "insurance_data", "args": {"action": "states"}}
+    _ins_disc = re.search(r'discover\s+insurance\s+data\s+(for\s+.+)', prompt, re.IGNORECASE)
+    if _ins_disc:
+        return {"tool": "insurance_data", "args": {"action": "discover", "query": _ins_disc.group(1).strip()}}
+    _ins_fil = re.search(r'insurance\s+research\s+filings\s+(.+)', prompt, re.IGNORECASE)
+    if _ins_fil:
+        return {"tool": "insurance_research", "args": {"action": "search_filings", "query": _ins_fil.group(1).strip()}}
+
+    # --- Schedule add ---
+    _sch = re.search(r'schedule\s+(?:a\s+)?task\s+named\s+(\w+)\s+every\s+(hour|day|minute|week)', prompt, re.IGNORECASE)
+    if _sch:
+        secs = {"minute": 60, "hour": 3600, "day": 86400, "week": 604800}[_sch.group(2).lower()]
+        return {"tool": "schedule_add", "args": {"name": _sch.group(1), "interval_seconds": secs, "prompt": prompt}}
+
     # --- Quant & ML Routes (v1.5.0) ---
     _ta_match = re.search(r'technical analysis.*?([\w\-]+\.csv)', prompt, re.IGNORECASE)
     if _ta_match:
