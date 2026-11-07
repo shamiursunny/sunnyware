@@ -354,7 +354,7 @@ tests/test_rag_admin_http.py::test_rag_add_document_invalid_json
     headers, stream = encode_request(
 
 -- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
-=========== 338 passed, 2 skipped, 1 deselected, 1 warning in 32.48s ===========
+=========== 338 passed, 2 skipped, 1 deselected, 1 warning in 31.31s ===========
 
 --- STDERR ---
 /opt/hostedtoolcache/Python/3.11.18/x64/lib/python3.11/site-packages/pytest_asyncio/plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
