@@ -23,6 +23,13 @@ def main():
     rc = sh([sys.executable, "scripts/generate_test_report.py"]).returncode
     if rc != 0:
         print("[fail] Tests failed - not publishing")
+        # Print first 30 lines of pytest output so CI logs reveal the real error
+        report = Path("test-results/latest/pytest.txt")
+        if report.exists():
+            print("\n=== FIRST 30 LINES OF PYTEST OUTPUT ===")
+            for line in report.read_text(encoding="utf-8").splitlines()[:30]:
+                print(line)
+            print("=== END SNAPSHOT ===\n")
         return rc
 
     rc = sh([sys.executable, "scripts/verify_test_report.py"]).returncode
