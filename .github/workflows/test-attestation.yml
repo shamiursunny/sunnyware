@@ -44,13 +44,6 @@ jobs:
         continue-on-error: true
         run: python scripts/system_monitor.py --offline
 
-      # ─── Auto version bump ──────────────────────────────────
-      - name: Bump version
-        id: bump
-        run: |
-          python scripts/bump_version.py | tee /tmp/bump.log
-          grep NEW_VERSION= /tmp/bump.log | cut -d= -f2 >> $GITHUB_OUTPUT
-
       # ─── Main tests + attestation ────────────────────────────
       - name: Run tests + generate attestation
         env:
@@ -67,19 +60,16 @@ jobs:
           path: test-results/latest/
           retention-days: 90
 
-      - name: Publish to main
+      - name: Publish attestation
         if: success()
         run: |
           git config user.name "sunnyware-bot"
           git config user.email "bot@sunnyware.local"
-          git add reports/ README.md src/sunnyware/__init__.py
+          git add reports/ README.md
           if git diff --cached --quiet; then
             echo "No changes"
           else
-            NEW_VER="${{ steps.bump.outputs.NEW_VERSION }}"
-            git commit -m "chore(release): v${NEW_VER} [skip ci]"
-            git tag -a "v${NEW_VER}" -m "Release v${NEW_VER}"
+            git commit -m "CI: publish attestation [skip ci]"
             git pull --rebase origin main || true
             git push origin main
-            git push origin "v${NEW_VER}"
           fi
