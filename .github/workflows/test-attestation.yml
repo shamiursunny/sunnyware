@@ -1,0 +1,59 @@
+name: Test Attestation
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'test-results/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  attest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest fastapi httpx starlette
+          if [ -f requirements-ci.txt ]; then pip install -r requirements-ci.txt; fi
+
+      - name: Run tests + generate attestation
+        env:
+          NEON_DATABASE_URL: ""
+          SUNNYWARE_DISABLE_SCHEDULER: "1"
+        run: python run_tests.py
+
+      - name: Upload artifact (90-day retention)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-attestation-${{ github.sha }}
+          path: test-results/latest/
+          retention-days: 90
+
+      - name: Publish to main
+        if: success()
+        run: |
+          git config user.name "sunnyware-bot"
+          git config user.email "bot@sunnyware.local"
+          git add test-results/
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "CI: publish test attestation for ${{ github.sha }} [skip ci]"
+            git push origin main
+          fi

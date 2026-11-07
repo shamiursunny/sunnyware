@@ -1,0 +1,34 @@
+{
+  "timestamp_utc": "2026-11-07T14-18-49Z",
+  "commit": "003fe018be7e6d46b8715e0c6bb242e96652e4d3",
+  "commit_short": "003fe01",
+  "branch": "main",
+  "interpreter": "H:\\sunnyware\\.venv\\Scripts\\python.exe",
+  "command": [
+    "H:\\sunnyware\\.venv\\Scripts\\python.exe",
+    "-m",
+    "pytest",
+    "tests/",
+    "--ignore=tests/test_agent_stream.py",
+    "-k",
+    "not test_health_ready",
+    "-v",
+    "--tb=short"
+  ],
+  "exit_code": 0,
+  "files": {
+    "pytest.txt": {
+      "sha256": "31daa38ff92e59c8e913cd83a30999f220a5257b88f06dd6af08c2094723aa32",
+      "bytes": 29194
+    }
+  },
+  "summary": {
+    "passed": 339,
+    "failed": 0,
+    "errors": 0
+  },
+  "verification": {
+    "cmd": "python scripts/verify_test_report.py",
+    "expect": "OK Report hash matches"
+  }
+}
