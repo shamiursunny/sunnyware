@@ -13,7 +13,7 @@ permissions:
 jobs:
   attest:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - uses: actions/checkout@v4
@@ -31,6 +31,20 @@ jobs:
           pip install pytest==8.3.5 pytest-asyncio==0.24.0 anyio==4.9.0 fastapi httpx starlette
           if [ -f requirements-ci.txt ]; then pip install -r requirements-ci.txt; fi
 
+      # ─── Pre-flight checks ───────────────────────────────────
+      - name: Pre-push checks
+        continue-on-error: true
+        run: python scripts/pre_push_check.py
+
+      - name: Local smoke test
+        continue-on-error: true
+        run: python scripts/smoke_local.py
+
+      - name: System monitor (offline)
+        continue-on-error: true
+        run: python scripts/system_monitor.py --offline
+
+      # ─── Main tests + attestation ────────────────────────────
       - name: Run tests + generate attestation
         env:
           NEON_DATABASE_URL: ""

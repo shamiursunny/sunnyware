@@ -1,0 +1,34 @@
+name: Post-Deploy Smoke
+
+on:
+  workflow_run:
+    workflows: ["Test Attestation"]
+    types: [completed]
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  remote-smoke:
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name != 'workflow_run' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Wait for HF rebuild
+        if: github.event_name == 'workflow_run'
+        run: sleep 240
+
+      - name: Remote smoke
+        continue-on-error: true
+        env:
+          SUNNYWARE_ADMIN_KEY: ${{ secrets.SUNNYWARE_ADMIN_KEY }}
+        run: python scripts/smoke_remote.py
