@@ -1,4 +1,3 @@
-![Version](https://img.shields.io/badge/version-v1.10.0-blue)
 ---
 title: Sunnyware
 emoji: ☀️
@@ -9,6 +8,9 @@ app_port: 7860
 pinned: false
 license: agpl-3.0
 ---
+
+![Version](https://img.shields.io/badge/version-v1.10.0-blue)
+
 
 # sunnyware
 

@@ -1,4 +1,4 @@
-# RESUME â€” Sunnyware (paste this into a new AI tab)
+# RESUME — Sunnyware (paste this into a new AI tab)
 
 
 
@@ -8,15 +8,45 @@ Copy everything below the line into a fresh chat, then ask any question.
 
 ---
 
+## v1.10.0 — Browser Automation (2026-11-07)
+
+**Commit:** `fa46fab` | **Tag:** `v1.10.0` | **Deployed:** Hugging Face + GitHub
+
+### What's new
+- **5 browser tools** (Playwright-based, headless Chromium):
+  - `browser_goto` — navigate and return page HTML + title + URL
+  - `browser_click` — click a CSS selector, return new page state
+  - `browser_fill_submit` — fill forms (contact, register, login, chat) and submit
+  - `browser_extract` — extract text/href/src/attrs via CSS selector, structured rows
+  - `browser_screenshot` — full-page screenshot, saved to `/data/workspace/`
+- **Full tool count:** 112 registered, 0 degraded, 0 broken
+- **ReAct orchestrator + keyword router** handle browser flows deterministically (no LLM cost)
+- **Hugging Face `EACCES` fix:** recursive `chmod +x` on `/data/.cache/ms-playwright` at launch
+- **React sequential typing** for chat inputs (SunnyGPT, etc.)
+
+### Verified tests (all passing)
+1. `login on https://the-internet.herokuapp.com/login with username: tomsmith, password: SuperSecretPassword!` → ✅ `Success: The Internet`
+2. `chat with https://sunnygpt.shamiur.com saying Hello AI` → ✅ `Success: SunnyGPT - AI Chat Assistant`
+3. `screenshot of https://shamiur.com` → ✅ Screenshot saved
+
+### Branch structure (as of v1.10.0)
+- `main` — stable production (deploys to Hugging Face)
+- `dev` — future development
+- `stable-browser-v1` — backup safety net (same commit as main)
+- Tags: `v1.0.0` → `v1.10.0` + `backup-20261001-205535`
+
+---
+
+
 
 
 ## Project
 
-Sunnyware â€” a FastAPI + custom HTML/JS WebUI AI agent running on a Hugging
+Sunnyware — a FastAPI + custom HTML/JS WebUI AI agent running on a Hugging
 
 Face Space. Multi-provider LLM router (Groq/Gemini/OpenRouter with auto
 
-model resolver), ReAct orchestrator, 16 agent tools, RAG over uploaded
+model resolver), ReAct orchestrator, 112 agent tools, RAG over uploaded
 
 docs, sandboxed Python data-science workbench. PostgreSQL (Neon) stores
 
@@ -36,9 +66,9 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 
 
-## Current state (last session: 2026-10-20, Part 224)
+## Current state (v1.10.0 — 2026-11-07, commit fa46fab)
 
-**Completed:** Parts 206 â€“ 239b (all features below are live and verified).
+**Completed:** Parts 206 – 239b (all features below are live and verified).
 
 ### Auth & Security
 - Per-API-Key **Sliding Window Rate Limiting** (configurable RPM, HTTP 429 enforcement)
@@ -74,8 +104,8 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 - Slack Bot: /sunnyware <question> slash command with signature verification, activity log
 
 ### DevOps
-- ./safe_deploy.sh â€” one command: local smoke test (59 checks), git push to both remotes, poll HF until rebuilt, remote smoke test (31 endpoints + 20 HTML markers).
-- Never push broken code â€” the smoke test aborts on any failure.
+- ./safe_deploy.sh — one command: local smoke test (59 checks), git push to both remotes, poll HF until rebuilt, remote smoke test (31 endpoints + 20 HTML markers).
+- Never push broken code — the smoke test aborts on any failure.
 
 ### Background Workers
 - Webhook Retry Engine (1m/5m/30m/2h backoff)
@@ -278,7 +308,7 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
 - Multi-provider LLM router with auto-failover
 
-- Auto model resolver â€” self-heals when providers retire models
+- Auto model resolver — self-heals when providers retire models
 
 - 429 fast-fail (0.2s instead of 40s waste per broken provider)
 
@@ -292,75 +322,75 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
   browser_click, browser_fill_submit (+ 14 core)
 
-- Streaming WebUI â€” tokens appear as generated via SSE (Part 34)
+- Streaming WebUI — tokens appear as generated via SSE (Part 34)
 
 - Chat history persistence + sidebar with multi-session (Part 35)
 
-- Multi-file upload (Part 36) â€” drag 10+ files at once
+- Multi-file upload (Part 36) — drag 10+ files at once
 
-- Neon fallback for session history (Part 38) â€” browser-wipe proof
+- Neon fallback for session history (Part 38) — browser-wipe proof
 
-- JSON export/import for sessions (Part 39) â€” belt & suspenders
+- JSON export/import for sessions (Part 39) — belt & suspenders
 
-- Token usage dashboard (Part 40) â€” Stats button + modal
+- Token usage dashboard (Part 40) — Stats button + modal
 
-- System monitor + baseline (Part 41) â€” 57 checks, A+ grade
+- System monitor + baseline (Part 41) — 57 checks, A+ grade
 
-- Markdown rendering for assistant messages (Part 42) â€” marked.js
+- Markdown rendering for assistant messages (Part 42) — marked.js
 
 - `via <provider>` badge on header (Part 42)
 
 - Chart rendering + click-to-zoom (Part 43)
 
-- Session rename â€” pencil icon or double-click title (Part 43)
+- Session rename — pencil icon or double-click title (Part 43)
 
-- Voice input â€” Web Speech API (Part 43; Chrome/Edge/Safari only, not Firefox)
+- Voice input — Web Speech API (Part 43; Chrome/Edge/Safari only, not Firefox)
 
-- WebUI hits tool-aware /api/agent/stream (Part 47) â€” tools work on mobile + desktop
+- WebUI hits tool-aware /api/agent/stream (Part 47) — tools work on mobile + desktop
 
-- Tool audit trail in Neon (Part 48) â€” tool_invocations table
+- Tool audit trail in Neon (Part 48) — tool_invocations table
 
-- recall_history tool (Part 49) â€” cross-session memory search
+- recall_history tool (Part 49) — cross-session memory search
 
-- csv_query tool (Part 50) â€” DuckDB over workspace files
+- csv_query tool (Part 50) — DuckDB over workspace files
 
-- chart_from_data tool (Part 51) â€” inline PNG from JSON/CSV
+- chart_from_data tool (Part 51) — inline PNG from JSON/CSV
 
-- citation_lookup tool (Part 52) â€” full chunk text + sha256 provenance
+- citation_lookup tool (Part 52) — full chunk text + sha256 provenance
 
-- forecast_arima tool (Part 53-54) â€” trend-aware ARIMA forecasting
+- forecast_arima tool (Part 53-54) — trend-aware ARIMA forecasting
 
-- financial_metrics tool (Part 55) â€” Sharpe/Sortino/VaR/CVaR/drawdown
+- financial_metrics tool (Part 55) — Sharpe/Sortino/VaR/CVaR/drawdown
 
-- api_call tool (Part 56) â€” generic REST client w/ SSRF guard
+- api_call tool (Part 56) — generic REST client w/ SSRF guard
 
-- Streaming provider fallback (Part 57) â€” stream_chat tries all providers
+- Streaming provider fallback (Part 57) — stream_chat tries all providers
 
-- document_diff tool (Part 58) â€” diff files/RAG chunks/inline text
+- document_diff tool (Part 58) — diff files/RAG chunks/inline text
 
-- pdf_report tool (Part 59) â€” multi-page PDF (text/table/chart pages)
+- pdf_report tool (Part 59) — multi-page PDF (text/table/chart pages)
 
-- pdf_read tool (Part 72) â€” extract text from workspace PDFs
+- pdf_read tool (Part 72) — extract text from workspace PDFs
 
-- citation_lookup strengthened (Part 73) â€” citation_string + cite_these
+- citation_lookup strengthened (Part 73) — citation_string + cite_these
 
-- report_batch tool (Part 74) â€” parallel multi-prompt runner
+- report_batch tool (Part 74) — parallel multi-prompt runner
 
-- kpi_watch_add/list/run (Part 75) â€” log-only KPI monitoring
+- kpi_watch_add/list/run (Part 75) — log-only KPI monitoring
 
   (Neon tables: kpi_watches, kpi_watch_events; email deferred to Part 82)
 
-- workspace_snapshot tool (Part 60) â€” zip workspace to retrievable archive
+- workspace_snapshot tool (Part 60) — zip workspace to retrievable archive
 
 - Full UI redesign (Parts 65-71): responsive, Inter font, SVG icons,
 
   neutral palette, glass drawer, ChatGPT/Claude message layout, session search
 
-- excel_write tool (Part 61) â€” formatted .xlsx (sheets, formulas, formats)
+- excel_write tool (Part 61) — formatted .xlsx (sheets, formulas, formats)
 
-- excel_read tool (Part 62) â€” read .xlsx (sheets, headers, formulas)
+- excel_read tool (Part 62) — read .xlsx (sheets, headers, formulas)
 
-- Playwright browser automation (Part 63/63.3) â€” 5 tools:
+- Playwright browser automation (Part 63/63.3) — 5 tools:
 
   browser_goto, browser_screenshot, browser_extract,
 
@@ -370,508 +400,508 @@ sidebar, JSON export/import, token usage dashboard, markdown rendering.
 
   /data/playwright-browsers; first call 3-5 min, then ~3 sec.
 
-- Full responsive UI â€” mobile drawer, tablet, TV mode (Part 44)
+- Full responsive UI — mobile drawer, tablet, TV mode (Part 44)
 
-- Mic permission UX â€” getUserMedia preflight + state badge (Part 44)
+- Mic permission UX — getUserMedia preflight + state badge (Part 44)
 
 - TV user-agent detection with larger fonts + focus outlines (Part 44)
 
 
 
-- url_metadata tool (Part 78) â€” OpenGraph / Twitter Card / favicon extractor
+- url_metadata tool (Part 78) — OpenGraph / Twitter Card / favicon extractor
 
-- html_to_text tool (Part 78) â€” HTML -> clean markdown (structure preserved)
+- html_to_text tool (Part 78) — HTML -> clean markdown (structure preserved)
 
-- data_quality_report tool (Part 80) â€” nulls/outliers/dups on CSV/XLSX
+- data_quality_report tool (Part 80) — nulls/outliers/dups on CSV/XLSX
 
-- schedule_add/list/delete/run_now (Part 81) â€” recurring agent prompts
+- schedule_add/list/delete/run_now (Part 81) — recurring agent prompts
 
   (Neon: dynamic_schedules; auto-registered on app start)
 
-- metrics_batch tool (Part 82 + 85a) â€” 20+ ratios for 25 series per call
+- metrics_batch tool (Part 82 + 85a) — 20+ ratios for 25 series per call
 
   (numpy engine; empyrical-reloaded BUILD_ERROR reverted)
 
-- webhook receiver (Part 83) â€” POST /webhook/{token} external triggers
+- webhook receiver (Part 83) — POST /webhook/{token} external triggers
 
   (Neon: webhook_endpoints + webhook_events; 4 tools)
 
-- sql_sandbox (Part 84) â€” isolated sb_<name> schemas for ad-hoc SQL
+- sql_sandbox (Part 84) — isolated sb_<name> schemas for ad-hoc SQL
 
   (Part 84-fix: explicit transaction for SET LOCAL; blocks DROP SCHEMA,
 
    cross-schema reads, main tables)
 
-- RESEND PRODUCTION (Part 86) â€” shamiur.com verified via DKIM
+- RESEND PRODUCTION (Part 86) — shamiur.com verified via DKIM
 
   (noreply@shamiur.com sends to ANY recipient; verified end-to-end)
 
-- Token budget raised (Part 87) â€” max_tokens 900 -> 2048 in llm.py.
+- Token budget raised (Part 87) — max_tokens 900 -> 2048 in llm.py.
   Reasoning models (gpt-oss-120b) were consuming the entire 900-token
   budget on hidden reasoning after a tool call, leaving nothing for
   the visible answer (symptom: empty content).
 - Orchestrator token economy (Parts 88, 88b, 88c, 88d):
-  â€¢ MAX_ITERATIONS 7 -> 3 (was 6 LLM calls for "hi")
-  â€¢ System prompt rule 1: greetings/chit-chat answer directly, no tools
-  â€¢ System prompt rule 3: ONE TOOL PER STEP; never repeat same tool
-  â€¢ System prompt rule 3a: NO PREFLIGHT LISTS when resource is named
-  â€¢ echo tool description marked TEST-ONLY (was inviting abuse)
-  â€¢ Tool-call dedup: (tool_name, canonical_args) tracked in _seen_calls
-  â€¢ Subset/superset match: {name,sql} vs {sql} treated as duplicate
-  â€¢ Hard-stop after 2 consecutive duplicates with cached answer
-  â€¢ Applied to both native tool-call path AND prompt-JSON path
+  • MAX_ITERATIONS 7 -> 3 (was 6 LLM calls for "hi")
+  • System prompt rule 1: greetings/chit-chat answer directly, no tools
+  • System prompt rule 3: ONE TOOL PER STEP; never repeat same tool
+  • System prompt rule 3a: NO PREFLIGHT LISTS when resource is named
+  • echo tool description marked TEST-ONLY (was inviting abuse)
+  • Tool-call dedup: (tool_name, canonical_args) tracked in _seen_calls
+  • Subset/superset match: {name,sql} vs {sql} treated as duplicate
+  • Hard-stop after 2 consecutive duplicates with cached answer
+  • Applied to both native tool-call path AND prompt-JSON path
   Combined effect: 10-50x reduction in tokens per typical prompt.
   Greeting: 6 iterations/~10k tokens -> 1 iteration/~200 tokens.
   SQL query: 7 iterations/3 calls -> 2 iterations/1 call.
-- Self-hosted marked.js (Part 89) â€” no more CDN dependency:
-  â€¢ marked@12 -> src/sunnyware/static/marked.min.js (35 KB)
-  â€¢ src/sunnyware/static/__init__.py makes static/ a shippable package
-  â€¢ main.py: /static mounted via FastAPI StaticFiles (after include_router)
-  â€¢ webui.py: <script src="/static/marked.min.js"> (was cdn.jsdelivr.net)
-  â€¢ Fixes '(empty response)' in InPrivate Firefox when tracking
+- Self-hosted marked.js (Part 89) — no more CDN dependency:
+  • marked@12 -> src/sunnyware/static/marked.min.js (35 KB)
+  • src/sunnyware/static/__init__.py makes static/ a shippable package
+  • main.py: /static mounted via FastAPI StaticFiles (after include_router)
+  • webui.py: <script src="/static/marked.min.js"> (was cdn.jsdelivr.net)
+  • Fixes '(empty response)' in InPrivate Firefox when tracking
     protection + VPN blocked the jsdelivr CDN
-  â€¢ Verified live: HTTP 200 | 35479 bytes | uvicorn; 0 CDN refs in src/
-  â€¢ InPrivate Firefox loads clean (0 Console errors) + chat works
-  â€¢ Smoke test: scripts/smoke_test_part89.py (8 checks, ASCII-safe)
+  • Verified live: HTTP 200 | 35479 bytes | uvicorn; 0 CDN refs in src/
+  • InPrivate Firefox loads clean (0 Console errors) + chat works
+  • Smoke test: scripts/smoke_test_part89.py (8 checks, ASCII-safe)
 - Per-request token budget guard (Part 90 + 90b):
-  â€¢ MAX_REQUEST_TOKENS = 8000 (top of orchestrator.py)
-  â€¢ _estimate_tokens(*parts): ~4 chars/token, provider-agnostic
-  â€¢ _tokens_used accumulator incremented each LLM iteration
-  â€¢ Trips at cumulative >= 8000 -> friendly message + break
-  â€¢ Response flags: budget_exceeded: True, tokens_used: N
-  â€¢ SSE event type 'budget_exceeded' emitted to WebUI
-  â€¢ tools_schema (~8700 tokens for 58 tools) EXCLUDED from count
+  • MAX_REQUEST_TOKENS = 8000 (top of orchestrator.py)
+  • _estimate_tokens(*parts): ~4 chars/token, provider-agnostic
+  • _tokens_used accumulator incremented each LLM iteration
+  • Trips at cumulative >= 8000 -> friendly message + break
+  • Response flags: budget_exceeded: True, tokens_used: N
+  • SSE event type 'budget_exceeded' emitted to WebUI
+  • tools_schema (~8700 tokens for 58 tools) EXCLUDED from count
     (Part 90b - otherwise every request tripped on 'hi')
-  â€¢ routes/agent.py propagates both flags to the client
-  â€¢ Smoke test: scripts/smoke_test_part90.py (11 checks)
+  • routes/agent.py propagates both flags to the client
+  • Smoke test: scripts/smoke_test_part90.py (11 checks)
 - WebUI budget_exceeded styling (Part 91):
-  â€¢ budgetExceeded flag declared per-request in streaming handler
-  â€¢ SSE case for 'budget_exceeded' event type
-  â€¢ Reads data.budget_exceeded from 'final' event as fallback
-  â€¢ Applies class 'budget' to assistant bubble
-  â€¢ CSS .msg.agent.budget: amber bg + left border #ffb020
-  â€¢ ::before prefix 'BUDGET LIMIT:' (ASCII-only, cp1252 safe)
-  â€¢ Verified live: 90k-char prompt renders amber bubble with label
-  â€¢ Smoke test: scripts/smoke_test_part91.py (8 checks)
+  • budgetExceeded flag declared per-request in streaming handler
+  • SSE case for 'budget_exceeded' event type
+  • Reads data.budget_exceeded from 'final' event as fallback
+  • Applies class 'budget' to assistant bubble
+  • CSS .msg.agent.budget: amber bg + left border #ffb020
+  • ::before prefix 'BUDGET LIMIT:' (ASCII-only, cp1252 safe)
+  • Verified live: 90k-char prompt renders amber bubble with label
+  • Smoke test: scripts/smoke_test_part91.py (8 checks)
 - Professional HTML /about page (Parts 92, 92b, 92c):
-  â€¢ Was raw JSON dump -> now styled HTML matching WebUI dark theme
-  â€¢ src/sunnyware/static/about.html (7.6 KB, inline CSS, no CDN)
-  â€¢ Hero with gradient S mark, version + license badges, 4-card grid
-  â€¢ Responsive: 4 cards desktop -> stacked mobile
-  â€¢ meta.py /about returns HTMLResponse with %%KEY%% substitution
-  â€¢ Part 92b: fixed HF crash (missing top-level HTMLResponse import)
-  â€¢ Part 92c: smoke test AST-verifies top-level import (not substring)
-  â€¢ Smoke test: scripts/smoke_test_part92.py (20 checks)
+  • Was raw JSON dump -> now styled HTML matching WebUI dark theme
+  • src/sunnyware/static/about.html (7.6 KB, inline CSS, no CDN)
+  • Hero with gradient S mark, version + license badges, 4-card grid
+  • Responsive: 4 cards desktop -> stacked mobile
+  • meta.py /about returns HTMLResponse with %%KEY%% substitution
+  • Part 92b: fixed HF crash (missing top-level HTMLResponse import)
+  • Part 92c: smoke test AST-verifies top-level import (not substring)
+  • Smoke test: scripts/smoke_test_part92.py (20 checks)
 - Professional WebUI redesign (Parts 93, 93b, 94, 95, 95b):
-  â€¢ Part 93: header redesign â€” gradient S brand mark, session pill
+  • Part 93: header redesign — gradient S brand mark, session pill
     with green dot, icon buttons, overflow dropdown menu
-  â€¢ Part 93b: paperclip moved INSIDE composer (ChatGPT-style),
+  • Part 93b: paperclip moved INSIDE composer (ChatGPT-style),
     input padding-left 46px, id='upload' preserved
-  â€¢ Part 94: doc count badge = just the number (15px circle),
+  • Part 94: doc count badge = just the number (15px circle),
     no 'docs: N' label; overflow button always visible
-  â€¢ Part 95: overflow menu moved to sidebar bottom-left, opens
+  • Part 95: overflow menu moved to sidebar bottom-left, opens
     UPWARD ('âš™ Settings & more'); header stripped to just
     provider pill; removed redundant + and ... from header
-  â€¢ Part 95b: null-safe clearBtn lookup (JS crash fix)
-  â€¢ Full SVG icons, no CDN, no emoji
-  â€¢ Responsive: brand name hides <760px, session pill <480px,
+  • Part 95b: null-safe clearBtn lookup (JS crash fix)
+  • Full SVG icons, no CDN, no emoji
+  • Responsive: brand name hides <760px, session pill <480px,
     menu label hides <640px
-  â€¢ Smoke test: scripts/smoke_test_part93.py (52 checks)
+  • Smoke test: scripts/smoke_test_part93.py (52 checks)
 - Real token counts from provider usage (Part 96 + 96b):
-  â€¢ llm.py now returns tokens_in / tokens_out / tokens_total
+  • llm.py now returns tokens_in / tokens_out / tokens_total
     (was only written to usage DB, not passed to orchestrator)
-  â€¢ orchestrator prefers result['tokens_total'] over the
+  • orchestrator prefers result['tokens_total'] over the
     char/4 heuristic; subtracts _tools_overhead (schema size)
-  â€¢ fallback heuristic no longer double-counts 'prompt'
-  â€¢ Part 96b: MAX_REQUEST_TOKENS 8000 -> 15000 (accurate counts
+  • fallback heuristic no longer double-counts 'prompt'
+  • Part 96b: MAX_REQUEST_TOKENS 8000 -> 15000 (accurate counts
     make 8000 too tight; 12k-char prompt tripped at 10,022 real)
-  â€¢ Verified: 12k prompt -> tokens_used 10022, budget_exceeded True
-  â€¢ Smoke test: scripts/smoke_test_part96.py (13 checks)
+  • Verified: 12k prompt -> tokens_used 10022, budget_exceeded True
+  • Smoke test: scripts/smoke_test_part96.py (13 checks)
 - Pollinations AI fallback provider (Parts 97 + 97b):
-  â€¢ 4th provider after groq, gemini, openrouter
-  â€¢ Free anonymous tier, no API key (dummy 'pollinations')
-  â€¢ Base URL: https://text.pollinations.ai/openai (OpenAI-compat)
-  â€¢ Model: 'openai' (GPT-OSS-20b class) with fallbacks
+  • 4th provider after groq, gemini, openrouter
+  • Free anonymous tier, no API key (dummy 'pollinations')
+  • Base URL: https://text.pollinations.ai/openai (OpenAI-compat)
+  • Model: 'openai' (GPT-OSS-20b class) with fallbacks
     (gemini, mistral, deepseek, llama)
-  â€¢ Rate limit: 1 req/15s anonymous â€” last-resort fallback only
-  â€¢ Files: model_resolver.py PREFERENCES, .env.example
-  â€¢ HF Space secrets: LLM_PROVIDERS (variable, not secret!),
+  • Rate limit: 1 req/15s anonymous — last-resort fallback only
+  • Files: model_resolver.py PREFERENCES, .env.example
+  • HF Space secrets: LLM_PROVIDERS (variable, not secret!),
     POLLINATIONS_BASE_URL / API_KEY / MODEL
-  â€¢ Gotcha: LLM_PROVIDERS must be a VARIABLE not SECRET on HF
+  • Gotcha: LLM_PROVIDERS must be a VARIABLE not SECRET on HF
     (collision error 'Collision on variables and secrets names')
-  â€¢ Verified live: 'POLLINATIONS WORKS' returned with
+  • Verified live: 'POLLINATIONS WORKS' returned with
     provider=pollinations, iterations=1
-  â€¢ Smoke test: scripts/smoke_test_part97.py (10 checks)
+  • Smoke test: scripts/smoke_test_part97.py (10 checks)
 - Image generation tool (Parts 98 + 98b + 98c):
-  â€¢ New tool: image_generate â€” free text-to-image via Pollinations.AI
-  â€¢ Returns {image_base64, image_format, ...} â€” same contract as
+  • New tool: image_generate — free text-to-image via Pollinations.AI
+  • Returns {image_base64, image_format, ...} — same contract as
     chart_from_data
-  â€¢ Models: flux (default), turbo, gptimage, qwen-image, kontext,
+  • Models: flux (default), turbo, gptimage, qwen-image, kontext,
     nanobanana (free tier)
-  â€¢ Parameters: prompt, model, width, height, seed
-  â€¢ Size clamp: 128-2048px (default 1024), 45s timeout, 2 MB cap
-  â€¢ Magic-byte detection: JPEG / PNG / WebP
-  â€¢ Part 98b: 'call EXACTLY ONCE' instruction (free tier 1/15s limit)
-  â€¢ Part 98c: WebUI 'tool_result' SSE case renders image_base64 inline
-    as <img class='msg-image'> â€” works for image_generate,
+  • Parameters: prompt, model, width, height, seed
+  • Size clamp: 128-2048px (default 1024), 45s timeout, 2 MB cap
+  • Magic-byte detection: JPEG / PNG / WebP
+  • Part 98b: 'call EXACTLY ONCE' instruction (free tier 1/15s limit)
+  • Part 98c: WebUI 'tool_result' SSE case renders image_base64 inline
+    as <img class='msg-image'> — works for image_generate,
     chart_from_data, browser_screenshot (any tool returning image_base64)
-  â€¢ Part 98c: tool description says 'Do NOT include base64 in reply'
-  â€¢ Tools: 58 -> 59
-  â€¢ Verified live: 'Draw a cute orange cat' -> 52 KB JPEG rendered inline
-  â€¢ Smoke test: scripts/smoke_test_part98.py (24 checks)
+  • Part 98c: tool description says 'Do NOT include base64 in reply'
+  • Tools: 58 -> 59
+  • Verified live: 'Draw a cute orange cat' -> 52 KB JPEG rendered inline
+  • Smoke test: scripts/smoke_test_part98.py (24 checks)
 - Long-prompt routing (Part 99):
-  â€¢ Per-provider max_prompt_tokens field on Provider dataclass
-  â€¢ Defaults: groq=7500, gemini=1M, openrouter/pollinations=32000,
+  • Per-provider max_prompt_tokens field on Provider dataclass
+  • Defaults: groq=7500, gemini=1M, openrouter/pollinations=32000,
     mistral=32000, nvidia=8000, local=0 (no limit)
-  â€¢ Override per-provider via {PREFIX}_MAX_PROMPT_TOKENS env
-  â€¢ llm.py: _estimate_prompt_tokens() char/4 heuristic over
+  • Override per-provider via {PREFIX}_MAX_PROMPT_TOKENS env
+  • llm.py: _estimate_prompt_tokens() char/4 heuristic over
     prompt + system + history
-  â€¢ Router skips providers where estimated tokens > their limit
-  â€¢ Safety: if NO provider eligible, tries all anyway (avoid total fail)
-  â€¢ status() exposes max_prompt_tokens for each provider
-  â€¢ Fixes earlier 'empty LLM response' on 30k-char prompts
-  â€¢ Verified live: 30k chars -> openrouter (Groq auto-skipped)
-  â€¢ Smoke test: scripts/smoke_test_part99.py (17 checks)
+  • Router skips providers where estimated tokens > their limit
+  • Safety: if NO provider eligible, tries all anyway (avoid total fail)
+  • status() exposes max_prompt_tokens for each provider
+  • Fixes earlier 'empty LLM response' on 30k-char prompts
+  • Verified live: 30k chars -> openrouter (Groq auto-skipped)
+  • Smoke test: scripts/smoke_test_part99.py (17 checks)
 - Auto-learn provider limits (Parts 100 + 100b):
-  â€¢ New module: src/sunnyware/provider_limits.py
-  â€¢ On 413 (or 'request too large'), learns actual limit from
-    tokens just sent â€” steps down 200, clamps to 500 minimum
-  â€¢ Never raises an existing lower limit
-  â€¢ Storage path (Part 100b):
+  • New module: src/sunnyware/provider_limits.py
+  • On 413 (or 'request too large'), learns actual limit from
+    tokens just sent — steps down 200, clamps to 500 minimum
+  • Never raises an existing lower limit
+  • Storage path (Part 100b):
     1. SUNNYWARE_DATA_DIR env (explicit override)
-    2. /data HF persistent bucket â€” POSIX only (os.name == 'posix')
+    2. /data HF persistent bucket — POSIX only (os.name == 'posix')
     3. ./data (local dev)
-  â€¢ Persists to provider_limits.json â€” verified surviving HF restart
-  â€¢ Precedence: env override > learned < default (uses tighter)
-  â€¢ llm.py: _is_too_large_error() detects 413, 'request too large',
+  • Persists to provider_limits.json — verified surviving HF restart
+  • Precedence: env override > learned < default (uses tighter)
+  • llm.py: _is_too_large_error() detects 413, 'request too large',
     'payload too large', 'context length', 'maximum context',
     'too many tokens'
-  â€¢ Part 100b: observable writes (returns bool, logs failures)
-  â€¢ Debug endpoints:
-    GET  /api/providers/limits         â€” diagnostics
-    POST /api/providers/limits/reset   â€” {name: 'groq'} or {all: true}
-  â€¢ Verified live: learned={'groq': 8403} persisted at
+  • Part 100b: observable writes (returns bool, logs failures)
+  • Debug endpoints:
+    GET  /api/providers/limits         — diagnostics
+    POST /api/providers/limits/reset   — {name: 'groq'} or {all: true}
+  • Verified live: learned={'groq': 8403} persisted at
     /data/provider_limits.json on HF
-  â€¢ Smoke test: scripts/smoke_test_part100.py (44 checks)
+  • Smoke test: scripts/smoke_test_part100.py (44 checks)
 - Empty-response fallback (Part 101):
-  â€¢ llm.py: _is_empty_response(r) detects ok=True with no content
+  • llm.py: _is_empty_response(r) detects ok=True with no content
     AND no tool_calls
-  â€¢ Both HTTP and local provider paths treat empty as failure:
+  • Both HTTP and local provider paths treat empty as failure:
     record failure, cooldown (15s HTTP / 10s local), metric
     llm_provider_empty_response, continue to next provider
-  â€¢ Safety: only triggers when BOTH content and tool_calls are empty
-    â€” when LLM makes a tool call, check returns False
-  â€¢ Fixes 'Agent failed | empty LLM response' when a provider
+  • Safety: only triggers when BOTH content and tool_calls are empty
+    — when LLM makes a tool call, check returns False
+  • Fixes 'Agent failed | empty LLM response' when a provider
     returned success HTTP with hollow body
-  â€¢ Verified live: 30k prompt -> openrouter -> 3,850-char real answer
-  â€¢ Smoke test: scripts/smoke_test_part101.py (22 checks)
+  • Verified live: 30k prompt -> openrouter -> 3,850-char real answer
+  • Smoke test: scripts/smoke_test_part101.py (22 checks)
 - Retry policy for full failover cycle (Part 102):
-  â€¢ llm.py: after the failover loop, if _retry_depth == 0
-  â€¢ Reload providers to see fresh cooldown state
-  â€¢ If NO provider is ready AND soonest cooldown <= 20s:
+  • llm.py: after the failover loop, if _retry_depth == 0
+  • Reload providers to see fresh cooldown state
+  • If NO provider is ready AND soonest cooldown <= 20s:
     wait min(min_cool + 0.5, 8.0)s then recurse once with
     _retry_depth=1
-  â€¢ Guard ensures exactly ONE retry (no infinite loop)
-  â€¢ Wait capped at 8s to never stall an interactive request
-  â€¢ Metric llm_request_retried + diagnostic print lines
-  â€¢ Only fires when ALL providers cooling AND recovery imminent
-    â€” if any provider is ready, first pass used it
-  â€¢ Smoke test: scripts/smoke_test_part102.py (18 checks)
+  • Guard ensures exactly ONE retry (no infinite loop)
+  • Wait capped at 8s to never stall an interactive request
+  • Metric llm_request_retried + diagnostic print lines
+  • Only fires when ALL providers cooling AND recovery imminent
+    — if any provider is ready, first pass used it
+  • Smoke test: scripts/smoke_test_part102.py (18 checks)
 - Provider health metrics dashboard (Part 103):
-  â€¢ New endpoint: GET /api/providers/metrics
-  â€¢ Aggregates three sources:
+  • New endpoint: GET /api/providers/metrics
+  • Aggregates three sources:
     1. Session stats (per-process): success/fail counts,
        success_rate, cooldowns, last_error, last_success_ts
     2. Lifetime counters (persistent via metrics.py / Neon):
        attempts, empty-responses, learned-limits, retries
     3. Storage diagnostics (from provider_limits)
-  â€¢ _sum_prefix() helper auto-includes future labeled counters
-  â€¢ Verified live: groq learned=8403 but max_pt=7500 (tighter wins)
-  â€¢ Smoke test: scripts/smoke_test_part103.py (33 checks)
+  • _sum_prefix() helper auto-includes future labeled counters
+  • Verified live: groq learned=8403 but max_pt=7500 (tighter wins)
+  • Smoke test: scripts/smoke_test_part103.py (33 checks)
 - WebUI provider health panel (Part 104):
-  â€¢ Renders /api/providers/metrics inside the Stats modal
-  â€¢ Modal renamed: 'Stats & Provider Health'
-  â€¢ Table: Provider | Model | Status(dot) | Success Rate
-  â€¢ Summary: N providers | N ready | N cooling | session rate
-  â€¢ Footer: storage source + learned limits + lifetime counters
-  â€¢ Auto-refresh every 10s while modal open (clears on close)
-  â€¢ New .ph-* CSS classes matching existing dark theme
-  â€¢ Smoke test: scripts/smoke_test_part104.py (36 checks)
+  • Renders /api/providers/metrics inside the Stats modal
+  • Modal renamed: 'Stats & Provider Health'
+  • Table: Provider | Model | Status(dot) | Success Rate
+  • Summary: N providers | N ready | N cooling | session rate
+  • Footer: storage source + learned limits + lifetime counters
+  • Auto-refresh every 10s while modal open (clears on close)
+  • New .ph-* CSS classes matching existing dark theme
+  • Smoke test: scripts/smoke_test_part104.py (36 checks)
 - Per-message provider chip (Part 105):
-  â€¢ Small 'via groq Â· 1.2s' chip appears under each
+  • Small 'via groq Â· 1.2s' chip appears under each
     assistant bubble in chat
-  â€¢ Tracks lastProvider per-request (reset each sendMessage)
-  â€¢ Set from data.provider in both 'final' and 'done' SSE events
-  â€¢ Appended via agentBubble.insertAdjacentElement('afterend', chip)
-  â€¢ CSS .provider-chip: 11px muted, aligned with agent padding
-  â€¢ Failover chain now visible message-by-message
-  â€¢ Smoke test: scripts/smoke_test_part105.py (18 checks)
+  • Tracks lastProvider per-request (reset each sendMessage)
+  • Set from data.provider in both 'final' and 'done' SSE events
+  • Appended via agentBubble.insertAdjacentElement('afterend', chip)
+  • CSS .provider-chip: 11px muted, aligned with agent padding
+  • Failover chain now visible message-by-message
+  • Smoke test: scripts/smoke_test_part105.py (18 checks)
 - Persistent image attachments (Parts 106, 106b, 106c, 106d):
-  â€¢ New module: src/sunnyware/attachments.py
-  â€¢ save_base64(b64, ext) -> {id, ext, url, bytes}
-  â€¢ Storage: SUNNYWARE_DATA_DIR/attachments > /data/attachments
+  • New module: src/sunnyware/attachments.py
+  • save_base64(b64, ext) -> {id, ext, url, bytes}
+  • Storage: SUNNYWARE_DATA_DIR/attachments > /data/attachments
     (POSIX) > ./data/attachments
-  â€¢ Serving: GET /api/attachments/{att_id}.{ext} (immutable cache)
-  â€¢ Diagnostics: GET /api/attachments/stats
-  â€¢ image_generate + chart_from_data save base64 to disk
-  â€¢ Orchestrator collects attachment URLs from tool results
+  • Serving: GET /api/attachments/{att_id}.{ext} (immutable cache)
+  • Diagnostics: GET /api/attachments/stats
+  • image_generate + chart_from_data save base64 to disk
+  • Orchestrator collects attachment URLs from tool results
     (native + prompt-json paths) and returns them in ALL success
     paths (10 return sites)
-  â€¢ routes/agent.py: _strip_broken_b64_md() removes unusable
+  • routes/agent.py: _strip_broken_b64_md() removes unusable
     '![..](data:image/..,base64,[image: N bytes base64])' markdown
     before saving to history
-  â€¢ WebUI: loadSession renders <img class='msg-image'> from
+  • WebUI: loadSession renders <img class='msg-image'> from
     stored attachments; sendMessage persists to localStorage
-  â€¢ Part 106d: handles empty-text case (LLM returns nothing after
+  • Part 106d: handles empty-text case (LLM returns nothing after
     tool call) by forcing ensureBubble + placeholder text
-  â€¢ Verified: image survives browser refresh + session navigation
-  â€¢ Smoke test: scripts/smoke_test_part106.py (38 checks)
+  • Verified: image survives browser refresh + session navigation
+  • Smoke test: scripts/smoke_test_part106.py (38 checks)
 - Financial data tools for FP&A and quant roles (Parts 107-109):
-  â€¢ edgar_fundamentals: SEC EDGAR XBRL (no key, authoritative US filings)
-    â€” /companyfacts endpoint (ONE request returns all tags)
-    â€” UA format: '<Company Name> <email>' (no version, no parens)
-    â€” Verified: Apple Inc., FY2025 revenue $416.16B, net $112.01B
-  â€¢ fred_economic: FRED macro (free key, 120 req/min)
-    â€” 800k+ series: GDP, CPI, unemployment, treasury yields
-    â€” 'popular' preset + search + series observations
-  â€¢ finnhub_quote: Quotes + news + earnings (free key, 60/min)
-    â€” quote, profile, company_news, market_news, earnings, metrics
-  â€¢ tiingo_prices: 9-year daily + intraday (free key, 1000/day)
-    â€” eod (uses /daily/{sym}/prices), intraday, meta
-  â€¢ marketaux_news: News + sentiment (free key, 100 req/day)
-    â€” entity tagging, sentiment scores, 80+ markets
-  â€¢ twelvedata_prices: Multi-asset (free key, 800/day)
-    â€” stocks, forex, crypto; quote, time_series, rsi, macd
-  â€¢ fmp_fundamentals: /stable/ API (v3 legacy retired Sept 2025)
-    â€” quote, profile, income, balance, cashflow, ratios, metrics, dcf
-    â€” symbol is query param (?symbol=AAPL) not path segment
-  â€¢ Shared helper: _financial_http.py (retry + cache + env checks)
-  â€¢ Tools: 59 -> 66
-  â€¢ All 7 API keys on HF Space secrets (FRED, FINNHUB, TIINGO,
+  • edgar_fundamentals: SEC EDGAR XBRL (no key, authoritative US filings)
+    — /companyfacts endpoint (ONE request returns all tags)
+    — UA format: '<Company Name> <email>' (no version, no parens)
+    — Verified: Apple Inc., FY2025 revenue $416.16B, net $112.01B
+  • fred_economic: FRED macro (free key, 120 req/min)
+    — 800k+ series: GDP, CPI, unemployment, treasury yields
+    — 'popular' preset + search + series observations
+  • finnhub_quote: Quotes + news + earnings (free key, 60/min)
+    — quote, profile, company_news, market_news, earnings, metrics
+  • tiingo_prices: 9-year daily + intraday (free key, 1000/day)
+    — eod (uses /daily/{sym}/prices), intraday, meta
+  • marketaux_news: News + sentiment (free key, 100 req/day)
+    — entity tagging, sentiment scores, 80+ markets
+  • twelvedata_prices: Multi-asset (free key, 800/day)
+    — stocks, forex, crypto; quote, time_series, rsi, macd
+  • fmp_fundamentals: /stable/ API (v3 legacy retired Sept 2025)
+    — quote, profile, income, balance, cashflow, ratios, metrics, dcf
+    — symbol is query param (?symbol=AAPL) not path segment
+  • Shared helper: _financial_http.py (retry + cache + env checks)
+  • Tools: 59 -> 66
+  • All 7 API keys on HF Space secrets (FRED, FINNHUB, TIINGO,
     MARKETAUX, TWELVEDATA, FMP, SEC_USER_AGENT)
-  â€¢ Smoke test: scripts/smoke_test_part107.py (73 checks)
+  • Smoke test: scripts/smoke_test_part107.py (73 checks)
 - Actuarial / insurance / risk libraries (Part 111):
-  â€¢ chainladder 0.10.1, lifelib 0.17.2, solvency2-data 0.5.0
-  â€¢ All in requirements.txt + python_eval sandbox allowlist
-  â€¢ haute rejected (Py3.11+ only)
-  â€¢ chainladder IBNR on RAA verified = 52,135.23 on HF
-  â€¢ Smoke test: scripts/smoke_test_part111.py (11 checks)
+  • chainladder 0.10.1, lifelib 0.17.2, solvency2-data 0.5.0
+  • All in requirements.txt + python_eval sandbox allowlist
+  • haute rejected (Py3.11+ only)
+  • chainladder IBNR on RAA verified = 52,135.23 on HF
+  • Smoke test: scripts/smoke_test_part111.py (11 checks)
 - Role personas with per-role tool subsetting (Part 112):
-  â€¢ New module src/sunnyware/roles.py defines 5 roles:
-    â€” general   (all 67 tools, no addon)
-    â€” fpa       FP&A Analyst     12 tools, statements/ratios/forecasting
-    â€” quant     Quant Researcher  12 tools, time series/backtests/options
-    â€” actuary   Actuarial Analyst 10 tools, chainladder/lifelib/solvency2
-    â€” tax       Tax Accountant    10 tools, filings/insider/RFR
-  â€¢ Tool filtering: prefix-based (e.g. edgar_*, fmp_*) + curated extras
-  â€¢ Per-role prompt addon prepended to system prompt (persona + guidance)
-  â€¢ Saves ~4-6K tokens/request in non-general roles; improves tool pick
-  â€¢ Backend: orchestrator._build_tools_schema(role), run_agent(role=...)
-  â€¢ API: both /api/agent/run and /api/agent/stream accept 'role' field
-  â€¢ New endpoint: GET /api/roles â€” returns {roles:[{key,label,icon}],default}
-  â€¢ WebUI: <select id="roleSelect"> in header-right, persists to
+  • New module src/sunnyware/roles.py defines 5 roles:
+    — general   (all 67 tools, no addon)
+    — fpa       FP&A Analyst     12 tools, statements/ratios/forecasting
+    — quant     Quant Researcher  12 tools, time series/backtests/options
+    — actuary   Actuarial Analyst 10 tools, chainladder/lifelib/solvency2
+    — tax       Tax Accountant    10 tools, filings/insider/RFR
+  • Tool filtering: prefix-based (e.g. edgar_*, fmp_*) + curated extras
+  • Per-role prompt addon prepended to system prompt (persona + guidance)
+  • Saves ~4-6K tokens/request in non-general roles; improves tool pick
+  • Backend: orchestrator._build_tools_schema(role), run_agent(role=...)
+  • API: both /api/agent/run and /api/agent/stream accept 'role' field
+  • New endpoint: GET /api/roles — returns {roles:[{key,label,icon}],default}
+  • WebUI: <select id="roleSelect"> in header-right, persists to
     localStorage ('sunnyware.role'), synced from /api/roles on boot
-  â€¢ Smoke test: scripts/smoke_test_part112.py (28 checks)
-  â€¢ WebUI is served at /ui (chat UI); / returns metadata JSON
+  • Smoke test: scripts/smoke_test_part112.py (28 checks)
+  • WebUI is served at /ui (chat UI); / returns metadata JSON
 - Per-session role persistence (Part 113A):
-  â€¢ sessions.py: set_role(session_key, role) + get_role(session_key)
-    â€” role stored in existing metadata JSONB column (no migration)
-  â€¢ routes/sessions.py:
-    â€” GET /api/sessions/{key}/role  -> {"role": "actuary"} or "general"
-    â€” PUT /api/sessions/{key}/role  -> {role}, validated, 400 on unknown
-  â€¢ routes/agent.py: /run + /stream persist role to session on send
-  â€¢ roles.py: canonical() now public alias
-  â€¢ WebUI:
-    â€” persistRoleToSession() PUTs on selector change
-    â€” syncRoleFromSession(id) reads role on session open
-    â€” loadSession + loadSessionWithFallback hook the sync
-  â€¢ Behavior: switching Actuary on chat A stores actuary on A;
+  • sessions.py: set_role(session_key, role) + get_role(session_key)
+    — role stored in existing metadata JSONB column (no migration)
+  • routes/sessions.py:
+    — GET /api/sessions/{key}/role  -> {"role": "actuary"} or "general"
+    — PUT /api/sessions/{key}/role  -> {role}, validated, 400 on unknown
+  • routes/agent.py: /run + /stream persist role to session on send
+  • roles.py: canonical() now public alias
+  • WebUI:
+    — persistRoleToSession() PUTs on selector change
+    — syncRoleFromSession(id) reads role on session open
+    — loadSession + loadSessionWithFallback hook the sync
+  • Behavior: switching Actuary on chat A stores actuary on A;
     opening chat B restores B's own role (or general)
-  â€¢ Smoke test: scripts/smoke_test_part113a.py (18 checks)
+  • Smoke test: scripts/smoke_test_part113a.py (18 checks)
 - Role-specific result rendering (Part 113B):
-  â€¢ roles.py: style(role) helper â€” per-role accent color + chip label
-    â€” general #8899aa  fpa #4a90e2  quant #a855f7
-    â€” actuary #10b981  tax #f59e0b
-  â€¢ routes/agent.py /stream: 'start' event now includes role + accent + chip
-  â€¢ routes/agent.py /run: response includes role
-  â€¢ WebUI:
-    â€” #chat[data-role="X"] CSS rules set agent-bubble border-left accent
-    â€” role chip via .msg.agent::before (e.g. ðŸ“Š FP&A, ðŸ§® QUANT)
-    â€” orchestrator._emit start event carries role + accent + chip
-    â€” agent_stream reads role from body + passes to orchestrator
-    â€” SSE handler reads data.role + data.accent from start event
-    â€” initRoleSelector sets chat.dataset.role on boot
-    â€” persistRoleToSession + syncRoleFromSession keep it in sync
-  â€¢ Session-level styling: switching role re-colors whole chat (old + new msgs)
-  â€¢ Smoke test: scripts/smoke_test_part113b.py (25 checks)
+  • roles.py: style(role) helper — per-role accent color + chip label
+    — general #8899aa  fpa #4a90e2  quant #a855f7
+    — actuary #10b981  tax #f59e0b
+  • routes/agent.py /stream: 'start' event now includes role + accent + chip
+  • routes/agent.py /run: response includes role
+  • WebUI:
+    — #chat[data-role="X"] CSS rules set agent-bubble border-left accent
+    — role chip via .msg.agent::before (e.g. ðŸ“Š FP&A, ðŸ§® QUANT)
+    — orchestrator._emit start event carries role + accent + chip
+    — agent_stream reads role from body + passes to orchestrator
+    — SSE handler reads data.role + data.accent from start event
+    — initRoleSelector sets chat.dataset.role on boot
+    — persistRoleToSession + syncRoleFromSession keep it in sync
+  • Session-level styling: switching role re-colors whole chat (old + new msgs)
+  • Smoke test: scripts/smoke_test_part113b.py (25 checks)
 - Options-cache TTL differentiation (Part 113C):
-  â€¢ _financial_http.py: cache_stats() + cache_clear() helpers
-    â€” cache_stats: {total_keys, live_keys, expired_keys, default_ttl}
-    â€” cache_clear: wipe the in-memory cache (admin escape hatch)
-  â€¢ eulerpool_data.py: per-action TTL table (_TTL_OVERRIDES)
-    â€” options_greeks/chain/iv/flow â†’ 60s (live derivatives)
-    â€” candles                     â†’ 300s
-    â€” profile/overview/dividends/esg/analyst_grades â†’ 24h
-    â€” everything else              â†’ 1h (default _TTL)
-  â€¢ eulerpool_data.py: metrics hooks
-    â€” eulerpool_cache_hit_<action>   (labeled)
-    â€” eulerpool_cache_miss_<action>  (labeled)
-    â€” eulerpool_api_calls_total
-  â€¢ routes/meta.py: NEW endpoints
-    â€” GET  /api/cache/stats â€” cache + per-action hit rates
-    â€” POST /api/cache/clear â€” wipe cache, returns count
-  â€¢ Effect: 2nd options_greeks call within 60s is instant (0 API quota)
-  â€¢ Smoke test: scripts/smoke_test_part113c.py (24 checks)
+  • _financial_http.py: cache_stats() + cache_clear() helpers
+    — cache_stats: {total_keys, live_keys, expired_keys, default_ttl}
+    — cache_clear: wipe the in-memory cache (admin escape hatch)
+  • eulerpool_data.py: per-action TTL table (_TTL_OVERRIDES)
+    — options_greeks/chain/iv/flow â†’ 60s (live derivatives)
+    — candles                     â†’ 300s
+    — profile/overview/dividends/esg/analyst_grades â†’ 24h
+    — everything else              â†’ 1h (default _TTL)
+  • eulerpool_data.py: metrics hooks
+    — eulerpool_cache_hit_<action>   (labeled)
+    — eulerpool_cache_miss_<action>  (labeled)
+    — eulerpool_api_calls_total
+  • routes/meta.py: NEW endpoints
+    — GET  /api/cache/stats — cache + per-action hit rates
+    — POST /api/cache/clear — wipe cache, returns count
+  • Effect: 2nd options_greeks call within 60s is instant (0 API quota)
+  • Smoke test: scripts/smoke_test_part113c.py (24 checks)
 - Insurance data sources (Part 113D):
-  â€¢ New tool: tools/insurance_data.py (68th tool)
-    â€” Socrata open-data APIs â€” NO API key required
-    â€” 8 state DOI portals: TX TDI, NY DFS, CT, WA, IL, CO, OR, VT
-    â€” actions: states, discover, inspect, fetch
-    â€” returns datasets, column metadata, raw rows
-  â€¢ Registry: tools/__init__.py imports + registers InsuranceDataTool
-  â€¢ Roles: actuary tool_prefixes now include insurance_
-    â€” actuary active tools: 11 (was 10)
-    â€” actuary prompt addon mentions insurance_data usage
-  â€¢ Cache: discovery 24h, inspect 24h, fetch 1h (via existing cache_get/set)
-  â€¢ Smoke test: scripts/smoke_test_part113d.py (20 checks)
+  • New tool: tools/insurance_data.py (68th tool)
+    — Socrata open-data APIs — NO API key required
+    — 8 state DOI portals: TX TDI, NY DFS, CT, WA, IL, CO, OR, VT
+    — actions: states, discover, inspect, fetch
+    — returns datasets, column metadata, raw rows
+  • Registry: tools/__init__.py imports + registers InsuranceDataTool
+  • Roles: actuary tool_prefixes now include insurance_
+    — actuary active tools: 11 (was 10)
+    — actuary prompt addon mentions insurance_data usage
+  • Cache: discovery 24h, inspect 24h, fetch 1h (via existing cache_get/set)
+  • Smoke test: scripts/smoke_test_part113d.py (20 checks)
 - CFO + CDO supervisor hierarchy (Part 114):
-  â€¢ New tool: delegate_to_agent (69th tool)
-    â€” contextvars track current role / depth / path (async-safe)
-    â€” max depth 3 (CFO â†’ CDO â†’ worker), cycle detection by path
-  â€¢ New roles:
-    â€” cfo (Chief Financial Officer)  accent #8b5cf6, chip ðŸ’¼ CFO
-    â€” cdo (Chief Delivery Officer)   accent #06b6d4, chip ðŸ“‹ CDO
-  â€¢ Delegation matrix (enforced in roles.py):
-    â€” cfo â†’ {cdo}
-    â€” cdo â†’ {actuary, quant, fpa, tax, general}
-    â€” workers â†’ nothing
-  â€¢ orchestrator.run_agent wrapped to set role contextvar (nested calls)
-  â€¢ routes/agent.py extends timeout to 300s for cfo + cdo roles
-  â€¢ WebUI: CFO + CDO in role dropdown; borders + chips
-  â€¢ Bonus fix: Part 113B chip emoji were literal \U escapes in CSS
-    (never rendered) â€” replaced with real emoji bytes
-  â€¢ Smoke test: scripts/smoke_test_part114.py (50 checks)
-  â€¢ Part 114b-e: pipeline hardening (5 commits)",
-  "    â€” 114b: trimmed CFO tools (rag_search, list_files, write_file,",
+  • New tool: delegate_to_agent (69th tool)
+    — contextvars track current role / depth / path (async-safe)
+    — max depth 3 (CFO â†’ CDO â†’ worker), cycle detection by path
+  • New roles:
+    — cfo (Chief Financial Officer)  accent #8b5cf6, chip ðŸ’¼ CFO
+    — cdo (Chief Delivery Officer)   accent #06b6d4, chip ðŸ“‹ CDO
+  • Delegation matrix (enforced in roles.py):
+    — cfo â†’ {cdo}
+    — cdo â†’ {actuary, quant, fpa, tax, general}
+    — workers â†’ nothing
+  • orchestrator.run_agent wrapped to set role contextvar (nested calls)
+  • routes/agent.py extends timeout to 300s for cfo + cdo roles
+  • WebUI: CFO + CDO in role dropdown; borders + chips
+  • Bonus fix: Part 113B chip emoji were literal \U escapes in CSS
+    (never rendered) — replaced with real emoji bytes
+  • Smoke test: scripts/smoke_test_part114.py (50 checks)
+  • Part 114b-e: pipeline hardening (5 commits)",
+  "    — 114b: trimmed CFO tools (rag_search, list_files, write_file,",
   "      calculator removed); MANDATORY-first-action prompt",
-  "    â€” 114c: CDO tools 6â†’2 (delegate_to_agent + read_file only);",
+  "    — 114c: CDO tools 6â†’2 (delegate_to_agent + read_file only);",
   "      CDO prompt hardened; timeout 300sâ†’600s for cfo/cdo roles",
-  "    â€” 114d: compact_prompt(allowed_tools=...) enforces role subset",
+  "    — 114d: compact_prompt(allowed_tools=...) enforces role subset",
   "      on the default (non-native-tools) path; orchestrator guards",
   "      _execute_tool to reject out-of-role tool calls",
-  "    â€” 114e: STRICT PIPELINE RULE in CFO prompt overrides the base",
-  "      'answer simple questions directly' clause â€” every user request",
+  "    — 114e: STRICT PIPELINE RULE in CFO prompt overrides the base",
+  "      'answer simple questions directly' clause — every user request",
   "      goes through delegate_to_agent(cdo), no exceptions",
-  "    â€” VERIFIED live: '15% of $2400' â†’ 1 delegation to CDO â†’ '360'",
+  "    — VERIFIED live: '15% of $2400' â†’ 1 delegation to CDO â†’ '360'",
   "      in 12.3s, no local calculator/rag_search abuse
-- UI + role tooling (Parts 115â€“117):
-  â€¢ Part 115 â€” role-specific content styling (22 checks)
-    â€” CSS per role on tables / code / list markers / headings
-    â€” FP&A blue, Quant purple, Actuary emerald, Tax amber,
+- UI + role tooling (Parts 115–117):
+  • Part 115 — role-specific content styling (22 checks)
+    — CSS per role on tables / code / list markers / headings
+    — FP&A blue, Quant purple, Actuary emerald, Tax amber,
       CFO violet, CDO cyan
-  â€¢ Part 116 â€” role config export/import (25 checks)
-    â€” GET /api/roles/export  â†’ shareable JSON snapshot
-    â€” POST /api/roles/import â†’ validated (version, keys, fields)
-    â€” export_roles() / import_roles() helpers in roles.py
-  â€¢ Part 117 â€” insurance_research tool (70th tool, 23 checks)
-- Multi-platform feature roadmap (Parts 119â€“128):
-  â€¢ 10 features from verified high-value platforms, all shipped:
-    1. 119 â€” agent monitoring dashboard (runs/success/failure/latency)
-    2. 120 â€” save-as-script on python_eval (Bloomberg BQL-style)
-    3. 121 â€” lexicon sentiment on filings (AlphaSense-style)
-    4. 122 â€” workflow registry (Bloomberg ASKB-style)
-    5. 123 â€” interactive Plotly charts in chat (Kensho MCP Apps)
-    6. 124 â€” narrate_table (Hebbia Matrix-style)
-    7. 125 â€” research_search (edgar+fred+govcon parallel)
-    8. 126 â€” document_library (Bloomberg Drive-style)
-    9. 127 â€” earnings_call transcript summarizer
-    10. 128 â€” clause_extractor (Hebbia ISD-style)
+  • Part 116 — role config export/import (25 checks)
+    — GET /api/roles/export  â†’ shareable JSON snapshot
+    — POST /api/roles/import â†’ validated (version, keys, fields)
+    — export_roles() / import_roles() helpers in roles.py
+  • Part 117 — insurance_research tool (70th tool, 23 checks)
+- Multi-platform feature roadmap (Parts 119–128):
+  • 10 features from verified high-value platforms, all shipped:
+    1. 119 — agent monitoring dashboard (runs/success/failure/latency)
+    2. 120 — save-as-script on python_eval (Bloomberg BQL-style)
+    3. 121 — lexicon sentiment on filings (AlphaSense-style)
+    4. 122 — workflow registry (Bloomberg ASKB-style)
+    5. 123 — interactive Plotly charts in chat (Kensho MCP Apps)
+    6. 124 — narrate_table (Hebbia Matrix-style)
+    7. 125 — research_search (edgar+fred+govcon parallel)
+    8. 126 — document_library (Bloomberg Drive-style)
+    9. 127 — earnings_call transcript summarizer
+    10. 128 — clause_extractor (Hebbia ISD-style)
 - Specialist sub-agents + risk computation (Phase A + C-2):
-  â€¢ Phase A â€” two new roles added to the supervisor hierarchy:
-    â€” legal    Financial Legal Assistant   slate #64748b  chip LEGAL
-    â€” risk_ins Financial Risk & Insurance  red   #ef4444  chip RISK/INS
-  â€¢ legal (14 tools): clause_extractor, research_search,
+  • Phase A — two new roles added to the supervisor hierarchy:
+    — legal    Financial Legal Assistant   slate #64748b  chip LEGAL
+    — risk_ins Financial Risk & Insurance  red   #ef4444  chip RISK/INS
+  • legal (14 tools): clause_extractor, research_search,
     document_library, narrate_table, earnings_call, python_eval,
     sql_sandbox_execute, read/write/list, rag_search, web_search,
     calculator, delegate_to_agent
-  â€¢ risk_ins (22 tools): python_eval, risk_metrics, sql_sandbox,
+  • risk_ins (22 tools): python_eval, risk_metrics, sql_sandbox,
     duckdb_query, insurance_research, insurance_data, govcon_data,
     research_search, narrate_table, clause_extractor,
     earnings_call, + tiingo/twelvedata/fred/finnhub/edgar/eulerpool
-  â€¢ Delegation: cdo â†’ {actuary, quant, fpa, tax, general, legal, risk_ins}
+  • Delegation: cdo â†’ {actuary, quant, fpa, tax, general, legal, risk_ins}
     cfo â†’ {cdo}  (unchanged)  |  legal, risk_ins â†’ {} (workers)
-  â€¢ Aliases: attorney/counsel/compliance â†’ legal;
+  • Aliases: attorney/counsel/compliance â†’ legal;
     risk/insurance_risk/investment_risk â†’ risk_ins
-  â€¢ Compliance baked into prompts: legal has [PRIVILEGED] markers
+  • Compliance baked into prompts: legal has [PRIVILEGED] markers
     + no-legal-advice disclaimer + citation verification; risk_ins
     requires methodology + confidence + holding period + human
     sign-off flagging + no autonomous execution
-  â€¢ Phase C-2 â€” new tool #79 risk_metrics (pure numpy/scipy):
-    â€” 12 actions: summary, var (historical/parametric/MC), cvar,
+  • Phase C-2 — new tool #79 risk_metrics (pure numpy/scipy):
+    — 12 actions: summary, var (historical/parametric/MC), cvar,
       volatility, sharpe, sortino, drawdown, calmar, stress_test,
       correlation, beta, from_prices
-    â€” Every result carries a 'methodology' field (audit-ready)
-    â€” Monte Carlo reproducible (seed=42)
-    â€” Assigned to risk_ins + quant roles
-  â€¢ VERIFIED live on HF:
-    â€” 9 roles in /api/roles
-    â€” Legal answered indemnification vs liability distinction
-    â€” risk_ins computed VaR/Sharpe via risk_metrics end-to-end
-  â€¢ Zero changes to orchestrator.py or delegate_to_agent.py
-  â€¢ Smoke tests: 129 (48/48), 130 (47/47)
-  â€¢ Tools: 71 â†’ 78 (+7 new tools)
-  â€¢ New endpoints:
-    â€” GET  /api/agents/metrics
-    â€” GET  /api/cache/stats
-    â€” POST /api/cache/clear
-  â€¢ WebUI: Plotly CDN + auto-render pipeline
-  â€¢ Roles updated: fpa, actuary, cfo, tax gain new tools
-  â€¢ All zero-LLM, zero-network (pure Python) except 119/123
-    which only instrument existing paths â€” no new LLM calls
-    â€” honest reframe: NAIC (404) + AmericasSuretyBonds (403)
+    — Every result carries a 'methodology' field (audit-ready)
+    — Monte Carlo reproducible (seed=42)
+    — Assigned to risk_ins + quant roles
+  • VERIFIED live on HF:
+    — 9 roles in /api/roles
+    — Legal answered indemnification vs liability distinction
+    — risk_ins computed VaR/Sharpe via risk_metrics end-to-end
+  • Zero changes to orchestrator.py or delegate_to_agent.py
+  • Smoke tests: 129 (48/48), 130 (47/47)
+  • Tools: 71 â†’ 78 (+7 new tools)
+  • New endpoints:
+    — GET  /api/agents/metrics
+    — GET  /api/cache/stats
+    — POST /api/cache/clear
+  • WebUI: Plotly CDN + auto-render pipeline
+  • Roles updated: fpa, actuary, cfo, tax gain new tools
+  • All zero-LLM, zero-network (pure Python) except 119/123
+    which only instrument existing paths — no new LLM calls
+    — honest reframe: NAIC (404) + AmericasSuretyBonds (403)
       had no public APIs, so we shipped real verified sources
-    â€” SEC EDGAR full-text: https://efts.sec.gov/LATEST/search-index
+    — SEC EDGAR full-text: https://efts.sec.gov/LATEST/search-index
       query='IBNR' forms='10-K' returned 2,082 real filings
-    â€” SEC EDGAR submissions by CIK: data.sec.gov/submissions/
-    â€” FRED search + observations (existing FRED_API_KEY)
+    — SEC EDGAR submissions by CIK: data.sec.gov/submissions/
+    — FRED search + observations (existing FRED_API_KEY)
       'health' insurance query returned 4,330 real series
-    â€” CCSA (insured unemployment) = 1.71M, 2026-10-03
-    â€” actuary role now includes insurance_research
-  â€¢ Part 118 â€” govcon_data tool (71st tool, 20 checks)
-    â€” honest replacement for SAM.gov plan (no OTP delivery)
-    â€” source: USAspending.gov API v2 (Treasury, keyless)
-    â€” actions: award_search / recipient_search /
+    — CCSA (insured unemployment) = 1.71M, 2026-10-03
+    — actuary role now includes insurance_research
+  • Part 118 — govcon_data tool (71st tool, 20 checks)
+    — honest replacement for SAM.gov plan (no OTP delivery)
+    — source: USAspending.gov API v2 (Treasury, keyless)
+    — actions: award_search / recipient_search /
       spending_by_category
-    â€” VERIFIED live on HF:
+    — VERIFIED live on HF:
       award_search NAICS 524126 â†’ real P&C insurer contracts
       recipient_search 'American International Group' â†’ real UEIs
       spending_by_category naics â†’ Direct Health & Medical
       Insurance = $48.5B in federal contracts
-    â€” cfo role extra_tools now include govcon_data
-- Eulerpool multi-source data (Part 110) â€” 8th financial data source:
-  â€¢ New tool: eulerpool_data â€” curated 70-endpoint wrapper over
+    — cfo role extra_tools now include govcon_data
+- Eulerpool multi-source data (Part 110) — 8th financial data source:
+  • New tool: eulerpool_data — curated 70-endpoint wrapper over
     Eulerpool's 447-endpoint API
-  â€¢ NEW capabilities (not in any other tool):
-    â€” Bonds / Treasury yields / interest rate spreads
-    â€” Fixed income analytics / spot & forward curves
-    â€” Options chains / Greeks / IV surface / flow
-    â€” 13F institutional holdings (per ticker + per CIK)
-    â€” Superinvestor tracking (holdings, recent activity, top)
-    â€” Congressional trading (STOCK Act)
-    â€” Insider trades (Form 4) + insider sentiment
-    â€” Economic calendar (macro, earnings, dividends, IPO, M&A)
-    â€” Google Trends / Reddit / Fear & Greed / Wikipedia views
-    â€” Commodity prices + futures curves
-    â€” Crypto global stats + candles + fear/greed
-    â€” Risk models (covariance, factors, portfolio risk)
-    â€” Fama-French factors + CFTC COT
-    â€” Earnings call transcripts
-  â€¢ SUPPLEMENTS: FRED/IMF/BIS/ECB/Eurostat/World Bank via same key
-  â€¢ Single unified tool: action + optional identifier + optional params
-  â€¢ 1-hour TTL cache to preserve free tier budget
-  â€¢ Verified live: 10/10 actions return real data on HF
-  â€¢ Tools: 66 -> 67
-  â€¢ EULERPOOL_API_KEY on HF Space secrets
+  • NEW capabilities (not in any other tool):
+    — Bonds / Treasury yields / interest rate spreads
+    — Fixed income analytics / spot & forward curves
+    — Options chains / Greeks / IV surface / flow
+    — 13F institutional holdings (per ticker + per CIK)
+    — Superinvestor tracking (holdings, recent activity, top)
+    — Congressional trading (STOCK Act)
+    — Insider trades (Form 4) + insider sentiment
+    — Economic calendar (macro, earnings, dividends, IPO, M&A)
+    — Google Trends / Reddit / Fear & Greed / Wikipedia views
+    — Commodity prices + futures curves
+    — Crypto global stats + candles + fear/greed
+    — Risk models (covariance, factors, portfolio risk)
+    — Fama-French factors + CFTC COT
+    — Earnings call transcripts
+  • SUPPLEMENTS: FRED/IMF/BIS/ECB/Eurostat/World Bank via same key
+  • Single unified tool: action + optional identifier + optional params
+  • 1-hour TTL cache to preserve free tier budget
+  • Verified live: 10/10 actions return real data on HF
+  • Tools: 66 -> 67
+  • EULERPOOL_API_KEY on HF Space secrets
 
 
 ### RAG over documents
@@ -908,25 +938,25 @@ Before every commit + push, run:
 
 Exit 0 = READY TO PUSH.
 When running pre_push_check.py, if HF push times out, retry
-  ./push_hf.sh standalone â€” the GitHub push already succeeded.
+  ./push_hf.sh standalone — the GitHub push already succeeded.
 
 
 
 ## What's next (priority order)
 1. Monitor the 80-tool stack + 9-role supervisor pipeline in production.
-2. NVIDIA NIM integration â€” WAITING on user to activate account.
+2. NVIDIA NIM integration — WAITING on user to activate account.
 3. Future: add Phase A + roadmap tools to remaining roles (general)
    for full symmetry.
-4. Future: legal/risk_ins metrics in /api/agents/metrics â€” they
+4. Future: legal/risk_ins metrics in /api/agents/metrics — they
    automatically appear since Part 119 instruments every run_agent.
 5. Future: expand legal_citation_check actions (get_cluster detail,
    cited_by graph) if the free tier proves sufficient.
 3. Future: NAIC Content JSON:API + AmericasSuretyBonds MCP (6,900+ bonds)
-   â€” additional insurance sources beyond the state-DOI Socrata portals
+   — additional insurance sources beyond the state-DOI Socrata portals
    shipped in Part 113D.
 4. Future: per-role result-rendering defaults (FP&A â†’ tables,
    Quant â†’ charts, Actuary â†’ assumption blocks).
-5. Future: role selection import/export â€” save a role's tool subset
+5. Future: role selection import/export — save a role's tool subset
    to a shareable JSON so teams can standardize workflows.
 
 ## Key files
@@ -1019,7 +1049,7 @@ When running pre_push_check.py, if HF push times out, retry
 
 
 
-Provider order â€” env LLM_PROVIDERS (comma-separated priority order).
+Provider order — env LLM_PROVIDERS (comma-separated priority order).
 
   Current: groq,gemini,openrouter
 
@@ -1027,7 +1057,7 @@ Provider order â€” env LLM_PROVIDERS (comma-separated priority order).
 
 
 
-Model per provider â€” env <NAME>_MODEL
+Model per provider — env <NAME>_MODEL
 
   Groq:       openai/gpt-oss-120b    (Part 46 swap; llama-3.3-70b not in tier)
 
@@ -1055,7 +1085,7 @@ in .env. Dynamic latency-based selection does not exist today.
 
 ## Conventions
 
-- Dual-remote deploy: git push origin main && ./push_hf.sh
+- Dual-remote deploy: git push origin main && git push hf main
 
 - Every feature ships with scripts/smoke_test_partNN.py
 
@@ -1097,9 +1127,9 @@ in .env. Dynamic latency-based selection does not exist today.
 
     Part 77d:     /openapi.json route re-registration (local only)
 
-    Part 79:      ASGI middleware (local only â€” Gradio's response wins)
+    Part 79:      ASGI middleware (local only — Gradio's response wins)
 
-  WON'''T FIX without replacing Gradio Server with our own subclass â€”
+  WON'''T FIX without replacing Gradio Server with our own subclass —
 
   major refactor, risk to /ui endpoint. Status: accepted limitation.
 
@@ -1129,7 +1159,7 @@ in .env. Dynamic latency-based selection does not exist today.
 - Token budget guard (Part 90) trips at 8000 estimated tokens. The
   estimate is char-based (~4 chars/token) and deliberately over-counts
   long prompts (counts prompt twice: once as 'prompt', once inside
-  'messages'). Safe direction â€” never trips late. tools_schema is
+  'messages'). Safe direction — never trips late. tools_schema is
   EXCLUDED: 58 tool definitions = ~8700 tokens of fixed infra cost;
   including them tripped every request. DO NOT re-add tools_schema
   to the estimator without raising MAX_REQUEST_TOKENS to 20000+.
@@ -1173,11 +1203,11 @@ in .env. Dynamic latency-based selection does not exist today.
 
 ## Full docs in repo (fetch or ask owner to paste)
 
-- HANDOFF.md  â€” detailed state + full queue
+- HANDOFF.md  — detailed state + full queue
 
-- AGENTS.md   â€” architecture + briefing for AI assistants
+- AGENTS.md   — architecture + briefing for AI assistants
 
-- WORKFLOW.md â€” dual-remote workflow + per-part progress log
+- WORKFLOW.md — dual-remote workflow + per-part progress log
 
 
 
@@ -1289,8 +1319,8 @@ me the exact git commands to commit + push both remotes."
 
 ## Backend
 - **New** `src/sunnyware/routes/workos_admin.py`: 
-  - `GET /api/admin/workos/users` â€” fetches users from WorkOS User Management API.
-  - `GET /api/admin/workos/organizations` â€” fetches orgs from WorkOS.
+  - `GET /api/admin/workos/users` — fetches users from WorkOS User Management API.
+  - `GET /api/admin/workos/organizations` — fetches orgs from WorkOS.
 - **Updated** `src/sunnyware/main.py`: Registered `workos_admin_routes`.
 
 ## Frontend (`static/admin-v2.html`)
@@ -1369,7 +1399,7 @@ me the exact git commands to commit + push both remotes."
 - **LLM_PROVIDERS**: Set to `gemini,openrouter,groq`.
 - **max_tokens**: Increased to 8192 in `llm.py` for reasoning models.
 - **Cache**: Deleted stale `/data/orchestrator_config.json`.
-- **Result**: Cloud fallback is now fully reliable (tested with "hi" â€” 1.5s response).
+- **Result**: Cloud fallback is now fully reliable (tested with "hi" — 1.5s response).
 
 ---
 

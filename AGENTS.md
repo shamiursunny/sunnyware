@@ -9,7 +9,7 @@ productive from the first message of a new session.
 
 Sunnyware is a FastAPI + Gradio AI agent running on a Hugging Face Space.
 It wraps an OpenAI-compatible LLM (Groq by default, Ollama optional locally)
-with a ReAct orchestrator, a 15-tool registry, RAG over user documents, and
+with a ReAct orchestrator, a 112-tool registry, RAG over user documents, and
 a sandboxed Python data-science workbench. PostgreSQL (Neon) stores memory
 and session history. It is a personal production agent.
 

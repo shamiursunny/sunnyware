@@ -27,14 +27,14 @@
 ### Deployed and live
 - Full RAG pipeline: upload -> chunk -> embed -> FAISS -> retrieve
 - Groq cloud LLM (gpt-oss-20b primary; 120b available)
-- 15 agent tools including `rag_search` and `python_eval` workbench
+- 112 agent tools including `rag_search` and `python_eval` workbench
 - Data science workbench in python_eval (pandas, duckdb, matplotlib,
   scipy, sklearn, statsmodels, seaborn, plotly, openpyxl, xlsxwriter)
 - All Part-31 hardening fixes live
 
 ### Health check
     curl https://shamiur-sunnyware.hf.space/health/ready
-    -> status: ok, llm: ok, python_eval: ok, tools: 15
+    -> status: ok, llm: ok, python_eval: ok, tools: 112
 
 ### Sync state
 - Local: (see `git log -1`)
