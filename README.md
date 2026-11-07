@@ -303,6 +303,25 @@ Sunnyware ships with **112 registered tools** across **17 categories**. Most req
 | `weather` | Get current weather for a city. Returns temperature, wind, conditions. Uses Open-Meteo (free, no API key). |
 
 
+## Multi-Tenant Architecture
+
+Sunnyware is a **true multi-tenant SaaS**. Every organization is isolated by `org_id` across identity, data, workspace, and memory. Built for land-and-expand: start with one user, scale to enterprise teams without re-architecture.
+
+| Layer | Isolation |
+|---|---|
+| Identity | WorkOS AuthKit (`org_id` + `user_id`) |
+| RAG Data | FAISS indices partitioned by `org_id` |
+| Workspace | `/data/workspace/{org_id}/{user_id}/` |
+| Memory | Sessions keyed by `(org_id, session_id)` |
+
+**RBAC:** Owner / Admin / User / Viewer.
+**Quotas:** Per-tenant token budgets, tool execution caps, storage limits.
+**Enterprise:** SSO (SAML 2.0 / OIDC), SCIM roadmap Q1 2027.
+
+See [`MULTI_TENANT.md`](./MULTI_TENANT.md) for the full architecture.
+
+---
+
 ## Production Readiness
 
 Sunnyware is monitored continuously and scored against 54 production-readiness checks. Current score: **95.5 / 100 (Grade A+)**.
