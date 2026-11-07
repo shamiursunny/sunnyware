@@ -42,7 +42,7 @@ class DomainResearchTool:
                 try:
                     resp = await client.get(arxiv_url)
                     if resp.status_code == 200:
-                        import xml.etree.ElementTree as ET
+                        import defusedxml.ElementTree as ET
                         root = ET.fromstring(resp.text)
                         ns = {"atom": "http://www.w3.org/2005/Atom"}
                         for entry in root.findall("atom:entry", ns):

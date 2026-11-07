@@ -22,6 +22,7 @@ Config (opt-in, but on by default):
   SUNNYWARE_AUDIT_PATH=<override>
 """
 
+import tempfile
 import hashlib
 import hmac
 import json
@@ -61,7 +62,7 @@ def path() -> Path:
     d = Path(os.environ.get("SUNNYWARE_DATA_DIR", "/data"))
     if d.exists() and os.access(str(d), os.W_OK):
         return d / "audit_log.jsonl"
-    return Path("/tmp/sunnyware_audit_log.jsonl")
+    return Path(tempfile.gettempdir()) / "sunnyware_audit_log.jsonl"
 
 
 def _canonical(entry: dict) -> bytes:

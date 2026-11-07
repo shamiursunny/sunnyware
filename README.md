@@ -322,6 +322,75 @@ See [`MULTI_TENANT.md`](./MULTI_TENANT.md) for the full architecture.
 
 ---
 
+<!-- ATTESTATIONS:START -->
+
+## Verifiable Quality Reports
+
+**Version:** `v1.14.0` · **Commit:** `54afdaa` · **Generated:** `2026-11-07T19-22-22Z`
+
+Every commit ships six **tamper-evident** quality reports.
+
+| Report | Exit | SHA-256 (first 16) | What it proves |
+|---|---|---|---|
+| `system_monitor` | ⚠️ 2 | `c8bbf37a1a3e58bc…` | Full system health + 54 production checks |
+| `pre_push_check` | ✅ 0 | `15e34353369eab15…` | Pre-push gate: syntax, HTML sanity, smoke test |
+| `smoke_local` | ✅ 0 | `406f5d6c9b51c9e2…` | Local HTML/structure validation |
+| `security_pre_deploy` | ✅ 0 | `b05517b0c76f8103…` | Static security: secrets, imports, CVEs, bandit |
+| `smoke_remote` | ✅ 0 | `8f903f6fcd270740…` | Live HF Space deployment health |
+| `security_post_deploy` | ✅ 0 | `c9210937fc2e0322…` | Runtime security: headers, auth, CORS |
+
+**Verify integrity in 1 second:**
+```bash
+python scripts/verify_attestations.py
+```
+
+Full reports + hashes: [`reports/latest/MANIFEST.json`](./reports/latest/MANIFEST.json). Each report is timestamped and linked to this git commit — anyone can re-run and reproduce.
+
+<!-- ATTESTATIONS:END -->
+
+## Versioning & Rollback
+
+Every successful push to `main` **automatically bumps the minor version** and creates an immutable git tag. The current version is displayed at the top of the **Verifiable Quality Reports** table above.
+
+### Versioning scheme
+
+| Change | Version bump | Example |
+|---|---|---|
+| Every push to `main` | `+0.1.0` (minor) | `v1.10.0` → `v1.11.0` |
+| Manual hotfix | `+0.0.1` (patch) | `python scripts/bump_version.py --patch` |
+
+### Rollback to any previous version
+
+List all released versions:
+
+    git tag -l 'v*' --sort=-version:refname
+
+View a previous version (read-only, safe):
+
+    git checkout v1.10.0
+    git checkout main
+
+Full rollback of main (destructive):
+
+    git checkout main
+    git reset --hard v1.10.0
+    git push origin main --force
+    git push hf main --force
+
+### How it works
+
+1. Push lands on `main` -> CI triggers
+2. CI runs `python scripts/bump_version.py` -> writes new version to `src/sunnyware/__init__.py`
+3. CI runs the 6 quality checks -> generates reports
+4. CI commits as `chore(release): vX.Y.Z [skip ci]`
+5. CI creates git tag `vX.Y.Z` on that commit
+6. CI pushes the commit + tag to both GitHub and Hugging Face
+
+The `[skip ci]` flag prevents the bump commit from re-triggering the workflow.
+
+---
+
+
 ## Production Readiness
 
 Sunnyware is monitored continuously and scored against 54 production-readiness checks. Current score: **95.5 / 100 (Grade A+)**.

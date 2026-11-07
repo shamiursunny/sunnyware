@@ -28,7 +28,7 @@ jobs:
       - name: Install deps
         run: |
           python -m pip install --upgrade pip
-          pip install pytest==8.3.5 pytest-asyncio==0.24.0 anyio==4.9.0 fastapi httpx starlette
+          pip install pytest>=9.0.3 pytest-asyncio>=1.0.0 anyio>=4.14.2 fastapi httpx starlette
           if [ -f requirements-ci.txt ]; then pip install -r requirements-ci.txt; fi
 
       # ─── Pre-flight checks ───────────────────────────────────
@@ -43,6 +43,13 @@ jobs:
       - name: System monitor (offline)
         continue-on-error: true
         run: python scripts/system_monitor.py --offline
+
+      # ─── Auto version bump ──────────────────────────────────
+      - name: Bump version
+        id: bump
+        run: |
+          python scripts/bump_version.py | tee /tmp/bump.log
+          grep NEW_VERSION= /tmp/bump.log | cut -d= -f2 >> $GITHUB_OUTPUT
 
       # ─── Main tests + attestation ────────────────────────────
       - name: Run tests + generate attestation
@@ -65,11 +72,14 @@ jobs:
         run: |
           git config user.name "sunnyware-bot"
           git config user.email "bot@sunnyware.local"
-          git add test-results/
+          git add reports/ README.md src/sunnyware/__init__.py
           if git diff --cached --quiet; then
             echo "No changes"
           else
-            git commit -m "CI: publish test attestation for ${{ github.sha }} [skip ci]"
+            NEW_VER="${{ steps.bump.outputs.NEW_VERSION }}"
+            git commit -m "chore(release): v${NEW_VER} [skip ci]"
+            git tag -a "v${NEW_VER}" -m "Release v${NEW_VER}"
             git pull --rebase origin main || true
             git push origin main
+            git push origin "v${NEW_VER}"
           fi

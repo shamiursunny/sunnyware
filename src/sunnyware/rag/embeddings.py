@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Local embeddings via bge-small-en-v1.5 (CPU, ~130MB)."""
 
+import tempfile
 import os
 from pathlib import Path
 
@@ -15,7 +16,7 @@ try:
         _is_hf = bool(os.getenv("SPACE_ID") or os.getenv("HF_SPACE"))
         hub = None
         if _is_hf:
-            for _cand in ("/data/huggingface", "/tmp/huggingface"):
+            for _cand in ("/data/huggingface", str(Path(tempfile.gettempdir()) / "huggingface")):
                 try:
                     Path(_cand).mkdir(parents=True, exist_ok=True)
                     _test = Path(_cand) / ".write_test"

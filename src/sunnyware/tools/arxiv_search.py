@@ -1,5 +1,5 @@
 import httpx
-import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as ET
 
 class ArxivSearchTool:
     name = "arxiv_search"

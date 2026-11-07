@@ -316,7 +316,7 @@ def parse_xls(path: Path) -> dict:
 
 def parse_twb(path: Path) -> dict:
     try:
-        import xml.etree.ElementTree as ET
+        import defusedxml.ElementTree as ET
     except ImportError:
         return {"error": "xml.etree not available"}
     try:

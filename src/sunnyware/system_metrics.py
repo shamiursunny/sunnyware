@@ -11,6 +11,7 @@ Sampling: one call every SUNNYWARE_METRICS_INTERVAL_S (default 5s).
 Storage: in-memory deque(720 slots = 1h rolling window).
 """
 
+import tempfile
 import os
 import time
 from collections import deque
@@ -103,7 +104,7 @@ def _enumerate_disks() -> list:
     FORBIDDEN_EXACT = (
         "/etc/hosts", "/etc/hostname", "/etc/resolv.conf",
         "/etc/passwd", "/etc/group", "/etc/shadow",
-        "/etc/hostname", "/.dockerenv", "/dev/shm", "/dev/mqueue",
+        "/etc/hostname", "/.dockerenv", "/dev/shm", "/dev/mqueue",  # nosec B108 - existence check only
     )
     for p in parts:
         if p.fstype in PSEUDO:
