@@ -55,5 +55,6 @@ jobs:
             echo "No changes"
           else
             git commit -m "CI: publish test attestation for ${{ github.sha }} [skip ci]"
+            git pull --rebase origin main || true
             git push origin main
           fi

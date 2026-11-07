@@ -163,7 +163,7 @@ def run_gate():
 def update_docs(part, desc, body, dry_run=False):
     hdr("STEP 3 — docs sync")
     # HANDOFF.md
-    p = ROOT / "HANDOFF.md"
+    p = ROOT / "handoff.md"
     t = p.read_text(encoding="utf-8")
     marker = f"### Part {part} - {desc}"
     if marker in t:
@@ -176,7 +176,7 @@ def update_docs(part, desc, body, dry_run=False):
         ok("3", f"HANDOFF extended (Part {part})")
 
     # WORKFLOW.md
-    p = ROOT / "WORKFLOW.md"
+    p = ROOT / "workflow.md"
     t = p.read_text(encoding="utf-8")
     if f"| {part} " in t:
         ok("3", f"WORKFLOW already has Part {part}")
@@ -192,6 +192,49 @@ def update_docs(part, desc, body, dry_run=False):
         if not dry_run:
             p.write_text(t.rstrip() + block, encoding="utf-8")
         ok("3", f"WORKFLOW extended (Part {part})")
+
+    # README.md — bump version badge, tool count, last-updated footer
+    readme = ROOT / "README.md"
+    if readme.exists():
+        try:
+            import re as _re
+            import ast as _ast
+            rt = readme.read_text(encoding="utf-8")
+            ver = None
+            init_f = ROOT / "src" / "sunnyware" / "__init__.py"
+            if init_f.exists():
+                m = _re.search(r"__version__\s*=\s*[\"']([^\"']+)[\"']", init_f.read_text(encoding="utf-8"))
+                if m: ver = m.group(1)
+            n_tools = None
+            tools_dir = ROOT / "src" / "sunnyware" / "tools"
+            if tools_dir.exists():
+                seen = set()
+                for f in tools_dir.glob("*.py"):
+                    if f.name.startswith("_"): continue
+                    try: tree = _ast.parse(f.read_text(encoding="utf-8", errors="replace"))
+                    except Exception: continue
+                    for node in _ast.walk(tree):
+                        if isinstance(node, _ast.ClassDef):
+                            for item in node.body:
+                                if isinstance(item, _ast.Assign):
+                                    for tg in item.targets:
+                                        if isinstance(tg, _ast.Name) and tg.id == "name" and isinstance(item.value, _ast.Constant):
+                                            seen.add(item.value.value)
+                n_tools = len(seen) if seen else None
+            if ver:
+                rt = _re.sub(r"!\[Version\]\(https://img\.shields\.io/badge/version-v[\d\.]+-blue\)",
+                             f"![Version](https://img.shields.io/badge/version-v{ver}-blue)", rt)
+                today = datetime.date.today().isoformat()
+                rt = _re.sub(r"\*Last updated: \d{4}-\d{2}-\d{2}[^*]*\*",
+                             f"*Last updated: {today} - v{ver} (Part {part})*", rt)
+            if n_tools:
+                rt = _re.sub(r"\*\*\d+ tools\*\*", f"**{n_tools} tools**", rt)
+                rt = _re.sub(r"\| Tools loaded \| \d+ registered", f"| Tools loaded | {n_tools} registered", rt)
+            if not dry_run:
+                readme.write_text(rt, encoding="utf-8")
+            ok("3", f"README synced (version={ver}, tools={n_tools})")
+        except Exception as e:
+            warn("3", f"README sync failed: {e}")
 
     # AGENTS.md footer
     p = ROOT / "AGENTS.md"
@@ -226,10 +269,15 @@ def do_commit(part, desc, body, dry_run=False):
     to_add = [
         "src/",
         "scripts/",
-        "HANDOFF.md",
-        "WORKFLOW.md",
+        "handoff.md",
+        "workflow.md",
         "AGENTS.md",
-        "RESUME.md",
+        "resume.md",
+        "README.md",
+        "SECURITY.md",
+        "ADMIN.md",
+        "MULTI_TENANT.md",
+        "test-results/",
     ]
     if dry_run:
         ok("4", "dry-run: skipped git add")
