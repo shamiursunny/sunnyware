@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """Root, about, and health endpoints."""
 
+import os
 from fastapi import APIRouter, Request
 
 
@@ -322,8 +323,14 @@ import json as _json
 from pathlib import Path as _Path
 from fastapi import Request as _Request
 
-_CHAT_STORE_DIR = _Path("/data/chat_history")
-_CHAT_STORE_DIR.mkdir(parents=True, exist_ok=True)
+_DATA_ROOT = _Path(os.environ.get("SUNNYWARE_DATA_DIR", "/data"))
+try:
+    _CHAT_STORE_DIR = _DATA_ROOT / "chat_history"
+    _CHAT_STORE_DIR.mkdir(parents=True, exist_ok=True)
+except (PermissionError, OSError):
+    import tempfile as _tempfile
+    _CHAT_STORE_DIR = _Path(_tempfile.gettempdir()) / "sunnyware" / "chat_history"
+    _CHAT_STORE_DIR.mkdir(parents=True, exist_ok=True)
 
 def _chat_store_path(user_id: str) -> _Path:
     import hashlib

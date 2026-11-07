@@ -28,7 +28,7 @@ def _workspace_root() -> Path:
     p = os.getenv("SUNNYWARE_WORKSPACE") or os.getenv("WORKSPACE_PATH")
     if p:
         return Path(p).resolve()
-    return Path("/data/workspace").resolve()
+    return Path(os.environ.get("SUNNYWARE_DATA_DIR", "/data")) / r"workspace".resolve()
 
 
 def _coerce(v):

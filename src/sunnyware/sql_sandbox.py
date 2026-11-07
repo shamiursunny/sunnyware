@@ -13,6 +13,7 @@ Safety:
     email_send_log, metrics, sql_sandboxes
   - row cap 5000, statement_timeout 10s
 """
+import os
 import csv
 import re
 from pathlib import Path
@@ -68,7 +69,7 @@ def _workspace_root() -> Path:
     p = os.getenv("SUNNYWARE_WORKSPACE") or os.getenv("WORKSPACE_PATH")
     if p:
         return Path(p).resolve()
-    return Path("/data/workspace").resolve()
+    return Path(os.environ.get("SUNNYWARE_DATA_DIR", "/data")) / r"workspace".resolve()
 
 
 async def create(name: str, description: str = "") -> dict:

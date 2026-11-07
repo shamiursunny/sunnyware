@@ -49,6 +49,7 @@ jobs:
         env:
           NEON_DATABASE_URL: ""
           SUNNYWARE_DISABLE_SCHEDULER: "1"
+          SUNNYWARE_DATA_DIR: /tmp/sunnyware
         run: python run_tests.py
 
       - name: Upload artifact (90-day retention)

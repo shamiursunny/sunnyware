@@ -17,7 +17,7 @@ from typing import Optional
 
 
 def _path() -> Path:
-    data = Path("/data")
+    data = Path(os.environ.get("SUNNYWARE_DATA_DIR", "/data"))
     if data.exists() and os.access(str(data), os.W_OK):
         return data / "accounting.json"
     return Path("data") / "accounting.json"

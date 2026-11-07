@@ -64,7 +64,7 @@ def _path() -> Path:
     env = os.getenv("SUNNYWARE_WEBHOOKS_OUT_STORAGE")
     if env:
         return Path(env)
-    data = Path("/data")
+    data = Path(os.environ.get("SUNNYWARE_DATA_DIR", "/data"))
     if data.exists() and os.access(str(data), os.W_OK):
         return data / "outbound_webhooks.json"
     return Path("data") / "outbound_webhooks.json"

@@ -146,7 +146,7 @@ def _storage_path() -> Path:
     env = os.getenv("SUNNYWARE_EVAL_STORAGE")
     if env:
         return Path(env)
-    data = Path("/data")
+    data = Path(os.environ.get("SUNNYWARE_DATA_DIR", "/data"))
     if data.is_dir():
         return data / "evals_runs.json"
     return Path("evals_runs.json")

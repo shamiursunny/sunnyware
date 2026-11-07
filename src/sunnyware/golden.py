@@ -50,7 +50,7 @@ def _storage_path() -> Path:
     env = os.getenv("SUNNYWARE_GOLDEN_STORAGE")
     if env:
         return Path(env)
-    data = Path("/data")
+    data = Path(os.environ.get("SUNNYWARE_DATA_DIR", "/data"))
     if data.is_dir():
         return data / "golden_runs.json"
     return Path("golden_runs.json")

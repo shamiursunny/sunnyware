@@ -58,7 +58,7 @@ def path() -> Path:
     override = os.getenv("SUNNYWARE_AUDIT_PATH")
     if override:
         return Path(override)
-    d = Path("/data")
+    d = Path(os.environ.get("SUNNYWARE_DATA_DIR", "/data"))
     if d.exists() and os.access(str(d), os.W_OK):
         return d / "audit_log.jsonl"
     return Path("/tmp/sunnyware_audit_log.jsonl")

@@ -29,7 +29,7 @@ def _path() -> Path:
     env = os.getenv("SUNNYWARE_USERS_STORE")
     if env:
         return Path(env)
-    data = Path("/data")
+    data = Path(os.environ.get("SUNNYWARE_DATA_DIR", "/data"))
     if data.exists() and os.access(str(data), os.W_OK):
         return data / "users.json"
     return Path("data") / "users.json"

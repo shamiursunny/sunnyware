@@ -55,7 +55,7 @@ def get_current() -> tuple:
 
 # ─── Storage helpers ───
 def _base() -> Path:
-    data = Path("/data")
+    data = Path(os.environ.get("SUNNYWARE_DATA_DIR", "/data"))
     if data.exists() and os.access(str(data), os.W_OK):
         return data
     return Path("data")

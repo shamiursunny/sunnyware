@@ -9,7 +9,7 @@ from pathlib import Path
 
 
 def _path() -> Path:
-    data = Path("/data")
+    data = Path(os.environ.get("SUNNYWARE_DATA_DIR", "/data"))
     if data.exists() and os.access(str(data), os.W_OK):
         return data / "usage.json"
     return Path("data") / "usage.json"
