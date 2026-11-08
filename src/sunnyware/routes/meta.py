@@ -2099,6 +2099,9 @@ async def github_ci_status():
                "/actions/runs?per_page=10")
         headers = {"Accept": "application/vnd.github+json",
                    "User-Agent": "sunnyware-status/1.0"}
+        _gh_token = os.getenv("GITHUB_TOKEN")
+        if _gh_token:
+            headers["Authorization"] = f"Bearer {_gh_token}"
         async with httpx.AsyncClient(timeout=10.0) as cli:
             r = await cli.get(url, headers=headers)
             r.raise_for_status()
