@@ -1,15 +1,25 @@
-import { useState, useRef, useEffect } from 'react';
-import { getToken, redirectToLogin, saveAdminKey } from './auth';
-
-interface Message { role: 'user' | 'assistant'; content: string; }
+import { useState, useEffect } from 'react';
+import { getToken } from './auth';
+import Login from './components/Login';
+import Sidebar from './components/Sidebar';
+import ChatView from './components/ChatView';
+import Library from './components/Library';
+import {
+  Role, Chat, LibraryFile, Message,
+  fetchRoles, fetchChats, fetchLibrary, fetchMessages,
+} from './api';
 
 export default function App() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [token, setToken] = useState<string>('');
-  const [adminKey, setAdminKey] = useState('');
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const [view, setView] = useState<'chat' | 'library'>('chat');
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [library, setLibrary] = useState<LibraryFile[]>([]);
+  const [activeRole, setActiveRole] = useState<string>('general');
+  const [activeSessionId, setActiveSessionId] = useState<string>('react-web');
+  const [activeChatId, setActiveChatId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const t = getToken();
@@ -17,130 +27,98 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
-  }, [messages]);
+    if (!token) return;
+    (async () => {
+      try {
+        const [rolesData, chatsData, libraryData] = await Promise.all([
+          fetchRoles(token),
+          fetchChats(token),
+          fetchLibrary(token),
+        ]);
+        setRoles(rolesData);
+        setChats(chatsData);
+        setLibrary(libraryData);
+        if (rolesData.length > 0) setActiveRole(rolesData[0].key);
+      } catch (e) {
+        console.error('Failed to load initial data:', e);
+      }
+    })();
+  }, [token]);
 
-  const handleAdminSubmit = () => {
-    if (!adminKey.trim()) return;
-    saveAdminKey(adminKey.trim());
-    setToken(adminKey.trim());
+  const handleSelectChat = async (chat: Chat | null) => {
+    if (chat) {
+      setActiveChatId(chat.sessionKey);
+      setActiveSessionId(chat.sessionKey);
+      if (chat.role) setActiveRole(chat.role);
+      setLoading(true);
+      try {
+        const msgs = await fetchMessages(token, chat.sessionKey);
+        setMessages(msgs);
+      } catch {
+        setMessages([]);
+      } finally {
+        setLoading(false);
+      }
+    } else {
+      handleNewChat();
+    }
+    setView('chat');
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || !token || isLoading) return;
+  const handleNewChat = () => {
+    const newId = `sunny-${Date.now().toString(36)}`;
+    setActiveChatId(null);
+    setActiveSessionId(newId);
+    setMessages([]);
+    setView('chat');
+  };
 
-    const userMsg = input.trim();
-    setMessages(prev => [...prev, { role: 'user', content: userMsg }]);
-    setInput('');
-    setIsLoading(true);
-
+  const refreshChats = async () => {
     try {
-      const res = await fetch('/api/agent/run', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-API-Key': token
-        },
-        body: JSON.stringify({ input: userMsg, session_id: 'react-web' })
-      });
-
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status}`);
-      }
-
-      const data = await res.json();
-      console.log("DEBUG API RESPONSE:", data);
-
-      // Robust answer extraction
-      let answer = "No response";
-      if (typeof data === 'string') answer = data;
-      else if (data.answer) answer = data.answer;
-      else if (data.response) answer = data.response;
-      else if (data.text) answer = data.text;
-      else if (data.result && typeof data.result === 'string') answer = data.result;
-      else if (data.result && data.result.answer) answer = data.result.answer;
-      else answer = JSON.stringify(data); // Fallback: show raw JSON
-
-      setMessages(prev => [...prev, { role: 'assistant', content: answer }]);
-    } catch (e: any) {
-      setMessages(prev => [...prev, { role: 'assistant', content: `Error: ${e.message}` }]);
-    } finally {
-      setIsLoading(false);
-    }
+      const chatsData = await fetchChats(token);
+      setChats(chatsData);
+    } catch {}
   };
 
   if (!token) {
-    return (
-      <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', height: '100vh', padding: '20px' }}>
-        <h1 style={{ fontSize: '2rem', marginBottom: '10px' }}>Welcome to Sunnyware</h1>
-        <p style={{ color: '#94a3b8', marginBottom: '30px' }}>Sign in to access your private workspace.</p>
-
-        <button 
-          className="login-btn" 
-          onClick={redirectToLogin}
-          style={{ width: '100%', maxWidth: '400px', marginBottom: '20px' }}
-        >
-          Sign in with Google
-        </button>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', margin: '10px 0', color: '#64748b' }}>
-          <div style={{ flex: 1, height: '1px', background: '#334155' }}></div>
-          <span>or use admin key</span>
-          <div style={{ flex: 1, height: '1px', background: '#334155' }}></div>
-        </div>
-
-        <input
-          type="text"
-          value={adminKey}
-          onChange={e => setAdminKey(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleAdminSubmit()}
-          placeholder="master-admin-key"
-          style={{
-            width: '100%', maxWidth: '400px', padding: '15px', borderRadius: '8px',
-            border: '1px solid #334155', background: '#0f172a', color: 'white',
-            marginBottom: '15px', fontSize: '1rem'
-          }}
-        />
-        <button
-          className="login-btn"
-          onClick={handleAdminSubmit}
-          disabled={!adminKey.trim()}
-          style={{ width: '100%', maxWidth: '400px', background: '#7c3aed' }}
-        >
-          Continue
-        </button>
-      </div>
-    );
+    return <Login onLogin={setToken} />;
   }
 
   return (
-    <>
-      <div className="chat-container" ref={scrollRef}>
-        {messages.length === 0 && (
-          <div style={{ textAlign: 'center', color: '#64748b', marginTop: '40px' }}>
-            <p>Start a new chat. Ask me anything!</p>
-          </div>
+    <div className="app-layout">
+      <Sidebar
+        chats={chats}
+        roles={roles}
+        activeChatId={activeChatId}
+        activeRole={activeRole}
+        onSelectChat={handleSelectChat}
+        onSelectRole={setActiveRole}
+        onNewChat={handleNewChat}
+      />
+      <main className="app-main">
+        <header className="app-header">
+          <button className={`tab ${view === 'chat' ? 'tab-active' : ''}`} onClick={() => setView('chat')}>
+            Chat
+          </button>
+          <button className={`tab ${view === 'library' ? 'tab-active' : ''}`} onClick={() => setView('library')}>
+            Library ({library.length})
+          </button>
+        </header>
+        {loading ? (
+          <div className="loading">Loading...</div>
+        ) : view === 'chat' ? (
+          <ChatView
+            token={token}
+            sessionId={activeSessionId}
+            activeRole={activeRole}
+            messages={messages}
+            onMessagesUpdate={setMessages}
+            onChatUpdated={refreshChats}
+          />
+        ) : (
+          <Library files={library} />
         )}
-        {messages.map((m, i) => (
-          <div key={i} className={`message ${m.role}`}>
-            {m.content}
-          </div>
-        ))}
-        {isLoading && <div className="message assistant">Thinking...</div>}
-      </div>
-      <div className="input-area">
-        <input
-          type="text"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && sendMessage()}
-          placeholder="Type a message..."
-          disabled={isLoading}
-        />
-        <button onClick={sendMessage} disabled={isLoading}>Send</button>
-      </div>
-    </>
+      </main>
+    </div>
   );
 }
