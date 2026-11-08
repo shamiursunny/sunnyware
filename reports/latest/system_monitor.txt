@@ -8,13 +8,13 @@
 # Sunnyware System Monitor
 ########################################################################
 
-Started: 2026-11-08T23:47:05
-Elapsed: 18.55s
+Started: 2026-11-09T00:11:36
+Elapsed: 22.92s
 
 ------------------------------------------------------------------------
  DOCS
 ------------------------------------------------------------------------
-  [PASS] README.md has reasonable size  --  656 lines (min 10)
+  [PASS] README.md has reasonable size  --  660 lines (min 10)
   [PASS] WORKFLOW.md has reasonable size  --  11 lines (min 10)
   [PASS] HANDSOFF.md has reasonable size  --  16 lines (min 10)
   [PASS] AGENTS.md has reasonable size  --  203 lines (min 10)
@@ -32,7 +32,7 @@ Elapsed: 18.55s
 ------------------------------------------------------------------------
   [PASS] Git working tree clean  --  clean
   [PASS] No unpushed commits to GitHub  --  0 unpushed
-  [PASS] Latest commit  --  ac847f0 feat(frontend): add 2FA verification flow to React app
+  [PASS] Latest commit  --  a6e18c6 fix(auth): tenant uses resolved identity + admin email allowlist
 
 ------------------------------------------------------------------------
  HYGIENE
@@ -166,8 +166,8 @@ Reports saved:
 
 
 --- STDERR ---
-{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-08T17:47:03.382163Z"}
-{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-08T17:47:03.382163Z"}
-{"event": "Config loaded", "level": "info", "timestamp": "2026-11-08T17:47:03.397787Z"}
-{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-08T17:47:03.397787Z"}
-{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-08T17:47:03.397787Z"}
+{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-08T18:11:34.255434Z"}
+{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-08T18:11:34.255434Z"}
+{"event": "Config loaded", "level": "info", "timestamp": "2026-11-08T18:11:34.271062Z"}
+{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-08T18:11:34.271062Z"}
+{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-08T18:11:34.271062Z"}
