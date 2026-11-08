@@ -2,6 +2,7 @@
 """Run all quality + security scripts, hash output, update README, generate MANIFEST."""
 import hashlib
 import json
+from docs_generator import update_static_docs
 import os
 import re
 import shutil
@@ -203,6 +204,7 @@ def main():
     update_readme_chain()
     update_readme_deployments()
     update_readme_readiness()
+    update_static_docs()
 
     # Use normalized_exit so system_monitor exit 2 counts as warning, not failure
     if any(manifest["reports"][n].get("normalized_exit", manifest["reports"][n]["exit_code"]) != 0
