@@ -4,6 +4,7 @@ import asyncio
 """Agent endpoints: /api/agent/run, /run/stream, /plan."""
 
 import json as _json
+import os
 import time as _time
 
 from fastapi import APIRouter, Request

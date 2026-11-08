@@ -144,6 +144,15 @@ print(f"[start] FINAL LOCAL_MODEL_PATH = {os.environ['LOCAL_MODEL_PATH']}", flus
 demo = app
 
 
+from fastapi.staticfiles import StaticFiles
+from pathlib import Path as _Path
+
+# Mount React SPA if the build exists
+_frontend_dist = _Path(__file__).resolve().parent / "frontend" / "dist"
+if _frontend_dist.exists():
+    app.mount("/app", StaticFiles(directory=str(_frontend_dist), html=True), name="react-app")
+    print(f"[frontend] Mounted React SPA at /app from {_frontend_dist}")
+
 if __name__ == "__main__":
     threading.Thread(target=_download_gguf, daemon=True, name="gguf-download").start()
     threading.Thread(target=_preload_embedder, daemon=True, name="embedder-preload").start()
