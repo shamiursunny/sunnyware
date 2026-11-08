@@ -85,12 +85,9 @@
  4. Git working-tree check
 ======================================================================
   changes:
-     D handoff.md
      M reports/DEPLOYMENTS.json
-     D resume.md
      M src/sunnyware/__init__.py
-     D workflow.md
-  [PASS] 5 change(s), no secrets or junk detected
+  [PASS] 2 change(s), no secrets or junk detected
 
 ======================================================================
  5. Live HF Space health (soft check)

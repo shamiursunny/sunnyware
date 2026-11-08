@@ -119,5 +119,16 @@
     "verified": true,
     "error": null,
     "mismatches": []
+  },
+  {
+    "timestamp_utc": "2026-11-08T12:58:49Z",
+    "remote_url": "https://shamiur-sunnyware.hf.space",
+    "chain_block": 10,
+    "chain_hash": "f2fc4f50fcd3c7fa68d57f4a0b9693192e170c661fc631afb8af203dbe65e92e",
+    "expected_version": "1.25.0",
+    "deployed_version": "1.25.0",
+    "verified": true,
+    "error": null,
+    "mismatches": []
   }
 ]

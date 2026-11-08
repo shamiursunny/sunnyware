@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 """sunnyware — AI agent orchestrator."""
 
-__version__ = "1.25.0"
+__version__ = "1.26.0"
 __author__ = "Shamiur Rashid Sunny"
 __author_email__ = "shamiur@engineer.com"
 __author_phone__ = "+880-01737394735"
