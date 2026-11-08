@@ -35,4 +35,4 @@ defusedxml>=0.7.1
 
 httpx2>=2.12.0
 httpcore2>=2.10.0
-pillow>=13.0.0
+pillow>=8.0,<13.0
