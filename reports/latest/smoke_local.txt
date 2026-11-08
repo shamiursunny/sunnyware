@@ -1,0 +1,77 @@
+
+--- 1. Python compilation ---
+  OK  All 39 files compile
+
+--- 2. Route registration in main.py ---
+  OK  import: analytics as analytics_routes
+  OK  import: llm_dashboard as llm_dashboard_routes
+  OK  import: team as team_routes
+  OK  import: email as email_routes
+  OK  import: api_keys as api_keys_routes
+  OK  import: webhooks as webhooks_routes
+  OK  import: chat_audit as chat_audit_routes
+  OK  import: scheduled_tasks as scheduled_tasks_routes
+  OK  import: rag_admin as rag_admin_routes
+  OK  import: twofa as twofa_routes
+  OK  import: backup as backup_routes
+  OK  import: impersonation as impersonation_routes
+  OK  import: feature_flags as feature_flags_routes
+  OK  import: overage as overage_routes
+  OK  import: slack_bot as slack_bot_routes
+  OK  import: feedback as feedback_routes
+  OK  include_router(analytics_routes.router)
+  OK  include_router(llm_dashboard_routes.router)
+  OK  include_router(team_routes.router)
+  OK  include_router(email_routes.router)
+  OK  include_router(api_keys_routes.router)
+  OK  include_router(webhooks_routes.router)
+  OK  include_router(chat_audit_routes.router)
+  OK  include_router(scheduled_tasks_routes.router)
+  OK  include_router(rag_admin_routes.router)
+  OK  include_router(twofa_routes.router)
+  OK  include_router(backup_routes.router)
+  OK  include_router(impersonation_routes.router)
+  OK  include_router(feature_flags_routes.router)
+  OK  include_router(overage_routes.router)
+  OK  include_router(slack_bot_routes.router)
+  OK  include_router(feedback_routes.router)
+
+--- 3. JavaScript syntax ---
+  OK  static/chat.html: syntax
+  OK  static/admin-v2.html: syntax
+
+--- 4. Critical UI markers ---
+  OK  chat.html has settings menu
+  OK  chat.html has user pill
+  OK  chat.html has cancel button
+  OK  chat.html has applyTheme
+  OK  chat.html has impersonation banner
+  OK  chat.html has stopImpersonation function
+  OK  admin-v2.html has _renderSimpleChart
+  OK  admin-v2.html has renderAnalytics
+  OK  admin-v2.html has renderLlmDashboard
+  OK  admin-v2.html has renderEmail
+  OK  admin-v2.html has renderApiKeys
+  OK  admin-v2.html has renderChatAudit
+  OK  admin-v2.html has renderScheduledTasks
+  OK  admin-v2.html has renderRagAdmin
+  OK  admin-v2.html has renderSecurity
+  OK  admin-v2.html has renderBackup
+  OK  admin-v2.html has renderImpersonate
+  OK  admin-v2.html has renderFeatureFlags
+  OK  admin-v2.html has renderOverage
+  OK  admin-v2.html has renderSlackBot
+  OK  admin-v2.html has renderFeedback
+  OK  admin-v2.html has renderWebhooks
+  OK  admin-v2.html has downloadInvoicePdf
+  OK  admin-v2.html has saveOrch
+  OK  admin-v2.html has analytics nav
+  OK  admin-v2.html has llm-dashboard nav
+  OK  admin-v2.html has email nav
+  OK  admin-v2.html has sendPromoEmail
+
+===============================================================
+ LOCAL SMOKE TEST PASSED - READY TO PUSH
+===============================================================
+
+--- STDERR ---

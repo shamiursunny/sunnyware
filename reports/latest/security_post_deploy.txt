@@ -1,0 +1,30 @@
+=== Security Post-Deploy (https://shamiur-sunnyware.hf.space) ===
+
+[1] HTTPS transport
+  [PASS] HTTPS enforced
+
+[2] Security headers
+  [PASS] HSTS: strict-transport-security = max-age=31536000; includeSubDomains
+  [PASS] nosniff: x-content-type-options = nosniff
+  [PASS] clickjacking: x-frame-options = DENY
+  [WARN] CSP
+  [PASS] referrer policy
+  [PASS] feature permissions
+
+[3] Admin auth enforcement
+  [PASS] /api/rag/documents -> 401 (auth enforced)
+  [PASS] /api/security/recon-guard -> 401 (auth enforced)
+  [PASS] /api/accounting/summary -> 401 (auth enforced)
+  [PASS] /api/workos/admin/users -> 401 (auth enforced)
+
+[4] CORS policy
+  [WARN] CORS reflects https://evil.example.com with credentials on 401 (no data leaked)
+        Note: headers added by HF proxy (x-proxied-replica present)
+
+[5] Internal security status
+  [PASS] /health/ready -> 200
+  [PASS] Recon Guard reachable (401)
+
+=== Summary: 12 pass, 2 warn, 0 fail, 0 skip ===
+
+--- STDERR ---

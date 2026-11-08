@@ -1,0 +1,173 @@
+[tools] Loaded 112 tools
+[orchestrator] DIRECT_ANSWER_TOOLS = ['add_tableau_filter', 'advanced_chart', 'aggregate_market_data', 'arxiv_search', 'bi_export', 'browser_click', 'browser_extract', 'browser_fill_submit', 'browser_goto', 'browser_screenshot', 'calculator', 'csv_groupby', 'current_time', 'data_correlation', 'data_describe', 'data_stats', 'date_calc', 'ddg_news', 'delete_file', 'domain_research', 'edit_tableau_field', 'email_configured', 'email_list_sent', 'email_send', 'excel_read', 'export_table', 'extract_pbix_assets', 'generate_chart', 'generate_report', 'get_current_time', 'html_to_text', 'image_generate', 'insurance_research', 'legal_citation_check', 'list_files', 'live_market_stream', 'marketaux_news', 'ml_forecast', 'pdf_read', 'pro_chart', 'python_session', 'query_external_db', 'read_bi_file', 'read_file', 'read_sandbox_file', 'remove_tableau_field', 'research_search', 'scrape_webpage', 'sql_sandbox_create', 'sql_sandbox_execute', 'sql_sandbox_list', 'sql_sandbox_load_csv', 'technical_analysis', 'time_now', 'url_metadata', 'vision_analyze', 'web_fetch', 'web_search', 'write_file', 'write_sandbox_file']
+[jarvis] Preload skipped: LLM disabled or S3_BUCKET_NAME missing
+[startup] analytics_hooks: {'llm_patched': True, 'tool_patched': True}
+[provider_limits] storage source=env:SUNNYWARE_DATA_DIR path=C:\Users\ssunny_s\AppData\Local\Temp\sunnyware\provider_limits.json
+
+########################################################################
+# Sunnyware System Monitor
+########################################################################
+
+Started: 2026-11-08T17:36:22
+Elapsed: 14.56s
+
+------------------------------------------------------------------------
+ DOCS
+------------------------------------------------------------------------
+  [PASS] README.md has reasonable size  --  618 lines (min 10)
+  [PASS] WORKFLOW.md has reasonable size  --  3973 lines (min 50)
+  [PASS] HANDOFF.md has reasonable size  --  6644 lines (min 100)
+  [PASS] AGENTS.md has reasonable size  --  203 lines (min 50)
+  [PASS] RESUME.md has reasonable size  --  4100 lines (min 50)
+
+------------------------------------------------------------------------
+ ENVIRONMENT
+------------------------------------------------------------------------
+  [PASS] Python version >= 3.10  --  found 3.11.9
+  [PASS] Virtual environment active  --  sys.prefix = H:\sunnyware\.venv
+  [PASS] Running from project root  --  cwd = H:\sunnyware
+
+------------------------------------------------------------------------
+ GIT
+------------------------------------------------------------------------
+  [PASS] Git working tree clean  --  clean
+  [PASS] No unpushed commits to GitHub  --  0 unpushed
+  [PASS] Latest commit  --  906d76a fix(security): allowlist pillow CVE blocked by gradio's <13.0 pin
+
+------------------------------------------------------------------------
+ HYGIENE
+------------------------------------------------------------------------
+  [PASS] __pycache__ present (gitignored)  --  6 folders (ignored by git)
+  [PASS] data/ dir exists  --  found
+  [PASS] No stale .bak.partN files in scripts/  --  0 found (gitignored)
+
+------------------------------------------------------------------------
+ IMPORTS
+------------------------------------------------------------------------
+  [PASS] Import sunnyware.main  --  ok
+  [PASS] Import sunnyware.orchestrator  --  ok
+  [PASS] Import sunnyware.llm  --  ok
+  [PASS] Import sunnyware.providers  --  ok
+  [PASS] Import sunnyware.model_resolver  --  ok
+  [PASS] Import sunnyware.webui  --  ok
+  [PASS] Import sunnyware.rag  --  ok
+  [PASS] Import sunnyware.tools  --  ok
+  [PASS] Import sunnyware.routes.rag  --  ok
+  [PASS] Import sunnyware.routes.sessions  --  ok
+  [PASS] Import sunnyware.routes.meta  --  ok
+
+------------------------------------------------------------------------
+ MODEL-RESOLVER
+------------------------------------------------------------------------
+  [PASS] Preference lists for all 5 providers  --  6 lists present
+  [PASS] Each preference list has >= 3 fallbacks  --  6/6 sufficient
+
+------------------------------------------------------------------------
+ PREPUSH
+------------------------------------------------------------------------
+  [PASS] pre_push_check.py exists  --  found
+  [PASS] At least one smoke_test_partNN.py  --  109 found
+  [PASS] Latest smoke test file  --  smoke_test_part98.py
+
+------------------------------------------------------------------------
+ PROVIDERS
+------------------------------------------------------------------------
+  [PASS] Providers load successfully  --  5 providers configured
+  [PASS] All providers have name/url/model  --  5/5 valid
+  [PASS] All providers have valid type  --  types valid
+
+------------------------------------------------------------------------
+ RAG
+------------------------------------------------------------------------
+  [PASS] Embeddings dim == 384  --  dim=384
+  [PASS] Embedding model id set  --  model=BAAI/bge-small-en-v1.5
+  [PASS] Extractor supports all 7 formats  --  7 formats
+  [PASS] Chunker produces chunks  --  2 chunks for test input
+  [PASS] Vector store class exists  --  FPAVectorStore found
+
+------------------------------------------------------------------------
+ ROUTES
+------------------------------------------------------------------------
+  [PASS] Routes defined in rag.py  --  4/4
+  [PASS] Routes defined in sessions.py  --  2/2
+  [PASS] Routes defined in meta.py  --  4/4
+  [PASS] Routes defined in agent.py  --  2/2
+
+------------------------------------------------------------------------
+ SECURITY
+------------------------------------------------------------------------
+  [PASS] .env NOT tracked in git  --  safe (untracked)
+  [PASS] Sandbox runtime present  --  found
+  [PASS] No hardcoded API keys in source  --  0 suspicious files
+
+------------------------------------------------------------------------
+ STRUCTURE
+------------------------------------------------------------------------
+  [PASS] Required directories present  --  6/6 found
+  [PASS] Required files present  --  24/24 found
+  [PASS] .gitignore covers key patterns  --  4/4 matched
+
+------------------------------------------------------------------------
+ SYNTAX
+------------------------------------------------------------------------
+  [PASS] Python syntax: src  --  252 files, 0 errors
+  [PASS] Python syntax: scripts  --  150 files, 0 errors
+
+------------------------------------------------------------------------
+ TOOLS
+------------------------------------------------------------------------
+  [PASS] Tools registry has all 16 expected tools  --  112 registered
+  [PASS] All tools have name/description/parameters  --  112/112 valid
+
+------------------------------------------------------------------------
+ WEBUI
+------------------------------------------------------------------------
+  [PASS] WebUI has all required DOM/JS markers  --  13/13 present
+  [PASS] Served HTML size reasonable  --  127954 chars
+  [PASS] No obvious broken JS string literals  --  0 potential breaks
+
+========================================================================
+ SCORE: 100.0 / 100
+ GRADE: A+ (production-ready)
+========================================================================
+  critical   70/70  (100.0%)
+  high       100/100  (100.0%)
+  medium     39/39  (100.0%)
+  low        15/15  (100.0%)
+
+  Checks: 55 pass, 0 fail, 0 warn, 0 skip
+
+========================================================================
+ KNOWN LIMITATIONS (accepted, not scored)
+========================================================================
+  - Mistral free tier IP-throttled from Bangladesh (removed from LLM_PROVIDERS)
+  - Local GGUF (MiniCPM5-2B) not viable on HF 2 vCPU (502 timeout at 8 min)
+  - NVIDIA NIM pending account verification
+  - polars removed (requires AVX2/FMA - crashes on 3rd-gen i7)
+  - JS escape bug: Python triple-quote needs doubled backslashes for JS strings
+  - localStorage wipe requires Ctrl+Shift+R (not Ctrl+Shift+Delete with cookies)
+
+========================================================================
+ ROADMAP / PENDING FEATURES
+========================================================================
+  - nvidia-nim: NVIDIA NIM integration  (blocker=awaiting support verification email reply)
+  - voice-input: Voice input (browser mic -> text)  (priority=low, effort=~30 min)
+  - markdown-render: Full markdown rendering in chat  (priority=medium, effort=~20 min)
+  - session-rename: Session rename inline edit  (priority=low, effort=~25 min)
+  - part-41: Part 41 - define next milestone  (blocker=pending decision)
+
+========================================================================
+ VERDICT: PRODUCTION-READY
+========================================================================
+
+Reports saved:
+  reports\system_health.md
+  reports\system_health.json
+
+
+--- STDERR ---
+{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-08T11:36:20.116109Z"}
+{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-08T11:36:20.116109Z"}
+{"event": "Config loaded", "level": "info", "timestamp": "2026-11-08T11:36:20.131733Z"}
+{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-08T11:36:20.131733Z"}
+{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-08T11:36:20.131733Z"}

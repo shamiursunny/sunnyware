@@ -1,0 +1,23 @@
+=== Security Pre-Deploy Checks ===
+
+[1] Secret scanning
+  [PASS] No secrets found in source
+
+[2] Dangerous code patterns
+  [PASS] exec() in src/sunnyware/tools/_sandbox.py:409 (intentional, sandbox)
+  [PASS] No banned calls (eval/exec/os.system/pickle.loads)
+  [WARN] 4 warning-level pattern(s) (pickle/subprocess) â€” review manually
+
+[3] Git-tracked sensitive files
+  [PASS] No .env / .pem / .key files tracked
+
+[4] Dependency CVE scan (pip-audit)
+        [skip] pillow: gradio requires pillow<13.0 â€” CVE fix blocked upstream
+  [PASS] No known CVEs in requirements-ci.txt
+
+[5] Bandit static analysis
+  [PASS] No HIGH/MEDIUM bandit findings
+
+=== Summary: 6 pass, 1 warn, 0 fail, 0 skip ===
+
+--- STDERR ---

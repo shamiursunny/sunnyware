@@ -1,0 +1,109 @@
+
+######################################################################
+# Sunnyware Pre-Push Check
+######################################################################
+
+======================================================================
+ 1. Python syntax check
+======================================================================
+  scanning 252 files...
+  [PASS] all 252 Python files parse cleanly
+
+======================================================================
+ 2. Served HTML / JS sanity check
+======================================================================
+  runtime HTML: 127954 chars
+  [PASS] no obvious broken JS string literals detected
+  [PASS] all key HTML markers present
+
+======================================================================
+ 3. Part-specific smoke test
+======================================================================
+  running: smoke_test_part175.py
+    === Part 175: SSOReady integration (Phase 1) ===
+      [PASS] user_store.py exists
+      [PASS] sso.py exists
+      [PASS] routes/sso.py exists
+      [PASS] user_store: def get(
+      [PASS] user_store: def upsert(
+      [PASS] user_store: def delete(
+      [PASS] user_store: def list_all(
+      [PASS] user_store: def role_for_api_key(
+      [PASS] user_store: def email_for_api_key(
+      [PASS] user_store: def has_any_users(
+      [PASS] sso: def enabled(
+      [PASS] sso: async def get_redirect_url(
+      [PASS] sso: async def redeem(
+      [PASS] sso: def status(
+      [PASS] sso: uses httpx
+      [PASS] sso: env keys configured
+      [PASS] route: "/sso/status"
+      [PASS] route: "/sso/login/{org_external_id}"
+      [PASS] route: "/sso/callback"
+      [PASS] route: "/sso/users"
+      [PASS] route: "/sso/users/delete"
+      [PASS] routes: 501 when disabled
+      [PASS] routes: RedirectResponse used
+      [PASS] routes: HTMLResponse used
+      [PASS] auth: role_for_key checks user_store
+      [PASS] auth: is_valid_key checks user_store
+      [PASS] main: sso_routes imported
+      [PASS] main: sso router included
+      [PASS] empty store
+      [PASS] get missing returns None
+      [PASS] upsert creates user
+      [PASS] upsert issues api_key
+      [PASS] upsert sets org_id
+      [PASS] upsert sets role
+      [PASS] get returns same api_key
+      [PASS] email is case-insensitive
+      [PASS] upsert updates role
+      [PASS] role_for_api_key works
+      [PASS] email_for_api_key works
+      [PASS] role_for_api_key miss returns None
+      [PASS] list returns 1
+      [PASS] list redacts api_key
+      [PASS] delete succeeds
+      [PASS] deleted user gone
+      [PASS] delete nonexistent returns False
+      [PASS] sso disabled without key
+      [PASS] sso status has_client_id=False
+      [PASS] auth.role_for_key returns SSO role
+      [PASS] auth.is_valid_key accepts SSO key
+      [PASS] auth.is_valid_key rejects unknown
+      [PASS] user_store.py parses
+      [PASS] sso.py parses
+      [PASS] sso.py parses
+      [PASS] auth.py parses
+      [PASS] main.py parses
+    
+    55/55 checks passed
+    ALL PASS
+  [PASS] smoke_test_part175.py passed
+
+======================================================================
+ 4. Git working-tree check
+======================================================================
+  changes:
+     M README.md
+     M reports/CHAIN.json
+     M reports/latest/MANIFEST.json
+     M reports/latest/security_pre_deploy.txt.sha256
+     M reports/latest/smoke_remote.txt.sha256
+     M reports/latest/system_monitor.txt.sha256
+     M src/sunnyware/__init__.py
+  [PASS] 7 change(s), no secrets or junk detected
+
+======================================================================
+ 5. Live HF Space health (soft check)
+======================================================================
+  [PASS] HF Space healthy Â· tools=112
+
+======================================================================
+ SUMMARY: 6 passed Â· 0 failed Â· 0 warnings
+======================================================================
+
+  RESULT: READY TO PUSH.
+
+
+--- STDERR ---

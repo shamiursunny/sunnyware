@@ -106,5 +106,6 @@ reports/*
 !reports/latest/
 reports/latest/*
 !reports/latest/MANIFEST.json
+!reports/latest/*.txt
 !reports/latest/**/*.sha256
 # Blockchain trust chain — must be committed (source of truth)
