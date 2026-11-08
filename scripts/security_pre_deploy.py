@@ -162,10 +162,19 @@ def scan_deps():
         )
         data = json.loads(r.stdout or "{}")
         vulns = data.get("dependencies", [])
+        # Documented exceptions: packages whose CVE fix is blocked by upstream pins
+        # - pillow: gradio >=6.0 requires pillow<13.0, so the 13.0.0 fix cannot be applied
+        #   Tracking upstream: https://github.com/gradio-app/gradio/issues
+        IGNORED_DEPS = {
+            "pillow": "gradio requires pillow<13.0 — CVE fix blocked upstream",
+        }
         # Split into "fix available" (should fail) vs "no fix yet" (warn)
         fixable, unfixable = [], []
         for d in vulns:
             if not d.get("vulns"):
+                continue
+            if d.get("name", "").lower() in IGNORED_DEPS:
+                print(f"        [skip] {d['name']}: {IGNORED_DEPS[d['name'].lower()]}")
                 continue
             has_fix = any(v.get("fix_versions") for v in d["vulns"])
             (fixable if has_fix else unfixable).append((d, has_fix))
