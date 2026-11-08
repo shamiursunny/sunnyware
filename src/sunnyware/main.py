@@ -527,7 +527,18 @@ class _MetricsMiddleware:
                         from sunnyware.routes.auth import verify_jwt
                         email = verify_jwt(key)
                         if email:
-                            key = f"user:{email}" # Multi-tenant isolation!
+                            # Part 240: Admin email allowlist
+                            _admin_emails_raw = os.getenv("SUNNYWARE_ADMIN_EMAILS", "")
+                            _admin_emails = {e.strip().lower() for e in _admin_emails_raw.split(",") if e.strip()}
+                            if email.lower() in _admin_emails:
+                                key = os.getenv("SUNNYWARE_MASTER_KEY", "master-admin-key")
+                            else:
+                                key = f"user:{email}"
+                            # Part 240b: Re-set tenant with resolved identity
+                            try:
+                                _tenant.set_key(key)
+                            except Exception:
+                                pass
                     except Exception:
                         pass
 
