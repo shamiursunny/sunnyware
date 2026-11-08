@@ -529,15 +529,17 @@ The `[skip ci]` flag prevents the bump commit from re-triggering the workflow.
 
 ## Production Readiness
 
-Sunnyware is monitored continuously and scored against 54 production-readiness checks. Current score: **95.5 / 100 (Grade A+)**.
+<!-- PRODUCTION_READINESS:START -->
+Sunnyware is monitored continuously and scored against 54 production-readiness checks. Current score: **100.0 / 100 (Grade A+)**.
 
 | Area | Status |
 |---|---|
 | Tools loaded | 112 registered, 0 degraded, 0 broken |
-| Providers online | 8 / 8 |
+| Providers online | 5 / 5 |
 | Audit chain | `CHAIN OK` (1,484+ entries) |
 | Recon guard | 34 patterns active |
-| CI pipeline | pytest (326+ passed), pre-push gate, smoke tests |
+| CI pipeline | pytest (55/55 checks passed), pre-push gate, smoke tests |
+<!-- PRODUCTION_READINESS:END -->
 
 **Security:** WorkOS AuthKit + 2FA, RBAC, audit chain, sandboxing, TLS 1.2+.
 **Compliance:** Controls aligned with SOC 2 — formal audits on roadmap (see [`SECURITY.md`](./SECURITY.md)).
