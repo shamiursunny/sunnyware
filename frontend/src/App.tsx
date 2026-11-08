@@ -1,12 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { getToken } from './auth';
 import Login from './components/Login';
 import Sidebar from './components/Sidebar';
 import ChatView from './components/ChatView';
 import Library from './components/Library';
+import TwoFactorModal from './components/TwoFactorModal';
 import {
   Role, Chat, LibraryFile, Message,
   fetchRoles, fetchChats, fetchLibrary, fetchMessages,
+  TwoFactorRequiredError,
 } from './api';
 
 export default function App() {
@@ -20,30 +22,39 @@ export default function App() {
   const [activeChatId, setActiveChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(false);
+  const [needs2FA, setNeeds2FA] = useState(false);
+  const [twoFAUser, setTwoFAUser] = useState('admin');
 
   useEffect(() => {
     const t = getToken();
     setToken(t);
   }, []);
 
-  useEffect(() => {
-    if (!token) return;
-    (async () => {
-      try {
-        const [rolesData, chatsData, libraryData] = await Promise.all([
-          fetchRoles(token),
-          fetchChats(token),
-          fetchLibrary(token),
-        ]);
-        setRoles(rolesData);
-        setChats(chatsData);
-        setLibrary(libraryData);
-        if (rolesData.length > 0) setActiveRole(rolesData[0].key);
-      } catch (e) {
+  const loadData = useCallback(async (tok: string) => {
+    try {
+      const [rolesData, chatsData, libraryData] = await Promise.all([
+        fetchRoles(tok),
+        fetchChats(tok),
+        fetchLibrary(tok),
+      ]);
+      setRoles(rolesData);
+      setChats(chatsData);
+      setLibrary(libraryData);
+      if (rolesData.length > 0) setActiveRole(rolesData[0].key);
+      setNeeds2FA(false);
+    } catch (e: any) {
+      if (e instanceof TwoFactorRequiredError) {
+        setTwoFAUser(e.user);
+        setNeeds2FA(true);
+      } else {
         console.error('Failed to load initial data:', e);
       }
-    })();
-  }, [token]);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (token) loadData(token);
+  }, [token, loadData]);
 
   const handleSelectChat = async (chat: Chat | null) => {
     if (chat) {
@@ -54,8 +65,13 @@ export default function App() {
       try {
         const msgs = await fetchMessages(token, chat.sessionKey);
         setMessages(msgs);
-      } catch {
-        setMessages([]);
+      } catch (e: any) {
+        if (e instanceof TwoFactorRequiredError) {
+          setTwoFAUser(e.user);
+          setNeeds2FA(true);
+        } else {
+          setMessages([]);
+        }
       } finally {
         setLoading(false);
       }
@@ -77,11 +93,26 @@ export default function App() {
     try {
       const chatsData = await fetchChats(token);
       setChats(chatsData);
-    } catch {}
+    } catch (e: any) {
+      if (e instanceof TwoFactorRequiredError) {
+        setTwoFAUser(e.user);
+        setNeeds2FA(true);
+      }
+    }
   };
 
   if (!token) {
     return <Login onLogin={setToken} />;
+  }
+
+  if (needs2FA) {
+    return (
+      <TwoFactorModal
+        user={twoFAUser}
+        token={token}
+        onSuccess={() => loadData(token)}
+      />
+    );
   }
 
   return (
