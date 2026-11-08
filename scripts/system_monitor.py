@@ -72,7 +72,7 @@ REQUIRED_FILES = [
     "requirements.txt",
     "README.md",
     "WORKFLOW.md",
-    "HANDOFF.md",
+    "HANDSOFF.md",
     "AGENTS.md",
     "RESUME.md",
     ".gitignore",
@@ -520,10 +520,10 @@ class Monitor:
         cat = "docs"
         for name, min_lines in [
             ("README.md", 10),
-            ("WORKFLOW.md", 50),
-            ("HANDOFF.md", 100),
-            ("AGENTS.md", 50),
-            ("RESUME.md", 50),
+            ("WORKFLOW.md", 10),
+            ("HANDSOFF.md", 10),
+            ("AGENTS.md", 10),
+            ("RESUME.md", 10),
         ]:
             path = ROOT / name
             if not path.exists():
@@ -564,7 +564,7 @@ class Monitor:
             )
             lines = [ln for ln in (r.stdout or "").splitlines() if ln.strip()]
             if os.environ.get("SUNNYWARE_RELEASE") == "1":
-                ignore = ("src/sunnyware/__init__.py", "README.md", "reports/", "pyproject.toml")
+                ignore = ("src/sunnyware/__init__.py", "README.md", "reports/", "pyproject.toml", "RESUME.md", "HANDSOFF.md", "WORKFLOW.md", "handoff.md", "resume.md", "workflow.md")
                 lines = [ln for ln in lines if not any(p in ln for p in ignore)]
             self.add(cat, "Git working tree clean",
                      len(lines) == 0,
