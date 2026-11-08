@@ -78,6 +78,8 @@ def test_web_search_tool_call(client):
 
 def test_email_placeholder_routes_to_configured(client):
     """A placeholder email should trigger email_configured safety check."""
+    import os as _os_ph
+    _os_ph.environ.pop("RESEND_API_KEY", None)  # ensure clean state
     prompt = "Send an email to test@example.com saying hello"
     with client.stream("POST", "/api/agent/stream", json={
         "input": prompt,

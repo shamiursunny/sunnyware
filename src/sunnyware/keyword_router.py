@@ -152,6 +152,9 @@ def keyword_route(prompt: str) -> Optional[dict]:
         return {"tool": "email_list_sent", "args": {}}
     _em_send = re.search(r'send\s+(?:an?\s+)?email\s+to\s+([^\s,]+@[^\s,]+)(?:\s+(.+))?', prompt, re.IGNORECASE)
     if _em_send:
+        import os as _os_early
+        if not _os_early.getenv("RESEND_API_KEY"):
+            return {"tool": "email_configured", "args": {}}
         body = (_em_send.group(2) or '').strip()
         return {"tool": "email_send", "args": {"to": _em_send.group(1), "subject": "", "body": body}}
 
@@ -262,7 +265,10 @@ def keyword_route(prompt: str) -> Optional[dict]:
 
     # --- SQL Sandbox ---
     if "sql sandbox create" in p or "create sql sandbox" in p:
-        return {"tool": "sql_sandbox_create", "args": {"name": "sandbox"}}
+        _sb_m = re.search(r'sandbox\s+(?:named\s+)?([a-z_][a-z0-9_]*)', prompt, re.IGNORECASE)
+        if not _sb_m:
+            _sb_m = re.search(r'sandbox\s+(?:named\s+)?([a-z_][a-z0-9_]*)', p, re.IGNORECASE)
+        return {"tool": "sql_sandbox_create", "args": {"name": _sb_m.group(1) if _sb_m else "sandbox"}}
     if "sql sandbox load csv" in p or "load csv" in p:
         m = re.search(r'([\w\-]+\.csv)', prompt, re.IGNORECASE)
         return {"tool": "sql_sandbox_load_csv", "args": {"file": m.group(1) if m else ""}}
@@ -915,7 +921,8 @@ def keyword_route(prompt: str) -> Optional[dict]:
 
     # --- sql_sandbox_create (v1.4.0) ---
     if re.search(r"\b(?:create|new|start|make)\s+(?:a\s+)?(?:sql|sqlite|database)\s+(?:sandbox|db|database)\b", prompt, re.IGNORECASE) or        re.search(r"\bsql\s+(?:sandbox|db|database)\s+(?:create|new|start)\b", prompt, re.IGNORECASE):
-        return {"tool": "sql_sandbox_create", "args": {"name": "sandbox"}}
+        _sb_m2 = re.search(r'sandbox\s+(?:named\s+)?([a-z_][a-z0-9_]*)', prompt, re.IGNORECASE)
+        return {"tool": "sql_sandbox_create", "args": {"name": _sb_m2.group(1) if _sb_m2 else "sandbox"}}
 
     # --- csv_query (must have .csv) ---
     if ".csv" in p or "csv file" in p:
@@ -1192,6 +1199,16 @@ def keyword_route(prompt: str) -> Optional[dict]:
     # email_configured
     if _re_b1.search(r"\b(?:is\s+)?email\s+(?:configured|setup|ready|working)\b", prompt, _re_b1.IGNORECASE):
         return {"tool": "email_configured", "args": {}}
+
+    # placeholder/example emails → safety check (only when no API key)
+    import os as _os_placeholder
+    if not _os_placeholder.getenv("RESEND_API_KEY"):
+        _em_placeholder = _re_b1.search(
+            r"send\s+(?:an?\s+)?email\s+to\s+(\S+@(?:example\.com|example\.org|test\.com|localhost))",
+            prompt, _re_b1.IGNORECASE,
+        )
+        if _em_placeholder:
+            return {"tool": "email_configured", "args": {}}
 
     # email_send
     _em_m = _re_b1.search(r"send\s+(?:an?\s+)?email\s+to\s+(\S+@\S+)(?:\s+(?:about|saying|with subject)\s+(.+))?", prompt, _re_b1.IGNORECASE)
