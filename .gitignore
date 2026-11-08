@@ -100,4 +100,10 @@ scripts/_archive_stale/
 test.pdf
 
 # Part 41: system monitor output
-reports/
+reports/*
+!reports/CHAIN.json
+!reports/latest/
+reports/latest/*
+!reports/latest/MANIFEST.json
+!reports/latest/**/*.sha256
+# Blockchain trust chain — must be committed (source of truth)

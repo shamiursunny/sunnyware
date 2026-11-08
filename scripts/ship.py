@@ -153,7 +153,11 @@ def main():
         results.append(("  " + name, status, 0, detail))
 
     ok, dur = run("Verify hashes", [sys.executable, "scripts/verify_attestations.py"])
-    results.append(("verify_hashes", "PASS" if ok else "FAIL", dur, ""))
+    results.append(("verify_hashes", "PASS" if ok else "FAIL", dur, "" if ok else "see above"))
+
+    # Blockchain hash ladder verification (enterprise trust chain)
+    ok, dur = run("Verify chain", [sys.executable, "scripts/verify_chain.py"])
+    results.append(("verify_chain", "PASS" if ok else "FAIL", dur, "" if ok else "see above"))
 
     critical_fail = [n for n, s, _, _ in results
                      if s == "FAIL" and n.strip() in CRITICAL]
