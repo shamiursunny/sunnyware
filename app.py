@@ -153,4 +153,5 @@ if __name__ == "__main__":
         server_port=int(os.getenv("PORT", "7860")),
         show_error=True,
         share=False,
+        ssr_mode=False,  # Part 230: Disable SSR for mobile OAuth compatibility
     )

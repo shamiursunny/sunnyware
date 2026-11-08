@@ -1429,9 +1429,28 @@ header { gap: var(--sp-2); padding: 0 var(--sp-3); height: 56px; }
 <script>
 // Part 181: Global API Key Interceptor
 let _apiKey = localStorage.getItem('sunnyware_chat_key') || '';
+
+// Part 230: Extract token from OAuth callback URL (?token=JWT)
+try {
+  const _urlParams = new URLSearchParams(window.location.search);
+  const _urlToken = _urlParams.get('token');
+  if (_urlToken) {
+    _apiKey = _urlToken;
+    localStorage.setItem('sunnyware_chat_key', _apiKey);
+    // Clean the URL so the token doesn't stay in browser history
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+} catch (e) {
+  console.warn('Token extraction failed:', e);
+}
+
 if (!_apiKey) {
-  _apiKey = prompt('Enter API Key (master-admin-key):') || '';
-  if (_apiKey) localStorage.setItem('sunnyware_chat_key', _apiKey);
+  // Only prompt as a last resort (desktop only).
+  // On mobile, the prompt is often blocked; users should log in via /auth/google.
+  if (!/Mobi|Android/i.test(navigator.userAgent)) {
+    _apiKey = prompt('Enter API Key (master-admin-key):') || '';
+    if (_apiKey) localStorage.setItem('sunnyware_chat_key', _apiKey);
+  }
 }
 
 const _originalFetch = window.fetch;
