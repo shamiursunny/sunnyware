@@ -1,14 +1,14 @@
 {
-  "timestamp_utc": "2026-11-08T09-54-09Z",
-  "commit": "b17a9b1c9e77c3025b344896ce5bb9e9e3e540e4",
-  "commit_short": "b17a9b1",
-  "version": "1.19.0",
+  "timestamp_utc": "2026-11-08T11-05-18Z",
+  "commit": "5593676ff40593e41297d503b101147bb5d66792",
+  "commit_short": "5593676",
+  "version": "1.20.0",
   "reports": {
     "system_monitor": {
       "exit_code": 2,
       "normalized_exit": 0,
-      "sha256": "20ef5669606b642c0394146d8c6eed4403303d4a5c77ceddb576df7a4e5e67ae",
-      "bytes": 9923,
+      "sha256": "aece6ae3e0d44e55feea58e8820ee4d4dfe8957daf0fccb1ade04516b70fbd95",
+      "bytes": 9854,
       "file": "system_monitor.txt"
     },
     "pre_push_check": {
@@ -35,8 +35,8 @@
     "smoke_remote": {
       "exit_code": 0,
       "normalized_exit": 0,
-      "sha256": "6c39ced82b9447e60ea7dffe604d8126babd797df7bdec97592fe17a243055c0",
-      "bytes": 3044,
+      "sha256": "9b3aa5c753f2958500e1dddebc327ed15e2f0a405b5c7505352238aad57e6690",
+      "bytes": 2989,
       "file": "smoke_remote.txt"
     },
     "security_post_deploy": {
@@ -55,12 +55,12 @@
     }
   },
   "chain": {
-    "index": 4,
-    "timestamp_utc": "2026-11-08T09-54-09Z",
-    "commit": "b17a9b1",
-    "version": "1.19.0",
-    "combined_hash": "265be6e856013414a89fca1ec2325f4b4b23f9d19405ac94d60cea5ce62efb8b",
-    "prev_block_hash": "dfe223fc958226810e33a8900b637e12a61313802b476f74d1f7081fced99f11",
-    "block_hash": "995a3f49b95acb1370f61c87843a3c5ea475ea90621c23cb458bf0d40afc7a01"
+    "index": 5,
+    "timestamp_utc": "2026-11-08T11-05-18Z",
+    "commit": "5593676",
+    "version": "1.20.0",
+    "combined_hash": "15f5196bcc68b62efe8b7fa0ec5cdf52cc05af2bd4468bb2c3b04a6331b822bc",
+    "prev_block_hash": "995a3f49b95acb1370f61c87843a3c5ea475ea90621c23cb458bf0d40afc7a01",
+    "block_hash": "c409a61fb19ef697d3029515a164d5a8b9cf1b376472c96fbf06d19e7020f62b"
   }
 }
