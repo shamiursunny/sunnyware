@@ -8,17 +8,17 @@
 # Sunnyware System Monitor
 ########################################################################
 
-Started: 2026-11-08T18:33:50
-Elapsed: 27.31s
+Started: 2026-11-08T18:54:57
+Elapsed: 20.41s
 
 ------------------------------------------------------------------------
  DOCS
 ------------------------------------------------------------------------
-  [PASS] README.md has reasonable size  --  628 lines (min 10)
-  [PASS] WORKFLOW.md has reasonable size  --  3973 lines (min 50)
-  [PASS] HANDOFF.md has reasonable size  --  6644 lines (min 100)
+  [PASS] README.md has reasonable size  --  632 lines (min 10)
+  [FAIL] WORKFLOW.md has reasonable size  --  11 lines (min 50)
+  [FAIL] HANDOFF.md exists  --  missing
   [PASS] AGENTS.md has reasonable size  --  203 lines (min 50)
-  [PASS] RESUME.md has reasonable size  --  4100 lines (min 50)
+  [FAIL] RESUME.md has reasonable size  --  32 lines (min 50)
 
 ------------------------------------------------------------------------
  ENVIRONMENT
@@ -30,9 +30,10 @@ Elapsed: 27.31s
 ------------------------------------------------------------------------
  GIT
 ------------------------------------------------------------------------
-  [PASS] Git working tree clean  --  clean
+  [FAIL] Git working tree clean  --  3 pending changes
+      changes: [' D handoff.md', ' D resume.md', ' D workflow.md']
   [PASS] No unpushed commits to GitHub  --  0 unpushed
-  [PASS] Latest commit  --  712f19d docs: auto-update production readiness table in README
+  [PASS] Latest commit  --  b8acc01 docs: add auto-generating enterprise RESUME, HANDSOFF, WORKFLOW
 
 ------------------------------------------------------------------------
  HYGIENE
@@ -104,14 +105,15 @@ Elapsed: 27.31s
  STRUCTURE
 ------------------------------------------------------------------------
   [PASS] Required directories present  --  6/6 found
-  [PASS] Required files present  --  24/24 found
+  [FAIL] Required files present  --  23/24 found
+      missing: ['HANDOFF.md']
   [PASS] .gitignore covers key patterns  --  4/4 matched
 
 ------------------------------------------------------------------------
  SYNTAX
 ------------------------------------------------------------------------
   [PASS] Python syntax: src  --  252 files, 0 errors
-  [PASS] Python syntax: scripts  --  150 files, 0 errors
+  [PASS] Python syntax: scripts  --  151 files, 0 errors
 
 ------------------------------------------------------------------------
  TOOLS
@@ -127,15 +129,35 @@ Elapsed: 27.31s
   [PASS] No obvious broken JS string literals  --  0 potential breaks
 
 ========================================================================
- SCORE: 100.0 / 100
- GRADE: A+ (production-ready)
+ SCORE: 94.2 / 100
+ GRADE: A (excellent)
 ========================================================================
   critical   70/70  (100.0%)
-  high       100/100  (100.0%)
-  medium     39/39  (100.0%)
-  low        15/15  (100.0%)
+  high       95/100  (95.0%)
+  medium     36/42  (85.7%)
+  low        12/14  (85.7%)
 
-  Checks: 55 pass, 0 fail, 0 warn, 0 skip
+  Checks: 50 pass, 5 fail, 0 warn, 0 skip
+
+========================================================================
+ FAILURES TO FIX (by severity)
+========================================================================
+
+  [HIGH]
+    - structure: Required files present
+      23/24 found
+
+  [MEDIUM]
+    - docs: HANDOFF.md exists
+      missing
+    - git: Git working tree clean
+      3 pending changes
+
+  [LOW]
+    - docs: WORKFLOW.md has reasonable size
+      11 lines (min 50)
+    - docs: RESUME.md has reasonable size
+      32 lines (min 50)
 
 ========================================================================
  KNOWN LIMITATIONS (accepted, not scored)
@@ -157,7 +179,7 @@ Elapsed: 27.31s
   - part-41: Part 41 - define next milestone  (blocker=pending decision)
 
 ========================================================================
- VERDICT: PRODUCTION-READY
+ VERDICT: GOOD - minor warnings only
 ========================================================================
 
 Reports saved:
@@ -166,8 +188,8 @@ Reports saved:
 
 
 --- STDERR ---
-{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-08T12:33:42.696737Z"}
-{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-08T12:33:42.696737Z"}
-{"event": "Config loaded", "level": "info", "timestamp": "2026-11-08T12:33:42.712362Z"}
-{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-08T12:33:42.712362Z"}
-{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-08T12:33:42.712362Z"}
+{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-08T12:54:55.100610Z"}
+{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-08T12:54:55.100610Z"}
+{"event": "Config loaded", "level": "info", "timestamp": "2026-11-08T12:54:55.116232Z"}
+{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-08T12:54:55.116232Z"}
+{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-08T12:54:55.116232Z"}
