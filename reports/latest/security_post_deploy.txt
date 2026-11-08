@@ -4,7 +4,7 @@
   [PASS] HTTPS enforced
 
 [2] Security headers
-  [PASS] HSTS: strict-transport-security = max-age=31536000; includeSubDomains
+  [WARN] HSTS: strict-transport-security = MISSING
   [PASS] nosniff: x-content-type-options = nosniff
   [PASS] clickjacking: x-frame-options = DENY
   [WARN] CSP
@@ -25,6 +25,6 @@
   [PASS] /health/ready -> 200
   [PASS] Recon Guard reachable (401)
 
-=== Summary: 12 pass, 2 warn, 0 fail, 0 skip ===
+=== Summary: 11 pass, 3 warn, 0 fail, 0 skip ===
 
 --- STDERR ---
