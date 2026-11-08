@@ -326,17 +326,17 @@ See [`MULTI_TENANT.md`](./MULTI_TENANT.md) for the full architecture.
 
 ## Verifiable Quality Reports
 
-**Version:** `v1.15.0` · **Commit:** `6a81d5c` · **Generated:** `2026-11-07T19-34-14Z`
+**Version:** `v1.16.0` · **Commit:** `4db9dde` · **Generated:** `2026-11-08T08-05-01Z`
 
 Every commit ships six **tamper-evident** quality reports.
 
 | Report | Exit | SHA-256 (first 16) | What it proves |
 |---|---|---|---|
-| `system_monitor` | ⚠️ 2 | `43cfef7c0eaeb130…` | Full system health + 54 production checks |
-| `pre_push_check` | ✅ 0 | `0ee9821e252d213f…` | Pre-push gate: syntax, HTML sanity, smoke test |
+| `system_monitor` | ⚠️ 2 | `dadda010f01dcbc8…` | Full system health + 54 production checks |
+| `pre_push_check` | ✅ 0 | `f8069900b442545c…` | Pre-push gate: syntax, HTML sanity, smoke test |
 | `smoke_local` | ✅ 0 | `406f5d6c9b51c9e2…` | Local HTML/structure validation |
 | `security_pre_deploy` | ✅ 0 | `b05517b0c76f8103…` | Static security: secrets, imports, CVEs, bandit |
-| `smoke_remote` | ✅ 0 | `534cc6953f15f2ee…` | Live HF Space deployment health |
+| `smoke_remote` | ✅ 0 | `8c389069d71bcc4a…` | Live HF Space deployment health |
 | `security_post_deploy` | ✅ 0 | `c9210937fc2e0322…` | Runtime security: headers, auth, CORS |
 
 **Verify integrity in 1 second:**
