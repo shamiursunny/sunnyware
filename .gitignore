@@ -109,3 +109,4 @@ reports/latest/*
 !reports/latest/*.txt
 !reports/latest/**/*.sha256
 # Blockchain trust chain — must be committed (source of truth)
+frontend/node_modules/

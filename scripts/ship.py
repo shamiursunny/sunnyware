@@ -205,7 +205,7 @@ def main():
 
     if args.verify_deploy:
         ok, dur = run("Verify deployed", [sys.executable, "scripts/verify_deployed.py",
-                                          "--wait", "240"])
+                                          "--wait", "600"])
         results.append(("verify_deployed", "PASS" if ok else "FAIL", dur,
                         "" if ok else "remote mismatch"))
 

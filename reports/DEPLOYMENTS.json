@@ -141,5 +141,27 @@
     "verified": true,
     "error": null,
     "mismatches": []
+  },
+  {
+    "timestamp_utc": "2026-11-08T15:27:22Z",
+    "remote_url": "https://shamiur-sunnyware.hf.space",
+    "chain_block": 13,
+    "chain_hash": "8d8c2f59238b804469d61a2fc102be09cf266e708f8c17b94856e4b2e8a75620",
+    "expected_version": "1.28.0",
+    "deployed_version": "1.28.0",
+    "verified": true,
+    "error": null,
+    "mismatches": []
+  },
+  {
+    "timestamp_utc": "2026-11-08T16:31:22Z",
+    "remote_url": "https://shamiur-sunnyware.hf.space",
+    "chain_block": 14,
+    "chain_hash": "a385d6c549384080dee8d6cdc5e52b66ee9105874502d6166d1f3202e6b588ad",
+    "expected_version": "1.29.0",
+    "deployed_version": null,
+    "verified": false,
+    "error": "deploy not ready: version mismatch: remote=1.28.0 expected=1.29.0",
+    "mismatches": []
   }
 ]

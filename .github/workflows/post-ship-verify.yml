@@ -26,7 +26,7 @@ jobs:
         run: python scripts/verify_attestations.py
 
       - name: Verify deployed artifacts match chain
-        run: python scripts/verify_deployed.py --wait 240
+        run: python scripts/verify_deployed.py --wait 600
 
       - name: Show deployment log
         if: always()

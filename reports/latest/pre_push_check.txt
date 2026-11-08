@@ -85,8 +85,9 @@
  4. Git working-tree check
 ======================================================================
   changes:
+     M reports/DEPLOYMENTS.json
      M src/sunnyware/__init__.py
-  [PASS] 1 change(s), no secrets or junk detected
+  [PASS] 2 change(s), no secrets or junk detected
 
 ======================================================================
  5. Live HF Space health (soft check)
