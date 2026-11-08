@@ -76,6 +76,13 @@ async def lifespan(app):
     except Exception:
         pass
 
+    # Run diagnostics startup checks
+    try:
+        from .diagnostics import run_startup_checks as _diag_startup
+        _diag_startup()
+    except Exception:
+        pass
+
     # Run auto-cleanup on startup
     try:
         from . import sandbox_cleanup

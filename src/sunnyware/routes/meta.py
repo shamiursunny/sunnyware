@@ -53,6 +53,12 @@ from .. import tools as tools_registry
 router = APIRouter()
 
 
+@router.get("/api/diagnostics/report")
+async def diagnostics_report():
+    from ..diagnostics import report_endpoint
+    return await report_endpoint()
+
+
 @router.get("/")
 async def root(request: Request):
     # Part 186b: Paddle appends ?_ptxn=... to the root domain.

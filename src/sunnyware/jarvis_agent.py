@@ -266,6 +266,10 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
     try:
         from .keyword_router import keyword_route
         kw_result = keyword_route(prompt)
+        try:
+            from .diagnostics import preflight as _diag_pre
+            _diag_pre(prompt, kw_result)
+        except Exception: pass
         if kw_result:
             print(f"[keyword] Matched: {kw_result['tool']}", flush=True)
             return kw_result

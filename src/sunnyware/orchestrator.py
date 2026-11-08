@@ -1232,6 +1232,15 @@ async def run_agent(
     except Exception:
         pass
 
+    # Diagnostics: analyse the final response for self-report inconsistencies
+    try:
+        from .diagnostics import post_response as _diag_post
+        _answer = (_result_119 or {}).get("answer") or ""
+        if _answer:
+            _diag_post(_answer, session_uuid)
+    except Exception:
+        pass
+
     _CURRENT_ROLE.reset(_role_token)
     return _result_119
 
