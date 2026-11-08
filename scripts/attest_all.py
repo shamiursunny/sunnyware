@@ -93,7 +93,7 @@ def update_readme(manifest):
         f"**Commit:** `{manifest['commit_short']}` · "
         f"**Generated:** `{manifest['timestamp_utc']}`",
         "",
-        "Every commit ships six **tamper-evident** quality reports.",
+        f"Every commit ships {len(manifest['reports'])} **tamper-evident** quality reports.",
         "",
         "| Report | Exit | SHA-256 (first 16) | What it proves |",
         "|---|---|---|---|",

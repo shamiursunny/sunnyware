@@ -328,7 +328,7 @@ See [`MULTI_TENANT.md`](./MULTI_TENANT.md) for the full architecture.
 
 **Version:** `v1.19.0` · **Commit:** `b17a9b1` · **Generated:** `2026-11-08T09-54-09Z`
 
-Every commit ships six **tamper-evident** quality reports.
+Every commit ships 7 **tamper-evident** quality reports.
 
 | Report | Exit | SHA-256 (first 16) | What it proves |
 |---|---|---|---|
