@@ -504,7 +504,15 @@ class _MetricsMiddleware:
                 "/api/slack/commands",
                 "/api/feedback",
                 "/invite",
-                "/api/telemetry/report"
+                "/api/telemetry/report",
+                # Public health & diagnostics (read-only)
+                "/api/health",
+                "/api/version",
+                "/api/diagnostics/report",
+                # Public attestation audit endpoints (read-only, trustless)
+                "/api/attestation/manifest",
+                "/api/attestation/chain",
+                "/api/attestation/deployments",
             )
             # Attachments are served publicly for <img> tags (random IDs, unguessable)
             is_attachment = path.startswith("/api/attachments/")

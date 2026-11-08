@@ -1,0 +1,13 @@
+[
+  {
+    "timestamp_utc": "2026-11-08T09:35:01Z",
+    "remote_url": "https://shamiur-sunnyware.hf.space",
+    "chain_block": 2,
+    "chain_hash": "2ea4dce00324a1a96ee879c623b9df56fe626f6917e9fa66e0b124fb10ebf545",
+    "expected_version": "1.17.0",
+    "deployed_version": null,
+    "verified": false,
+    "error": "deploy not ready: HTTPError: HTTP Error 401: Unauthorized",
+    "mismatches": []
+  }
+]

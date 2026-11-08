@@ -102,6 +102,7 @@ test.pdf
 # Part 41: system monitor output
 reports/*
 !reports/CHAIN.json
+!reports/DEPLOYMENTS.json
 !reports/latest/
 reports/latest/*
 !reports/latest/MANIFEST.json

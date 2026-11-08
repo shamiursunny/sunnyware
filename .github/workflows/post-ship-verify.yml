@@ -1,0 +1,32 @@
+name: Post-Ship Verification
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  verify-deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Verify chain integrity
+        run: python scripts/verify_chain.py
+
+      - name: Verify attestation hashes
+        run: python scripts/verify_attestations.py
+
+      - name: Verify deployed artifacts match chain
+        run: python scripts/verify_deployed.py --wait 240
+
+      - name: Show deployment log
+        if: always()
+        run: cat reports/DEPLOYMENTS.json 2>/dev/null || echo "(no deployments yet)"

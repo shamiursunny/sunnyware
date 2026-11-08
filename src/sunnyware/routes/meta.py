@@ -59,6 +59,38 @@ async def diagnostics_report():
     return await report_endpoint()
 
 
+# ── Attestation endpoints (post-ship verification) ─────────
+# Read-only, unauthenticated. Enables any third party to
+# independently verify that deployed artifacts match the
+# chain recorded in git history.
+
+def _read_reports_json(relative: str, default):
+    from pathlib import Path
+    import json
+    try:
+        p = Path(__file__).resolve().parent.parent.parent.parent / "reports" / relative
+        if not p.exists():
+            return default
+        return json.loads(p.read_text(encoding="utf-8"))
+    except Exception:
+        return default
+
+
+@router.get("/api/attestation/manifest")
+async def get_attestation_manifest():
+    return _read_reports_json("latest/MANIFEST.json", {"error": "manifest not found"})
+
+
+@router.get("/api/attestation/chain")
+async def get_attestation_chain():
+    return _read_reports_json("CHAIN.json", [])
+
+
+@router.get("/api/attestation/deployments")
+async def get_attestation_deployments():
+    return _read_reports_json("DEPLOYMENTS.json", [])
+
+
 @router.get("/")
 async def root(request: Request):
     # Part 186b: Paddle appends ?_ptxn=... to the root domain.

@@ -117,6 +117,7 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--no-push", action="store_true")
     ap.add_argument("--skip-deploy", action="store_true")
+    ap.add_argument("--verify-deploy", action="store_true")
     ap.add_argument("--wait", type=int, default=180)
     ap.add_argument("--message", default=None)
     args = ap.parse_args()
@@ -201,6 +202,12 @@ def main():
 
         ok, dur = run("Post-deploy security", [sys.executable, "scripts/security_post_deploy.py"])
         results.append(("post_deploy_security", "PASS" if ok else "WARN", dur, ""))
+
+    if args.verify_deploy:
+        ok, dur = run("Verify deployed", [sys.executable, "scripts/verify_deployed.py",
+                                          "--wait", "240"])
+        results.append(("verify_deployed", "PASS" if ok else "FAIL", dur,
+                        "" if ok else "remote mismatch"))
 
     print_summary(results, version, time.time() - t0)
     fails = [n for n, s, _, _ in results if s == "FAIL"]
