@@ -347,6 +347,34 @@ python scripts/verify_attestations.py
 Full reports + hashes: [`reports/latest/MANIFEST.json`](./reports/latest/MANIFEST.json). Each report is timestamped and linked to this git commit — anyone can re-run and reproduce.
 
 <!-- ATTESTATIONS:END -->
+## Automatic Error Detection (Diagnostics)
+
+Sunnyware ships with a self-diagnostic subsystem that observes every layer of the request pipeline and records structured error reports — without ever mutating tool behavior.
+
+| Layer | Detection |
+|-------|-----------|
+| **Startup** | Registry integrity (duplicate/recursive names), wiring integrity (run_agent, _build_tools_schema), schema determinism |
+| **Preflight** | Router/LLM-suggested tool names verified against the live registry |
+| **Per-call** | Tool result classified: auth (401), rate_limit (429), timeout, empty, malformed |
+| **Post-response** | LLM self-report contradictions ("I don't have X" while X exists) |
+
+### CLI
+
+    python scripts/diagnostics.py           # human-readable report
+    python scripts/diagnostics.py --attest  # deterministic SHA-256 for attestation
+
+### API
+
+    GET /api/diagnostics/report   ->  grouped by severity (info / warn / error / fatal)
+
+### Attested Hash
+
+diagnostics is the 7th attested script. Its deterministic SHA-256 (first 16) is pinned as 806060aa9fe1f97b and recorded in reports/latest/MANIFEST.json.
+
+### Tests
+
+    pytest -q tests/test_diagnostics.py    # 5 seeded error classes
+
 
 ## Versioning & Rollback
 

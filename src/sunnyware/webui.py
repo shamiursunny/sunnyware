@@ -2030,7 +2030,7 @@ window.fetch = function(url, options) {
     }
     const maxLen = 2000;
     if (json.length > maxLen) {
-      json = json.slice(0, maxLen) + '\n... (truncated)';
+      json = json.slice(0, maxLen) + '\\n... (truncated)';
     }
     const details = document.createElement('details');
     details.className = 'tool-result-details';

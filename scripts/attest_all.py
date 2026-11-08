@@ -30,6 +30,8 @@ SCRIPTS = [
      "Live HF Space deployment health"),
     ("security_post_deploy", ["scripts/security_post_deploy.py"],
      "Runtime security: headers, auth, CORS"),
+    ("diagnostics", ["scripts/diagnostics.py", "--attest"],
+     "Automatic error detection: registry/schema integrity, recursive-name guard"),
 ]
 
 CRITICAL = {"system_monitor", "pre_push_check", "security_pre_deploy"}
