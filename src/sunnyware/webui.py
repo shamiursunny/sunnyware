@@ -1437,7 +1437,7 @@ try {
   if (_urlToken) {
     _apiKey = _urlToken;
     localStorage.setItem('sunnyware_chat_key', _apiKey);
-    // Clean the URL so the token doesn't stay in browser history
+    // Clean URL after token extraction
     window.history.replaceState({}, document.title, window.location.pathname);
   }
 } catch (e) {
