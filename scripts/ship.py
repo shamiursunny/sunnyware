@@ -137,8 +137,8 @@ def main():
         print("\nDRY-RUN - aborting before attest (no files changed).")
         return 0
 
-    ok, dur = run("Attest all (6 scripts)", [sys.executable, "scripts/attest_all.py"])
-    results.append(("attest_all", "PASS" if ok else "FAIL", dur, "6 reports" if ok else "see above"))
+    ok, dur = run("Attest all (7 scripts)", [sys.executable, "scripts/attest_all.py"])
+    results.append(("attest_all", "PASS" if ok else "FAIL", dur, "7 reports" if ok else "see above"))
 
     reports = parse_manifest()
     for name, info in reports.items():
