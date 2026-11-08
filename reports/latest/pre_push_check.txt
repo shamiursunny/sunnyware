@@ -85,14 +85,8 @@
  4. Git working-tree check
 ======================================================================
   changes:
-     M README.md
-     M reports/CHAIN.json
-     M reports/latest/MANIFEST.json
-     M reports/latest/security_pre_deploy.txt.sha256
-     M reports/latest/smoke_remote.txt.sha256
-     M reports/latest/system_monitor.txt.sha256
      M src/sunnyware/__init__.py
-  [PASS] 7 change(s), no secrets or junk detected
+  [PASS] 1 change(s), no secrets or junk detected
 
 ======================================================================
  5. Live HF Space health (soft check)
