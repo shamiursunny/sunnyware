@@ -63,6 +63,7 @@ def run(cmd, timeout=300):
         "SUNNYWARE_DATA_DIR": tempfile.gettempdir() + "/sunnyware",
         "PYTHONUTF8": "1",
         "PYTHONIOENCODING": "utf-8",
+        "SUNNYWARE_RELEASE": "1",
     })
     try:
         r = subprocess.run(

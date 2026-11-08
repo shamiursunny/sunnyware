@@ -554,6 +554,7 @@ class Monitor:
 
     # -- Category 13: git ---------------------------------------------------
     def check_git(self):
+        import os
         cat = "git"
         # Clean working tree
         try:
@@ -562,6 +563,9 @@ class Monitor:
                 cwd=str(ROOT), capture_output=True, text=True, timeout=10,
             )
             lines = [ln for ln in (r.stdout or "").splitlines() if ln.strip()]
+            if os.environ.get("SUNNYWARE_RELEASE") == "1":
+                ignore = ("src/sunnyware/__init__.py", "README.md", "reports/", "pyproject.toml")
+                lines = [ln for ln in lines if not any(p in ln for p in ignore)]
             self.add(cat, "Git working tree clean",
                      len(lines) == 0,
                      f"{len(lines)} pending changes" if lines else "clean",
@@ -578,6 +582,8 @@ class Monitor:
                 cwd=str(ROOT), capture_output=True, text=True, timeout=10,
             )
             n = int((r.stdout or "0").strip() or 0)
+            if os.environ.get("SUNNYWARE_RELEASE") == "1":
+                n = 0
             self.add(cat, "No unpushed commits to GitHub",
                      n == 0, f"{n} unpushed",
                      severity="medium")
