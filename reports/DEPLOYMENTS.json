@@ -9,5 +9,16 @@
     "verified": false,
     "error": "deploy not ready: HTTPError: HTTP Error 401: Unauthorized",
     "mismatches": []
+  },
+  {
+    "timestamp_utc": "2026-11-08T09:52:14Z",
+    "remote_url": "https://shamiur-sunnyware.hf.space",
+    "chain_block": 3,
+    "chain_hash": "dfe223fc958226810e33a8900b637e12a61313802b476f74d1f7081fced99f11",
+    "expected_version": "1.18.0",
+    "deployed_version": "1.18.0",
+    "verified": true,
+    "error": null,
+    "mismatches": []
   }
 ]
