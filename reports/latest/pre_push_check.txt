@@ -12,7 +12,7 @@
 ======================================================================
  2. Served HTML / JS sanity check
 ======================================================================
-  runtime HTML: 127954 chars
+  runtime HTML: 128617 chars
   [PASS] no obvious broken JS string literals detected
   [PASS] all key HTML markers present
 
@@ -85,9 +85,8 @@
  4. Git working-tree check
 ======================================================================
   changes:
-     M reports/DEPLOYMENTS.json
      M src/sunnyware/__init__.py
-  [PASS] 2 change(s), no secrets or junk detected
+  [PASS] 1 change(s), no secrets or junk detected
 
 ======================================================================
  5. Live HF Space health (soft check)
