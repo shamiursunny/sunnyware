@@ -6,9 +6,9 @@ from .models import DiagnosticRecord
 
 def _tool_names() -> List[str]:
     try:
-        from sunnyware.tools import get_all_tool_names as _g
-        names = _g() if callable(_g) else _g
-        return list(names or [])
+        from sunnyware.tools import list_tools
+        tools = list(list_tools())
+        return [t["name"] if isinstance(t, dict) else str(t) for t in tools]
     except Exception:
         return []
 

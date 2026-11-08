@@ -63,8 +63,23 @@ def _build_tools_schema(role=None) -> list:
     allowed_set = set(allowed) if allowed is not None else None
 
     out = []
+    _RECURSIVE_TOOL_NAME = re.compile(r"(_and_\w+){2,}")
     for t in tools_registry.list_tools():
         if allowed_set is not None and t["name"] not in allowed_set:
+            continue
+        # Defensive: reject any tool whose name contains repeated suffixes
+        # (guards against future alias-expansion or schema-mutation bugs)
+        if _RECURSIVE_TOOL_NAME.search(t.get("name", "")):
+            try:
+                from .diagnostics import record
+                from .diagnostics.models import DiagnosticRecord
+                record(DiagnosticRecord(
+                    cls="registry_integrity", severity="error", layer="startup",
+                    message=f"Rejected recursive tool name from schema: {t['name']}",
+                    evidence={"name": t["name"]},
+                ))
+            except Exception:
+                pass
             continue
         props = {}
         required = []
