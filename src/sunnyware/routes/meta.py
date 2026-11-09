@@ -508,6 +508,55 @@ async def local_model_smoke():
     import time as _t
     from .. import local_llm as _lm
 
+    import inspect as _inspect
+
+    def _call_tool_coro(tool, args):
+        """Return the coroutine for tool.run with the right signature.
+
+        Handles three cases:
+          - run(args_dict)      → single param named args/kwargs/payload
+          - run(**kwargs)       → filter args to valid param names
+          - run()               → no params
+        Raises TypeError with a clear message if required params are missing.
+        """
+        try:
+            sig = _inspect.signature(tool.run)
+        except (TypeError, ValueError):
+            # Cannot introspect — fall back to dict style
+            return tool.run(args)
+
+        params = sig.parameters
+        param_names = [
+            n for n, p in params.items()
+            if p.kind not in (_inspect.Parameter.VAR_KEYWORD, _inspect.Parameter.VAR_POSITIONAL)
+        ]
+        has_var_kw = any(
+            p.kind == _inspect.Parameter.VAR_KEYWORD for p in params.values()
+        )
+
+        # Dict-style: single param named args/kwargs/payload
+        if len(param_names) == 1 and param_names[0] in ("args", "kwargs", "payload"):
+            return tool.run(args)
+
+        # No-args style
+        if len(param_names) == 0 and not has_var_kw:
+            return tool.run()
+
+        # Filter args to only valid param names
+        filtered = {k: v for k, v in args.items() if k in param_names}
+
+        # Detect missing required params (no default value)
+        missing = [
+            n for n in param_names
+            if n not in filtered and params[n].default is _inspect.Parameter.empty
+        ]
+        if missing:
+            raise TypeError(
+                f"missing required args: {missing} (have {list(args.keys())})"
+            )
+
+        return tool.run(**filtered)
+
     results = []
     t_start = _t.time()
 
@@ -2466,7 +2515,7 @@ async def test_all_tools():
         "data_describe": {"values": [1, 2, 3, 4, 5]},
         "data_correlation": {"x": [1, 2, 3], "y": [2, 4, 6]},
         "csv_groupby": {"filename": "test.csv", "group_col": "a", "agg_col": "b"},
-        "query_sqlite": {"db_path": ":memory:", "sql_query": "SELECT 1"},
+        "query_sqlite": {"filename": "test.csv", "sql_query": "SELECT 1", "table_name": "t"},
         "query_external_db": {"connection_string": "sqlite:///:memory:", "sql_query": "SELECT 1"},
         "scrape_webpage": {"url": "https://example.com"},
         "ddg_news": {"query": "AI", "max_results": 2},
@@ -2511,6 +2560,13 @@ async def test_all_tools():
     SKIP_FILE = {
         "pdf_read", "excel_read", "excel_write", "read_bi_file",
         "extract_pbix_assets", "write_file", "delete_file",
+        "edit_tableau_field", "add_tableau_filter", "remove_tableau_field",
+        "generate_chart", "clean_dataset", "csv_groupby", "scrape_webpage",
+    }
+
+    # Tools that need an external API key — SKIP honestly
+    SKIP_NO_KEY = {
+        "aggregate_market_data",
     }
 
     # Tools that need longer than 15s (browser automation)
@@ -2571,6 +2627,10 @@ async def test_all_tools():
             results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "needs file"})
             continue
 
+        if name in SKIP_NO_KEY:
+            results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "needs api key"})
+            continue
+
         params = spec.get("parameters") or {}
         if name in SPECIFIC_ARGS:
             args = SPECIFIC_ARGS[name]
@@ -2581,7 +2641,7 @@ async def test_all_tools():
 
         t0 = _t.time()
         try:
-            raw = await _aio.wait_for(tool.run(**args), timeout=timeout_s)
+            raw = await _aio.wait_for(_call_tool_coro(tool, args), timeout=timeout_s)
             latency = int((_t.time() - t0) * 1000)
 
             if isinstance(raw, dict) and raw.get("error"):
