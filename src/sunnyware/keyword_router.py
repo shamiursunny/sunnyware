@@ -272,6 +272,58 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if _narrate_m:
         return {"tool": "narrate_table", "args": {"filename": _narrate_m.group(1)}}
 
+
+    # --- add_tableau_filter (0-token) ---
+    _atf_m = re.search(
+        r"add\s+(?:a\s+)?filter\s+(?:on|to)\s+(?:the\s+)?[\w\-\s]+?field\s+(\w+).*?(?:value|equals?)\s+(.+?)(?:\s+(?:to|in|on)\s+|$)",
+        prompt, re.IGNORECASE,
+    )
+    _atf_file = re.search(r"([\w\-]+\.twb)", prompt, re.IGNORECASE)
+    if _atf_m and _atf_file:
+        _ws_m = re.search(r"(?:worksheet|sheet)\s+(\w+)", prompt, re.IGNORECASE)
+        return {"tool": "add_tableau_filter", "args": {
+            "filename": _atf_file.group(1),
+            "worksheet": _ws_m.group(1) if _ws_m else "Sheet1",
+            "field": _atf_m.group(1),
+            "value": _atf_m.group(2).strip(),
+        }}
+
+    # --- remove_tableau_field (0-token) ---
+    _rtf_m = re.search(r"(?:remove|delete)\s+(?:the\s+)?field\s+(\w+)\s+from\s+([\w\-]+\.twb)", prompt, re.IGNORECASE)
+    if _rtf_m:
+        return {"tool": "remove_tableau_field", "args": {
+            "field_name": _rtf_m.group(1),
+            "filename": _rtf_m.group(2),
+        }}
+
+    # --- extract_pbix_assets (0-token) ---
+    _epa_m = re.search(r"extract\s+(?:assets|files|content|images?)\s+(?:from|in)\s+([\w\-]+\.pbix)", prompt, re.IGNORECASE)
+    if _epa_m:
+        return {"tool": "extract_pbix_assets", "args": {"filename": _epa_m.group(1)}}
+
+    # --- generate_report (0-token) ---
+    _gr_m = re.search(r"(?:generate|create|make|build)\s+(?:a\s+)?report\s+(?:from|for|of|using|on)\s+([\w\-]+\.(?:csv|xlsx?))", prompt, re.IGNORECASE)
+    if _gr_m:
+        fname = _gr_m.group(1)
+        _title_m = re.search(r"(?:titled?|called?|named?)\s+[\"\']([^\"\']+)[\"\']", prompt, re.IGNORECASE)
+        return {"tool": "generate_report", "args": {
+            "filename": fname,
+            "title": _title_m.group(1) if _title_m else "Report",
+            "output_filename": "report.txt",
+            "kind": "workspace",
+        }}
+
+    # --- query_external_db (0-token, requires EXTERNAL_DB_URL env) ---
+    import os as _os_qedb
+    _ext_url = _os_qedb.getenv("EXTERNAL_DB_URL", "")
+    if _ext_url:
+        _qedb_m = re.search(r"(?:query|run|execute)\s+(?:sql\s+)?(?:(?:on|against)\s+)?(?:external\s+)?(?:db|database)\s+(?:with\s+)?(.+)", prompt, re.IGNORECASE)
+        if _qedb_m:
+            return {"tool": "query_external_db", "args": {
+                "connection_string": _ext_url,
+                "sql_query": _qedb_m.group(1).strip(),
+            }}
+
     # --- pdf_report (0-token) ---
     _pdfrep_m = re.search(r"^(?:create|make|generate|build)\s+(?:a\s+)?pdf\s+(?:report|file)", prompt, re.IGNORECASE)
     if _pdfrep_m:

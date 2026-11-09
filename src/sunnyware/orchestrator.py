@@ -147,8 +147,7 @@ _TOOL_RESULT_B64_FIELDS = ("image_base64", "image_data", "chart_base64")
 # These tools return exact answers (calculator output, exact time, etc.) and the
 # tiny Qwen2.5-0.5B model cannot reliably format them without hallucinating.
 _DIRECT_ANSWER_TOOLS = {
-    "calculator", "current_time", "get_current_time", "time_now",
-    "data_stats", "data_describe", "data_correlation", "csv_groupby",
+    "calculator", "current_time",     "data_stats", "data_describe", "data_correlation", "csv_groupby",
     "image_generate", "list_files", "web_search", "web_fetch", "browser_goto", "browser_screenshot", "browser_click", "browser_fill_submit", "browser_extract", "html_to_text", "url_metadata", "scrape_webpage", "email_send", "email_configured", "marketaux_news", "research_search", "ddg_news", "arxiv_search", "domain_research",
     "read_file", "read_sandbox_file", "write_file", "write_sandbox_file", "delete_file",
     "excel_read", "pdf_read", "read_bi_file", "export_table",
@@ -156,7 +155,7 @@ _DIRECT_ANSWER_TOOLS = {
     "generate_chart", "generate_report", "scrape_webpage",
     "edit_tableau_field", "add_tableau_filter", "remove_tableau_field", "extract_pbix_assets",
     "date_calc", "email_list_sent"
-, "technical_analysis", "ml_forecast", "pro_chart", "aggregate_market_data", "python_session", "vision_analyze", "live_market_stream", "advanced_chart", "bi_export", "insurance_research", "legal_citation_check"
+, "technical_analysis", "ml_forecast", "pro_chart", "aggregate_market_data", "python_session", "vision_analyze", "live_market_stream", "insurance_research", "legal_citation_check"
 }
 print(f"[orchestrator] DIRECT_ANSWER_TOOLS = {sorted(_DIRECT_ANSWER_TOOLS)}", flush=True)
 
