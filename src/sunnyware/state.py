@@ -344,6 +344,24 @@ def _apply_migrations(conn, lock):
         except Exception as e:
             print(f"[state] migration {mig.name} failed: {e}", file=sys.stderr)
 
+    # ── Ensure library_files exists (created by routes/library.py on first hit) ──
+    try:
+        with lock:
+            conn.execute("""
+                CREATE TABLE IF NOT EXISTS library_files (
+                    id VARCHAR PRIMARY KEY,
+                    name VARCHAR NOT NULL,
+                    owner_key VARCHAR DEFAULT '',
+                    size_bytes BIGINT DEFAULT 0,
+                    content_type VARCHAR DEFAULT '',
+                    created_at TIMESTAMP WITH TIME ZONE DEFAULT current_timestamp,
+                    metadata JSON DEFAULT '{}'
+                )
+            """)
+            conn.execute("CREATE INDEX IF NOT EXISTS idx_library_owner ON library_files (owner_key)")
+    except Exception as e:
+        print(f"[state] library_files create failed: {e}", file=sys.stderr)
+
 
 # ─── init_pool ───────────────────────────────────────────────────────
 async def init_pool(dsn: Optional[str] = None) -> bool:

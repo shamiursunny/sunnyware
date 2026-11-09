@@ -24,16 +24,23 @@ class AggregateMarketDataTool:
         # 1. Fetch Finnhub
         try:
             fh = FinnhubQuoteTool()
-            results["finnhub"] = await fh.run(symbol)
+            # Try dict-args style first, fallback to positional
+            try:
+                results["finnhub"] = await fh.run({"symbol": symbol})
+            except TypeError:
+                results["finnhub"] = await fh.run(symbol)
         except Exception as e:
-            results["finnhub"] = {"error": str(e)}
+            results["finnhub"] = {"error": f"{type(e).__name__}: {e}"}
 
         # 2. Fetch Tiingo
         try:
             tg = TiingoPricesTool()
-            results["tiingo"] = await tg.run(symbol)
+            try:
+                results["tiingo"] = await tg.run({"symbol": symbol, "ticker": symbol})
+            except TypeError:
+                results["tiingo"] = await tg.run(symbol)
         except Exception as e:
-            results["tiingo"] = {"error": str(e)}
+            results["tiingo"] = {"error": f"{type(e).__name__}: {e}"}
 
         # 3. Save to SQLite
         base = paths.workspace()

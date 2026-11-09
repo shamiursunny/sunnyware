@@ -2440,6 +2440,9 @@ def _seed_test_fixtures():
       <column caption="Symbol" datatype="string" name="[symbol]" role="dimension" type="nominal"/>
       <column caption="Timestamp" datatype="integer" name="[timestamp]" role="dimension" type="ordinal"/>
       <column caption="Volume" datatype="integer" name="[volume]" role="measure" type="quantitative"/>
+      <column caption="price" datatype="real" name="[price_calc]" role="measure" type="quantitative">
+        <calculation class="tableau" formula="[price] * 2"/>
+      </column>
     </datasource>
   </datasources>
   <worksheets>
@@ -2582,9 +2585,9 @@ async def test_all_tools(request: Request = None):
         "ml_forecast": {"filename": "AAPL_live.csv", "target_column": "price", "periods": 3, "kind": "workspace"},
         "pro_chart": {"filename": "AAPL_live.csv", "chart_type": "line", "kind": "workspace"},
         "scrape_webpage": {"url": "https://en.wikipedia.org/wiki/List_of_countries_by_population_(United_Nations)", "output_filename": "scraped.csv", "table_index": 0},
-        "edit_tableau_field": {"filename": "sample.twb", "field_name": "price", "new_value": "price * 2", "kind": "workspace"},
+        "edit_tableau_field": {"filename": "sample.twb", "field_name": "price", "new_value": "[price] * 3", "kind": "workspace"},
         "add_tableau_filter": {"filename": "sample.twb", "worksheet": "Sheet1", "field": "symbol", "value": "AAPL", "kind": "workspace"},
-        "remove_tableau_field": {"filename": "sample.twb", "field_name": "volume", "kind": "workspace"},
+        "remove_tableau_field": {"filename": "sample.twb", "field_name": "[volume]", "kind": "workspace"},
         "extract_pbix_assets": {"filename": "sample.pbix", "kind": "workspace"},
         "sql_sandbox_load_csv": {"name": "test", "file": "AAPL_live.csv", "table": "aapl_data"},
     }
