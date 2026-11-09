@@ -2618,7 +2618,7 @@ async def test_all_tools(request: Request = None):
         # ── Library search ──
         "search_library": {"query": "test", "limit": 5},
         # ── Delegate to valid agent ──
-        "delegate_to_agent": {"agent": "quant", "task": "find papers on AI"},
+        "delegate_to_agent": {"agent": "cdo", "task": "find papers on AI"},
     }
 
     # Tools that need a real database — SKIP honestly (env-blocked)
@@ -2814,6 +2814,14 @@ async def test_all_tools(request: Request = None):
         timeout_s = 90 if name in LONG_TIMEOUT else 15
 
         t0 = _t.time()
+        # Special case: delegate_to_agent needs a delegating role context
+        _role_token = None
+        if name == "delegate_to_agent":
+            try:
+                from ..tools.delegate_to_agent import _CURRENT_ROLE as _role_var
+                _role_token = _role_var.set("cdo")
+            except Exception:
+                _role_token = None
         try:
             raw = await _aio.wait_for(_call_tool_coro(tool, args), timeout=timeout_s)
             latency = int((_t.time() - t0) * 1000)
@@ -2838,6 +2846,12 @@ async def test_all_tools(request: Request = None):
                     pass
         except _aio.TimeoutError:
             results.append({"name": name, "status": "FAIL", "latency_ms": timeout_s * 1000, "output": "", "error": "timeout"})
+            if _role_token is not None:
+                try:
+                    from ..tools.delegate_to_agent import _CURRENT_ROLE as _role_var
+                    _role_var.reset(_role_token)
+                except Exception:
+                    pass
             try:
                 _as.log_event(user="admin-test", event_type="tool", tool_name=name, ok=False, extra={"error": "timeout"})
             except Exception:
@@ -2845,6 +2859,12 @@ async def test_all_tools(request: Request = None):
         except Exception as e:
             latency = int((_t.time() - t0) * 1000)
             err = f"{type(e).__name__}: {e}"[:200]
+            if _role_token is not None:
+                try:
+                    from ..tools.delegate_to_agent import _CURRENT_ROLE as _role_var
+                    _role_var.reset(_role_token)
+                except Exception:
+                    pass
             results.append({"name": name, "status": "FAIL", "latency_ms": latency, "output": "", "error": err})
             try:
                 _as.log_event(user="admin-test", event_type="tool", tool_name=name, ok=False, extra={"error": err})
