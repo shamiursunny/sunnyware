@@ -2589,7 +2589,7 @@ async def test_all_tools(request: Request = None):
         "data_describe": {"filename": "test.csv"},
         "data_quality_report": {"file": "AAPL_live.csv"},
         "generate_report": {"filename": "AAPL_live.csv", "title": "Report", "output_filename": "report.txt", "kind": "workspace"},
-        "vision_analyze": {"filename": "screenshot-20261109-104142.png"},
+        "vision_analyze": {"filename": "pro_candlestick_apple.png", "prompt": "Describe this image"},
         "technical_analysis": {"filename": "ta_apple.csv"},
         "ml_forecast": {"filename": "AAPL_live.csv", "target_column": "price", "periods": 3, "kind": "workspace"},
         "pro_chart": {"filename": "AAPL_live.csv", "chart_type": "line", "kind": "workspace"},
@@ -2777,11 +2777,11 @@ async def test_all_tools(request: Request = None):
             results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "external data/service required"})
             continue
 
-        # Special case: email_send only runs if SUNNYWARE_ALLOW_EMAIL_TEST=1
+        # email_send runs if RESEND_API_KEY is set (user has it configured)
         if name == "email_send":
             import os as _os_email
-            if not _os_email.getenv("SUNNYWARE_ALLOW_EMAIL_TEST"):
-                results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "set SUNNYWARE_ALLOW_EMAIL_TEST=1 to enable"})
+            if not _os_email.getenv("RESEND_API_KEY"):
+                results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "RESEND_API_KEY not set"})
                 continue
 
         # Always skip truly destructive tools (safety)
