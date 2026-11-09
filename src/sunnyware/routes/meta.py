@@ -2414,52 +2414,132 @@ async def test_all_tools():
     """Run a safe test for each tool. Skips tools that need external keys or files."""
     import asyncio as _aio
     import time as _t
-
+    import json as _j
     from ..tools import list_tools, get_tool
+    from .. import analytics_store as _as
 
-    # Canned safe inputs — tools not in this map are SKIPPED
-    TEST_CASES = {
-        "echo": {"text": "hello"},
-        "current_time": {"timezone": "UTC"},
-        "calculator": {"expression": "2+2"},
-        "python_eval": {"code": "print(2+2)"},
-        "date_calc": {"action": "weekday", "date": "2026-11-04"},
-        "web_fetch": {"url": "https://example.com"},
-        "web_search": {"query": "AI news", "max_results": 2},
-        "list_files": {},
-        "rag_list": {},
-        # "memory_search": {"query": "test", "limit": 1},  # requires Neon DB
-        "citation_lookup": {"query": "test"},
+    # Load skip list from golden prompts
+    skip_tools = set()
+    try:
+        from pathlib import Path as _P
+        golden_path = _P("tests/fixtures/tool_golden.jsonl")
+        if golden_path.exists():
+            with golden_path.open(encoding="utf-8") as f:
+                for line in f:
+                    if line.strip():
+                        entry = _j.loads(line)
+                        if entry.get("skip_exec"):
+                            skip_tools.add(entry["tool"])
+    except Exception:
+        pass
+
+    SAFE_VALUES = {
+        "symbol": "AAPL", "ticker": "AAPL", "query": "test", "q": "test",
+        "expression": "2+2", "code": "print(2+2)", "url": "https://example.com",
+        "file": "test.txt", "filename": "test.txt", "path": "test.txt",
+        "text": "hello", "content": "hello", "name": "test", "city": "London",
+        "date": "2026-11-04", "timezone": "UTC", "limit": 2, "max_results": 2,
+        "sql": "SELECT 1", "amount": 100, "days": 7, "n": 5,
+        "message": "hello", "title": "Test Report", "topic": "AI",
     }
+
+    # Valid specific arguments for tools that need complex inputs
+    SPECIFIC_ARGS = {
+        "sql_sandbox_execute": {"name": "test", "sql": "SELECT 1"},
+        "kpi_watch_add": {"name": "test", "metric": "revenue", "comparison": "gt", "threshold": 100},
+        "risk_metrics": {"confidence": 0.9, "mean": 0, "vol": 1},
+        "research_search": {"query": "test", "source": "arxiv"},
+        "narrate_table": {"rows": "[{\"a\":1,\"b\":2}]"},
+        "earnings_call": {"transcript": "We had a good quarter. Revenue grew strongly. Profits are up. Guidance is raised."},
+        "legal_citation_check": {"action": "check", "citation": "123 F.3d 456"},
+        "insurance_research": {"action": "filings", "query": "AIG"},
+        "script_registry": {"action": "list"},
+        "workflow_registry": {"action": "list"},
+        "document_library": {"action": "list"},
+        "clause_extractor": {"text": "Agreement", "clause_types": "termination"},
+        "pdf_report": {"pages": [{"text": "Test Page"}]},
+        "report_batch": {"prompts": ["test"]},
+        "metrics_batch": {"series": [{"name": "test", "values": [1,2,3]}]},
+        "financial_metrics": {"symbol": "AAPL"},
+        "document_diff": {"text_a": "hello", "text_b": "world"},
+        "data_quality_report": {"data": "[]"},
+        "workspace_snapshot": {},
+    }
+
+    def _build_args(params):
+        args = {}
+        for prop_name, prop_meta in params.items():
+            # Defensive: some tools have simple string values, not full schema dicts
+            if not isinstance(prop_meta, dict):
+                prop_meta = {}
+            if prop_name in SAFE_VALUES:
+                args[prop_name] = SAFE_VALUES[prop_name]
+            elif prop_meta.get("type") == "string":
+                args[prop_name] = "test"
+            elif prop_meta.get("type") in ("integer", "number"):
+                args[prop_name] = 1
+            elif prop_meta.get("type") == "boolean":
+                args[prop_name] = True
+        return args
 
     results = []
     for spec in list_tools():
         name = spec.get("name", "")
         tool = get_tool(name)
-        if tool is None or name not in TEST_CASES:
+
+        # Skip if in skip list
+        if name in skip_tools or tool is None:
             results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": ""})
             continue
 
-        args = TEST_CASES[name]
+        params = spec.get("parameters") or {}
+        if name in SPECIFIC_ARGS:
+            args = SPECIFIC_ARGS[name]
+        else:
+            args = _build_args(params)
+
+        # Specific overrides that require files
+        if name in ("sql_sandbox_load_csv", "pdf_read", "excel_read", "write_file", "delete_file"):
+            results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "needs file"})
+            continue
+
         t0 = _t.time()
         try:
             raw = await _aio.wait_for(tool.run(args), timeout=15)
             latency = int((_t.time() - t0) * 1000)
+
             if isinstance(raw, dict) and raw.get("error"):
-                results.append({"name": name, "status": "FAIL", "latency_ms": latency, "output": "", "error": str(raw["error"])[:200]})
+                err = str(raw["error"])[:200]
+                results.append({"name": name, "status": "FAIL", "latency_ms": latency, "output": "", "error": err})
+                try:
+                    _as.log_event(user="admin-test", event_type="tool", tool_name=name, ok=False, extra={"error": err})
+                except Exception:
+                    pass
             else:
                 preview = ""
                 try:
-                    import json as _j
                     preview = _j.dumps(raw, default=str)[:160]
                 except Exception:
                     preview = str(raw)[:160]
                 results.append({"name": name, "status": "PASS", "latency_ms": latency, "output": preview, "error": ""})
+                try:
+                    _as.log_event(user="admin-test", event_type="tool", tool_name=name, ok=True)
+                except Exception:
+                    pass
         except _aio.TimeoutError:
             results.append({"name": name, "status": "FAIL", "latency_ms": 15000, "output": "", "error": "timeout"})
+            try:
+                _as.log_event(user="admin-test", event_type="tool", tool_name=name, ok=False, extra={"error": "timeout"})
+            except Exception:
+                pass
         except Exception as e:
             latency = int((_t.time() - t0) * 1000)
-            results.append({"name": name, "status": "FAIL", "latency_ms": latency, "output": "", "error": f"{type(e).__name__}: {e}"[:200]})
+            err = f"{type(e).__name__}: {e}"[:200]
+            results.append({"name": name, "status": "FAIL", "latency_ms": latency, "output": "", "error": err})
+            try:
+                _as.log_event(user="admin-test", event_type="tool", tool_name=name, ok=False, extra={"error": err})
+            except Exception:
+                pass
 
     passed = sum(1 for r in results if r["status"] == "PASS")
     failed = sum(1 for r in results if r["status"] == "FAIL")
