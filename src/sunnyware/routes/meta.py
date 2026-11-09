@@ -2465,10 +2465,10 @@ async def test_all_tools():
         "query_sqlite": {"filename": "test.csv", "sql_query": "SELECT 1", "table_name": "t"},
         "query_external_db": {"connection_string": "sqlite:///:memory:", "sql_query": "SELECT 1"},
         "ddg_news": {"query": "AI", "max_results": 2},
-        "domain_research": {"query": "example.com"},
+        "domain_research": {"query": "value investing", "domain": "finance", "max_results": 3},
         "python_session": {"code": "print(2+2)"},
         "export_table": {"filename": "out.csv", "rows": [{"a": 1, "b": 2}]},
-        "earnings_call": {"transcript": "We had a good quarter. Revenue grew strongly. Profits are up. Guidance is raised. The future looks bright."},
+        "earnings_call": {"transcript": "The company reported strong earnings. Revenue grew by 15 percent year over year. Net income was up significantly. Management raised guidance for next quarter. The stock price increased in after hours trading."},
         "financial_metrics": {"returns": [0.01, 0.02, 0.03, 0.04, 0.05]},
         "document_diff": {"left_text": "hello", "right_text": "world"},
         "report_batch": {"prompts": ["test"]},
@@ -2481,7 +2481,11 @@ async def test_all_tools():
         "legal_citation_check": {"action": "verify_text", "text": "The court held that the statute applies."},
         "research_search": {"query": "transformer neural network", "action": "search"},
         "narrate_table": {"rows": "[{\"name\":\"Alice\",\"sales\":100}]"},
-        "kpi_watch_add": {"name": "test-kpi", "check_prompt": "what is 2+2", "comparison": "gt", "threshold": 1, "interval_seconds": 3600},
+        "kpi_watch_add": {"kpi_name": "test-kpi", "check_prompt": "what is 2+2", "comparison": "gt", "threshold_value": 1, "interval_seconds": 3600},
+        "pdf_report": {"filename": "test.pdf", "pages": [{"type": "text", "title": "Test Page", "body": "Hello world, this is a test page for PDF generation."}]},
+        "browser_screenshot": {"url": "https://example.com"},
+        "clause_extractor": {"text": "This agreement may be terminated by either party with thirty days written notice. The terms and conditions shall remain in effect unless modified in writing by both parties. Either party may terminate immediately in the event of material breach.", "clause_types": "termination"},
+        "risk_metrics": {"action": "var_historical", "returns": [0.01, 0.02, -0.01, 0.03, -0.02, 0.01], "confidence": 0.95},
     }
 
     # Tools that need a real database — SKIP honestly (env-blocked)
@@ -2502,6 +2506,8 @@ async def test_all_tools():
         # Need real file content
         "read_file", "data_quality_report", "data_describe", "generate_report",
         "vision_analyze", "technical_analysis", "ml_forecast", "pro_chart",
+        # Need a real CSV file on disk
+        "csv_query", "chart_from_data", "forecast_arima",
     }
 
     # Tools that need an external API key — SKIP honestly
