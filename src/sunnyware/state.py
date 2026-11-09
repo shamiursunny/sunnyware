@@ -351,6 +351,7 @@ def _apply_migrations(conn, lock):
                 CREATE TABLE IF NOT EXISTS library_files (
                     id VARCHAR PRIMARY KEY,
                     name VARCHAR NOT NULL,
+                    kind VARCHAR DEFAULT 'file',
                     owner_key VARCHAR DEFAULT '',
                     size_bytes BIGINT DEFAULT 0,
                     content_type VARCHAR DEFAULT '',

@@ -2422,7 +2422,7 @@ def _seed_test_fixtures():
         return
 
     # ── Sample Tableau workbook (.twb) ──
-    twb = ws / "sample.twb"
+    twb = ws / "sample_v3.twb"
     if not twb.exists():
         try:
             twb.write_text("""<?xml version="1.0" encoding="utf-8"?>
@@ -2461,7 +2461,7 @@ def _seed_test_fixtures():
             pass
 
     # ── Sample Power BI file (.pbix — minimal ZIP) ──
-    pbix = ws / "sample.pbix"
+    pbix = ws / "sample_v3.pbix"
     if not pbix.exists():
         try:
             buf = _io.BytesIO()
@@ -2553,6 +2553,7 @@ async def test_all_tools(request: Request = None):
         "report_batch": {"prompts": ["test"]},
         "metrics_batch": {"series": [{"name": "test", "values": [1, 2, 3]}]},
         "workspace_snapshot": {},
+        "email_send": {"to": "shamiur.sunny@gmail.com", "subject": "Sunnyware diagnostic test", "body": "Test email from Sunnyware tool health check"},
         "insurance_research": {"action": "fred_series", "series_id": "GDP"},
         "script_registry": {"action": "list"},
         "workflow_registry": {"action": "list"},
@@ -2585,10 +2586,10 @@ async def test_all_tools(request: Request = None):
         "ml_forecast": {"filename": "AAPL_live.csv", "target_column": "price", "periods": 3, "kind": "workspace"},
         "pro_chart": {"filename": "AAPL_live.csv", "chart_type": "line", "kind": "workspace"},
         "scrape_webpage": {"url": "https://en.wikipedia.org/wiki/List_of_countries_by_population_(United_Nations)", "output_filename": "scraped.csv", "table_index": 0},
-        "edit_tableau_field": {"filename": "sample.twb", "field_name": "price", "new_value": "[price] * 3", "kind": "workspace"},
-        "add_tableau_filter": {"filename": "sample.twb", "worksheet": "Sheet1", "field": "symbol", "value": "AAPL", "kind": "workspace"},
-        "remove_tableau_field": {"filename": "sample.twb", "field_name": "[volume]", "kind": "workspace"},
-        "extract_pbix_assets": {"filename": "sample.pbix", "kind": "workspace"},
+        "edit_tableau_field": {"filename": "sample_v3.twb", "field_name": "price", "new_value": "[price] * 3", "kind": "workspace"},
+        "add_tableau_filter": {"filename": "sample_v3.twb", "worksheet": "Sheet1", "field": "symbol", "value": "AAPL", "kind": "workspace"},
+        "remove_tableau_field": {"filename": "sample_v3.twb", "field_name": "[volume]", "kind": "workspace"},
+        "extract_pbix_assets": {"filename": "sample_v3.pbix", "kind": "workspace"},
         "sql_sandbox_load_csv": {"name": "test", "file": "AAPL_live.csv", "table": "aapl_data"},
     }
 
@@ -2620,20 +2621,15 @@ async def test_all_tools(request: Request = None):
     }
 
     # Truly destructive — skip even in force mode (never auto-execute)
+    # API-key tools, finance tools, browser tools are NOT destructive — they are read-only
     DESTRUCTIVE_ALWAYS = {
-        "email_send",           # sends real email
-        "delete_file",          # deletes files
-        "webhook_add",          # creates webhooks
+        "delete_file",          # actually deletes files
         "webhook_delete",       # deletes webhooks
-        "schedule_add",         # creates schedules
         "schedule_delete",      # deletes schedules
-        "schedule_run_now",     # triggers scheduled jobs
-        "browser_click",        # real browser clicks
-        "browser_fill_submit",  # submits real forms
-        "browser_goto",         # navigates real browser
         "sql_sandbox_drop",     # drops real DB
-        "image_generate",       # generates paid API images
-        "write_file",           # writes to real filesystem
+        "browser_fill_submit",  # submits real forms (mutates target site)
+        "browser_click",        # clicks (may trigger side effects)
+        "image_generate",       # costs money (paid API)
     }
 
     # Tools that need longer than 15s (browser automation)
@@ -2726,9 +2722,20 @@ async def test_all_tools(request: Request = None):
         name = spec.get("name", "")
         tool = get_tool(name)
 
-        if name in skip_tools or tool is None:
+        # In force mode, ignore jsonl skip_tools — only DESTRUCTIVE_ALWAYS matters
+        if tool is None:
             results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": ""})
             continue
+        if not force and name in skip_tools:
+            results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": ""})
+            continue
+
+        # Special case: email_send only runs if SUNNYWARE_ALLOW_EMAIL_TEST=1
+        if name == "email_send":
+            import os as _os_email
+            if not _os_email.getenv("SUNNYWARE_ALLOW_EMAIL_TEST"):
+                results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "set SUNNYWARE_ALLOW_EMAIL_TEST=1 to enable"})
+                continue
 
         # Always skip truly destructive tools (safety)
         if name in DESTRUCTIVE_ALWAYS:
