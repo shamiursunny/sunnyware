@@ -2436,6 +2436,10 @@ def _seed_test_fixtures():
           </named-connection>
         </named-connections>
       </connection>
+      <column caption="Price" datatype="real" name="[price]" role="measure" type="quantitative"/>
+      <column caption="Symbol" datatype="string" name="[symbol]" role="dimension" type="nominal"/>
+      <column caption="Timestamp" datatype="integer" name="[timestamp]" role="dimension" type="ordinal"/>
+      <column caption="Volume" datatype="integer" name="[volume]" role="measure" type="quantitative"/>
     </datasource>
   </datasources>
   <worksheets>
@@ -2443,8 +2447,8 @@ def _seed_test_fixtures():
       <table>
         <view>
           <datasources><datasource caption="Sample" name="federated.1"/></datasources>
-          <filter class="categorical" column="[price]" filter-group="1"/>
-          <slices><slicer column="[region]"/></slices>
+          <filter class="categorical" column="[symbol]" filter-group="1"/>
+          <slices><slicer column="[price]"/></slices>
         </view>
       </table>
     </worksheet>
@@ -2577,10 +2581,10 @@ async def test_all_tools(request: Request = None):
         "technical_analysis": {"filename": "ta_apple.csv"},
         "ml_forecast": {"filename": "AAPL_live.csv", "target_column": "price", "periods": 3, "kind": "workspace"},
         "pro_chart": {"filename": "AAPL_live.csv", "chart_type": "line", "kind": "workspace"},
-        "scrape_webpage": {"url": "https://en.wikipedia.org/wiki/List_of_countries_by_population_(United_Nations)"},
-        "edit_tableau_field": {"filename": "sample.twb", "field_name": "[price]", "new_value": "[price]*2", "kind": "workspace"},
-        "add_tableau_filter": {"filename": "sample.twb", "worksheet": "Sheet1", "field": "[region]", "value": "EU", "kind": "workspace"},
-        "remove_tableau_field": {"filename": "sample.twb", "field_name": "[price]", "kind": "workspace"},
+        "scrape_webpage": {"url": "https://en.wikipedia.org/wiki/List_of_countries_by_population_(United_Nations)", "output_filename": "scraped.csv", "table_index": 0},
+        "edit_tableau_field": {"filename": "sample.twb", "field_name": "price", "new_value": "price * 2", "kind": "workspace"},
+        "add_tableau_filter": {"filename": "sample.twb", "worksheet": "Sheet1", "field": "symbol", "value": "AAPL", "kind": "workspace"},
+        "remove_tableau_field": {"filename": "sample.twb", "field_name": "volume", "kind": "workspace"},
         "extract_pbix_assets": {"filename": "sample.pbix", "kind": "workspace"},
         "sql_sandbox_load_csv": {"name": "test", "file": "AAPL_live.csv", "table": "aapl_data"},
     }

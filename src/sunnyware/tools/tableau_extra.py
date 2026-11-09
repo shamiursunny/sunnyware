@@ -2,6 +2,17 @@ import defusedxml.ElementTree as ET
 from pathlib import Path
 from .. import paths
 
+
+# ── Fix: defusedxml.ElementTree lacks SubElement (needed for writing XML) ──
+import xml.etree.ElementTree as _stdlib_ET
+try:
+    import defusedxml.ElementTree as _ET
+    for _attr in ("SubElement", "Element", "tostring", "Comment", "ProcessingInstruction"):
+        if not hasattr(_ET, _attr) and hasattr(_stdlib_ET, _attr):
+            setattr(_ET, _attr, getattr(_stdlib_ET, _attr))
+except Exception:
+    pass
+
 class AddTableauFilterTool:
     name = "add_tableau_filter"
     description = "Add a filter to a Tableau worksheet."

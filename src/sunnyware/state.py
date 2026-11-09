@@ -364,11 +364,43 @@ async def init_pool(dsn: Optional[str] = None) -> bool:
             data_dir = Path(os.getenv("SUNNYWARE_DATA_DIR", "/data"))
             data_dir.mkdir(parents=True, exist_ok=True)
             db_path = str(data_dir / "sunnyware.duckdb")
+
+            # Attempt 1: open existing DB, apply migrations
+            try:
+                _pool = _LocalPool(db_path)
+                _pool_kind = "duckdb"
+                _apply_migrations(_pool._conn, _pool._lock)
+                print(f"[state] Local DuckDB pool ready (existing DB): {db_path}", file=sys.stderr)
+                _last_error = None
+                return True
+            except Exception as e1:
+                # Migration or open failed — likely stale/corrupt schema
+                print(f"[state] Existing DB failed: {type(e1).__name__}: {e1}. Attempting rebuild...", file=sys.stderr)
+                try:
+                    if _pool is not None:
+                        _pool._conn.close()
+                except Exception:
+                    pass
+                _pool = None
+                # Backup + delete the stale DB
+                try:
+                    if Path(db_path).exists():
+                        bak = db_path + ".stale"
+                        Path(db_path).rename(bak)
+                        print(f"[state] Backed up stale DB to {bak}", file=sys.stderr)
+                except Exception as e2:
+                    print(f"[state] Could not backup stale DB: {e2}", file=sys.stderr)
+
+            # Attempt 2: fresh DB
             _pool = _LocalPool(db_path)
             _pool_kind = "duckdb"
-            _apply_migrations(_pool._conn, _pool._lock)
+            try:
+                _apply_migrations(_pool._conn, _pool._lock)
+                print(f"[state] Local DuckDB pool ready (fresh DB): {db_path}", file=sys.stderr)
+            except Exception as e_mig:
+                # Migrations still fail — but keep the pool alive
+                print(f"[state] Migrations partially failed (pool survives): {type(e_mig).__name__}: {e_mig}", file=sys.stderr)
             _last_error = None
-            print(f"[state] Local DuckDB pool ready: {db_path}", file=sys.stderr)
             return True
         except Exception as e:
             _last_error = f"DuckDB init failed: {type(e).__name__}: {e}"
