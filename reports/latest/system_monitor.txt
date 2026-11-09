@@ -8,13 +8,13 @@
 # Sunnyware System Monitor
 ########################################################################
 
-Started: 2026-11-09T17:23:48
-Elapsed: 13.1s
+Started: 2026-11-09T17:33:57
+Elapsed: 15.67s
 
 ------------------------------------------------------------------------
  DOCS
 ------------------------------------------------------------------------
-  [PASS] README.md has reasonable size  --  698 lines (min 10)
+  [PASS] README.md has reasonable size  --  701 lines (min 10)
   [PASS] WORKFLOW.md has reasonable size  --  11 lines (min 10)
   [PASS] HANDSOFF.md has reasonable size  --  16 lines (min 10)
   [PASS] AGENTS.md has reasonable size  --  203 lines (min 10)
@@ -30,9 +30,10 @@ Elapsed: 13.1s
 ------------------------------------------------------------------------
  GIT
 ------------------------------------------------------------------------
-  [PASS] Git working tree clean  --  clean
+  [FAIL] Git working tree clean  --  1 pending changes
+      changes: ['?? cloud_test_final.py']
   [PASS] No unpushed commits to GitHub  --  0 unpushed
-  [PASS] Latest commit  --  9c1b69c feat(router): 93.8% zero-LLM routing - 11 new deterministic patterns
+  [PASS] Latest commit  --  37df907 fix(admin): correct chart_from_data x/y keys and forecast_arima column key
 
 ------------------------------------------------------------------------
  HYGIENE
@@ -127,15 +128,23 @@ Elapsed: 13.1s
   [PASS] No obvious broken JS string literals  --  0 potential breaks
 
 ========================================================================
- SCORE: 100.0 / 100
+ SCORE: 98.7 / 100
  GRADE: A+ (production-ready)
 ========================================================================
   critical   70/70  (100.0%)
   high       100/100  (100.0%)
-  medium     39/39  (100.0%)
+  medium     36/39  (92.3%)
   low        15/15  (100.0%)
 
-  Checks: 55 pass, 0 fail, 0 warn, 0 skip
+  Checks: 54 pass, 1 fail, 0 warn, 0 skip
+
+========================================================================
+ FAILURES TO FIX (by severity)
+========================================================================
+
+  [MEDIUM]
+    - git: Git working tree clean
+      1 pending changes
 
 ========================================================================
  KNOWN LIMITATIONS (accepted, not scored)
@@ -166,8 +175,8 @@ Reports saved:
 
 
 --- STDERR ---
-{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-09T11:23:46.325863Z"}
-{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-09T11:23:46.325863Z"}
-{"event": "Config loaded", "level": "info", "timestamp": "2026-11-09T11:23:46.328859Z"}
-{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-09T11:23:46.328859Z"}
-{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-09T11:23:46.328859Z"}
+{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-09T11:33:54.334460Z"}
+{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-09T11:33:54.334460Z"}
+{"event": "Config loaded", "level": "info", "timestamp": "2026-11-09T11:33:54.350091Z"}
+{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-09T11:33:54.350091Z"}
+{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-09T11:33:54.350091Z"}

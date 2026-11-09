@@ -86,7 +86,8 @@
 ======================================================================
   changes:
      M src/sunnyware/__init__.py
-  [PASS] 1 change(s), no secrets or junk detected
+    ?? cloud_test_final.py
+  [PASS] 2 change(s), no secrets or junk detected
 
 ======================================================================
  5. Live HF Space health (soft check)
