@@ -1,0 +1,112 @@
+{"tool": "echo", "prompt": "echo hello", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "hitl_config_update", "prompt": "use hitl config update", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "current_time", "prompt": "what time is it", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "read_file", "prompt": "read file test.txt", "expected_args_subset": {}, "category": "file", "mode": "keyword", "skip_exec": false}
+{"tool": "write_file", "prompt": "write hello to test.txt", "expected_args_subset": {}, "category": "file", "mode": "keyword", "skip_exec": true}
+{"tool": "write_sandbox_file", "prompt": "use write sandbox file", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "read_sandbox_file", "prompt": "use read sandbox file", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "read_bi_file", "prompt": "use read bi file", "expected_args_subset": {}, "category": "file", "mode": "keyword", "skip_exec": false}
+{"tool": "edit_tableau_field", "prompt": "use edit tableau field", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "add_tableau_filter", "prompt": "use add tableau filter", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "remove_tableau_field", "prompt": "use remove tableau field", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "extract_pbix_assets", "prompt": "use extract pbix assets", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "generate_chart", "prompt": "generate a bar chart of sales data", "expected_args_subset": {}, "category": "visual", "mode": "keyword", "skip_exec": false}
+{"tool": "clean_dataset", "prompt": "use clean dataset", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "data_stats", "prompt": "calculate stats for [1,2,3,4,5]", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "data_describe", "prompt": "describe the dataset", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "data_correlation", "prompt": "correlation between x and y", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "csv_groupby", "prompt": "group csv data by category", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "query_sqlite", "prompt": "query sqlite for users", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "scrape_webpage", "prompt": "scrape https://example.com", "expected_args_subset": {}, "category": "network", "mode": "keyword", "skip_exec": false}
+{"tool": "generate_report", "prompt": "generate a report of sales", "expected_args_subset": {}, "category": "visual", "mode": "keyword", "skip_exec": false}
+{"tool": "execute_plan", "prompt": "execute plan step 1: search", "expected_args_subset": {}, "category": "meta", "mode": "keyword", "skip_exec": true}
+{"tool": "query_external_db", "prompt": "query external database for users", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "export_table", "prompt": "export table to csv", "expected_args_subset": {}, "category": "visual", "mode": "keyword", "skip_exec": false}
+{"tool": "aggregate_market_data", "prompt": "aggregate market data for tech stocks", "expected_args_subset": {}, "category": "api-key", "mode": "keyword", "skip_exec": false}
+{"tool": "python_session", "prompt": "start python session", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "vision_analyze", "prompt": "analyze this image", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "live_market_stream", "prompt": "live market stream for AAPL", "expected_args_subset": {}, "category": "api-key", "mode": "keyword", "skip_exec": "no_key"}
+{"tool": "ddg_news", "prompt": "search news for AI", "expected_args_subset": {}, "category": "network", "mode": "keyword", "skip_exec": false}
+{"tool": "arxiv_search", "prompt": "search arxiv for transformers", "expected_args_subset": {}, "category": "network", "mode": "keyword", "skip_exec": false}
+{"tool": "domain_research", "prompt": "research example.com domain", "expected_args_subset": {}, "category": "network", "mode": "keyword", "skip_exec": false}
+{"tool": "calculator", "prompt": "what is 12 times 34", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "technical_analysis", "prompt": "technical analysis of AAPL", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "ml_forecast", "prompt": "forecast next 7 days sales", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "pro_chart", "prompt": "generate a pro chart of revenue", "expected_args_subset": {}, "category": "visual", "mode": "keyword", "skip_exec": false}
+{"tool": "search_library", "prompt": "search the library for AI papers", "expected_args_subset": {}, "category": "rag", "mode": "keyword", "skip_exec": false}
+{"tool": "web_fetch", "prompt": "fetch https://example.com", "expected_args_subset": {}, "category": "network", "mode": "keyword", "skip_exec": false}
+{"tool": "memory_search", "prompt": "recall our previous conversation", "expected_args_subset": {}, "category": "rag", "mode": "keyword", "skip_exec": false}
+{"tool": "web_search", "prompt": "search the web for python tutorials", "expected_args_subset": {}, "category": "network", "mode": "keyword", "skip_exec": false}
+{"tool": "weather", "prompt": "weather in London", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "date_calc", "prompt": "what is 30 days from today", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "python_eval", "prompt": "calculate 2+2 in python", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "list_files", "prompt": "list files in current directory", "expected_args_subset": {}, "category": "file", "mode": "keyword", "skip_exec": false}
+{"tool": "delete_file", "prompt": "delete file test.txt", "expected_args_subset": {}, "category": "file", "mode": "keyword", "skip_exec": true}
+{"tool": "mkdir", "prompt": "create directory testdir", "expected_args_subset": {}, "category": "file", "mode": "keyword", "skip_exec": true}
+{"tool": "rag_search", "prompt": "search documents for contract terms", "expected_args_subset": {}, "category": "rag", "mode": "keyword", "skip_exec": false}
+{"tool": "rag_list", "prompt": "list all documents", "expected_args_subset": {}, "category": "rag", "mode": "keyword", "skip_exec": false}
+{"tool": "recall_history", "prompt": "what did we discuss before", "expected_args_subset": {}, "category": "rag", "mode": "keyword", "skip_exec": false}
+{"tool": "csv_query", "prompt": "use csv query", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "chart_from_data", "prompt": "chart from data.csv", "expected_args_subset": {}, "category": "visual", "mode": "keyword", "skip_exec": false}
+{"tool": "citation_lookup", "prompt": "lookup citation 123 F.3d 456", "expected_args_subset": {}, "category": "rag", "mode": "keyword", "skip_exec": false}
+{"tool": "forecast_arima", "prompt": "arima forecast for sales", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "financial_metrics", "prompt": "financial metrics for AAPL", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "api_call", "prompt": "call https://api.example.com/data", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": "no_key"}
+{"tool": "document_diff", "prompt": "diff two documents", "expected_args_subset": {}, "category": "file", "mode": "keyword", "skip_exec": false}
+{"tool": "pdf_report", "prompt": "generate pdf report", "expected_args_subset": {}, "category": "file", "mode": "keyword", "skip_exec": false}
+{"tool": "pdf_read", "prompt": "read test.pdf", "expected_args_subset": {}, "category": "file", "mode": "keyword", "skip_exec": false}
+{"tool": "report_batch", "prompt": "use report batch", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "kpi_watch_add", "prompt": "add kpi watch for revenue", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "kpi_watch_list", "prompt": "list kpi watches", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "kpi_watch_run", "prompt": "run kpi watch for revenue", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "email_send", "prompt": "send an email to user@example.com saying hello", "expected_args_subset": {}, "category": "side-effect", "mode": "keyword", "skip_exec": true}
+{"tool": "email_list_sent", "prompt": "list sent emails", "expected_args_subset": {}, "category": "side-effect", "mode": "keyword", "skip_exec": false}
+{"tool": "email_configured", "prompt": "is email configured", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "url_metadata", "prompt": "get metadata for https://example.com", "expected_args_subset": {}, "category": "network", "mode": "keyword", "skip_exec": false}
+{"tool": "html_to_text", "prompt": "convert html to text", "expected_args_subset": {}, "category": "network", "mode": "keyword", "skip_exec": false}
+{"tool": "data_quality_report", "prompt": "data quality report for sales", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "schedule_add", "prompt": "schedule daily report", "expected_args_subset": {}, "category": "side-effect", "mode": "keyword", "skip_exec": true}
+{"tool": "schedule_list", "prompt": "list schedules", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "schedule_delete", "prompt": "delete schedule 123", "expected_args_subset": {}, "category": "side-effect", "mode": "keyword", "skip_exec": true}
+{"tool": "schedule_run_now", "prompt": "run schedule 123 now", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": true}
+{"tool": "metrics_batch", "prompt": "use metrics batch", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "webhook_add", "prompt": "add webhook for alerts", "expected_args_subset": {}, "category": "side-effect", "mode": "keyword", "skip_exec": true}
+{"tool": "webhook_list", "prompt": "list webhooks", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "webhook_delete", "prompt": "delete webhook 123", "expected_args_subset": {}, "category": "side-effect", "mode": "keyword", "skip_exec": true}
+{"tool": "webhook_events", "prompt": "list webhook events", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": true}
+{"tool": "sql_sandbox_create", "prompt": "create sql sandbox test", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "sql_sandbox_execute", "prompt": "execute sql select * from t in sandbox", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "sql_sandbox_list", "prompt": "list sql sandboxes", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "sql_sandbox_load_csv", "prompt": "load csv data.csv into sql sandbox", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": false}
+{"tool": "sql_sandbox_drop", "prompt": "drop sql sandbox test", "expected_args_subset": {}, "category": "deterministic", "mode": "keyword", "skip_exec": true}
+{"tool": "workspace_snapshot", "prompt": "snapshot workspace", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "excel_write", "prompt": "write data to test.xlsx", "expected_args_subset": {}, "category": "file", "mode": "keyword", "skip_exec": true}
+{"tool": "excel_read", "prompt": "read test.xlsx", "expected_args_subset": {}, "category": "file", "mode": "keyword", "skip_exec": false}
+{"tool": "browser_goto", "prompt": "go to https://example.com", "expected_args_subset": {}, "category": "network", "mode": "keyword", "skip_exec": true}
+{"tool": "browser_screenshot", "prompt": "take a screenshot of example.com", "expected_args_subset": {}, "category": "network", "mode": "keyword", "skip_exec": false}
+{"tool": "browser_extract", "prompt": "extract text from the page", "expected_args_subset": {}, "category": "network", "mode": "keyword", "skip_exec": false}
+{"tool": "browser_click", "prompt": "click the login button", "expected_args_subset": {}, "category": "network", "mode": "keyword", "skip_exec": true}
+{"tool": "browser_fill_submit", "prompt": "fill the form and submit", "expected_args_subset": {}, "category": "network", "mode": "keyword", "skip_exec": true}
+{"tool": "image_generate", "prompt": "generate an image of a cat", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": "no_key"}
+{"tool": "edgar_fundamentals", "prompt": "get SEC fundamentals for AAPL", "expected_args_subset": {}, "category": "api-key", "mode": "keyword", "skip_exec": "no_key"}
+{"tool": "fred_economic", "prompt": "get GDP data from FRED", "expected_args_subset": {}, "category": "api-key", "mode": "keyword", "skip_exec": "no_key"}
+{"tool": "finnhub_quote", "prompt": "what is AAPL stock price", "expected_args_subset": {}, "category": "api-key", "mode": "keyword", "skip_exec": "no_key"}
+{"tool": "tiingo_prices", "prompt": "get historical prices for AAPL", "expected_args_subset": {}, "category": "api-key", "mode": "keyword", "skip_exec": "no_key"}
+{"tool": "marketaux_news", "prompt": "get market news for AAPL", "expected_args_subset": {}, "category": "network", "mode": "keyword", "skip_exec": false}
+{"tool": "twelvedata_prices", "prompt": "get intraday prices for AAPL", "expected_args_subset": {}, "category": "api-key", "mode": "keyword", "skip_exec": "no_key"}
+{"tool": "fmp_fundamentals", "prompt": "get fundamentals for AAPL", "expected_args_subset": {}, "category": "api-key", "mode": "keyword", "skip_exec": "no_key"}
+{"tool": "eulerpool_data", "prompt": "get eulerpool data for AAPL", "expected_args_subset": {}, "category": "api-key", "mode": "keyword", "skip_exec": "no_key"}
+{"tool": "insurance_data", "prompt": "get insurance data states", "expected_args_subset": {}, "category": "api-key", "mode": "keyword", "skip_exec": "no_key"}
+{"tool": "insurance_research", "prompt": "insurance research filings for AIG", "expected_args_subset": {}, "category": "api-key", "mode": "keyword", "skip_exec": false}
+{"tool": "govcon_data", "prompt": "get government contract data", "expected_args_subset": {}, "category": "api-key", "mode": "keyword", "skip_exec": "no_key"}
+{"tool": "script_registry", "prompt": "list scripts", "expected_args_subset": {}, "category": "meta", "mode": "keyword", "skip_exec": false}
+{"tool": "workflow_registry", "prompt": "list workflows", "expected_args_subset": {}, "category": "meta", "mode": "keyword", "skip_exec": false}
+{"tool": "narrate_table", "prompt": "narrate the table data", "expected_args_subset": {}, "category": "visual", "mode": "keyword", "skip_exec": false}
+{"tool": "research_search", "prompt": "research quantum computing", "expected_args_subset": {}, "category": "network", "mode": "keyword", "skip_exec": false}
+{"tool": "document_library", "prompt": "use document library", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "earnings_call", "prompt": "use earnings call", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "clause_extractor", "prompt": "use clause extractor", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "risk_metrics", "prompt": "use risk metrics", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}
+{"tool": "legal_citation_check", "prompt": "check legal citation for 123 F.3d 456", "expected_args_subset": {}, "category": "rag", "mode": "keyword", "skip_exec": false}
+{"tool": "delegate_to_agent", "prompt": "delegate to researcher: find AI papers", "expected_args_subset": {}, "category": "meta", "mode": "keyword", "skip_exec": true}
+{"tool": "auditor_full_spec", "prompt": "use auditor full spec", "expected_args_subset": {}, "category": "other", "mode": "keyword", "skip_exec": false}

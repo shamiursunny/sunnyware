@@ -1,10 +1,10 @@
 
 --- 1. Local git HEAD ---
-  OK  HEAD: f59467e45087
+  OK  HEAD: 383cd36ed147
 
 --- 2. HF Space status ---
   OK  Stage: RUNNING
-  WARN SHA mismatch (HF rebuild in progress): remote=07d14a0c3a6a local=f59467e45087
+  WARN SHA mismatch (HF rebuild in progress): remote=fd31a2e7f0cf local=383cd36ed147
 
 --- 3. API endpoints ---
   OK  GET /ui -> 200
