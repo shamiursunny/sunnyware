@@ -8,13 +8,13 @@
 # Sunnyware System Monitor
 ########################################################################
 
-Started: 2026-11-09T21:41:41
-Elapsed: 25.49s
+Started: 2026-11-09T21:53:25
+Elapsed: 14.62s
 
 ------------------------------------------------------------------------
  DOCS
 ------------------------------------------------------------------------
-  [PASS] README.md has reasonable size  --  740 lines (min 10)
+  [PASS] README.md has reasonable size  --  743 lines (min 10)
   [PASS] WORKFLOW.md has reasonable size  --  11 lines (min 10)
   [PASS] HANDSOFF.md has reasonable size  --  16 lines (min 10)
   [PASS] AGENTS.md has reasonable size  --  203 lines (min 10)
@@ -32,7 +32,7 @@ Elapsed: 25.49s
 ------------------------------------------------------------------------
   [PASS] Git working tree clean  --  clean
   [PASS] No unpushed commits to GitHub  --  0 unpushed
-  [PASS] Latest commit  --  a97213e fix: govcon keyword arg + delegate to quant agent
+  [PASS] Latest commit  --  c1486c9 fix: delegate_to_agent runs in cdo role context
 
 ------------------------------------------------------------------------
  HYGIENE
@@ -166,8 +166,8 @@ Reports saved:
 
 
 --- STDERR ---
-{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-09T15:41:38.884553Z"}
-{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-09T15:41:38.884553Z"}
-{"event": "Config loaded", "level": "info", "timestamp": "2026-11-09T15:41:38.884553Z"}
-{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-09T15:41:38.884553Z"}
-{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-09T15:41:38.884553Z"}
+{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-09T15:53:22.880953Z"}
+{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-09T15:53:22.880953Z"}
+{"event": "Config loaded", "level": "info", "timestamp": "2026-11-09T15:53:22.893053Z"}
+{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-09T15:53:22.898597Z"}
+{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-09T15:53:22.898597Z"}
