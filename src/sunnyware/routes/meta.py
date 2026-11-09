@@ -2410,8 +2410,18 @@ async def list_all_tools():
     return {"ok": True, "tools": out}
 
 @router.post("/api/tools-test-all")
-async def test_all_tools():
-    """Run a safe test for each tool. Skips tools that need external keys or files."""
+async def test_all_tools(request: Request = None):
+    """Run a safe test for each tool. Skips tools that need external keys or files.
+
+    Add ?force=1 to run EVERY tool (except truly destructive ones) — shows honest PASS/FAIL
+    for tools that normally skip due to missing infrastructure.
+    """
+    force = False
+    if request is not None:
+        try:
+            force = request.query_params.get("force", "").lower() in ("1", "true", "yes")
+        except Exception:
+            pass
     import asyncio as _aio
     import time as _t
     import json as _j
@@ -2537,6 +2547,23 @@ async def test_all_tools():
         "scrape_webpage",
     }
 
+    # Truly destructive — skip even in force mode (never auto-execute)
+    DESTRUCTIVE_ALWAYS = {
+        "email_send",           # sends real email
+        "delete_file",          # deletes files
+        "webhook_add",          # creates webhooks
+        "webhook_delete",       # deletes webhooks
+        "schedule_add",         # creates schedules
+        "schedule_delete",      # deletes schedules
+        "schedule_run_now",     # triggers scheduled jobs
+        "browser_click",        # real browser clicks
+        "browser_fill_submit",  # submits real forms
+        "browser_goto",         # navigates real browser
+        "sql_sandbox_drop",     # drops real DB
+        "image_generate",       # generates paid API images
+        "write_file",           # writes to real filesystem
+    }
+
     # Tools that need longer than 15s (browser automation)
     LONG_TIMEOUT = {"browser_goto", "browser_screenshot", "browser_extract", "browser_click", "browser_fill_submit"}
 
@@ -2631,21 +2658,28 @@ async def test_all_tools():
             results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": ""})
             continue
 
-        if name in SKIP_DB:
-            results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "needs database"})
+        # Always skip truly destructive tools (safety)
+        if name in DESTRUCTIVE_ALWAYS:
+            results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "destructive — not auto-run"})
             continue
 
-        if name in SKIP_FILE:
-            results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "needs file"})
-            continue
+        # In non-force mode, apply infrastructure skip lists
+        if not force:
+            if name in SKIP_DB:
+                results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "needs database"})
+                continue
 
-        if name in SKIP_NO_KEY:
-            results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "needs api key"})
-            continue
+            if name in SKIP_FILE:
+                results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "needs file"})
+                continue
 
-        if name in SKIP_NETWORK:
-            results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "target page content required"})
-            continue
+            if name in SKIP_NO_KEY:
+                results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "needs api key"})
+                continue
+
+            if name in SKIP_NETWORK:
+                results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "target page content required"})
+                continue
 
         params = spec.get("parameters") or {}
         if name in SPECIFIC_ARGS:
