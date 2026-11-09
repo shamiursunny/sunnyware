@@ -2608,7 +2608,7 @@ async def test_all_tools(request: Request = None):
         "eulerpool_data": {"identifier": "AAPL", "action": "profile"},
         "edgar_fundamentals": {"ticker": "AAPL", "statement": "income"},
         "insurance_data": {"action": "states"},
-        "govcon_data": {"action": "award_search", "query": "IT services"},
+        "govcon_data": {"action": "award_search", "keyword": "IT services"},
         # ── Safe write/utility tools ──
         "api_call": {"method": "GET", "url": "https://httpbin.org/get"},
         "mkdir": {"path": "test_dir_v4"},
@@ -2618,7 +2618,7 @@ async def test_all_tools(request: Request = None):
         # ── Library search ──
         "search_library": {"query": "test", "limit": 5},
         # ── Delegate to valid agent ──
-        "delegate_to_agent": {"agent": "general", "task": "find papers on AI"},
+        "delegate_to_agent": {"agent": "quant", "task": "find papers on AI"},
     }
 
     # Tools that need a real database — SKIP honestly (env-blocked)
