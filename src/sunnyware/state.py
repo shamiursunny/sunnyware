@@ -352,6 +352,7 @@ def _apply_migrations(conn, lock):
                     id VARCHAR PRIMARY KEY,
                     name VARCHAR NOT NULL,
                     kind VARCHAR DEFAULT 'file',
+                    content VARCHAR DEFAULT '',
                     owner_key VARCHAR DEFAULT '',
                     size_bytes BIGINT DEFAULT 0,
                     content_type VARCHAR DEFAULT '',
