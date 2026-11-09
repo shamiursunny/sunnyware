@@ -1,7 +1,7 @@
 # Sunnyware - Development Workflow
 
-> **Version:** `1.40.0` | **Released:** `2026-11-09T09-44-47Z` | **Commit:** `232fbda`
-> **Chain:** 26 blocks | **Head:** `08192836320a0eb0...`
+> **Version:** `1.41.0` | **Released:** `2026-11-09T10-21-30Z` | **Commit:** `c1f3ca3`
+> **Chain:** 27 blocks | **Head:** `af6fe9e1161599a5...`
 > **Deployments:** 17/19 verified | **Health:** 100.0/100 (A+)
 
 > **Auto-generated on every ship.** Do not edit manually.
