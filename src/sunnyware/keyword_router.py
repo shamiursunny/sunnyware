@@ -256,6 +256,60 @@ def keyword_route(prompt: str) -> Optional[dict]:
         return {"tool": "email_configured", "args": {}}
 
     # --- PDF / Excel ---
+    # --- echo (0-token) ---
+    _echo_m = re.search(r"^(?:echo|say|repeat)\s+(.+)$", prompt, re.IGNORECASE)
+    if _echo_m:
+        return {"tool": "echo", "args": {"text": _echo_m.group(1).strip()}}
+
+    # --- clean_dataset (0-token) ---
+    _clean_m = re.search(r"^clean\s+(?:the\s+)?(?:dataset|data|file)\s+([\w\-]+\.(?:csv|xlsx?|json))", prompt, re.IGNORECASE)
+    if _clean_m:
+        fname = _clean_m.group(1)
+        return {"tool": "clean_dataset", "args": {"filename": fname, "output_filename": "clean_" + fname}}
+
+    # --- narrate_table (0-token) ---
+    _narrate_m = re.search(r"^(?:narrate|describe|explain)\s+(?:the\s+)?(?:table|data)\s+(?:in\s+)?([\w\-]+\.(?:csv|xlsx?))", prompt, re.IGNORECASE)
+    if _narrate_m:
+        return {"tool": "narrate_table", "args": {"filename": _narrate_m.group(1)}}
+
+    # --- pdf_report (0-token) ---
+    _pdfrep_m = re.search(r"^(?:create|make|generate|build)\s+(?:a\s+)?pdf\s+(?:report|file)", prompt, re.IGNORECASE)
+    if _pdfrep_m:
+        return {"tool": "pdf_report", "args": {"filename": "report.pdf", "pages": [{"type": "text", "title": "Report", "body": "Generated report"}]}}
+
+    # --- query_sqlite (0-token) ---
+    _qsql_m = re.search(r"query\s+sqlite\s+(?:db\s+)?([\w\-]+\.(?:csv|db|sqlite))\s+(?:with\s+)?(.+)", prompt, re.IGNORECASE)
+    if _qsql_m:
+        return {"tool": "query_sqlite", "args": {"filename": _qsql_m.group(1), "sql_query": _qsql_m.group(2).strip(), "table_name": "t"}}
+
+    # --- report_batch (0-token) ---
+    _repbatch_m = re.search(r"^batch\s+reports?\s+(.+)", prompt, re.IGNORECASE)
+    if _repbatch_m:
+        return {"tool": "report_batch", "args": {"prompts": [_repbatch_m.group(1).strip()]}}
+
+    # --- metrics_batch (0-token) ---
+    _metbatch_m = re.search(r"^batch\s+metrics?\s+(.+)", prompt, re.IGNORECASE)
+    if _metbatch_m:
+        return {"tool": "metrics_batch", "args": {"series": [{"name": "test", "values": [1, 2, 3]}]}}
+
+    # --- script_registry (0-token) ---
+    if re.search(r"^\s*(?:list|show)\s+(?:all\s+)?scripts?\b", prompt, re.IGNORECASE):
+        return {"tool": "script_registry", "args": {"action": "list"}}
+
+    # --- workflow_registry (0-token) ---
+    if re.search(r"^\s*(?:list|show)\s+(?:all\s+)?workflows?\b", prompt, re.IGNORECASE):
+        return {"tool": "workflow_registry", "args": {"action": "list"}}
+
+    # --- earnings_call (0-token) ---
+    _earn_m = re.search(r"earnings\s+call\s+(.+)", prompt, re.IGNORECASE)
+    if _earn_m:
+        return {"tool": "earnings_call", "args": {"transcript": _earn_m.group(1).strip()}}
+
+    # --- excel_write (0-token, must beat excel_read) ---
+    _excelw_m = re.search(r"^(?:write|save)\s+(.+?)\s+(?:to|in|into)\s+(?:excel\s+(?:file\s+)?)?([\w\-]+\.xlsx?)$", prompt, re.IGNORECASE)
+    if _excelw_m:
+        return {"tool": "excel_write", "args": {"filename": _excelw_m.group(2), "data": _excelw_m.group(1).strip()}}
+
     if ".pdf" in p:
         m = re.search(r'([\w\-]+\.pdf)', prompt, re.IGNORECASE)
         if m: return {"tool": "pdf_read", "args": {"file": m.group(1)}}
@@ -1553,4 +1607,7 @@ def keyword_route(prompt: str) -> Optional[dict]:
         return None
 
     # No confident keyword match — let Needle 3 handle it
+
+
+
     return None
