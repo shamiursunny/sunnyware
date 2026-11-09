@@ -8,13 +8,13 @@
 # Sunnyware System Monitor
 ########################################################################
 
-Started: 2026-11-09T18:47:31
-Elapsed: 13.93s
+Started: 2026-11-09T19:20:31
+Elapsed: 22.07s
 
 ------------------------------------------------------------------------
  DOCS
 ------------------------------------------------------------------------
-  [PASS] README.md has reasonable size  --  713 lines (min 10)
+  [PASS] README.md has reasonable size  --  716 lines (min 10)
   [PASS] WORKFLOW.md has reasonable size  --  11 lines (min 10)
   [PASS] HANDSOFF.md has reasonable size  --  16 lines (min 10)
   [PASS] AGENTS.md has reasonable size  --  203 lines (min 10)
@@ -30,9 +30,10 @@ Elapsed: 13.93s
 ------------------------------------------------------------------------
  GIT
 ------------------------------------------------------------------------
-  [PASS] Git working tree clean  --  clean
+  [FAIL] Git working tree clean  --  1 pending changes
+      changes: ['?? definitive_test.py']
   [PASS] No unpushed commits to GitHub  --  0 unpushed
-  [PASS] Latest commit  --  3ed0bfe feat(state): local DuckDB fallback with migration translator (unlocks 12 DB tools)
+  [PASS] Latest commit  --  612b8c3 fix(tools): .transaction() + placeholder reorder + sample.twb/pbix fixtures + Wikipedia scrape
 
 ------------------------------------------------------------------------
  HYGIENE
@@ -127,15 +128,23 @@ Elapsed: 13.93s
   [PASS] No obvious broken JS string literals  --  0 potential breaks
 
 ========================================================================
- SCORE: 100.0 / 100
+ SCORE: 98.7 / 100
  GRADE: A+ (production-ready)
 ========================================================================
   critical   70/70  (100.0%)
   high       100/100  (100.0%)
-  medium     39/39  (100.0%)
+  medium     36/39  (92.3%)
   low        15/15  (100.0%)
 
-  Checks: 55 pass, 0 fail, 0 warn, 0 skip
+  Checks: 54 pass, 1 fail, 0 warn, 0 skip
+
+========================================================================
+ FAILURES TO FIX (by severity)
+========================================================================
+
+  [MEDIUM]
+    - git: Git working tree clean
+      1 pending changes
 
 ========================================================================
  KNOWN LIMITATIONS (accepted, not scored)
@@ -166,8 +175,8 @@ Reports saved:
 
 
 --- STDERR ---
-{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-09T12:47:29.302557Z"}
-{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-09T12:47:29.302557Z"}
-{"event": "Config loaded", "level": "info", "timestamp": "2026-11-09T12:47:29.318183Z"}
-{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-09T12:47:29.318183Z"}
-{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-09T12:47:29.318183Z"}
+{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-09T13:20:22.916129Z"}
+{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-09T13:20:22.916129Z"}
+{"event": "Config loaded", "level": "info", "timestamp": "2026-11-09T13:20:22.931753Z"}
+{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-09T13:20:22.931753Z"}
+{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-09T13:20:22.931753Z"}
