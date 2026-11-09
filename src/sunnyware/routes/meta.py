@@ -2433,43 +2433,117 @@ async def test_all_tools():
     except Exception:
         pass
 
+    # Values by common parameter name
     SAFE_VALUES = {
         "symbol": "AAPL", "ticker": "AAPL", "query": "test", "q": "test",
         "expression": "2+2", "code": "print(2+2)", "url": "https://example.com",
-        "file": "test.txt", "filename": "test.txt", "path": "test.txt",
+        "file": "test.csv", "filename": "test.csv", "path": "test.csv",
         "text": "hello", "content": "hello", "name": "test", "city": "London",
         "date": "2026-11-04", "timezone": "UTC", "limit": 2, "max_results": 2,
         "sql": "SELECT 1", "amount": 100, "days": 7, "n": 5,
         "message": "hello", "title": "Test Report", "topic": "AI",
+        "field_name": "test", "new_value": "test",
+        "worksheet": "Sheet1", "field": "test", "value": "test",
+        "chart_type": "bar", "x_column": "a", "y_column": "b",
+        "target_column": "value", "group_col": "a", "agg_col": "b",
+        "output_filename": "out.csv", "sql_query": "SELECT 1",
+        "domain": "example.com", "left_text": "hello", "right_text": "world",
+        "transcript": "Hello. This is a test. It has four. Sentences here.",
+        "clause_types": "termination",
+        "tool_name": "calculator", "user_key": "test",
+        "kpi_name": "test-kpi", "check_prompt": "what is 2+2",
+        "comparison": "gt", "threshold_value": 1,
     }
 
-    # Valid specific arguments for tools that need complex inputs
+    # Specific known-good arguments for complex tools
     SPECIFIC_ARGS = {
-        "sql_sandbox_execute": {"name": "test", "sql": "SELECT 1"},
-        "kpi_watch_add": {"name": "test", "metric": "revenue", "comparison": "gt", "threshold": 100},
-        "risk_metrics": {"confidence": 0.9, "mean": 0, "vol": 1},
-        "research_search": {"query": "test", "source": "arxiv"},
-        "narrate_table": {"rows": "[{\"a\":1,\"b\":2}]"},
-        "earnings_call": {"transcript": "We had a good quarter. Revenue grew strongly. Profits are up. Guidance is raised."},
-        "legal_citation_check": {"action": "check", "citation": "123 F.3d 456"},
+        "date_calc": {"action": "add", "date": "2026-11-04", "days": 7},
+        "list_files": {"kind": "workspace", "path": "."},
+        "hitl_config_update": {"tool_name": "calculator", "decision": "auto", "user_key": "test"},
+        "generate_chart": {"filename": "test.csv", "chart_type": "bar", "x_column": "a", "y_column": "b"},
+        "clean_dataset": {"filename": "test.csv", "output_filename": "out.csv"},
+        "data_stats": {"values": [1, 2, 3, 4, 5]},
+        "data_describe": {"values": [1, 2, 3, 4, 5]},
+        "data_correlation": {"x": [1, 2, 3], "y": [2, 4, 6]},
+        "csv_groupby": {"filename": "test.csv", "group_col": "a", "agg_col": "b"},
+        "query_sqlite": {"db_path": ":memory:", "sql_query": "SELECT 1"},
+        "query_external_db": {"connection_string": "sqlite:///:memory:", "sql_query": "SELECT 1"},
+        "scrape_webpage": {"url": "https://example.com"},
+        "ddg_news": {"query": "AI", "max_results": 2},
+        "domain_research": {"domain": "example.com"},
+        "pro_chart": {"data": [1, 2, 3], "chart_type": "bar"},
+        "ml_forecast": {"values": [1, 2, 3, 4, 5], "target_column": "value", "periods": 2},
+        "technical_analysis": {"prices": [100, 101, 102, 103, 104]},
+        "python_session": {"code": "print(2+2)"},
+        "generate_report": {"title": "Test", "output_filename": "report.txt", "content": "hello"},
+        "export_table": {"filename": "out.csv", "rows": [{"a": 1, "b": 2}]},
+        "vision_analyze": {"image_url": "https://example.com/img.png", "prompt": "describe"},
+        "earnings_call": {"transcript": "We had a good quarter. Revenue grew strongly. Profits are up. Guidance is raised. The future looks bright."},
+        "clause_extractor": {"text": "This agreement may be terminated. Either party may terminate.", "clause_types": "termination"},
+        "risk_metrics": {"action": "sharpe", "returns": [0.01, 0.02, -0.01, 0.03]},
+        "legal_citation_check": {"action": "validate", "volume": 123, "reporter": "F.3d", "page": 456},
         "insurance_research": {"action": "filings", "query": "AIG"},
-        "script_registry": {"action": "list"},
-        "workflow_registry": {"action": "list"},
-        "document_library": {"action": "list"},
-        "clause_extractor": {"text": "Agreement", "clause_types": "termination"},
+        "edit_tableau_field": {"field_name": "test", "new_value": "test", "filename": "test.twb"},
+        "add_tableau_filter": {"worksheet": "Sheet1", "field": "test", "value": "test", "filename": "test.twb"},
+        "remove_tableau_field": {"field_name": "test", "filename": "test.twb"},
+        "financial_metrics": {"returns": [0.01, 0.02, 0.03, 0.04, 0.05]},
+        "document_diff": {"left_text": "hello", "right_text": "world"},
+        "forecast_arima": {"values": [1, 2, 3, 4, 5, 6, 7, 8], "periods": 2},
+        "chart_from_data": {"filename": "test.csv", "chart_type": "bar", "x_column": "a", "y_column": "b"},
+        "csv_query": {"filename": "test.csv", "sql": "SELECT * FROM t"},
         "pdf_report": {"pages": [{"text": "Test Page"}]},
         "report_batch": {"prompts": ["test"]},
-        "metrics_batch": {"series": [{"name": "test", "values": [1,2,3]}]},
-        "financial_metrics": {"symbol": "AAPL"},
-        "document_diff": {"text_a": "hello", "text_b": "world"},
-        "data_quality_report": {"data": "[]"},
+        "metrics_batch": {"series": [{"name": "test", "values": [1, 2, 3]}]},
+        "data_quality_report": {"file": "test.csv"},
         "workspace_snapshot": {},
     }
 
+    # Tools that need a real database — SKIP honestly (env-blocked)
+    SKIP_DB = {
+        "memory_search", "recall_history", "kpi_watch_list", "kpi_watch_run",
+        "sql_sandbox_create", "sql_sandbox_list", "sql_sandbox_execute",
+        "sql_sandbox_load_csv", "sql_sandbox_drop",
+        "schedule_list", "webhook_list", "email_list_sent",
+        "search_library", "citation_lookup",
+    }
+
+    # Tools that need a real file uploaded — SKIP honestly
+    SKIP_FILE = {
+        "pdf_read", "excel_read", "excel_write", "read_bi_file",
+        "extract_pbix_assets", "write_file", "delete_file",
+    }
+
+    # Tools that need longer than 15s (browser automation)
+    LONG_TIMEOUT = {"browser_goto", "browser_screenshot", "browser_extract", "browser_click", "browser_fill_submit"}
+
     def _build_args(params):
+        """Unwrap JSON schema {type:object, properties:{...}, required:[...]}."""
         args = {}
+        # Standard JSON schema
+        if isinstance(params, dict) and "properties" in params:
+            props = params.get("properties") or {}
+            required = set(params.get("required") or [])
+            for prop_name, prop_meta in props.items():
+                if not isinstance(prop_meta, dict):
+                    continue
+                if prop_name in SAFE_VALUES:
+                    args[prop_name] = SAFE_VALUES[prop_name]
+                elif prop_meta.get("type") == "string":
+                    if prop_name in required or prop_meta.get("enum"):
+                        enums = prop_meta.get("enum")
+                        args[prop_name] = enums[0] if enums else "test"
+                elif prop_meta.get("type") in ("integer", "number"):
+                    if prop_name in required:
+                        args[prop_name] = 1
+                elif prop_meta.get("type") == "boolean":
+                    if prop_name in required:
+                        args[prop_name] = True
+                elif prop_meta.get("type") == "array":
+                    if prop_name in required:
+                        args[prop_name] = []
+            return args
+        # Simple flat schema (legacy)
         for prop_name, prop_meta in params.items():
-            # Defensive: some tools have simple string values, not full schema dicts
             if not isinstance(prop_meta, dict):
                 prop_meta = {}
             if prop_name in SAFE_VALUES:
@@ -2478,8 +2552,6 @@ async def test_all_tools():
                 args[prop_name] = "test"
             elif prop_meta.get("type") in ("integer", "number"):
                 args[prop_name] = 1
-            elif prop_meta.get("type") == "boolean":
-                args[prop_name] = True
         return args
 
     results = []
@@ -2487,9 +2559,16 @@ async def test_all_tools():
         name = spec.get("name", "")
         tool = get_tool(name)
 
-        # Skip if in skip list
         if name in skip_tools or tool is None:
             results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": ""})
+            continue
+
+        if name in SKIP_DB:
+            results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "needs database"})
+            continue
+
+        if name in SKIP_FILE:
+            results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "needs file"})
             continue
 
         params = spec.get("parameters") or {}
@@ -2498,14 +2577,11 @@ async def test_all_tools():
         else:
             args = _build_args(params)
 
-        # Specific overrides that require files
-        if name in ("sql_sandbox_load_csv", "pdf_read", "excel_read", "write_file", "delete_file"):
-            results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "needs file"})
-            continue
+        timeout_s = 45 if name in LONG_TIMEOUT else 15
 
         t0 = _t.time()
         try:
-            raw = await _aio.wait_for(tool.run(args), timeout=15)
+            raw = await _aio.wait_for(tool.run(**args), timeout=timeout_s)
             latency = int((_t.time() - t0) * 1000)
 
             if isinstance(raw, dict) and raw.get("error"):
@@ -2527,7 +2603,7 @@ async def test_all_tools():
                 except Exception:
                     pass
         except _aio.TimeoutError:
-            results.append({"name": name, "status": "FAIL", "latency_ms": 15000, "output": "", "error": "timeout"})
+            results.append({"name": name, "status": "FAIL", "latency_ms": timeout_s * 1000, "output": "", "error": "timeout"})
             try:
                 _as.log_event(user="admin-test", event_type="tool", tool_name=name, ok=False, extra={"error": "timeout"})
             except Exception:

@@ -30,7 +30,7 @@ def _workspace_root() -> Path:
     p = os.getenv("SUNNYWARE_WORKSPACE") or os.getenv("WORKSPACE_PATH")
     if p:
         return Path(p).resolve()
-    return Path(os.environ.get("SUNNYWARE_DATA_DIR", "/data")) / r"workspace".resolve()
+    return (Path(os.environ.get("SUNNYWARE_DATA_DIR", "/data")) / "workspace").resolve()
 
 
 def _load_df(path: Path) -> "pd.DataFrame":

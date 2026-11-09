@@ -16,7 +16,7 @@ class AggregateMarketDataTool:
     }
 
     async def run(self, symbol: str, kind: str = "sandbox") -> dict:
-        from .finnhub_quote import FinnhubQuoteTool
+        from .finnhub_quote import FinnhubTool as FinnhubQuoteTool
         from .tiingo_prices import TiingoPricesTool
         
         results = {}
