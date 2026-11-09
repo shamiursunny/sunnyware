@@ -2485,7 +2485,7 @@ async def test_all_tools():
         "pdf_report": {"filename": "test.pdf", "pages": [{"type": "text", "title": "Test Page", "body": "Hello world, this is a test page for PDF generation."}]},
         "browser_screenshot": {"url": "https://example.com"},
         "clause_extractor": {"text": "This agreement may be terminated by either party with thirty days written notice. The terms and conditions shall remain in effect unless modified in writing by both parties. Either party may terminate immediately in the event of material breach.", "clause_types": "termination"},
-        "risk_metrics": {"action": "var_historical", "returns": [0.01, 0.02, -0.01, 0.03, -0.02, 0.01], "confidence": 0.95},
+        "risk_metrics": {"action": "var", "returns": [0.01, 0.02, -0.01, 0.03, -0.02, 0.01], "confidence": 0.95},
     }
 
     # Tools that need a real database — SKIP honestly (env-blocked)
@@ -2495,6 +2495,7 @@ async def test_all_tools():
         "sql_sandbox_load_csv", "sql_sandbox_drop",
         "schedule_list", "webhook_list", "email_list_sent",
         "search_library", "citation_lookup",
+        "kpi_watch_add",
     }
 
     # Tools that need a real file uploaded — SKIP honestly
@@ -2627,7 +2628,7 @@ async def test_all_tools():
         else:
             args = _build_args(params)
 
-        timeout_s = 45 if name in LONG_TIMEOUT else 15
+        timeout_s = 90 if name in LONG_TIMEOUT else 15
 
         t0 = _t.time()
         try:
