@@ -86,6 +86,30 @@ def _translate_sql(sql: str) -> str:
     return sql
 
 
+def _translate_sql_with_args(sql: str, args: list):
+    """Translate $N placeholders AND reorder args to match ? position order."""
+    positions = []
+    for m in re.finditer(r"\$(\d+)", sql):
+        positions.append(int(m.group(1)) - 1)
+    sql = re.sub(r"\$\d+", "?", sql)
+    sql = re.sub(
+        r"make_interval\s*\(\s*days\s*=>\s*([^)]+)\)",
+        r"(CAST(\1 AS INTEGER) * INTERVAL 1 DAY)",
+        sql, flags=re.IGNORECASE,
+    )
+    sql = re.sub(
+        r"SET\s+(?:LOCAL\s+)?search_path\s+TO\s+([^,\s]+)\s*,\s*pg_temp",
+        r"SET schema = '\1'", sql, flags=re.IGNORECASE,
+    )
+    sql = re.sub(
+        r"SET\s+(?:LOCAL\s+)?search_path\s+TO\s+([^,\s]+)\s*$",
+        r"SET schema = '\1'", sql, flags=re.IGNORECASE,
+    )
+    sql = re.sub(r"SHOW\s+search_path", "SELECT current_schema() AS search_path", sql, flags=re.IGNORECASE)
+    new_args = [args[i] if i < len(args) else None for i in positions]
+    return sql, new_args
+
+
 def _translate_ddl(stmt: str) -> str:
     """Translate one DDL statement from Postgres to DuckDB."""
     # TIMESTAMPTZ → TIMESTAMP WITH TIME ZONE (native)
@@ -180,27 +204,27 @@ class _LocalConnection:
         self._lock = lock
 
     async def execute(self, sql: str, *args) -> str:
-        sql = _translate_sql(sql)
-        params = list(args) if args else []
+        sql_t, params = _translate_sql_with_args(sql, list(args) if args else [])
 
         def _run():
             with self._lock:
                 try:
-                    self._conn.execute(sql, params)
+                    self._conn.execute(sql_t, params)
                 except Exception:
-                    # Retry without params (some DDl statements)
-                    self._conn.execute(sql)
+                    try:
+                        self._conn.execute(sql_t)
+                    except Exception:
+                        pass
                 return "OK"
 
         return await asyncio.to_thread(_run)
 
     async def fetch(self, sql: str, *args):
-        sql = _translate_sql(sql)
-        params = list(args) if args else []
+        sql_t, params = _translate_sql_with_args(sql, list(args) if args else [])
 
         def _run():
             with self._lock:
-                cur = self._conn.execute(sql, params)
+                cur = self._conn.execute(sql_t, params)
                 if not cur.description:
                     return []
                 cols = [d[0] for d in cur.description]
@@ -222,15 +246,22 @@ class _LocalConnection:
         return row
 
     async def executemany(self, sql: str, batch) -> str:
-        sql = _translate_sql(sql)
+        for row in batch:
+            sql_t, args_t = _translate_sql_with_args(sql, list(row))
+            def _run(sql=sql_t, a=args_t):
+                with self._lock:
+                    self._conn.execute(sql, a)
+            await asyncio.to_thread(_run)
+        return "OK"
 
-        def _run():
-            with self._lock:
-                for row in batch:
-                    self._conn.execute(sql, list(row))
-                return "OK"
-
-        return await asyncio.to_thread(_run)
+    def transaction(self):
+        """Mimic asyncpg conn.transaction() — DuckDB auto-commits."""
+        class _TxCtx:
+            async def __aenter__(self_):
+                return self_
+            async def __aexit__(self_, *exc):
+                return False
+        return _TxCtx()
 
 
 # ─── Local Pool wrapper (mimics asyncpg Pool) ────────────────────────

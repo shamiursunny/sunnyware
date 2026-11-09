@@ -2409,6 +2409,65 @@ async def list_all_tools():
     out.sort(key=_sort_key)
     return {"ok": True, "tools": out}
 
+def _seed_test_fixtures():
+    """Ensure sample fixtures exist in workspace for file-based tools."""
+    from pathlib import Path as _P
+    import os as _os
+    import io as _io
+    import zipfile as _zipfile
+    try:
+        ws = _P(_os.getenv("SUNNYWARE_DATA_DIR", "/data")) / "workspace"
+        ws.mkdir(parents=True, exist_ok=True)
+    except Exception:
+        return
+
+    # ── Sample Tableau workbook (.twb) ──
+    twb = ws / "sample.twb"
+    if not twb.exists():
+        try:
+            twb.write_text("""<?xml version="1.0" encoding="utf-8"?>
+<workbook source-build="2023.1" source-platform="win" version="18.1">
+  <datasources>
+    <datasource caption="Sample" inline="true" name="federated.1" version="18.1">
+      <connection class="federated">
+        <named-connections>
+          <named-connection caption="Sample" name="textscan.1">
+            <connection class="textscan" directory="/data" filename="AAPL_live.csv"/>
+          </named-connection>
+        </named-connections>
+      </connection>
+    </datasource>
+  </datasources>
+  <worksheets>
+    <worksheet name="Sheet1">
+      <table>
+        <view>
+          <datasources><datasource caption="Sample" name="federated.1"/></datasources>
+          <filter class="categorical" column="[price]" filter-group="1"/>
+          <slices><slicer column="[region]"/></slices>
+        </view>
+      </table>
+    </worksheet>
+  </worksheets>
+</workbook>""", encoding="utf-8")
+        except Exception:
+            pass
+
+    # ── Sample Power BI file (.pbix — minimal ZIP) ──
+    pbix = ws / "sample.pbix"
+    if not pbix.exists():
+        try:
+            buf = _io.BytesIO()
+            with _zipfile.ZipFile(buf, "w") as zf:
+                zf.writestr("DataModel", '{"name":"sample","tables":[]}')
+                zf.writestr("Report/Layout", '{"sections":[]}')
+                zf.writestr("Version", "1.0")
+                zf.writestr("DiagramLayout", "{}")
+            pbix.write_bytes(buf.getvalue())
+        except Exception:
+            pass
+
+
 @router.post("/api/tools-test-all")
 async def test_all_tools(request: Request = None):
     """Run a safe test for each tool. Skips tools that need external keys or files.
@@ -2422,6 +2481,9 @@ async def test_all_tools(request: Request = None):
             force = request.query_params.get("force", "").lower() in ("1", "true", "yes")
         except Exception:
             pass
+
+    # Ensure test fixtures exist
+    _seed_test_fixtures()
     import asyncio as _aio
     import time as _t
     import json as _j
@@ -2515,7 +2577,12 @@ async def test_all_tools(request: Request = None):
         "technical_analysis": {"filename": "ta_apple.csv"},
         "ml_forecast": {"filename": "AAPL_live.csv", "target_column": "price", "periods": 3, "kind": "workspace"},
         "pro_chart": {"filename": "AAPL_live.csv", "chart_type": "line", "kind": "workspace"},
-        "scrape_webpage": {"url": "https://example.com"},
+        "scrape_webpage": {"url": "https://en.wikipedia.org/wiki/List_of_countries_by_population_(United_Nations)"},
+        "edit_tableau_field": {"filename": "sample.twb", "field_name": "[price]", "new_value": "[price]*2", "kind": "workspace"},
+        "add_tableau_filter": {"filename": "sample.twb", "worksheet": "Sheet1", "field": "[region]", "value": "EU", "kind": "workspace"},
+        "remove_tableau_field": {"filename": "sample.twb", "field_name": "[price]", "kind": "workspace"},
+        "extract_pbix_assets": {"filename": "sample.pbix", "kind": "workspace"},
+        "sql_sandbox_load_csv": {"name": "test", "file": "AAPL_live.csv", "table": "aapl_data"},
     }
 
     # Tools that need a real database — SKIP honestly (env-blocked)
@@ -2530,8 +2597,7 @@ async def test_all_tools(request: Request = None):
 
     # Tools that need a real file uploaded — SKIP honestly
     SKIP_FILE = {
-        "extract_pbix_assets", "write_file", "delete_file",
-        "edit_tableau_field", "add_tableau_filter", "remove_tableau_field",
+        "write_file", "delete_file",
         # API keys required
         "aggregate_market_data",
     }
@@ -2539,12 +2605,11 @@ async def test_all_tools(request: Request = None):
     # Tools that need an external API key — SKIP honestly
     SKIP_NO_KEY = {
         "aggregate_market_data",
-        "vision_analyze",   # Gemini API 503 external dependency
     }
 
     # Tools that depend on target-page content (unreliable)
     SKIP_NETWORK = {
-        "scrape_webpage",
+        # scrape_webpage now tests against Wikipedia tables
     }
 
     # Truly destructive — skip even in force mode (never auto-execute)
