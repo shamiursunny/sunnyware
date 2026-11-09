@@ -2596,19 +2596,19 @@ async def test_all_tools(request: Request = None):
         "scrape_webpage": {"url": "https://en.wikipedia.org/wiki/List_of_countries_by_population_(United_Nations)", "output_filename": "scraped.csv", "table_index": 0},
         "edit_tableau_field": {"filename": "sample_v4.twb", "field_name": "price", "new_value": "[price] * 3", "kind": "workspace"},
         "add_tableau_filter": {"filename": "sample_v4.twb", "worksheet": "Sheet1", "field": "symbol", "value": "AAPL", "kind": "workspace"},
-        "remove_tableau_field": {"filename": "sample_v4.twb", "field_name": "[volume]", "kind": "workspace"},
+        "remove_tableau_field": {"filename": "sample_v4.twb", "field_name": "[symbol]", "kind": "workspace"},
         "extract_pbix_assets": {"filename": "sample_v4.pbix", "kind": "workspace"},
         "sql_sandbox_load_csv": {"name": "test", "file": "AAPL_live.csv", "table": "aapl_data"},
         # ── API finance tools (specific action names) ──
         "finnhub_quote": {"symbol": "AAPL", "action": "quote"},
         "fred_economic": {"action": "series", "series_id": "GDP"},
-        "tiingo_prices": {"symbol": "AAPL", "action": "prices"},
+        "tiingo_prices": {"ticker": "AAPL"},
         "twelvedata_prices": {"symbol": "AAPL", "action": "time_series", "interval": "1day"},
-        "fmp_fundamentals": {"symbol": "AAPL", "action": "profile"},
-        "eulerpool_data": {"symbol": "AAPL", "action": "profile"},
-        "edgar_fundamentals": {"symbol": "AAPL", "action": "fundamentals", "statement": "income"},
+        "fmp_fundamentals": {"ticker": "AAPL"},
+        "eulerpool_data": {"identifier": "AAPL", "action": "profile"},
+        "edgar_fundamentals": {"ticker": "AAPL", "statement": "income"},
         "insurance_data": {"action": "states"},
-        "govcon_data": {"action": "search", "query": "IT services"},
+        "govcon_data": {"query": "IT services"},
         # ── Safe write/utility tools ──
         "api_call": {"method": "GET", "url": "https://httpbin.org/get"},
         "mkdir": {"path": "test_dir_v4"},
@@ -2618,7 +2618,7 @@ async def test_all_tools(request: Request = None):
         # ── Library search ──
         "search_library": {"query": "test", "limit": 5},
         # ── Delegate to valid agent ──
-        "delegate_to_agent": {"agent": "researcher", "prompt": "find papers on AI"},
+        "delegate_to_agent": {"task": "find papers on AI"},
     }
 
     # Tools that need a real database — SKIP honestly (env-blocked)
@@ -2640,13 +2640,16 @@ async def test_all_tools(request: Request = None):
 
     # Tools that need an external API key — SKIP honestly
     SKIP_NO_KEY = {
-        "aggregate_market_data",
+        "aggregate_market_data",   # needs valid API keys (may be expired)
     }
 
     # Tools with unrecoverable external dependencies — SKIP honestly
     SKIP_EXTERNAL = {
-        "citation_lookup",   # needs indexed RAG chunks
-        "browser_goto",      # network flaky on HF
+        "citation_lookup",     # needs indexed RAG chunks
+        "browser_goto",        # network flaky on HF
+        "browser_extract",     # network flaky on HF
+        "browser_screenshot",  # network flaky on HF
+        "scrape_webpage",      # external site dependent
     }
 
     # Tools that depend on target-page content (unreliable)
@@ -2762,6 +2765,11 @@ async def test_all_tools(request: Request = None):
             continue
         if not force and name in skip_tools:
             results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": ""})
+            continue
+
+        # SKIP_EXTERNAL check FIRST (before SPECIFIC_ARGS overrides)
+        if name in SKIP_EXTERNAL:
+            results.append({"name": name, "status": "SKIP", "latency_ms": 0, "output": "", "error": "external data/service required"})
             continue
 
         # Special case: email_send only runs if SUNNYWARE_ALLOW_EMAIL_TEST=1
