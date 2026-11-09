@@ -8,13 +8,13 @@
 # Sunnyware System Monitor
 ########################################################################
 
-Started: 2026-11-09T19:20:31
-Elapsed: 22.07s
+Started: 2026-11-09T19:41:03
+Elapsed: 21.51s
 
 ------------------------------------------------------------------------
  DOCS
 ------------------------------------------------------------------------
-  [PASS] README.md has reasonable size  --  716 lines (min 10)
+  [PASS] README.md has reasonable size  --  719 lines (min 10)
   [PASS] WORKFLOW.md has reasonable size  --  11 lines (min 10)
   [PASS] HANDSOFF.md has reasonable size  --  16 lines (min 10)
   [PASS] AGENTS.md has reasonable size  --  203 lines (min 10)
@@ -30,10 +30,9 @@ Elapsed: 22.07s
 ------------------------------------------------------------------------
  GIT
 ------------------------------------------------------------------------
-  [FAIL] Git working tree clean  --  1 pending changes
-      changes: ['?? definitive_test.py']
+  [PASS] Git working tree clean  --  clean
   [PASS] No unpushed commits to GitHub  --  0 unpushed
-  [PASS] Latest commit  --  612b8c3 fix(tools): .transaction() + placeholder reorder + sample.twb/pbix fixtures + Wikipedia scrape
+  [PASS] Latest commit  --  2bd23b0 fix: pool resilience + tableau SubElement + richer sample.twb + scraped.csv arg
 
 ------------------------------------------------------------------------
  HYGIENE
@@ -128,23 +127,15 @@ Elapsed: 22.07s
   [PASS] No obvious broken JS string literals  --  0 potential breaks
 
 ========================================================================
- SCORE: 98.7 / 100
+ SCORE: 100.0 / 100
  GRADE: A+ (production-ready)
 ========================================================================
   critical   70/70  (100.0%)
   high       100/100  (100.0%)
-  medium     36/39  (92.3%)
+  medium     39/39  (100.0%)
   low        15/15  (100.0%)
 
-  Checks: 54 pass, 1 fail, 0 warn, 0 skip
-
-========================================================================
- FAILURES TO FIX (by severity)
-========================================================================
-
-  [MEDIUM]
-    - git: Git working tree clean
-      1 pending changes
+  Checks: 55 pass, 0 fail, 0 warn, 0 skip
 
 ========================================================================
  KNOWN LIMITATIONS (accepted, not scored)
@@ -175,8 +166,8 @@ Reports saved:
 
 
 --- STDERR ---
-{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-09T13:20:22.916129Z"}
-{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-09T13:20:22.916129Z"}
-{"event": "Config loaded", "level": "info", "timestamp": "2026-11-09T13:20:22.931753Z"}
-{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-09T13:20:22.931753Z"}
-{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-09T13:20:22.931753Z"}
+{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-09T13:41:02.027661Z"}
+{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-09T13:41:02.027661Z"}
+{"event": "Config loaded", "level": "info", "timestamp": "2026-11-09T13:41:02.042081Z"}
+{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-09T13:41:02.046083Z"}
+{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-09T13:41:02.046083Z"}
