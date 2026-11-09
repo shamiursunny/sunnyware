@@ -508,55 +508,6 @@ async def local_model_smoke():
     import time as _t
     from .. import local_llm as _lm
 
-    import inspect as _inspect
-
-    def _call_tool_coro(tool, args):
-        """Return the coroutine for tool.run with the right signature.
-
-        Handles three cases:
-          - run(args_dict)      → single param named args/kwargs/payload
-          - run(**kwargs)       → filter args to valid param names
-          - run()               → no params
-        Raises TypeError with a clear message if required params are missing.
-        """
-        try:
-            sig = _inspect.signature(tool.run)
-        except (TypeError, ValueError):
-            # Cannot introspect — fall back to dict style
-            return tool.run(args)
-
-        params = sig.parameters
-        param_names = [
-            n for n, p in params.items()
-            if p.kind not in (_inspect.Parameter.VAR_KEYWORD, _inspect.Parameter.VAR_POSITIONAL)
-        ]
-        has_var_kw = any(
-            p.kind == _inspect.Parameter.VAR_KEYWORD for p in params.values()
-        )
-
-        # Dict-style: single param named args/kwargs/payload
-        if len(param_names) == 1 and param_names[0] in ("args", "kwargs", "payload"):
-            return tool.run(args)
-
-        # No-args style
-        if len(param_names) == 0 and not has_var_kw:
-            return tool.run()
-
-        # Filter args to only valid param names
-        filtered = {k: v for k, v in args.items() if k in param_names}
-
-        # Detect missing required params (no default value)
-        missing = [
-            n for n in param_names
-            if n not in filtered and params[n].default is _inspect.Parameter.empty
-        ]
-        if missing:
-            raise TypeError(
-                f"missing required args: {missing} (have {list(args.keys())})"
-            )
-
-        return tool.run(**filtered)
-
     results = []
     t_start = _t.time()
 
@@ -2609,6 +2560,50 @@ async def test_all_tools():
             elif prop_meta.get("type") in ("integer", "number"):
                 args[prop_name] = 1
         return args
+
+    import inspect as _inspect
+
+    def _call_tool_coro(tool, args):
+        """Return the coroutine for tool.run with the right signature.
+
+        Handles:
+          - run(args_dict)   -> single param named args/kwargs/payload
+          - run(**kwargs)    -> filter args to valid param names
+          - run()            -> no params
+        Raises TypeError with a clear message if required params are missing.
+        """
+        try:
+            sig = _inspect.signature(tool.run)
+        except (TypeError, ValueError):
+            return tool.run(args)
+
+        params = sig.parameters
+        param_names = [
+            n for n, pr in params.items()
+            if pr.kind not in (_inspect.Parameter.VAR_KEYWORD, _inspect.Parameter.VAR_POSITIONAL)
+        ]
+        has_var_kw = any(
+            pr.kind == _inspect.Parameter.VAR_KEYWORD for pr in params.values()
+        )
+
+        if len(param_names) == 1 and param_names[0] in ("args", "kwargs", "payload"):
+            return tool.run(args)
+
+        if len(param_names) == 0 and not has_var_kw:
+            return tool.run()
+
+        filtered = {k: v for k, v in args.items() if k in param_names}
+
+        missing = [
+            n for n in param_names
+            if n not in filtered and params[n].default is _inspect.Parameter.empty
+        ]
+        if missing:
+            raise TypeError(
+                f"missing required args: {missing} (have {list(args.keys())})"
+            )
+
+        return tool.run(**filtered)
 
     results = []
     for spec in list_tools():
