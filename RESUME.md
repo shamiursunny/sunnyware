@@ -1,7 +1,7 @@
 # Sunnyware - Project Resume
 
-> **Version:** `1.37.0` | **Released:** `2026-11-09T08-42-07Z` | **Commit:** `a28fb9b`
-> **Chain:** 23 blocks | **Head:** `b010f3cfb3345c01...`
+> **Version:** `1.38.0` | **Released:** `2026-11-09T08-56-34Z` | **Commit:** `fbba4d1`
+> **Chain:** 24 blocks | **Head:** `e4316c8507f72e0f...`
 > **Deployments:** 17/19 verified | **Health:** 100.0/100 (A+)
 
 > **Auto-generated on every ship.** Do not edit manually.
@@ -13,13 +13,14 @@ Sunnyware is a production-grade, self-verifying AI orchestration platform.
 ## Headline Metrics
 | Metric | Current Value |
 |--------|--------------|
-| **Current version** | `v1.37.0` |
-| **Total releases** | 23 (blocks) |
+| **Current version** | `v1.38.0` |
+| **Total releases** | 24 (blocks) |
 | **Health** | **100.0 / 100 (A+)** |
 
 ## Release Milestones
 | # | Version | Commit | Released |
 |---|---------|--------|----------|
+| 23 | `v1.38.0` | `fbba4d1` | 2026-11-09T08-56-34Z |
 | 22 | `v1.37.0` | `a28fb9b` | 2026-11-09T08-42-07Z |
 | 21 | `v1.36.0` | `b740fed` | 2026-11-09T08-30-24Z |
 | 20 | `v1.35.0` | `32c4aed` | 2026-11-09T08-07-48Z |
@@ -29,4 +30,3 @@ Sunnyware is a production-grade, self-verifying AI orchestration platform.
 | 16 | `v1.31.0` | `ac847f0` | 2026-11-08T17-46-47Z |
 | 15 | `v1.30.0` | `d5770ef` | 2026-11-08T17-17-56Z |
 | 14 | `v1.29.0` | `7823bb1` | 2026-11-08T16-17-04Z |
-| 13 | `v1.28.0` | `a16cc46` | 2026-11-08T15-20-27Z |
