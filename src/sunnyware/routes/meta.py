@@ -2486,6 +2486,26 @@ async def test_all_tools():
         "browser_screenshot": {"url": "https://example.com"},
         "clause_extractor": {"text": "This agreement may be terminated by either party with thirty days written notice. The terms and conditions shall remain in effect unless modified in writing by both parties. Either party may terminate immediately in the event of material breach.", "clause_types": "termination"},
         "risk_metrics": {"action": "var", "returns": [0.01, 0.02, -0.01, 0.03, -0.02, 0.01], "confidence": 0.95},
+        
+        # ── REAL FILES FROM YOUR LIBRARY ──
+        "read_file": {"file": "test.txt"},
+        "pdf_read": {"file": "test.pdf"},
+        "excel_read": {"file": "test.xlsx"},
+        "read_bi_file": {"file": "test.xlsx"},
+        "csv_query": {"filename": "test.csv", "sql": "SELECT * FROM test"},
+        "chart_from_data": {"filename": "test.csv", "chart_type": "bar", "x_column": "a", "y_column": "b"},
+        "forecast_arima": {"filename": "apple.csv", "target_column": "close", "periods": 3},
+        "generate_chart": {"filename": "apple.csv", "chart_type": "line", "x_column": "date", "y_column": "close"},
+        "clean_dataset": {"filename": "test.csv", "output_filename": "clean_test.csv"},
+        "csv_groupby": {"filename": "test.csv", "group_col": "a", "agg_col": "b"},
+        "data_describe": {"filename": "test.csv"},
+        "data_quality_report": {"file": "test.csv"},
+        "generate_report": {"title": "Test", "output_filename": "report.txt", "content": "hello"},
+        "vision_analyze": {"filename": "screenshot-20261109-104142.png"},
+        "technical_analysis": {"filename": "ta_apple.csv"},
+        "ml_forecast": {"filename": "forecast_apple.csv", "target_column": "close", "periods": 3},
+        "pro_chart": {"filename": "pro_candlestick_apple.csv", "chart_type": "line"},
+        "scrape_webpage": {"url": "https://example.com"},
     }
 
     # Tools that need a real database — SKIP honestly (env-blocked)
@@ -2500,15 +2520,10 @@ async def test_all_tools():
 
     # Tools that need a real file uploaded — SKIP honestly
     SKIP_FILE = {
-        "pdf_read", "excel_read", "excel_write", "read_bi_file",
         "extract_pbix_assets", "write_file", "delete_file",
         "edit_tableau_field", "add_tableau_filter", "remove_tableau_field",
-        "generate_chart", "clean_dataset", "csv_groupby", "scrape_webpage",
-        # Need real file content
-        "read_file", "data_quality_report", "data_describe", "generate_report",
-        "vision_analyze", "technical_analysis", "ml_forecast", "pro_chart",
-        # Need a real CSV file on disk
-        "csv_query", "chart_from_data", "forecast_arima",
+        # API keys required
+        "aggregate_market_data",
     }
 
     # Tools that need an external API key — SKIP honestly
