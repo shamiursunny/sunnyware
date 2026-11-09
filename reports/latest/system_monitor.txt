@@ -1,5 +1,5 @@
 [tools] Loaded 112 tools
-[orchestrator] DIRECT_ANSWER_TOOLS = ['add_tableau_filter', 'advanced_chart', 'aggregate_market_data', 'arxiv_search', 'bi_export', 'browser_click', 'browser_extract', 'browser_fill_submit', 'browser_goto', 'browser_screenshot', 'calculator', 'csv_groupby', 'current_time', 'data_correlation', 'data_describe', 'data_stats', 'date_calc', 'ddg_news', 'delete_file', 'domain_research', 'edit_tableau_field', 'email_configured', 'email_list_sent', 'email_send', 'excel_read', 'export_table', 'extract_pbix_assets', 'generate_chart', 'generate_report', 'get_current_time', 'html_to_text', 'image_generate', 'insurance_research', 'legal_citation_check', 'list_files', 'live_market_stream', 'marketaux_news', 'ml_forecast', 'pdf_read', 'pro_chart', 'python_session', 'query_external_db', 'read_bi_file', 'read_file', 'read_sandbox_file', 'remove_tableau_field', 'research_search', 'scrape_webpage', 'sql_sandbox_create', 'sql_sandbox_execute', 'sql_sandbox_list', 'sql_sandbox_load_csv', 'technical_analysis', 'time_now', 'url_metadata', 'vision_analyze', 'web_fetch', 'web_search', 'write_file', 'write_sandbox_file']
+[orchestrator] DIRECT_ANSWER_TOOLS = ['add_tableau_filter', 'aggregate_market_data', 'arxiv_search', 'browser_click', 'browser_extract', 'browser_fill_submit', 'browser_goto', 'browser_screenshot', 'calculator', 'csv_groupby', 'current_time', 'data_correlation', 'data_describe', 'data_stats', 'date_calc', 'ddg_news', 'delete_file', 'domain_research', 'edit_tableau_field', 'email_configured', 'email_list_sent', 'email_send', 'excel_read', 'export_table', 'extract_pbix_assets', 'generate_chart', 'generate_report', 'html_to_text', 'image_generate', 'insurance_research', 'legal_citation_check', 'list_files', 'live_market_stream', 'marketaux_news', 'ml_forecast', 'pdf_read', 'pro_chart', 'python_session', 'query_external_db', 'read_bi_file', 'read_file', 'read_sandbox_file', 'remove_tableau_field', 'research_search', 'scrape_webpage', 'sql_sandbox_create', 'sql_sandbox_execute', 'sql_sandbox_list', 'sql_sandbox_load_csv', 'technical_analysis', 'url_metadata', 'vision_analyze', 'web_fetch', 'web_search', 'write_file', 'write_sandbox_file']
 [jarvis] Preload skipped: LLM disabled or S3_BUCKET_NAME missing
 [startup] analytics_hooks: {'llm_patched': True, 'tool_patched': True}
 [provider_limits] storage source=env:SUNNYWARE_DATA_DIR path=C:\Users\ssunny_s\AppData\Local\Temp\sunnyware\provider_limits.json
@@ -8,13 +8,13 @@
 # Sunnyware System Monitor
 ########################################################################
 
-Started: 2026-11-09T17:33:57
-Elapsed: 15.67s
+Started: 2026-11-09T17:50:39
+Elapsed: 14.06s
 
 ------------------------------------------------------------------------
  DOCS
 ------------------------------------------------------------------------
-  [PASS] README.md has reasonable size  --  701 lines (min 10)
+  [PASS] README.md has reasonable size  --  704 lines (min 10)
   [PASS] WORKFLOW.md has reasonable size  --  11 lines (min 10)
   [PASS] HANDSOFF.md has reasonable size  --  16 lines (min 10)
   [PASS] AGENTS.md has reasonable size  --  203 lines (min 10)
@@ -30,10 +30,9 @@ Elapsed: 15.67s
 ------------------------------------------------------------------------
  GIT
 ------------------------------------------------------------------------
-  [FAIL] Git working tree clean  --  1 pending changes
-      changes: ['?? cloud_test_final.py']
+  [PASS] Git working tree clean  --  clean
   [PASS] No unpushed commits to GitHub  --  0 unpushed
-  [PASS] Latest commit  --  37df907 fix(admin): correct chart_from_data x/y keys and forecast_arima column key
+  [PASS] Latest commit  --  41fb189 feat(router): 98.2% zero-LLM routing + clean phantom entries
 
 ------------------------------------------------------------------------
  HYGIENE
@@ -128,23 +127,15 @@ Elapsed: 15.67s
   [PASS] No obvious broken JS string literals  --  0 potential breaks
 
 ========================================================================
- SCORE: 98.7 / 100
+ SCORE: 100.0 / 100
  GRADE: A+ (production-ready)
 ========================================================================
   critical   70/70  (100.0%)
   high       100/100  (100.0%)
-  medium     36/39  (92.3%)
+  medium     39/39  (100.0%)
   low        15/15  (100.0%)
 
-  Checks: 54 pass, 1 fail, 0 warn, 0 skip
-
-========================================================================
- FAILURES TO FIX (by severity)
-========================================================================
-
-  [MEDIUM]
-    - git: Git working tree clean
-      1 pending changes
+  Checks: 55 pass, 0 fail, 0 warn, 0 skip
 
 ========================================================================
  KNOWN LIMITATIONS (accepted, not scored)
@@ -175,8 +166,8 @@ Reports saved:
 
 
 --- STDERR ---
-{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-09T11:33:54.334460Z"}
-{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-09T11:33:54.334460Z"}
-{"event": "Config loaded", "level": "info", "timestamp": "2026-11-09T11:33:54.350091Z"}
-{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-09T11:33:54.350091Z"}
-{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-09T11:33:54.350091Z"}
+{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-09T11:50:37.067721Z"}
+{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-09T11:50:37.067721Z"}
+{"event": "Config loaded", "level": "info", "timestamp": "2026-11-09T11:50:37.067721Z"}
+{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-09T11:50:37.067721Z"}
+{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-09T11:50:37.067721Z"}
