@@ -637,6 +637,9 @@ def prompt_addon(role_name):
 _DELEGATION_MATRIX = {
     "cfo": frozenset({"cdo"}),
     "cdo": frozenset({"actuary", "quant", "fpa", "tax", "general", "legal", "risk_ins"}),
+    # general is the default orchestrator — can delegate to any specialist role
+    # (cannot delegate to itself → no self-cycle)
+    "general": frozenset({"cdo", "cfo", "fpa", "quant", "actuary", "tax"}),
 }
 
 
