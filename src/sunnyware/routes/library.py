@@ -109,7 +109,7 @@ async def list_files():
     await _ensure_table()
     owner = _owner()
     async with pool.acquire() as conn:
-        rows = await conn.fetch("SELECT id, name, content_type AS type, size, kind, content, created_at FROM library_files WHERE owner_key = $1 ORDER BY created_at DESC", owner)
+        rows = await conn.fetch("SELECT id, name, content_type AS type, size_bytes AS size, kind, content, created_at FROM library_files WHERE owner_key = $1 ORDER BY created_at DESC", owner)
         out = []
         for r in rows:
             d = dict(r)

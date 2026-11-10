@@ -246,7 +246,7 @@ def keyword_route(prompt: str) -> Optional[dict]:
 
     # --- Calculator ---
     num = _extract_number(prompt)
-    if num:
+    if num and "http" not in prompt.lower() and "click" not in prompt.lower():
         return {"tool": "calculator", "args": {"expression": num}}
 
     # --- Web Search ---
@@ -574,7 +574,7 @@ def keyword_route(prompt: str) -> Optional[dict]:
     # --- Math regex (catches '2+2' etc.) ---
     import re as _re
     _math_match = _re.search(r'(?:what is|calculate|compute|evaluate)?\s*(-?\d+(?:\.\d+)?\s*[\+\-\*\/\%\^]\s*-?\d+(?:\.\d+)?(?:\s*[\+\-\*\/\%\^]\s*-?\d+(?:\.\d+)?)*)', prompt.lower())
-    if _math_match:
+    if _math_match and "http" not in prompt.lower() and "click" not in prompt.lower():
         expr = _math_match.group(1).strip()
         if all(c in '0123456789+-*/%^() .' for c in expr):
             return {"tool": "calculator", "args": {"expression": expr}}

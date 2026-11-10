@@ -20,6 +20,7 @@ class BrowserExtractTool:
     }
 
     async def run(self, args: dict) -> dict:
+        import asyncio
         from ._browser_session import validate_url as _v, new_context
         url = (args.get("url") or "").strip()
         selector = (args.get("selector") or "").strip()
@@ -36,48 +37,54 @@ class BrowserExtractTool:
             attrs = []
         attrs = [str(a) for a in attrs][:10]
 
-        ctx = None
-        try:
-            ctx = await new_context()
-            page = await ctx.new_page()
-            await page.goto(url, wait_until="domcontentloaded", timeout=30000)
-            if wait_ms:
-                await page.wait_for_timeout(wait_ms)
-            elements = await page.query_selector_all(selector)
-            title = await page.title()
-            rows = []
-            for el in elements[:limit]:
-                try:
-                    text = (await el.inner_text()) or ""
-                except Exception:
-                    text = ""
-                row = {"text": text.strip()[:2000]}
-                try:
-                    row["href"] = await el.get_attribute("href")
-                except Exception:
-                    pass
-                try:
-                    row["src"] = await el.get_attribute("src")
-                except Exception:
-                    pass
-                for a in attrs:
+        async def _extract():
+            ctx = None
+            try:
+                ctx = await new_context()
+                page = await ctx.new_page()
+                await page.goto(url, wait_until="domcontentloaded", timeout=20000)
+                if wait_ms:
+                    await page.wait_for_timeout(wait_ms)
+                elements = await page.query_selector_all(selector)
+                title = await page.title()
+                rows = []
+                for el in elements[:limit]:
                     try:
-                        row[a] = await el.get_attribute(a)
+                        text = (await el.inner_text()) or ""
                     except Exception:
-                        row[a] = None
-                rows.append(row)
-        except Exception as e:
-            return {"error": f"{type(e).__name__}: {e}"}
-        finally:
-            if ctx:
-                try: await ctx.close()
-                except Exception: pass
+                        text = ""
+                    row = {"text": text.strip()[:2000]}
+                    try:
+                        row["href"] = await el.get_attribute("href")
+                    except Exception:
+                        pass
+                    try:
+                        row["src"] = await el.get_attribute("src")
+                    except Exception:
+                        pass
+                    for a in attrs:
+                        try:
+                            row[a] = await el.get_attribute(a)
+                        except Exception:
+                            row[a] = None
+                    rows.append(row)
+                return {
+                    "url": url,
+                    "title": title,
+                    "selector": selector,
+                    "count": len(rows),
+                    "truncated": len(elements) > limit,
+                    "rows": rows,
+                }
+            except Exception as e:
+                return {"error": f"{type(e).__name__}: {e}"}
+            finally:
+                if ctx:
+                    try: await ctx.close()
+                    except Exception: pass
 
-        return {
-            "url": url,
-            "title": title,
-            "selector": selector,
-            "count": len(rows),
-            "truncated": len(elements) > limit,
-            "rows": rows,
-        }
+        try:
+            return await asyncio.wait_for(_extract(), timeout=20.0)
+        except asyncio.TimeoutError:
+            return {"error": "Operation timed out after 20 seconds"}
+
