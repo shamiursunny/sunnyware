@@ -32,6 +32,13 @@ class BrowserFillSubmitTool:
     }
 
     async def run(self, args: dict) -> dict:
+        import asyncio
+        try:
+            return await asyncio.wait_for(self._run_impl(args), timeout=30.0)
+        except asyncio.TimeoutError:
+            return {"error": "browser_fill_submit timed out after 30 seconds"}
+
+    async def _run_impl(self, args: dict) -> dict:
         from ._browser_session import validate_url as _v, new_context
         url = (args.get("url") or "").strip()
         err = _v(url)
