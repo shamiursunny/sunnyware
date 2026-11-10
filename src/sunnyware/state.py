@@ -268,8 +268,27 @@ class _LocalConnection:
 class _LocalPool:
     def __init__(self, db_path: str):
         self._db_path = db_path
-        self._conn = duckdb.connect(db_path, read_only=False)
         self._lock = threading.Lock()
+        try:
+            self._conn = duckdb.connect(db_path, read_only=False)
+        except Exception as e:
+            err_str = str(e).lower()
+            if "wal" in err_str or "replay" in err_str:
+                print(f"[state] Corrupted WAL detected, removing: {e}", file=sys.stderr)
+                try:
+                    wal_path = Path(db_path + ".wal")
+                    if wal_path.exists():
+                        wal_path.unlink()
+                except Exception:
+                    pass
+                self._conn = duckdb.connect(db_path, read_only=False)
+            else:
+                raise
+        try:
+            self._conn.execute("CHECKPOINT")
+            print(f"[state] DuckDB opened + checkpointed: {db_path}", file=sys.stderr)
+        except Exception as e:
+            print(f"[state] Checkpoint skipped: {e}", file=sys.stderr)
 
     def acquire(self):
         outer = self
@@ -286,6 +305,11 @@ class _LocalPool:
     async def close(self):
         def _run():
             with self._lock:
+                try:
+                    self._conn.execute("CHECKPOINT")
+                    print(f"[state] DuckDB checkpointed before close", file=sys.stderr)
+                except Exception as e:
+                    print(f"[state] Final checkpoint failed: {e}", file=sys.stderr)
                 try:
                     self._conn.close()
                 except Exception:

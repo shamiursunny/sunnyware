@@ -70,6 +70,19 @@ async def _preload_local_task():
 
 @asynccontextmanager
 async def lifespan(app):
+    # ── Explicit DuckDB preload (like embedder) ──
+    try:
+        from . import state as _db_state
+        ok = await _db_state.init_pool()
+        kind = _db_state.get_pool_kind()
+        err = _db_state.get_last_error()
+        if ok:
+            print(f"[db] DuckDB preloaded OK (kind={kind})", flush=True)
+        else:
+            print(f"[db] DuckDB preload FAILED: {err}", flush=True)
+    except Exception as _db_e:
+        print(f"[db] DuckDB preload exception: {_db_e}", flush=True)
+
     try:
         from . import settings_manager
         settings_manager.apply_settings()
@@ -138,6 +151,13 @@ async def lifespan(app):
     except Exception as _e:
         log.error("local_llm_lifespan_error", err=f"{type(_e).__name__}: {_e}")
     yield
+
+    try:
+        from . import state as _db_state
+        await _db_state.close_pool()
+        print("[db] DuckDB checkpointed and closed cleanly", flush=True)
+    except Exception as _db_e:
+        print(f"[db] DuckDB shutdown error: {_db_e}", flush=True)
     # Shutdown
     try:
         from . import scheduler as _sched
