@@ -388,7 +388,12 @@ async def load_chats(req: _Request):
 
 @router.post("/api/chats")
 async def save_chats(req: _Request):
-    body = await req.json()
+    try:
+        body = await req.json()
+    except Exception as e:
+        if "disconnect" in str(e).lower():
+            return JSONResponse({"status": "ignored", "reason": "client disconnected"})
+        raise
     user = req.headers.get("x-user-id") or "anonymous"
     path = _chat_store_path(user)
     path.write_text(_json.dumps(body.get("chats", [])))

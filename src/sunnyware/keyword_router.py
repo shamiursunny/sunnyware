@@ -10,7 +10,7 @@ If there is any ambiguity, returns None and lets Needle 3 handle it.
 import re
 
 def _parse_fields(s: str) -> dict:
-    """Parse 'Name: John, Email: john@example.com' into a dict."""
+    """Parse 'Name: John, Email: john@example.com' or 'username X password Y' into a dict."""
     fields = {}
     for part in re.split(r'[;,]', s):
         part = part.strip()
@@ -23,6 +23,14 @@ def _parse_fields(s: str) -> dict:
         else:
             continue
         fields[k.strip().lower()] = v.strip()
+        
+    # Fallback for natural language: "username tomsmith password SuperSecretPassword!"
+    if not fields:
+        m = re.search(r'(username|user|email)\s+([^\s,]+)', s, re.IGNORECASE)
+        p = re.search(r'(password|pass|pwd)\s+([^\s,]+)', s, re.IGNORECASE)
+        if m: fields[m.group(1).strip().lower()] = m.group(2)
+        if p: fields[p.group(1).strip().lower()] = p.group(2)
+        
     return fields
 from typing import Optional
 
@@ -637,9 +645,18 @@ def keyword_route(prompt: str) -> Optional[dict]:
 
 
     # --- browser_extract (extract X from URL) ---
-    _extract_match = re.search(r'extract\s+(.+?)\s+(?:from|on)\s+(https?://[^\s]+)', prompt, re.IGNORECASE)
+    _extract_match = re.search(r'extract\s+(.*?)\s+from\s+(https?://[^\s]+)(?:\s+using\s+selector\s+(.+))?', prompt, re.IGNORECASE)
     if _extract_match:
-        return {"tool": "browser_extract", "args": {"selector": _extract_match.group(1).strip(), "url": _extract_match.group(2).strip()}}
+        target = _extract_match.group(1).strip()
+        url = _extract_match.group(2).strip()
+        custom_sel = _extract_match.group(3)
+        if custom_sel:
+            selector = custom_sel.strip()
+        elif target.lower() in ("links", "urls"):
+            selector = "a[href]"
+        else:
+            selector = target
+        return {"tool": "browser_extract", "args": {"selector": selector, "url": url}}
 
     # --- scrape_webpage (scrape URL) ---
     _scrape_match = re.search(r'scrape\s+(https?://[^\s]+)', prompt, re.IGNORECASE)

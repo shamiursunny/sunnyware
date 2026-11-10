@@ -240,7 +240,7 @@ async def jarvis_route(prompt: str) -> Optional[Dict]:
         )
         # Match full math expression like "1/2 + 2" (greedy)
         _math = _re.search(r'(-?\d+(?:\.\d+)?(?:\s*[\+\-\*\/\%\^]\s*-?\d+(?:\.\d+)?)+)', _norm)
-        if _math and all(c in "0123456789+-*/%^() ." for c in _math.group(1).strip()):
+        if _math and all(c in "0123456789+-*/%^() ." for c in _math.group(1).strip()) and not ("http" in prompt.lower() or "click" in prompt.lower() or "go to" in prompt.lower()):
             print("[jarvis] Math expression detected, routing to calculator", flush=True)
             return {"tool": "calculator", "args": {"expression": _math.group(1).strip()}}
 

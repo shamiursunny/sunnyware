@@ -32,7 +32,8 @@ async def get_browser():
 
     args = [
         "--no-sandbox",
-        "--no-zygote",                    # Fixes the startup hang
+        "--no-zygote",
+        "--single-process",                    # Fixes the startup hang
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",        # Prevents crashes on limited memory
         "--disable-gpu",
