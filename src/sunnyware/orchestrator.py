@@ -146,19 +146,147 @@ _TOOL_RESULT_B64_FIELDS = ("image_base64", "image_data", "chart_base64")
 # Part 621: Deterministic tools whose results should NOT be reformatted by an LLM.
 # These tools return exact answers (calculator output, exact time, etc.) and the
 # tiny Qwen2.5-0.5B model cannot reliably format them without hallucinating.
-_DIRECT_ANSWER_TOOLS = {
-    "calculator", "current_time",     "data_stats", "data_describe", "data_correlation", "csv_groupby",
-    "image_generate", "list_files", "web_search", "web_fetch", "browser_goto", "browser_screenshot", "browser_click", "browser_fill_submit", "browser_extract", "html_to_text", "url_metadata", "scrape_webpage", "email_send", "email_configured", "marketaux_news", "research_search", "ddg_news", "arxiv_search", "domain_research",
-    "read_file", "read_sandbox_file", "write_file", "write_sandbox_file", "delete_file",
-    "excel_read", "pdf_read", "read_bi_file", "export_table",
-    "sql_sandbox_create", "sql_sandbox_load_csv", "sql_sandbox_execute", "sql_sandbox_list", "query_external_db",
-    "generate_chart", "generate_report", "scrape_webpage",
-    "edit_tableau_field", "add_tableau_filter", "remove_tableau_field", "extract_pbix_assets",
-    "date_calc", "email_list_sent"
-, "technical_analysis", "ml_forecast", "pro_chart", "aggregate_market_data", "python_session", "vision_analyze", "live_market_stream", "insurance_research", "legal_citation_check"
-}
+# Part 621: Deterministic tools whose results should NOT be reformatted by an LLM.
+# Include ALL tools by default to achieve zero token cost on tool calls.
+# If a tool specifically requires LLM reasoning, add it to _LLM_DEPENDENT_TOOLS below.
+_LLM_DEPENDENT_TOOLS = set()  # e.g. {"delegate_to_agent"}
+_DIRECT_ANSWER_TOOLS = set(tools_registry.tool_names()) - _LLM_DEPENDENT_TOOLS
 print(f"[orchestrator] DIRECT_ANSWER_TOOLS = {sorted(_DIRECT_ANSWER_TOOLS)}", flush=True)
 
+
+
+
+def _pretty_print_result(tool_name: str, result: dict) -> str:
+    """Turn an arbitrary tool result dict into clean, human-readable markdown."""
+    if not isinstance(result, dict):
+        return _generic_pretty(tool_name, result)
+    if result.get("ok") is False or result.get("error"):
+        err = result.get("error") or result.get("message", "Unknown error")
+        return f"**{tool_name} failed:** {err}"
+
+    # Simple status-style results
+    keys = set(result.keys())
+    if keys.issubset({"status", "message", "ok", "success", "details", "count", "file", "path"}):
+        msg = result.get("message") or result.get("status") or "Done"
+        extras = []
+        if "file" in result: extras.append(f"File: `{result['file']}`")
+        if "path" in result: extras.append(f"Path: `{result['path']}`")
+        if "count" in result: extras.append(f"Count: {result['count']}")
+        out = f"**{tool_name}:** {msg}"
+        if extras:
+            out += "\n- " + "\n- ".join(extras)
+        return out
+
+    # Targeted formatters for common new-tool shapes
+    if tool_name == "schedule_add":
+        return f"**Schedule added:** {result.get('message', 'Success')}"
+    if tool_name == "schedule_list":
+        schedules = result.get("schedules", [])
+        if not schedules:
+            return "**No schedules found.**"
+        out = "**Schedules:**\n\n| ID | Name | Cron | Next Run |\n|---|---|---|---|\n"
+        for s in schedules[:10]:
+            out += f"| {s.get('id', '?')} | {s.get('name', '')} | {s.get('cron', '')} | {s.get('next_run', '')} |\n"
+        return out
+    if tool_name == "schedule_delete":
+        return f"**Schedule deleted:** {result.get('message', 'Success')}"
+    if tool_name == "schedule_run_now":
+        return f"**Schedule triggered:** {result.get('message', 'Success')}"
+    if tool_name == "webhook_add":
+        return f"**Webhook added:** {result.get('message', 'Success')}"
+    if tool_name == "webhook_list":
+        hooks = result.get("webhooks", [])
+        if not hooks:
+            return "**No webhooks registered.**"
+        out = "**Webhooks:**\n\n| ID | URL | Events | Active |\n|---|---|---|---|\n"
+        for h in hooks[:10]:
+            out += f"| {h.get('id', '?')} | {h.get('url', '')} | {', '.join(h.get('events', []))} | {h.get('active', False)} |\n"
+        return out
+    if tool_name == "webhook_events":
+        events = result.get("events", [])
+        if not events:
+            return "**No events.**"
+        out = "**Webhook Events:**\n\n| ID | Type | Created |\n|---|---|---|\n"
+        for e in events[:10]:
+            out += f"| {e.get('id', '?')} | {e.get('type', '')} | {e.get('created_at', '')} |\n"
+        return out
+    if tool_name == "kpi_watch_list":
+        items = result.get("items", [])
+        if not items:
+            return "**No KPI watches.**"
+        out = "**KPI Watches:**\n\n| Name | Query | Threshold |\n|---|---|---|\n"
+        for i in items[:10]:
+            out += f"| {i.get('name', '')} | {i.get('query', '')} | {i.get('threshold', '')} |\n"
+        return out
+    if tool_name in ("metrics_batch", "report_batch"):
+        return f"**{tool_name}:** {result.get('message', 'Success')}"
+    if tool_name == "workspace_snapshot":
+        return f"**Workspace snapshot saved:** `{result.get('file', '?')}`"
+    if tool_name == "api_call":
+        return f"**API Call:** {result.get('message', 'Success')}\n- Status: {result.get('status_code', '?')}"
+    if tool_name == "python_eval":
+        return f"**Python Eval:**\n```\n{result.get('result', '')}\n```"
+    if tool_name == "query_sqlite":
+        data = result.get("data", result.get("rows", []))
+        if not data:
+            return "**SQLite query returned no rows.**"
+        if isinstance(data, list) and data and isinstance(data[0], dict):
+            keys = list(data[0].keys())
+            out = "**SQLite Results:**\n\n| " + " | ".join(keys) + " |\n| " + " | ".join(["---"] * len(keys)) + " |\n"
+            for row in data[:20]:
+                out += "| " + " | ".join(str(row.get(k, "")) for k in keys) + " |\n"
+            if len(data) > 20:
+                out += f"\n*({len(data)-20} more rows)*"
+            return out
+        return f"**SQLite Results:**\n```\n{json.dumps(data, indent=2)[:1000]}\n```"
+    if tool_name == "echo":
+        return f"**Echo:** {result.get('message', result.get('echo', ''))}"
+    if tool_name == "weather":
+        return f"**Weather:** {result.get('description', result.get('message', ''))}"
+
+    # Generic fallback for dicts/lists
+    return _generic_pretty(tool_name, result)
+
+def _generic_pretty(tool_name: str, result) -> str:
+    """Generic pretty printer for dicts/lists."""
+    if isinstance(result, str):
+        return f"**{tool_name}:**\n```\n{result[:3000]}\n```"
+    if isinstance(result, list):
+        if not result:
+            return f"**{tool_name}:** (empty list)"
+        if all(isinstance(item, dict) for item in result):
+            keys = list(result[0].keys())
+            if len(keys) > 8:
+                keys = keys[:8]
+                extra = " (showing first 8 columns)"
+            else:
+                extra = ""
+            out = f"**{tool_name}** ({len(result)} items){extra}:\n\n| " + " | ".join(keys) + " |\n| " + " | ".join(["---"] * len(keys)) + " |\n"
+            for row in result[:15]:
+                out += "| " + " | ".join(str(row.get(k, "")) for k in keys) + " |\n"
+            if len(result) > 15:
+                out += f"\n*({len(result)-15} more items)*"
+            return out
+        return f"**{tool_name}:**\n" + "\n".join(f"- {str(item)[:200]}" for item in result[:20])
+    if isinstance(result, dict):
+        if any(isinstance(v, (dict, list)) and v for v in result.values()):
+            if all(not isinstance(v, (dict, list)) or (isinstance(v, list) and not v) for v in result.values()):
+                lines = [f"**{tool_name}:**"]
+                for k, v in result.items():
+                    if k in ("ok", "status", "success"): continue
+                    lines.append(f"- **{k}:** {v}")
+                return "\n".join(lines)
+            try:
+                return f"**{tool_name}:**\n```json\n{json.dumps(result, indent=2)[:3000]}\n```"
+            except:
+                return f"**{tool_name}** (result could not be formatted)"
+        else:
+            lines = [f"**{tool_name}:**"]
+            for k, v in result.items():
+                if k in ("ok", "status", "success"): continue
+                lines.append(f"- **{k}:** {str(v)[:300]}")
+            return "\n".join(lines)
+    return f"**{tool_name}:** {str(result)[:3000]}"
 
 
 def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
@@ -576,13 +704,7 @@ The provided text: `{text}`
         return out
 
     # --- Generic Fallback for any unformatted direct tool ---
-    # If we reach here, the tool was in _DIRECT_ANSWER_TOOLS but had no specific formatter.
-    # We format it as JSON to prevent falling through to the LLM.
-    if tool_result.get("ok") is not False:
-        try:
-            return f"**{tool_name} executed successfully:**\n```json\n{json.dumps(tool_result, indent=2)[:3000]}\n```"
-        except Exception:
-            return f"**{tool_name} executed successfully.**"
+    return _pretty_print_result(tool_name, tool_result)
 
     # 4. List files (v1.3.0)
     if tool_name == "list_files":
