@@ -1,5 +1,5 @@
 [tools] Loaded 112 tools
-[orchestrator] DIRECT_ANSWER_TOOLS = ['add_tableau_filter', 'aggregate_market_data', 'arxiv_search', 'browser_click', 'browser_extract', 'browser_fill_submit', 'browser_goto', 'browser_screenshot', 'calculator', 'csv_groupby', 'current_time', 'data_correlation', 'data_describe', 'data_stats', 'date_calc', 'ddg_news', 'delete_file', 'domain_research', 'edit_tableau_field', 'email_configured', 'email_list_sent', 'email_send', 'excel_read', 'export_table', 'extract_pbix_assets', 'generate_chart', 'generate_report', 'html_to_text', 'image_generate', 'insurance_research', 'legal_citation_check', 'list_files', 'live_market_stream', 'marketaux_news', 'ml_forecast', 'pdf_read', 'pro_chart', 'python_session', 'query_external_db', 'read_bi_file', 'read_file', 'read_sandbox_file', 'remove_tableau_field', 'research_search', 'scrape_webpage', 'sql_sandbox_create', 'sql_sandbox_execute', 'sql_sandbox_list', 'sql_sandbox_load_csv', 'technical_analysis', 'url_metadata', 'vision_analyze', 'web_fetch', 'web_search', 'write_file', 'write_sandbox_file']
+[orchestrator] DIRECT_ANSWER_TOOLS = ['add_tableau_filter', 'aggregate_market_data', 'api_call', 'arxiv_search', 'auditor_full_spec', 'browser_click', 'browser_extract', 'browser_fill_submit', 'browser_goto', 'browser_screenshot', 'calculator', 'chart_from_data', 'citation_lookup', 'clause_extractor', 'clean_dataset', 'csv_groupby', 'csv_query', 'current_time', 'data_correlation', 'data_describe', 'data_quality_report', 'data_stats', 'date_calc', 'ddg_news', 'delegate_to_agent', 'delete_file', 'document_diff', 'document_library', 'domain_research', 'earnings_call', 'echo', 'edgar_fundamentals', 'edit_tableau_field', 'email_configured', 'email_list_sent', 'email_send', 'eulerpool_data', 'excel_read', 'excel_write', 'execute_plan', 'export_table', 'extract_pbix_assets', 'financial_metrics', 'finnhub_quote', 'fmp_fundamentals', 'forecast_arima', 'fred_economic', 'generate_chart', 'generate_report', 'govcon_data', 'hitl_config_update', 'html_to_text', 'image_generate', 'insurance_data', 'insurance_research', 'kpi_watch_add', 'kpi_watch_list', 'kpi_watch_run', 'legal_citation_check', 'list_files', 'live_market_stream', 'marketaux_news', 'memory_search', 'metrics_batch', 'mkdir', 'ml_forecast', 'narrate_table', 'pdf_read', 'pdf_report', 'pro_chart', 'python_eval', 'python_session', 'query_external_db', 'query_sqlite', 'rag_list', 'rag_search', 'read_bi_file', 'read_file', 'read_sandbox_file', 'recall_history', 'remove_tableau_field', 'report_batch', 'research_search', 'risk_metrics', 'schedule_add', 'schedule_delete', 'schedule_list', 'schedule_run_now', 'scrape_webpage', 'script_registry', 'search_library', 'sql_sandbox_create', 'sql_sandbox_drop', 'sql_sandbox_execute', 'sql_sandbox_list', 'sql_sandbox_load_csv', 'technical_analysis', 'tiingo_prices', 'twelvedata_prices', 'url_metadata', 'vision_analyze', 'weather', 'web_fetch', 'web_search', 'webhook_add', 'webhook_delete', 'webhook_events', 'webhook_list', 'workflow_registry', 'workspace_snapshot', 'write_file', 'write_sandbox_file']
 [jarvis] Preload skipped: LLM disabled or S3_BUCKET_NAME missing
 [startup] analytics_hooks: {'llm_patched': True, 'tool_patched': True}
 [provider_limits] storage source=env:SUNNYWARE_DATA_DIR path=C:\Users\ssunny_s\AppData\Local\Temp\sunnyware\provider_limits.json
@@ -8,13 +8,13 @@
 # Sunnyware System Monitor
 ########################################################################
 
-Started: 2026-11-10T21:06:44
-Elapsed: 13.16s
+Started: 2026-11-10T21:33:27
+Elapsed: 19.92s
 
 ------------------------------------------------------------------------
  DOCS
 ------------------------------------------------------------------------
-  [PASS] README.md has reasonable size  --  761 lines (min 10)
+  [PASS] README.md has reasonable size  --  764 lines (min 10)
   [PASS] WORKFLOW.md has reasonable size  --  11 lines (min 10)
   [PASS] HANDSOFF.md has reasonable size  --  16 lines (min 10)
   [PASS] AGENTS.md has reasonable size  --  203 lines (min 10)
@@ -32,7 +32,7 @@ Elapsed: 13.16s
 ------------------------------------------------------------------------
   [PASS] Git working tree clean  --  clean
   [PASS] No unpushed commits to GitHub  --  0 unpushed
-  [PASS] Latest commit  --  3dd8896 fix: add 30s overall timeout to browser_fill_submit
+  [PASS] Latest commit  --  5cb64e6 style: universal pretty-printer for all direct tool answers
 
 ------------------------------------------------------------------------
  HYGIENE
@@ -166,8 +166,8 @@ Reports saved:
 
 
 --- STDERR ---
-{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-10T15:06:43.195671Z"}
-{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-10T15:06:43.195671Z"}
-{"event": "Config loaded", "level": "info", "timestamp": "2026-11-10T15:06:43.211288Z"}
-{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-10T15:06:43.211288Z"}
-{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-10T15:06:43.211288Z"}
+{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-10T15:33:24.994289Z"}
+{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-10T15:33:24.994289Z"}
+{"event": "Config loaded", "level": "info", "timestamp": "2026-11-10T15:33:24.994289Z"}
+{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-10T15:33:25.009919Z"}
+{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-10T15:33:25.009919Z"}
