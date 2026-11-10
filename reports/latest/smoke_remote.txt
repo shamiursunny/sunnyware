@@ -1,8 +1,72 @@
 
 --- 1. Local git HEAD ---
-  OK  HEAD: ad041208478b
+  OK  HEAD: 3dd8896f0d53
 
 --- 2. HF Space status ---
-  FAIL Space info fetch: The read operation timed out
+  OK  Stage: RUNNING
+  WARN SHA mismatch (HF rebuild in progress): remote=2130b3841464 local=3dd8896f0d53
+
+--- 3. API endpoints ---
+  OK  GET /ui -> 200
+  OK  GET /admin -> 200
+  SKIP GET /api/saas/plans -> 401 (no admin key in CI)
+  SKIP GET /api/saas/orgs -> 401 (no admin key in CI)
+  SKIP GET /api/saas/invoices -> 401 (no admin key in CI)
+  SKIP GET /api/team/members -> 401 (no admin key in CI)
+  SKIP GET /api/team/activity -> 401 (no admin key in CI)
+  SKIP GET /api/analytics/overview -> 401 (no admin key in CI)
+  SKIP GET /api/analytics/users -> 401 (no admin key in CI)
+  SKIP GET /api/analytics/charts -> 401 (no admin key in CI)
+  SKIP GET /api/llm-dashboard/providers -> 401 (no admin key in CI)
+  SKIP GET /api/llm-dashboard/orchestrator -> 401 (no admin key in CI)
+  SKIP GET /api/llm-dashboard/logs -> 401 (no admin key in CI)
+  SKIP GET /api/email/logs -> 401 (no admin key in CI)
+  SKIP GET /api/api-keys -> 401 (no admin key in CI)
+  SKIP GET /api/webhooks/endpoints -> 401 (no admin key in CI)
+  SKIP GET /api/webhooks/deliveries -> 401 (no admin key in CI)
+  SKIP GET /api/webhooks/events -> 401 (no admin key in CI)
+  SKIP GET /api/webhooks/retries -> 401 (no admin key in CI)
+  SKIP GET /api/chat-audit/stats -> 401 (no admin key in CI)
+  SKIP GET /api/chat-audit/messages -> 401 (no admin key in CI)
+  SKIP GET /api/scheduled-tasks -> 401 (no admin key in CI)
+  SKIP GET /api/scheduled-tasks/runs -> 401 (no admin key in CI)
+  SKIP GET /api/rag-admin/stats -> 401 (no admin key in CI)
+  SKIP GET /api/rag-admin/documents -> 401 (no admin key in CI)
+  SKIP GET /api/2fa/status -> 401 (no admin key in CI)
+  SKIP GET /api/backup/list -> 401 (no admin key in CI)
+  SKIP GET /api/impersonate/verify -> 401 (no admin key in CI)
+  SKIP GET /api/feature-flags -> 401 (no admin key in CI)
+  SKIP GET /api/overage/config -> 401 (no admin key in CI)
+  SKIP GET /api/overage/overview -> 401 (no admin key in CI)
+  SKIP GET /api/slack/config -> 401 (no admin key in CI)
+  SKIP GET /api/admin/feedback -> 401 (no admin key in CI)
+
+--- 4. Served HTML markers ---
+  OK  renderAnalytics defined
+  OK  renderLlmDashboard defined
+  OK  renderEmail defined
+  OK  renderApiKeys defined
+  OK  renderWebhooks defined
+  OK  renderChatAudit defined
+  OK  renderScheduledTasks defined
+  OK  renderRagAdmin defined
+  OK  renderSecurity defined
+  OK  renderBackup defined
+  OK  renderImpersonate defined
+  OK  renderFeatureFlags defined
+  OK  renderOverage defined
+  OK  renderSlackBot defined
+  OK  renderFeedback defined
+  OK  downloadInvoicePdf defined
+  OK  saveOrch defined
+  OK  Email nav item
+  OK  Inline SVG chart renderer
+  OK  Settings menu
+  OK  Cancel subscription button
+  OK  User pill
+
+===============================================================
+ REMOTE SMOKE TEST PASSED - DEPLOYMENT HEALTHY
+===============================================================
 
 --- STDERR ---
