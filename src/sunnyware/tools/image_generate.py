@@ -175,9 +175,9 @@ class ImageGenerateTool:
             import os as _os
             import pathlib as _pl
             if _os.name == "posix":
-                ai_dir = _pl.Path("/data/ai_generated")
+                ai_dir = _pl.Path("/data/ai generated")
             else:
-                ai_dir = _pl.Path("data/ai_generated")
+                ai_dir = _pl.Path("data/ai generated")
             ai_dir.mkdir(parents=True, exist_ok=True)
             if attachment:
                 fname = f"{attachment['id']}.{attachment['ext']}"
