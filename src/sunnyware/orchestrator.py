@@ -467,7 +467,7 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
             result = tool_result["result"]
             # If it looks like JSON (from a DataFrame), try to render as a markdown table
             try:
-                import json
+                # json already imported at module level
                 data = json.loads(result)
                 if isinstance(data, list) and data and isinstance(data[0], dict):
                     # It's a list of records -> markdown table
