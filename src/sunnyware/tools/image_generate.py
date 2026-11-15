@@ -169,7 +169,27 @@ class ImageGenerateTool:
         except Exception:
             attachment = None
 
+        # Also save a copy to the ai_generated directory for permanent access
+        ai_gen_path = None
+        try:
+            import os as _os
+            import pathlib as _pl
+            if _os.name == "posix":
+                ai_dir = _pl.Path("/data/ai_generated")
+            else:
+                ai_dir = _pl.Path("data/ai_generated")
+            ai_dir.mkdir(parents=True, exist_ok=True)
+            if attachment:
+                fname = f"{attachment['id']}.{attachment['ext']}"
+                ai_file = ai_dir / fname
+                if not ai_file.exists():
+                    ai_file.write_bytes(raw)
+                ai_gen_path = str(ai_file)
+        except Exception as _e:
+            print(f"[image_generate] ai_generated save failed: {type(_e).__name__}: {_e}", flush=True)
+
         out = {
+            "ok": True,  # required by the direct-answer formatter
             "image_base64": b64,
             "image_format": fmt,
             "image_bytes": len(raw),
@@ -178,6 +198,12 @@ class ImageGenerateTool:
             "width": width,
             "height": height,
         }
+        if attachment:
+            out["attachment_url"] = attachment["url"]
+            out["attachment_id"] = attachment["id"]
+            out["attachment_ext"] = attachment["ext"]
+        if ai_gen_path:
+            out["ai_generated_path"] = ai_gen_path
         if attachment:
             out["attachment_url"] = attachment["url"]
             out["attachment_id"] = attachment["id"]

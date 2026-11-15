@@ -365,8 +365,7 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
         return "\n".join(lines)
 
     # 3. Image generation (v1.3.0)
-    if tool_name == "image_generate" and tool_result.get("ok"):
-        # Use attachment_url (the actual saved image) or direct URL if present
+    if tool_name == "image_generate":
         url = (tool_result.get("attachment_url")
                or tool_result.get("url")
                or tool_result.get("image_url")
@@ -375,7 +374,6 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
         model = tool_result.get("model", "pollinations")
         if url:
             return f"![{prompt}]({url})\n\n*Generated with {model}*"
-        # Fallback: if only base64 is available, show a friendly note (not the raw base64!)
         if tool_result.get("image_base64"):
             return f"**Image generated:** *{prompt}*\n\n(rendered inline)"
         return "**Image generated** (no URL returned)"
