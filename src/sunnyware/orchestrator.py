@@ -319,16 +319,16 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
         return str(tool_result)
 
     # --- DIRECT-TOOL-ERROR-FORMATTER ---
-    err = tool_tool_result.get("error")
-    if tool_tool_result.get("ok") is False or (err is not None and str(err).strip() not in ("", "None", "null")):
-        err_msg = err or tool_tool_result.get("message", "Unknown error")
+    err = tool_result.get("error")
+    if tool_result.get("ok") is False or (err is not None and str(err).strip() not in ("", "None", "null")):
+        err_msg = err or tool_result.get("message", "Unknown error")
         return "**%s failed:** %s" % (tool_name, err_msg)
     # 1. Calculator
     if "expression" in tool_result and "result" in tool_result:
         return "**%s = %s**" % (tool_result['expression'], tool_result['result'])
 
     # 2. Stats tools (Part 725)
-    if tool_name == "data_stats" and tool_tool_result.get("ok"):
+    if tool_name == "data_stats" and tool_result.get("ok"):
         return ("**Statistics (n={count})**\n"
                 "- Mean: **{mean:.4f}**\n"
                 "- Median: **{median:.4f}**\n"
@@ -337,26 +337,26 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
                 "- Sum: {sum:.4f}\n"
                 "- Q25: {q25:.4f} | Q75: {q75:.4f}").format(**tool_result)
 
-    if tool_name == "data_describe" and tool_tool_result.get("ok"):
-        shape = tool_tool_result.get("shape", {})
-        cols = tool_tool_result.get("columns", [])
-        missing = tool_tool_result.get("missing", {})
+    if tool_name == "data_describe" and tool_result.get("ok"):
+        shape = tool_result.get("shape", {})
+        cols = tool_result.get("columns", [])
+        missing = tool_result.get("missing", {})
         lines = [f"**Dataset Description**", f"- Rows: **{shape.get('rows')}** | Columns: **{shape.get('cols')}**", f"- Columns: {', '.join(cols)}"]
         missing_lines = [f"  - {k}: {v} missing" for k, v in missing.items() if v > 0]
         if missing_lines:
             lines.append("- Missing values:\n" + "\n".join(missing_lines))
         return "\n".join(lines)
 
-    if tool_name == "data_correlation" and tool_tool_result.get("ok"):
-        r = tool_tool_result.get("pearson_r", 0)
+    if tool_name == "data_correlation" and tool_result.get("ok"):
+        r = tool_result.get("pearson_r", 0)
         strength = "strong" if abs(r) > 0.7 else "moderate" if abs(r) > 0.4 else "weak"
-        return f"**Pearson Correlation (n={tool_tool_result.get('n')})**\n- r = **{r:.4f}** ({strength} {'positive' if r > 0 else 'negative'} correlation)"
+        return f"**Pearson Correlation (n={tool_result.get('n')})**\n- r = **{r:.4f}** ({strength} {'positive' if r > 0 else 'negative'} correlation)"
 
-    if tool_name == "csv_groupby" and tool_tool_result.get("ok"):
-        rows = tool_tool_result.get("rows", [])
-        gcol = tool_tool_result.get("group_col")
-        acol = tool_tool_result.get("agg_col")
-        afunc = tool_tool_result.get("agg_func")
+    if tool_name == "csv_groupby" and tool_result.get("ok"):
+        rows = tool_result.get("rows", [])
+        gcol = tool_result.get("group_col")
+        acol = tool_result.get("agg_col")
+        afunc = tool_result.get("agg_func")
         lines = [f"**Grouped by `{gcol}` ({afunc} of `{acol}`)**", "| " + gcol + " | " + afunc + "(" + acol + ") |", "|---|---|"]
         for row in rows[:20]:
             lines.append(f"| {row.get(gcol)} | {row.get(acol)} |")
@@ -365,91 +365,91 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
         return "\n".join(lines)
 
     # 3. Image generation (v1.3.0)
-    if tool_name == "image_generate" and tool_tool_result.get("ok"):
-        url = tool_tool_result.get("url") or tool_tool_result.get("image_url") or ""
-        prompt = tool_tool_result.get("prompt", "")
-        model = tool_tool_result.get("model", "pollinations")
+    if tool_name == "image_generate" and tool_result.get("ok"):
+        url = tool_result.get("url") or tool_result.get("image_url") or ""
+        prompt = tool_result.get("prompt", "")
+        model = tool_result.get("model", "pollinations")
         if url:
             return f"![{prompt}]({url})\n\n*Generated with {model}*"
         return "**Image generated** (no URL returned)"
 
     # --- Expanded Direct Formatters (v1.4.0) ---
     if tool_name in ("read_file", "read_sandbox_file"):
-        content = tool_tool_result.get("content", "")
+        content = tool_result.get("content", "")
         if isinstance(content, str):
-            content = content[:2000] + ("\n...(truncated)" if len(tool_tool_result.get("content", "")) > 2000 else "")
-        return f"**File: {tool_tool_result.get('file', 'unknown')}**\n```\n{content}\n```"
+            content = content[:2000] + ("\n...(truncated)" if len(tool_result.get("content", "")) > 2000 else "")
+        return f"**File: {tool_result.get('file', 'unknown')}**\n```\n{content}\n```"
 
     if tool_name in ("write_file", "write_sandbox_file"):
-        return f"**File saved:** `{tool_tool_result.get('path', tool_tool_result.get('file', '?'))}` ✅"
+        return f"**File saved:** `{tool_result.get('path', tool_result.get('file', '?'))}` ✅"
 
     if tool_name == "delete_file":
-        path = tool_tool_result.get('deleted') or tool_tool_result.get('path') or tool_tool_result.get('file') or tool_tool_result.get('filename', '?')
+        path = tool_result.get('deleted') or tool_result.get('path') or tool_result.get('file') or tool_result.get('filename', '?')
         return f"**File deleted:** `{path}` ✅"
 
     if tool_name == "excel_read":
-        data = tool_tool_result.get("data", tool_tool_result.get("content", ""))
+        data = tool_result.get("data", tool_result.get("content", ""))
         return f"**Excel Data:**\n```\n{str(data)[:2000]}\n```"
 
     if tool_name == "pdf_read":
-        text = tool_tool_result.get("text", tool_tool_result.get("content", ""))
+        text = tool_result.get("text", tool_result.get("content", ""))
         return f"**PDF Text:**\n```\n{str(text)[:2000]}\n```"
 
     if tool_name == "read_bi_file":
-        return f"**BI File Inspected:** `{tool_tool_result.get('file', '?')}`\n- Type: {tool_tool_result.get('type', 'unknown')}\n- Keys: {list(tool_result.keys())}"
+        return f"**BI File Inspected:** `{tool_result.get('file', '?')}`\n- Type: {tool_result.get('type', 'unknown')}\n- Keys: {list(tool_result.keys())}"
 
     if tool_name in ("sql_sandbox_create", "sql_sandbox_load_csv", "sql_sandbox_execute"):
         return f"**SQL Result:**\n```json\n{json.dumps(tool_result, indent=2)[:2000]}\n```"
 
     if tool_name == "sql_sandbox_list":
-        return f"**Tables:** {', '.join(tool_tool_result.get('tables', []))}"
+        return f"**Tables:** {', '.join(tool_result.get('tables', []))}"
 
     if tool_name == "query_external_db":
-        return f"**External DB Result:**\n```json\n{json.dumps(tool_tool_result.get('data', []), indent=2)[:2000]}\n```"
+        return f"**External DB Result:**\n```json\n{json.dumps(tool_result.get('data', []), indent=2)[:2000]}\n```"
 
     if tool_name in ("generate_chart", "generate_report"):
-        return f"**Output saved:** `{tool_tool_result.get('file', 'output')}` ✅"
+        return f"**Output saved:** `{tool_result.get('file', 'output')}` ✅"
 
     if tool_name == "scrape_webpage":
-        return f"**Scraped data saved to:** `{tool_tool_result.get('output_filename', 'data.csv')}` ✅"
+        return f"**Scraped data saved to:** `{tool_result.get('output_filename', 'data.csv')}` ✅"
 
     if tool_name in ("edit_tableau_field", "add_tableau_filter", "remove_tableau_field"):
-        return f"**Tableau Update:** {tool_tool_result.get('message', 'Success')} ✅"
+        return f"**Tableau Update:** {tool_result.get('message', 'Success')} ✅"
 
     if tool_name == "extract_pbix_assets":
-        return f"**PBIX Extracted:** Found {len(tool_tool_result.get('assets', []))} assets."
+        return f"**PBIX Extracted:** Found {len(tool_result.get('assets', []))} assets."
 
     if tool_name == "date_calc":
-        return f"**Date Calculation:** {tool_tool_result.get('result', tool_tool_result.get('date', ''))}"
+        return f"**Date Calculation:** {tool_result.get('result', tool_result.get('date', ''))}"
 
     if tool_name == "email_list_sent":
-        emails = tool_tool_result.get("emails", [])
+        emails = tool_result.get("emails", [])
         return f"**Sent Emails ({len(emails)})**\n" + "\n".join([f"- {e.get('subject', '(no subject)')} to {e.get('to', '?')}" for e in emails[:10]])
 
     # --- Quant & ML Formatters (v1.5.0) ---
     if tool_name == "technical_analysis":
-        m = tool_tool_result.get("metrics", {})
+        m = tool_result.get("metrics", {})
         out = "**Technical Analysis Results:**\n"
         if "current_rsi" in m: out += f"- **RSI (14):** {m['current_rsi']}\n"
         if "macd" in m: out += f"- **MACD:** {m['macd']} (Signal: {m['macd_signal']})\n"
         if "sma_20" in m: out += f"- **SMA (20):** {m['sma_20']}\n"
         if "bb_high" in m: out += f"- **Bollinger High:** {m['bb_high']}\n- **Bollinger Low:** {m['bb_low']}\n"
-        return out + f"\n*Saved enriched data to {tool_tool_result.get('message', '')}*"
+        return out + f"\n*Saved enriched data to {tool_result.get('message', '')}*"
 
     if tool_name == "ml_forecast":
-        preds = tool_tool_result.get("predictions", [])
+        preds = tool_result.get("predictions", [])
         out = "**ML Forecast (Linear Regression):**\n"
         for i, p in enumerate(preds, 1):
             out += f"- Step {i}: **{p}**\n"
-        return out + f"\n*{tool_tool_result.get('message', '')}*"
+        return out + f"\n*{tool_result.get('message', '')}*"
 
     if tool_name == "pro_chart":
-        return f"**{tool_tool_result.get('message', 'Chart generated successfully.')}** ✅"
+        return f"**{tool_result.get('message', 'Chart generated successfully.')}** ✅"
 
     if tool_name == "aggregate_market_data":
-        msg = tool_tool_result.get("message", "")
-        records = tool_tool_result.get("records", 0)
-        data = tool_tool_result.get("data", [])
+        msg = tool_result.get("message", "")
+        records = tool_result.get("records", 0)
+        data = tool_result.get("data", [])
         out = f"**{msg}** (Merged {records} records)\n\n"
         if data:
             out += "| Provider | Symbol | Price | High | Low |\n|---|---|---|---|---|\n"
@@ -459,11 +459,11 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
 
     if tool_name == "python_session":
         out = ""
-        if tool_tool_result.get("error"):
+        if tool_result.get("error"):
             out += f"**Error:** {tool_result['error']}\n"
-        if tool_tool_result.get("stdout"):
+        if tool_result.get("stdout"):
             out += f"**Output:**\n```\n{tool_result['stdout']}\n```\n"
-        if tool_tool_result.get("result"):
+        if tool_result.get("result"):
             result = tool_result["result"]
             # If it looks like JSON (from a DataFrame), try to render as a markdown table
             try:
@@ -483,7 +483,7 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
             except Exception:
                 # Not JSON, just print it
                 out += f"**Result:**\n```\n{result}\n```\n"
-        if tool_tool_result.get("image_base64"):
+        if tool_result.get("image_base64"):
             # Save to workspace and return a link
             import base64
             from .. import paths
@@ -499,16 +499,16 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
         return out
 
     if tool_name == "vision_analyze":
-        if tool_tool_result.get("error"):
+        if tool_result.get("error"):
             return f"**Vision Analysis failed:** {tool_result['error']}"
-        return f"**Vision Analysis:**\n\n{tool_tool_result.get('analysis', 'No analysis returned.')}\n"
+        return f"**Vision Analysis:**\n\n{tool_result.get('analysis', 'No analysis returned.')}\n"
 
     if tool_name == "live_market_stream":
-        if tool_tool_result.get("error"):
+        if tool_result.get("error"):
             return f"**Stream failed:** {tool_result['error']}"
-        msg = tool_tool_result.get("message", "")
-        file = tool_tool_result.get("file", "")
-        preview = tool_tool_result.get("preview", [])
+        msg = tool_result.get("message", "")
+        file = tool_result.get("file", "")
+        preview = tool_result.get("preview", [])
         out = f"**{msg}**\n- Saved to: `{file}`\n"
         if preview:
             out += "\n**Preview:**\n"
@@ -518,8 +518,8 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
         return out
 
     if tool_name == "insurance_research":
-        if tool_tool_result.get("error"):
-            err = str(tool_tool_result.get("error", "Unknown error"))
+        if tool_result.get("error"):
+            err = str(tool_result.get("error", "Unknown error"))
             if "HTTP 500" in err or "500" in err:
                 return """**Insurance Research – Temporary API Issue**
 
@@ -532,30 +532,30 @@ The SEC EDGAR API returned a temporary error (HTTP 500). This is usually transie
 
 **Error details:** """ + err
             return f"**Insurance Research failed:** {err}"
-        filings = tool_tool_result.get("filings", [])
+        filings = tool_result.get("filings", [])
         if not filings:
-            return f"**Insurance Research:** No filings found for {tool_tool_result.get('query', '?')}."
-        out = f"**Insurance Research – SEC Filings for {tool_tool_result.get('query', '?')}:**\n\n"
+            return f"**Insurance Research:** No filings found for {tool_result.get('query', '?')}."
+        out = f"**Insurance Research – SEC Filings for {tool_result.get('query', '?')}:**\n\n"
         out += "| Date | Company | Accession |\n|---|---|---|\n"
         for f in filings[:10]:
             display = f.get('display', [''])[0] if f.get('display') else ''
             out += f"| {f.get('file_date', '')} | {display} | {f.get('accession', '')} |\n"
-        total = tool_tool_result.get('total_hits', len(filings))
+        total = tool_result.get('total_hits', len(filings))
         out += f"\n*Showing {len(filings)} of {total} results*"
         return out
 
     if tool_name == "legal_citation_check":
-        if tool_tool_result.get("error"):
+        if tool_result.get("error"):
             return f"**Legal Citation Check failed:** {tool_result['error']}"
-        count = tool_tool_result.get("citation_count", 0)
+        count = tool_result.get("citation_count", 0)
         if count == 0:
-            text = tool_tool_result.get("text", "")
+            text = tool_result.get("text", "")
             return f"""**Legal Citation Check – No Citations Found**
 
 The provided text: `{text}`
 
 *Note: CourtListener verifies case-law citations (e.g., `410 U.S. 113`), not statutes like U.S.C. For statutes, please consult the official code or a legal database (e.g., uscode.house.gov).*"""
-        citations = tool_tool_result.get("citations", [])
+        citations = tool_result.get("citations", [])
         out = f"**Legal Citation Check:** Found {count} citation(s)\n\n"
         out += "| Citation | Status | Case Name / Details |\n|---|---|---|\n"
         for c in citations[:10]:
@@ -574,9 +574,9 @@ The provided text: `{text}`
         return out
 
     if tool_name == "marketaux_news":
-        if tool_tool_result.get("error"):
+        if tool_result.get("error"):
             return f"**Marketaux News failed:** {tool_result['error']}"
-        articles = tool_tool_result.get("articles", [])
+        articles = tool_result.get("articles", [])
         if not articles:
             return "**Marketaux News:** No articles found."
         out = f"**Financial News ({len(articles)} articles):**\n\n"
@@ -597,10 +597,10 @@ The provided text: `{text}`
         return out
 
     if tool_name == "research_search":
-        if tool_tool_result.get("error"):
+        if tool_result.get("error"):
             return f"**Research Search failed:** {tool_result['error']}"
-        results = tool_tool_result.get("results", [])
-        sources = tool_tool_result.get("sources_used", [])
+        results = tool_result.get("results", [])
+        sources = tool_result.get("sources_used", [])
         out = f"**Unified Research Search** (sources: {', '.join(sources) if sources else 'none'})\n\n"
         if not results:
             return out + "No results found."
@@ -616,9 +616,9 @@ The provided text: `{text}`
         return out
 
     if tool_name == "ddg_news":
-        if tool_tool_result.get("error"):
+        if tool_result.get("error"):
             return f"**News Search failed:** {tool_result['error']}"
-        results = tool_tool_result.get("results", [])
+        results = tool_result.get("results", [])
         if not results:
             return "**DDG News:** No articles found."
         out = f"**General News ({len(results)} articles):**\n\n"
@@ -632,9 +632,9 @@ The provided text: `{text}`
         return out
 
     if tool_name == "arxiv_search":
-        if tool_tool_result.get("error"):
+        if tool_result.get("error"):
             return f"**arXiv Search failed:** {tool_result['error']}"
-        results = tool_tool_result.get("results", [])
+        results = tool_result.get("results", [])
         if not results:
             return "**arXiv Search:** No papers found."
         out = f"**arXiv Papers ({len(results)} results):**\n\n"
@@ -646,12 +646,12 @@ The provided text: `{text}`
         return out
 
     if tool_name == "domain_research":
-        if tool_tool_result.get("error"):
+        if tool_result.get("error"):
             return f"**Domain Research failed:** {tool_result['error']}"
-        results = tool_tool_result.get("results", [])
+        results = tool_result.get("results", [])
         if not results:
-            return f"**No results found for '{tool_tool_result.get('query')}' in {tool_tool_result.get('domain')}.**"
-        out = f"**{tool_tool_result.get('domain').capitalize()} Research ({len(results)} results):**\n\n"
+            return f"**No results found for '{tool_result.get('query')}' in {tool_result.get('domain')}.**"
+        out = f"**{tool_result.get('domain').capitalize()} Research ({len(results)} results):**\n\n"
         out += "| Source | Title | Link |\n|---|---|---|\n"
         for r in results:
             title = (r.get("title") or "")[:80]
@@ -660,34 +660,34 @@ The provided text: `{text}`
         return out
 
     if tool_name in ("browser_goto", "browser_click", "browser_fill_submit"):
-        if tool_tool_result.get("error"):
+        if tool_result.get("error"):
             return f"**{tool_name} failed:** {tool_result['error']}"
-        title = tool_tool_result.get("title", "")
-        url = tool_tool_result.get("url", "")
+        title = tool_result.get("title", "")
+        url = tool_result.get("url", "")
         out = f"**{tool_name}:**"
         if title: out += f" {title}"
         if url: out += f" — {url}"
-        if tool_tool_result.get("screenshot") or tool_tool_result.get("saved_path"):
-            out += f"\n- Screenshot: `{tool_tool_result.get('saved_path', tool_tool_result.get('screenshot'))}`"
+        if tool_result.get("screenshot") or tool_result.get("saved_path"):
+            out += f"\n- Screenshot: `{tool_result.get('saved_path', tool_result.get('screenshot'))}`"
         return out
 
     if tool_name == "browser_screenshot":
-        if tool_tool_result.get("error"):
+        if tool_result.get("error"):
             return f"**Screenshot failed:** {tool_result['error']}"
-        saved = tool_tool_result.get("saved_path") or tool_tool_result.get("screenshot")
-        title = tool_tool_result.get("title", "")
-        url = tool_tool_result.get("url", "")
+        saved = tool_result.get("saved_path") or tool_result.get("screenshot")
+        title = tool_result.get("title", "")
+        url = tool_result.get("url", "")
         out = f"**Screenshot:** {title or url}\n"
         if saved:
             out += f"- Saved to: `{saved}`\n"
-        if tool_tool_result.get("image_base64"):
+        if tool_result.get("image_base64"):
             out += f"- Preview: base64 image ({len(tool_result['image_base64'])} chars)\n"
         return out
 
     if tool_name == "browser_extract":
-        if tool_tool_result.get("error"):
+        if tool_result.get("error"):
             return f"**Extraction failed:** {tool_result['error']}"
-        rows = tool_tool_result.get("rows", [])
+        rows = tool_result.get("rows", [])
         if not rows:
             return f"**browser_extract:** No items found."
         out = f"**Browser Extract ({len(rows)} items):**\n\n"
@@ -699,24 +699,24 @@ The provided text: `{text}`
         return out
 
     if tool_name == "html_to_text":
-        if tool_tool_result.get("error"):
+        if tool_result.get("error"):
             return f"**HTML conversion failed:** {tool_result['error']}"
-        text = tool_tool_result.get("text", tool_tool_result.get("result", ""))
+        text = tool_result.get("text", tool_result.get("result", ""))
         return f"**HTML to Text:**\n```\n{text[:2000]}\n```"
 
     if tool_name == "url_metadata":
-        if tool_tool_result.get("error"):
+        if tool_result.get("error"):
             return f"**URL metadata failed:** {tool_result['error']}"
-        title = tool_tool_result.get("title", "")
-        desc = tool_tool_result.get("description", "")
+        title = tool_result.get("title", "")
+        desc = tool_result.get("description", "")
         out = f"**URL Metadata:** {title}\n"
         if desc: out += f"- Description: {desc[:200]}\n"
         return out
 
     if tool_name == "scrape_webpage":
-        if tool_tool_result.get("error"):
+        if tool_result.get("error"):
             return f"**Scrape failed:** {tool_result['error']}"
-        data = tool_tool_result.get("data", tool_tool_result.get("rows", []))
+        data = tool_result.get("data", tool_result.get("rows", []))
         if not data:
             return "**Scrape:** No data extracted."
         out = f"**Scraped ({len(data)} rows):**\n\n"
@@ -733,9 +733,9 @@ The provided text: `{text}`
 
     # 4. List files (v1.3.0)
     if tool_name == "list_files":
-        files = tool_tool_result.get("entries") or tool_tool_result.get("files") or []
-        kind = tool_tool_result.get("kind", "workspace")
-        if tool_tool_result.get("error"):
+        files = tool_result.get("entries") or tool_result.get("files") or []
+        kind = tool_result.get("kind", "workspace")
+        if tool_result.get("error"):
             return f"**List files failed:** {tool_result['error']}"
         if not files:
             return f"**No files found in {kind}**"
@@ -754,8 +754,8 @@ The provided text: `{text}`
         return "\n".join(lines)
 
     # 5. Web search (v1.3.0)
-    if tool_name == "web_search" and tool_tool_result.get("ok"):
-        results = tool_tool_result.get("results", [])
+    if tool_name == "web_search" and tool_result.get("ok"):
+        results = tool_result.get("results", [])
         if not results:
             return "**No search results**"
         lines = [f"**Search results ({len(results)})**", ""]
@@ -772,30 +772,30 @@ The provided text: `{text}`
         return "\n".join(lines)
 
     # 6. Web fetch (v1.3.0)
-    if tool_name == "web_fetch" and tool_tool_result.get("ok"):
-        url = tool_tool_result.get("url", "")
-        content = (tool_tool_result.get("content") or "")[:2000]
+    if tool_name == "web_fetch" and tool_result.get("ok"):
+        url = tool_result.get("url", "")
+        content = (tool_result.get("content") or "")[:2000]
         return f"**Fetched:** {url}\n\n```\n{content}\n```"
 
     # 7. Email send (v1.3.0)
-    if tool_name == "email_send" and tool_tool_result.get("ok"):
-        return f"**Email sent** ✅\n- To: {tool_tool_result.get('to', '?')}\n- Subject: {tool_tool_result.get('subject', '(no subject)')}"
+    if tool_name == "email_send" and tool_result.get("ok"):
+        return f"**Email sent** ✅\n- To: {tool_result.get('to', '?')}\n- Subject: {tool_result.get('subject', '(no subject)')}"
 
     # 8. Email configured (v1.3.0)
     if tool_name == "email_configured":
-        ok = tool_tool_result.get("ok") or tool_tool_result.get("configured")
+        ok = tool_result.get("ok") or tool_result.get("configured")
         if ok:
-            return f"**Email configured** ✅\n- Host: {tool_tool_result.get('host', '?')}\n- User: {tool_tool_result.get('user', '?')}"
+            return f"**Email configured** ✅\n- Host: {tool_result.get('host', '?')}\n- User: {tool_result.get('user', '?')}"
         return "**Email not configured**\n- Set SMTP_HOST, SMTP_USER, SMTP_PASS env vars"
     # 2. Time (current_time tool)
     if "utc_human" in tool_result:
-        day = tool_tool_result.get("day_of_week", "")
+        day = tool_result.get("day_of_week", "")
         day_str = " (%s)" % day if day else ""
         return "\U0001F552 **Current Time (UTC):** %s%s" % (tool_result['utc_human'], day_str)
     # 3. General Time/Date
     for key in ("time", "datetime", "current_time", "iso"):
         if key in tool_result:
-            tz = tool_tool_result.get("timezone") or tool_tool_result.get("tz") or ""
+            tz = tool_result.get("timezone") or tool_result.get("tz") or ""
             return "\U0001F552 **%s:** %s" % (tz if tz else 'Time', tool_result[key])
     # 4. Simple Result
     if "result" in tool_result:
