@@ -19,7 +19,7 @@ def _json_schema_from_params(params: dict) -> dict:
     for name, meta in (params or {}).items():
         props[name] = {
             "type": meta.get("type", "string") if isinstance(meta, dict) else "string",
-            "description": meta.get("description", ""),
+            "description": meta.get("description", "") if isinstance(meta, dict) else "",
         }
         if meta.get("required"):
             required.append(name)
