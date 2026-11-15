@@ -184,9 +184,20 @@ def _pretty_print_result(tool_name: str, result: dict) -> str:
         schedules = result.get("schedules", [])
         if not schedules:
             return "**No schedules found.**"
-        out = "**Schedules:**\n\n| ID | Name | Cron | Next Run |\n|---|---|---|---|\n"
-        for s in schedules[:10]:
-            out += f"| {s.get('id', '?')} | {s.get('name', '')} | {s.get('cron', '')} | {s.get('next_run', '')} |\n"
+        out = "**Schedules:**\n\n| ID | Name | Frequency | Next Run |\n|---|---|---|---|\n"
+        for i, s in enumerate(schedules[:10], 1):
+            sid = s.get('id') or s.get('schedule_id') or str(i)
+            name = s.get('name', '?')
+            freq = s.get('cron') or s.get('frequency')
+            if not freq and s.get('interval_seconds'):
+                secs = s['interval_seconds']
+                if secs % 86400 == 0: freq = f"Every {secs//86400} day(s)"
+                elif secs % 3600 == 0: freq = f"Every {secs//3600} hour(s)"
+                elif secs % 60 == 0: freq = f"Every {secs//60} minute(s)"
+                else: freq = f"Every {secs} seconds"
+            freq = freq or "?"
+            next_run = s.get('next_run') or s.get('next_run_at') or "?"
+            out += f"| {sid} | {name} | {freq} | {next_run} |\n"
         return out
     if tool_name == "schedule_delete":
         return f"**Schedule deleted:** {result.get('message', 'Success')}"
