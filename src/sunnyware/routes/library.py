@@ -119,7 +119,7 @@ async def list_files():
                             "name": f.name,
                             "type": "image",
                             "size": f.stat().st_size,
-                            "kind": "ai_generated",
+                            "kind": "generated",
                             "content": content,
                             "created_at": datetime.datetime.fromtimestamp(f.stat().st_mtime).isoformat()
                         })
@@ -140,7 +140,7 @@ async def list_files():
                         "name": f.name,
                         "type": "image",
                         "size": f.stat().st_size,
-                        "kind": "ai_generated",
+                        "kind": "generated",
                         "content": content,
                         "created_at": datetime.datetime.fromtimestamp(f.stat().st_mtime).isoformat()
                     })
