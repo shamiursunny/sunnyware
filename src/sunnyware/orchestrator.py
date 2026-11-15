@@ -196,7 +196,7 @@ def _pretty_print_result(tool_name: str, result: dict) -> str:
                 elif secs % 60 == 0: freq = f"Every {secs//60} minute(s)"
                 else: freq = f"Every {secs} seconds"
             freq = freq or "?"
-            next_run = s.get('next_run') or s.get('next_run_at') or "?"
+            next_run = s.get('next_run') or s.get('next_run_at') or "-"
             out += f"| {sid} | {name} | {freq} | {next_run} |\n"
         return out
     if tool_name == "schedule_delete":
