@@ -104,7 +104,47 @@ async def list_files():
                         "content": content,
                         "created_at": datetime.datetime.fromtimestamp(f.stat().st_mtime).isoformat()
                     })
-            return {"files": out}
+            # --- Include AI generated images ---
+            ai_dir = paths.data_root() / "ai generated"
+            if ai_dir.exists():
+                for f in ai_dir.iterdir():
+                    if f.is_file() and f.suffix.lower() in [".png", ".jpg", ".jpeg", ".gif", ".webp"]:
+                        ext = f.suffix.lower()
+                        try:
+                            content = "data:image/" + ext[1:] + ";base64," + base64.b64encode(f.read_bytes()).decode()
+                        except:
+                            content = ""
+                        out.append({
+                            "id": f.name,
+                            "name": f.name,
+                            "type": "image",
+                            "size": f.stat().st_size,
+                            "kind": "ai_generated",
+                            "content": content,
+                            "created_at": datetime.datetime.fromtimestamp(f.stat().st_mtime).isoformat()
+                        })
+            # --- Include AI generated images ---
+        from .. import paths
+        import datetime, base64
+        ai_dir = paths.data_root() / "ai generated"
+        if ai_dir.exists():
+            for f in ai_dir.iterdir():
+                if f.is_file() and f.suffix.lower() in [".png", ".jpg", ".jpeg", ".gif", ".webp"]:
+                    ext = f.suffix.lower()
+                    try:
+                        content = "data:image/" + ext[1:] + ";base64," + base64.b64encode(f.read_bytes()).decode()
+                    except:
+                        content = ""
+                    out.append({
+                        "id": f.name,
+                        "name": f.name,
+                        "type": "image",
+                        "size": f.stat().st_size,
+                        "kind": "ai_generated",
+                        "content": content,
+                        "created_at": datetime.datetime.fromtimestamp(f.stat().st_mtime).isoformat()
+                    })
+        return {"files": out}
         return {"files": []}
     await _ensure_table()
     owner = _owner()
