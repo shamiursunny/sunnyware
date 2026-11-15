@@ -176,6 +176,48 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if _ins_fil:
         return {"tool": "insurance_research", "args": {"action": "search_filings", "query": _ins_fil.group(1).strip()}}
 
+    # --- Explicit webhook_add parsing (zero token) ---
+    if "webhook add" in prompt.lower() or "add webhook" in prompt.lower():
+        name_m = re.search(r'name\s+["\'](.*?)["\']', prompt, re.IGNORECASE)
+        if name_m:
+            return {"tool": "webhook_add", "args": {"name": name_m.group(1)}}
+
+    # --- Explicit sql_sandbox_create parsing (zero token) ---
+    if "sql create" in prompt.lower() or "create sql" in prompt.lower() or "create sandbox" in prompt.lower():
+        name_m = re.search(r'(?:sandbox|table)?\s*["\']?([a-z][a-z0-9_]{0,40})["\']?$', prompt.strip(), re.IGNORECASE)
+        if name_m:
+            return {"tool": "sql_sandbox_create", "args": {"name": name_m.group(1)}}
+
+    # --- Explicit kpi_watch_add parsing (zero token) ---
+    if "kpi add" in prompt.lower() or "add kpi" in prompt.lower():
+        kpi_name_m = re.search(r'(?:name|kpi_name)\s+["\'](.*?)["\']', prompt, re.IGNORECASE)
+        check_prompt_m = re.search(r'(?:prompt|check_prompt)\s+["\'](.*?)["\']', prompt, re.IGNORECASE)
+        comparison_m = re.search(r'(?:comparison|operator)\s+["\']?(lt|gt|le|ge|eq|ne)["\']?', prompt, re.IGNORECASE)
+        threshold_m = re.search(r'(?:threshold|threshold_value)\s+["\']?([0-9.]+)["\']?', prompt, re.IGNORECASE)
+        
+        if kpi_name_m and check_prompt_m:
+            args = {
+                "kpi_name": kpi_name_m.group(1),
+                "check_prompt": check_prompt_m.group(1),
+                "comparison": comparison_m.group(1) if comparison_m else "lt",
+                "threshold_value": float(threshold_m.group(1)) if threshold_m else 0.0
+            }
+            return {"tool": "kpi_watch_add", "args": args}
+
+    # --- Explicit email_send parsing (zero token) ---
+    if prompt.lower().startswith("email ") or prompt.lower().startswith("send email"):
+        to_m = re.search(r'(?:to|email)\s+["\']?([^\s"\']+@[^\s"\']+)["\']?', prompt, re.IGNORECASE)
+        subj_m = re.search(r'subject\s+["\'](.*?)["\']', prompt, re.IGNORECASE)
+        body_m = re.search(r'body\s+["\'](.*?)["\']', prompt, re.IGNORECASE)
+        
+        if to_m:
+            args = {
+                "to": [to_m.group(1)],  # Email tool requires a list!
+                "subject": subj_m.group(1) if subj_m else "No Subject",
+                "body": body_m.group(1) if body_m else "No Body"
+            }
+            return {"tool": "email_send", "args": args}
+
     # --- Explicit schedule_add parsing (zero token) ---
     if "schedule add" in prompt.lower() or "add schedule" in prompt.lower():
         name_m = re.search(r'name\s+["\'](.*?)["\']', prompt, re.IGNORECASE)
