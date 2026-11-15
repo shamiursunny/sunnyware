@@ -176,6 +176,33 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if _ins_fil:
         return {"tool": "insurance_research", "args": {"action": "search_filings", "query": _ins_fil.group(1).strip()}}
 
+    # --- Explicit schedule_add parsing (zero token) ---
+    if "schedule add" in prompt.lower() or "add schedule" in prompt.lower():
+        name_m = re.search(r'name\s+["\'](.*?)["\']', prompt, re.IGNORECASE)
+        prompt_m = re.search(r'prompt\s+["\'](.*?)["\']', prompt, re.IGNORECASE)
+        cron_m = re.search(r'cron\s+["\'](.*?)["\']', prompt, re.IGNORECASE)
+        interval_m = re.search(r'every\s+(\d+)\s*(seconds?|minutes?|hours?|days?)', prompt, re.IGNORECASE)
+
+        if name_m and prompt_m:
+            args = {
+                "name": name_m.group(1),
+                "prompt": prompt_m.group(1),
+            }
+            if cron_m:
+                args["cron"] = cron_m.group(1)
+            elif interval_m:
+                val = int(interval_m.group(1))
+                unit = interval_m.group(2).lower()
+                if unit.startswith('second'): secs = val
+                elif unit.startswith('minute'): secs = val * 60
+                elif unit.startswith('hour'): secs = val * 3600
+                else: secs = val * 86400
+                args["interval_seconds"] = secs
+            else:
+                args["cron"] = "0 9 * * *"
+            
+            return {"tool": "schedule_add", "args": args}
+
     # --- Schedule add ---
     _sch = re.search(r'schedule\s+(?:a\s+)?task\s+named\s+(\w+)\s+every\s+(hour|day|minute|week)', prompt, re.IGNORECASE)
     if _sch:
