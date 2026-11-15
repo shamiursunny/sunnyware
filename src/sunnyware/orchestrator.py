@@ -398,7 +398,7 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
     if tool_name == "read_bi_file":
         return f"**BI File Inspected:** `{tool_result.get('file', '?')}`\n- Type: {tool_result.get('type', 'unknown')}\n- Keys: {list(tool_result.keys())}"
 
-    if tool_name in ("sql_sandbox_create", "sql_sandbox_load_csv", "sql_sandbox_execute"):
+    if tool_name in ("sql_sandbox_load_csv", "sql_sandbox_execute"):
         return f"**SQL Result:**\n```json\n{json.dumps(tool_result, indent=2)[:2000]}\n```"
 
     if tool_name == "sql_sandbox_list":
