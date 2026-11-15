@@ -176,6 +176,42 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if _ins_fil:
         return {"tool": "insurance_research", "args": {"action": "search_filings", "query": _ins_fil.group(1).strip()}}
 
+    # --- Explicit image_generate parsing (zero token) ---
+    if "generate an image" in prompt.lower() or "generate image" in prompt.lower():
+        import re
+        m = re.search(r'(?:of|about|showing)\s+(.*)', prompt, re.IGNORECASE)
+        if m:
+            return {"tool": "image_generate", "args": {"prompt": m.group(1).strip()}}
+
+    # --- Explicit scrape_webpage parsing (zero token) ---
+    if "scrape webpage" in prompt.lower():
+        import re
+        m = re.search(r'(https?://[^\s]+)', prompt, re.IGNORECASE)
+        if m:
+            return {"tool": "scrape_webpage", "args": {"url": m.group(1)}}
+
+    # --- Explicit schedule_delete parsing (zero token) ---
+    if "delete schedule" in prompt.lower():
+        import re
+        m = re.search(r'(?:schedule)\s+["\']?(.*?)["\']?$', prompt, re.IGNORECASE)
+        if m:
+            return {"tool": "schedule_delete", "args": {"name": m.group(1).strip()}}
+
+    # --- Explicit schedule_run_now parsing (zero token) ---
+    if "run schedule" in prompt.lower():
+        import re
+        m = re.search(r'(?:schedule)\s+["\']?(.*?)["\']?(?:\s+now)?$', prompt, re.IGNORECASE)
+        if m:
+            return {"tool": "schedule_run_now", "args": {"name": m.group(1).strip()}}
+
+    # --- Explicit remove_tableau_field parsing (zero token) ---
+    if "remove tableau field" in prompt.lower():
+        import re
+        field_m = re.search(r'field\s+["\'](.*?)["\']', prompt, re.IGNORECASE)
+        file_m = re.search(r'from\s+["\'](.*?)["\']', prompt, re.IGNORECASE)
+        if field_m and file_m:
+            return {"tool": "remove_tableau_field", "args": {"field_name": field_m.group(1), "filename": file_m.group(1)}}
+
     # --- Explicit webhook_add parsing (zero token) ---
     if "webhook add" in prompt.lower() or "add webhook" in prompt.lower():
         name_m = re.search(r'name\s+["\'](.*?)["\']', prompt, re.IGNORECASE)
