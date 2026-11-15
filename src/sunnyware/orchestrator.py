@@ -360,7 +360,8 @@ def _format_direct_answer(tool_name: str, tool_result: dict) -> str:
         return f"**File saved:** `{tool_result.get('path', tool_result.get('file', '?'))}` ✅"
 
     if tool_name == "delete_file":
-        return f"**File deleted:** `{tool_result.get('file', '?')}` ✅"
+        path = tool_result.get('path') or tool_result.get('file') or tool_result.get('filename', '?')
+        return f"**File deleted:** `{path}` ✅"
 
     if tool_name == "excel_read":
         data = tool_result.get("data", tool_result.get("content", ""))
