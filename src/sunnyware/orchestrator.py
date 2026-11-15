@@ -177,6 +177,19 @@ def _pretty_print_result(tool_name: str, result: dict) -> str:
             out += "\n- " + "\n- ".join(extras)
         return out
 
+    if tool_name == "email_send":
+        to = ", ".join(tool_result.get("to", []))
+        subj = tool_result.get("subject", "(no subject)")
+        status = "sent" if tool_result.get("ok") else "failed"
+        return f"**Email {status}:**\n- To: {to}\n- Subject: {subj}"
+
+    if tool_name == "sql_sandbox_create":
+        schema = tool_result.get("schema", tool_result.get("name", "?"))
+        return f"**SQL Sandbox created:** `{schema}` ✅"
+
+    if tool_name == "kpi_watch_add":
+        return f"**KPI Watch added:**\n- ID: {tool_result.get('id', '?')}\n- Name: {tool_result.get('kpi_name', '?')}"
+
     # Targeted formatters for common new-tool shapes
     if tool_name == "schedule_add":
         return f"**Schedule added:** {result.get('message', 'Success')}"
