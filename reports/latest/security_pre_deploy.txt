@@ -12,12 +12,11 @@
   [PASS] No .env / .pem / .key files tracked
 
 [4] Dependency CVE scan (pip-audit)
-        [skip] pillow: gradio requires pillow<13.0 â€” CVE fix blocked upstream
-  [PASS] No known CVEs in requirements-ci.txt
+  [SKIP] pip-audit timed out
 
 [5] Bandit static analysis
   [PASS] No HIGH/MEDIUM bandit findings
 
-=== Summary: 6 pass, 1 warn, 0 fail, 0 skip ===
+=== Summary: 5 pass, 1 warn, 0 fail, 1 skip ===
 
 --- STDERR ---
