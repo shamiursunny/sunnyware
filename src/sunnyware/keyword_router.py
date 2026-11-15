@@ -255,11 +255,22 @@ def keyword_route(prompt: str) -> Optional[dict]:
     # --- Explicit legal_citation_check parsing (zero token) ---
     if "verify case" in prompt.lower() or "check case" in prompt.lower() or "legal citation check" in prompt.lower():
         import re as _re_lcc
-        m = _re_lcc.search(r'(\d+\s+[A-Za-z\.]+\s+\d+)', prompt)
-        if not m:
-            m = _re_lcc.search(r'citation\s+(.*)', prompt, _re_lcc.IGNORECASE)
+        # Try to parse volume / reporter / page  e.g. "410 U.S. 113"
+        m = _re_lcc.search(r'(\d+)\s+([A-Za-z\.]+)\s+(\d+)', prompt)
         if m:
-            return {"tool": "legal_citation_check", "args": {"text": m.group(1).strip()}}
+            return {"tool": "legal_citation_check", "args": {
+                "action": "verify_one",
+                "volume": m.group(1),
+                "reporter": m.group(2),
+                "page": m.group(3),
+            }}
+        # Fallback: send as raw text
+        m2 = _re_lcc.search(r'citation\s+(.*)', prompt, _re_lcc.IGNORECASE)
+        if m2:
+            return {"tool": "legal_citation_check", "args": {
+                "action": "verify_text",
+                "text": m2.group(1).strip(),
+            }}
 
     # --- Explicit citation_lookup parsing (zero token) ---
     if "citation" in prompt.lower():
