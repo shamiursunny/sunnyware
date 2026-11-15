@@ -1593,6 +1593,8 @@ async def _run_agent_body(
                             try:
                                 _direct = _format_direct_answer(_tool_name, _tool_result)
                             except Exception as e:
+                                import traceback
+                                print(f"[FORMAT ERROR] {_tool_name}: {type(e).__name__}: {e}\n{traceback.format_exc()}", flush=True)
                                 _direct = f"**{_tool_name} result:** `{_tool_result}`"
                             try:
                                 await _emit(on_event, {"type": "answer", "content": _direct})
