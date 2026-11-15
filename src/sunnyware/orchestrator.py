@@ -645,30 +645,36 @@ The SEC EDGAR API returned a temporary error (HTTP 500). This is usually transie
     if tool_name == "legal_citation_check":
         if tool_result.get("error"):
             return f"**Legal Citation Check failed:** {tool_result['error']}"
+        inner = tool_result.get("result") or tool_result
+        if "verified" in inner:
+            verified = inner.get("verified", False)
+            citation = inner.get("citation", "")
+            error_msg = inner.get("error_message", "")
+            cluster = inner.get("cluster") or {}
+            if verified and cluster:
+                case_name = cluster.get("case_name", "Unknown Case")
+                date_filed = cluster.get("date_filed", "")
+                url = cluster.get("absolute_url", "")
+                full_url = f"https://www.courtlistener.com{url}" if url else ""
+                out = f"**✅ Citation Verified: `{citation}`**\n\n"
+                out += f"**Case:** {case_name}\n"
+                if date_filed:
+                    out += f"**Date Filed:** {date_filed}\n"
+                if full_url:
+                    out += f"**Link:** [View Full Opinion]({full_url})\n"
+                out += "\n*Verified against CourtListener's 18M+ case-law database.*"
+                return out
+            else:
+                return f"**❌ Citation Not Found: `{citation}`**\n\n{error_msg}\n\n*This citation does not exist in CourtListener's database. It may be fabricated.*"
+        # Legacy fallback
         count = tool_result.get("citation_count", 0)
         if count == 0:
-            text = tool_result.get("text", "")
-            return f"""**Legal Citation Check – No Citations Found**
-
-The provided text: `{text}`
-
-*Note: CourtListener verifies case-law citations (e.g., `410 U.S. 113`), not statutes like U.S.C. For statutes, please consult the official code or a legal database (e.g., uscode.house.gov).*"""
+            return "**No citations found**"
         citations = tool_result.get("citations", [])
         out = f"**Legal Citation Check:** Found {count} citation(s)\n\n"
         out += "| Citation | Status | Case Name / Details |\n|---|---|---|\n"
         for c in citations[:10]:
-            status = c.get('status', '')
-            details = c.get('error_message', '')
-            cluster = c.get('cluster') or c.get('clusters', [])
-            if isinstance(cluster, dict):
-                case_name = cluster.get('case_name', '')
-                if case_name:
-                    details = f"**{case_name}**"
-            elif isinstance(cluster, list) and len(cluster) > 0:
-                case_name = cluster[0].get('case_name', '')
-                if case_name:
-                    details = f"**{case_name}**"
-            out += f"| {c.get('citation', '')} | {status} | {details} |\n"
+            out += f"| {c.get('citation', '')} | {c.get('status', '')} | {c.get('error_message', '')} |\n"
         return out
 
     if tool_name == "marketaux_news":
