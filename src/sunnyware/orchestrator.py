@@ -759,7 +759,7 @@ The provided text: `{text}`
         return "\n".join(lines)
 
     # 5. Web search (v1.3.0)
-    if tool_name == "web_search" and tool_result.get("ok"):
+    if tool_name == "web_search":
         results = tool_result.get("results", [])
         if not results:
             return "**No search results**"

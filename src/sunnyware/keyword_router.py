@@ -252,6 +252,17 @@ def keyword_route(prompt: str) -> Optional[dict]:
             }
             return {"tool": "email_send", "args": args}
 
+    # --- Explicit citation_lookup parsing (zero token) ---
+    if "citation" in prompt.lower():
+        import re as _re_cit
+        # Match patterns like "410 U.S. 113" or "123 F.3d 456"
+        m = _re_cit.search(r'(\d+\s+[A-Za-z\.]+\s+\d+)', prompt)
+        if not m:
+            # Fallback: take everything after "citation"
+            m = _re_cit.search(r'citation\s+(.*)', prompt, _re_cit.IGNORECASE)
+        if m:
+            return {"tool": "citation_lookup", "args": {"query": m.group(1).strip()}}
+
     # --- Explicit schedule_add parsing (zero token) ---
     if "schedule add" in prompt.lower() or "add schedule" in prompt.lower():
         name_m = re.search(r'name\s+["\'](.*?)["\']', prompt, re.IGNORECASE)
