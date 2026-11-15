@@ -5341,8 +5341,7 @@ function getLibraryItems(kind){
   } else if(k === 'sandbox') {
     items = sandboxFiles || [];
   } else if(k === 'generated') {
-    const genExts = ['png','jpg','jpeg','gif','pdf','csv','xlsx','json','svg'];
-    items = (workspaceFiles || []).filter(f => genExts.includes(f.type));
+    items = files.filter(f => f.kind === 'generated');
   } else {
     items = files.filter(f => f.kind === k);
   }
