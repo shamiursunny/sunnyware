@@ -238,6 +238,30 @@ def _pretty_print_result(tool_name: str, result: dict) -> str:
         
         return _pretty_print_result(tool_name, result)
 
+    if tool_name == "legal_citation_check":
+        inner = result.get("result") or result
+        if "verified" in inner:
+            verified = inner.get("verified", False)
+            citation = inner.get("citation", "")
+            error_msg = inner.get("error_message", "")
+            cluster = inner.get("cluster") or {}
+            if verified and cluster:
+                case_name = cluster.get("case_name", "Unknown Case")
+                date_filed = cluster.get("date_filed", "")
+                url = cluster.get("absolute_url", "")
+                full_url = f"https://www.courtlistener.com{url}" if url else ""
+                out = f"**✅ Citation Verified: `{citation}`**\n\n"
+                out += f"**Case:** {case_name}\n"
+                if date_filed:
+                    out += f"**Date Filed:** {date_filed}\n"
+                if full_url:
+                    out += f"**Link:** [View Full Opinion]({full_url})\n"
+                out += "\n*Verified against CourtListener's 18M+ case-law database.*"
+                return out
+            else:
+                return f"**❌ Citation Not Found: `{citation}`**\n\n{error_msg}\n\n*This citation does not exist in CourtListener's database. It may be fabricated.*"
+        return f"**Legal Citation Check:** {inner.get('status_meaning', 'No result')}"
+
     if tool_name == "citation_lookup":
         if result.get("error"):
             return f"**Citation Lookup failed:** {result['error']}"
