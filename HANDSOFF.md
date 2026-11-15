@@ -1,7 +1,7 @@
 # Sunnyware - Maintainer Handoff
 
-> **Version:** `1.90.0` | **Released:** `2026-11-15T11-46-28Z` | **Commit:** `cc5cdf1`
-> **Chain:** 76 blocks | **Head:** `2c33d7a08177a57a...`
+> **Version:** `1.91.0` | **Released:** `2026-11-15T12-11-49Z` | **Commit:** `1b43624`
+> **Chain:** 77 blocks | **Head:** `d1e655e44786fabf...`
 > **Deployments:** 17/19 verified | **Health:** 100.0/100 (A+)
 
 > **Auto-generated on every ship.** Do not edit manually.
