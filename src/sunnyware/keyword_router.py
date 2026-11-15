@@ -180,7 +180,7 @@ def keyword_route(prompt: str) -> Optional[dict]:
     if "schedule add" in prompt.lower() or "add schedule" in prompt.lower():
         name_m = re.search(r'name\s+["\'](.*?)["\']', prompt, re.IGNORECASE)
         prompt_m = re.search(r'prompt\s+["\'](.*?)["\']', prompt, re.IGNORECASE)
-        cron_m = re.search(r'cron\s+["\'](.*?)["\']', prompt, re.IGNORECASE)
+        secs_m = re.search(r'interval_seconds\s+(\d+)', prompt, re.IGNORECASE)
         interval_m = re.search(r'every\s+(\d+)\s*(seconds?|minutes?|hours?|days?)', prompt, re.IGNORECASE)
 
         if name_m and prompt_m:
@@ -188,8 +188,8 @@ def keyword_route(prompt: str) -> Optional[dict]:
                 "name": name_m.group(1),
                 "prompt": prompt_m.group(1),
             }
-            if cron_m:
-                args["cron"] = cron_m.group(1)
+            if secs_m:
+                args["interval_seconds"] = int(secs_m.group(1))
             elif interval_m:
                 val = int(interval_m.group(1))
                 unit = interval_m.group(2).lower()
@@ -199,7 +199,7 @@ def keyword_route(prompt: str) -> Optional[dict]:
                 else: secs = val * 86400
                 args["interval_seconds"] = secs
             else:
-                args["cron"] = "0 9 * * *"
+                args["interval_seconds"] = 86400  # Default to daily if not specified
             
             return {"tool": "schedule_add", "args": args}
 
