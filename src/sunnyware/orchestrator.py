@@ -190,6 +190,27 @@ def _pretty_print_result(tool_name: str, result: dict) -> str:
     if tool_name == "kpi_watch_add":
         return f"**KPI Watch added:**\n- ID: {result.get('id', '?')}\n- Name: {result.get('kpi_name', '?')}"
 
+    if tool_name == "citation_lookup":
+        if result.get("error"):
+            return f"**Citation Lookup failed:** {result['error']}"
+        # Local document search results
+        if result.get("mode") == "search":
+            results = result.get("results", [])
+            if not results:
+                return f"**No document results found for:** `{result.get('query', '')}`"
+            out = f"**Document Search Results for `{result.get('query', '')}`** ({len(results)} matches):\n\n"
+            for i, r in enumerate(results[:5], 1):
+                src = r.get('source', 'file')
+                text = r.get('text', '').strip()
+                ref = r.get('citation_string', '')
+                out += f"**{i}. Source: `{src}`**\n- {text}\n- *Ref: {ref}*\n\n"
+            return out
+        # Legal citation results
+        count = result.get("citation_count", 0)
+        if count == 0:
+            text = result.get("text", "")
+            return f"**Legal Citation Check – No Citations Found**\n\nThe provided text: `{text}`\n\n*Note: CourtListener verifies case-law citations (e.g., `410 U.S. 113`), not statutes like U.S.C. For statutes, consult the official code or a legal database.*"
+
     # Targeted formatters for common new-tool shapes
     if tool_name == "schedule_add":
         return f"**Schedule added:** {result.get('message', 'Success')}"
