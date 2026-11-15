@@ -1415,6 +1415,7 @@ async def _run_agent_body(
     on_event=None,
     role: Optional[str] = None,
 ) -> dict:
+    _direct_answered = False
     # Part 114d: resolve role -> allowed tool set for both native and
     # compact paths. None means "no filtering" (general role).
     _allowed = None
@@ -1589,7 +1590,10 @@ async def _run_agent_body(
                         if (_tool_name in _DIRECT_ANSWER_TOOLS
                                 and isinstance(_tool_result, dict)):
                             print(f"[orchestrator] Emitting direct answer for {_tool_name}", flush=True)
-                            _direct = _format_direct_answer(_tool_name, _tool_result)
+                            try:
+                                _direct = _format_direct_answer(_tool_name, _tool_result)
+                            except Exception as e:
+                                _direct = f"**{_tool_name} result:** `{_tool_result}`"
                             try:
                                 await _emit(on_event, {"type": "answer", "content": _direct})
                             except Exception:
@@ -1601,6 +1605,7 @@ async def _run_agent_body(
                                 "result": _tool_result,
                                 "protocol": "jarvis",
                             })
+                            _direct_answered = True
                             return {
                                 "ok": True,
                                 "content": _direct,
@@ -1677,6 +1682,9 @@ async def _run_agent_body(
                         pass  # Tool failed - fall through to normal loop
     except Exception:
         pass  # Jarvis disabled / model not loaded - fall through
+
+    if _direct_answered:
+        return {"ok": True, "content": "", "answer": "", "steps": [], "iterations": 1, "provider": "none", "resolved_model": "none", "attachments": _attachments}
 
     for iteration in range(MAX_ITERATIONS):
         # Part 585/589: emit iteration progress
