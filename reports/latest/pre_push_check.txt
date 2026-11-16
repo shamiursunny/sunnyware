@@ -6,8 +6,8 @@
 ======================================================================
  1. Python syntax check
 ======================================================================
-  scanning 252 files...
-  [PASS] all 252 Python files parse cleanly
+  scanning 253 files...
+  [PASS] all 253 Python files parse cleanly
 
 ======================================================================
  2. Served HTML / JS sanity check
