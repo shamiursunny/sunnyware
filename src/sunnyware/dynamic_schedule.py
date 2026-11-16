@@ -10,6 +10,7 @@ import time
 from typing import Optional
 from . import state as app_state
 from . import scheduler as _sched
+from . import dynamic_schedule_store as _store
 
 
 _MAX_NAME_LEN = 100
@@ -56,23 +57,11 @@ def _make_handler(name: str, prompt: str, notify_email: str):
             status = "error"
             err = type(e).__name__ + ": " + str(e)[:200]
 
-        # Persist last run info
-        pool = app_state.get_pool()
-        if pool is not None:
-            try:
-                async with pool.acquire() as conn:
-                    await conn.execute(
-                        """UPDATE dynamic_schedules SET
-                             last_run_at = NOW(),
-                             last_status = $1,
-                             last_result_preview = $2,
-                             last_error = $3,
-                             run_count = run_count + 1
-                           WHERE name = $4""",
-                        status, (answer or "")[:500], err, name,
-                    )
-            except Exception:
-                pass
+        # Persist last run info (JSON store)
+        try:
+            _store.update_run_info(name, status, (answer or "")[:500], err or "")
+        except Exception:
+            pass
 
         # Optional email
         if notify_email and answer:
@@ -102,24 +91,9 @@ async def add(name, prompt, interval_seconds, notify_email=""):
     if err:
         return {"error": err}
 
-    pool = app_state.get_pool()
-    if pool is None:
-        return {"error": "database unavailable"}
-
     notify_email = (notify_email or "").strip()
     try:
-        async with pool.acquire() as conn:
-            await conn.execute(
-                """INSERT INTO dynamic_schedules
-                   (name, prompt, interval_seconds, notify_email, enabled)
-                   VALUES ($1, $2, $3, $4, TRUE)
-                   ON CONFLICT (name) DO UPDATE SET
-                     prompt = EXCLUDED.prompt,
-                     interval_seconds = EXCLUDED.interval_seconds,
-                     notify_email = EXCLUDED.notify_email,
-                     enabled = TRUE""",
-                name, prompt, iv, notify_email,
-            )
+        _store.upsert(name, prompt, iv, notify_email)
     except Exception as e:
         return {"error": type(e).__name__ + ": " + str(e)[:200]}
 
@@ -138,34 +112,10 @@ async def add(name, prompt, interval_seconds, notify_email=""):
 
 
 async def list_all():
-    pool = app_state.get_pool()
-    if pool is None:
-        return {"error": "database unavailable"}
     try:
-        async with pool.acquire() as conn:
-            rows = await conn.fetch(
-                """SELECT name, prompt, interval_seconds, notify_email, enabled,
-                          last_run_at, last_status, last_result_preview,
-                          last_error, run_count, created_at
-                   FROM dynamic_schedules ORDER BY created_at DESC"""
-            )
+        items = _store.list_all()
     except Exception as e:
         return {"error": type(e).__name__ + ": " + str(e)[:200]}
-
-    items = []
-    for r in rows:
-        items.append({
-            "name": r["name"],
-            "prompt": r["prompt"],
-            "interval_seconds": int(r["interval_seconds"]),
-            "notify_email": r["notify_email"] or "",
-            "enabled": bool(r["enabled"]),
-            "last_run_at": r["last_run_at"].isoformat() if r["last_run_at"] else None,
-            "last_status": r["last_status"],
-            "last_result_preview": r["last_result_preview"],
-            "last_error": r["last_error"],
-            "run_count": int(r["run_count"]),
-        })
     return {"count": len(items), "schedules": items}
 
 
@@ -173,14 +123,8 @@ async def delete(name):
     name = (name or "").strip()
     if not name:
         return {"error": "name is required"}
-    pool = app_state.get_pool()
-    if pool is None:
-        return {"error": "database unavailable"}
     try:
-        async with pool.acquire() as conn:
-            await conn.execute(
-                "DELETE FROM dynamic_schedules WHERE name = $1", name,
-            )
+        _store.delete(name)
     except Exception as e:
         return {"error": type(e).__name__ + ": " + str(e)[:200]}
 
@@ -196,21 +140,11 @@ async def run_now(name):
     name = (name or "").strip()
     if not name:
         return {"error": "name is required"}
-    pool = app_state.get_pool()
-    if pool is None:
-        return {"error": "database unavailable"}
-    try:
-        async with pool.acquire() as conn:
-            row = await conn.fetchrow(
-                "SELECT name, prompt, notify_email FROM dynamic_schedules WHERE name = $1",
-                name,
-            )
-    except Exception as e:
-        return {"error": type(e).__name__ + ": " + str(e)[:200]}
-    if row is None:
+    entry = _store.get(name)
+    if entry is None:
         return {"error": "schedule not found: " + name}
 
-    handler = _make_handler(row["name"], row["prompt"], row["notify_email"] or "")
+    handler = _make_handler(entry["name"], entry["prompt"], entry.get("notify_email", "") or "")
     try:
         return await handler()
     except Exception as e:
@@ -220,34 +154,22 @@ async def run_now(name):
 async def bootstrap():
     """Load all enabled schedules from Neon and register with scheduler.
     Called from app lifespan after scheduler.start()."""
-    pool = app_state.get_pool()
-    if pool is None:
-        try:
-            await app_state.init_pool()
-            pool = app_state.get_pool()
-        except Exception:
-            return {"ok": False, "error": "no db pool"}
-    if pool is None:
-        return {"ok": False, "error": "no db pool"}
-
     try:
-        async with pool.acquire() as conn:
-            rows = await conn.fetch(
-                "SELECT name, prompt, interval_seconds, notify_email FROM dynamic_schedules WHERE enabled = TRUE"
-            )
+        items = _store.list_all()
     except Exception as e:
         return {"ok": False, "error": type(e).__name__ + ": " + str(e)[:120]}
 
+    enabled = [x for x in items if x.get("enabled", True)]
     registered = 0
-    for r in rows:
+    for r in enabled:
         try:
             _sched.register_job(
                 "dyn:" + r["name"],
                 interval_seconds=int(r["interval_seconds"]),
-                handler=_make_handler(r["name"], r["prompt"], r["notify_email"] or ""),
+                handler=_make_handler(r["name"], r["prompt"], r.get("notify_email", "") or ""),
                 description="dynamic: " + (r["prompt"] or "")[:80],
             )
             registered += 1
         except Exception:
             continue
-    return {"ok": True, "registered": registered, "total": len(rows)}
+    return {"ok": True, "registered": registered, "total": len(enabled)}
