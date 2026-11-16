@@ -106,3 +106,4 @@ def update_run_info(name: str, status: str, preview: str, error: str = "") -> bo
     entry["run_count"] = int(entry.get("run_count", 0)) + 1
     _save(data)
     return True
+
