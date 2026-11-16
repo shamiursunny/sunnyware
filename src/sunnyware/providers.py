@@ -119,6 +119,7 @@ def load_providers(reload: bool = False) -> List[Provider]:
         "sambanova": 8000,      # Part 638
         "together": 32000,      # Part 638
         "orcarouter": 32000,    # OpenAI-compatible router (free tier)
+        "wusrouter": 32000,     # WusRouter (free tier)
         "local": 2048,         # matches LOCAL_MODEL_CTX
         "ollama": 4000,        # Qwen2.5-0.5B works best under 4k prompt
     }
@@ -152,6 +153,11 @@ def load_providers(reload: bool = False) -> List[Provider]:
             base_url = "https://api.orcarouter.ai/v1"
             api_key = (os.getenv("ORCAROUTER_API_KEY") or "").strip()
             model = (os.getenv("ORCAROUTER_MODEL") or "orcarouter/free").strip()
+        elif name == "wusrouter":
+            # WusRouter — OpenAI-compatible gateway, free daily quota
+            base_url = "https://api.wusrouter.com/v1"
+            api_key = (os.getenv("WUSROUTER_API_KEY") or "").strip()
+            model = (os.getenv("WUSROUTER_MODEL") or "deepseek-v4-flash:free").strip()
         elif name == "together":
             # Part 638: Together AI free tier — fast, robust models
             base_url = "https://api.together.xyz/v1"
