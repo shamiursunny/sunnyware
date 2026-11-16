@@ -16,6 +16,7 @@ PROVIDER_COSTS = {
     "cerebras": {"tier": "Free", "cost": 0},
     "sambanova": {"tier": "Free", "cost": 0},
     "orcarouter": {"tier": "Free", "cost": 0},
+    "wusrouter": {"tier": "Free", "cost": 0},
     "local": {"tier": "Free", "cost": 0},
 }
 
