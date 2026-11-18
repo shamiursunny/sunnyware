@@ -41,15 +41,15 @@ class WebSearchTool:
         },
     }
 
-    async def run(self, args: dict) -> dict:
+    async def run(self, args: dict) -> str:
         if not _DDGS_AVAILABLE:
-            return {"error": "ddgs package not installed (pip install ddgs)"}       
+            return "Error: ddgs package not installed (pip install ddgs)"
 
         query = str(args.get("query", "")).strip()
         if not query:
-            return {"error": "query is required"}
+            return "Error: query is required"
         if len(query) > 500:
-            return {"error": "query too long (max 500 chars)"}
+            return "Error: query too long (max 500 chars)"
 
         try:
             max_results = int(args.get("max_results", 5))
@@ -78,18 +78,17 @@ class WebSearchTool:
 
         # If all backends failed, return a graceful error instead of crashing
         if not results:
-            return {"error": f"search failed after trying all backends. Last error: {last_error}"}
+            return f"Web search failed after trying all backends. Last error: {last_error}"
 
-        cleaned = []
-        for r in results or []:
-            cleaned.append({
-                "title": (r.get("title") or "")[:200],
-                "url": (r.get("href") or r.get("url") or "")[:500],
-                "snippet": (r.get("body") or r.get("snippet") or "")[:400],
-            })
-
-        return {
-            "query": query,
-            "count": len(cleaned),
-            "results": cleaned,
-        }
+        # Format beautifully as Markdown for the UI
+        md_lines = [f"### Web Search Results for: *{query}*\n"]
+        
+        for i, r in enumerate(results, 1):
+            title = (r.get("title") or "No Title")[:200]
+            url = (r.get("href") or r.get("url") or "#")[:500]
+            snippet = (r.get("body") or r.get("snippet") or "No description available.")[:400]
+            
+            md_lines.append(f"**{i}. [{title}]({url})**")
+            md_lines.append(f"> {snippet}\n")
+            
+        return "\n".join(md_lines)
