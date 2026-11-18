@@ -1,6 +1,6 @@
 # SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Web search tool — DuckDuckGo (no API key required)."""
+"""Web search tool - DuckDuckGo (no API key required)."""
 
 import asyncio
 
@@ -16,10 +16,10 @@ except ImportError:
         _DDGS_AVAILABLE = False
 
 
-def _sync_search(query: str, max_results: int) -> list:
+def _sync_search(query: str, max_results: int, backend: str) -> list:
     """Run synchronous DuckDuckGo search (called via asyncio.to_thread)."""
     with DDGS() as ddgs:
-        return list(ddgs.text(query, max_results=max_results))
+        return list(ddgs.text(query, max_results=max_results, backend=backend))
 
 
 class WebSearchTool:
@@ -43,7 +43,7 @@ class WebSearchTool:
 
     async def run(self, args: dict) -> dict:
         if not _DDGS_AVAILABLE:
-            return {"error": "ddgs package not installed (pip install ddgs)"}
+            return {"error": "ddgs package not installed (pip install ddgs)"}       
 
         query = str(args.get("query", "")).strip()
         if not query:
@@ -57,15 +57,28 @@ class WebSearchTool:
             max_results = 5
         max_results = max(1, min(max_results, 10))
 
-        try:
-            results = await asyncio.wait_for(
-                asyncio.to_thread(_sync_search, query, max_results),
-                timeout=20.0,
-            )
-        except asyncio.TimeoutError:
-            return {"error": "search timed out after 20s"}
-        except Exception as e:
-            return {"error": f"search failed: {type(e).__name__}: {e}"}
+        # Try multiple backends sequentially to bypass rate-limiting/IP blocks
+        results = []
+        last_error = None
+        
+        for backend in ["api", "lite", "html"]:
+            try:
+                results = await asyncio.wait_for(
+                    asyncio.to_thread(_sync_search, query, max_results, backend),
+                    timeout=20.0,
+                )
+                if results:
+                    break  # Found results, stop trying other backends
+                else:
+                    last_error = f"Backend '{backend}' returned no results."
+            except asyncio.TimeoutError:
+                last_error = f"Backend '{backend}' timed out after 20s."
+            except Exception as e:
+                last_error = f"Backend '{backend}' failed: {type(e).__name__}: {e}"
+
+        # If all backends failed, return a graceful error instead of crashing
+        if not results:
+            return {"error": f"search failed after trying all backends. Last error: {last_error}"}
 
         cleaned = []
         for r in results or []:
