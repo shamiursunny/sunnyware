@@ -1,10 +1,10 @@
 
 --- 1. Local git HEAD ---
-  OK  HEAD: 080d035b7f0e
+  OK  HEAD: 8c71802e0488
 
 --- 2. HF Space status ---
   OK  Stage: RUNNING
-  OK  SHA match: 080d035b7f0e
+  OK  SHA match: 8c71802e0488
 
 --- 3. API endpoints ---
   OK  GET /ui -> 200
