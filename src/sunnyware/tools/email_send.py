@@ -6,7 +6,7 @@
 class EmailSendTool:
     name = "email_send"
     description = (
-        "Send an email via the configured Resend API. Supports multiple to/cc/bcc "
+        "Send an email via the configured Resend API. Supports multiple to/cc/bcc " 
         "recipients, optional HTML body, and workspace file "
         "attachments (PDF/CSV/TXT/MD/XLSX/PNG/JPG/JSON, max 2MB total). "  
         "All sends are logged to Neon. Use for reports, alerts, "
@@ -15,10 +15,10 @@ class EmailSendTool:
     parameters = {
         "to": {"type": "array", "required": True,
                "description": "List of recipient emails (max 10)"},
-        "subject": {"type": "string", "required": True,
-                    "description": "Email subject"},
+        "subject": {"type": "string", "required": False,
+                    "description": "Email subject (optional, defaults to 'Message from Sunnyware')"},
         "body": {"type": "string", "required": True,
-                 "description": "Email body (plain text unless html=true)"},
+                 "description": "Email body (plain text unless html=true)"},        
         "html": {"type": "boolean", "required": False,
                  "description": "Treat body as HTML (default false)"},
         "cc": {"type": "array", "required": False,
@@ -31,8 +31,8 @@ class EmailSendTool:
 
     async def run(self, args: dict) -> dict:
         from .. import email_send as _em
-        
-        # Part 307: Normalize array arguments (local model may send strings)
+
+        # Part 307: Normalize array arguments (local model may send strings)        
         def _norm_list(v):
             if not v:
                 return []
@@ -41,14 +41,19 @@ class EmailSendTool:
             if isinstance(v, list):
                 return [str(e).strip() for e in v if str(e).strip()]
             return []
-        
+
         to = _norm_list(args.get("to"))
         cc = _norm_list(args.get("cc"))
         bcc = _norm_list(args.get("bcc"))
-        
+
+        # Provide a default subject if one is not explicitly provided
+        subject = args.get("subject", "").strip()
+        if not subject:
+            subject = "Message from Sunnyware"
+
         return await _em.send_email(
             to=to,
-            subject=args.get("subject", ""),
+            subject=subject,
             body=args.get("body", ""),
             html=bool(args.get("html", False)),
             cc=cc,
