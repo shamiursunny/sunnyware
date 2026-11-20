@@ -238,6 +238,15 @@ app.include_router(rag_routes.router)
 # Part 89: serve local static assets (marked.js etc.) - no CDN dependency
 from fastapi.staticfiles import StaticFiles as _StaticFiles
 _STATIC_DIR = Path(__file__).parent.parent.parent / "static"
+
+@app.middleware("http")
+async def mobile_redirect_middleware(request: Request, call_next):
+    if request.url.path == "/" and request.headers.get("user-agent"):
+        ua = request.headers.get("user-agent").lower()
+        if "mobile" in ua or "android" in ua or "iphone" in ua:
+            return RedirectResponse(url="/static/mobile.html")
+    return await call_next(request)
+
 if _STATIC_DIR.is_dir():
     app.mount("/static", _StaticFiles(directory=str(_STATIC_DIR)), name="static")
 
@@ -539,6 +548,10 @@ class _MetricsMiddleware:
             is_protected = path.startswith("/api/") and not is_attachment and path not in _public_api
             
             # Part 134c: auth gate (only when SUNNYWARE_API_KEYS is set).
+            
+            if path.startswith('/api/auth/sso') or path.startswith('/static/mobile.html'):
+                return await call_next(request)
+            
             if is_protected and _auth.auth_enabled():
                 key = _incoming_key
                 # Part 196: Check if it's a valid JWT
@@ -592,6 +605,10 @@ class _MetricsMiddleware:
                 except Exception as e:
                     print(f"[rate_limit] middleware error: {e}")
 
+            
+            if path.startswith('/api/auth/sso') or path.startswith('/static/mobile.html'):
+                return await call_next(request)
+            
             if is_protected and _auth.auth_enabled() and not _auth.is_valid_key(key or "") and not (key and key.startswith("user:")):
                     body = _json.dumps({
                         "error": "unauthorized",

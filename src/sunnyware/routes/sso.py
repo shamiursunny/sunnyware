@@ -238,3 +238,14 @@ async def sso_users_delete(req: Request):
     except Exception as e:
         return JSONResponse({"error": f"{type(e).__name__}: {e}"},
                             status_code=500)
+
+@router.get('/api/auth/sso')
+async def auth_sso(redirect: str = '/admin'):
+    """Redirects to WorkOS AuthKit for login."""
+    import os
+    from fastapi.responses import RedirectResponse
+    workos_domain = os.getenv('WORKOS_DOMAIN', 'https://api.workos.com')
+    client_id = os.getenv('WORKOS_CLIENT_ID', '')
+    redirect_uri = os.getenv('WORKOS_REDIRECT_URI', 'https://sunnyware.app/auth/callback')
+    auth_url = f'{workos_domain}/user_management/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code'
+    return RedirectResponse(url=auth_url)

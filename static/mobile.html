@@ -333,5 +333,24 @@ async function send() {
 
 sendBtn.onclick = send;
 </script>
+
+<script>
+let apiKey = localStorage.getItem('sunnyware_api_key');
+if (!apiKey) {
+    apiKey = prompt('Please enter your Sunnyware API Key (leave blank if auth is disabled):');
+    if (apiKey) localStorage.setItem('sunnyware_api_key', apiKey);
+}
+const originalFetch = window.fetch;
+window.fetch = function() {
+    let [resource, config] = arguments;
+    if (typeof resource === 'string' && resource.includes('/api/')) {
+        config = config || {};
+        config.headers = config.headers || {};
+        if (apiKey) config.headers['X-API-Key'] = apiKey;
+    }
+    return originalFetch.apply(this, arguments);
+};
+</script>
+
 </body>
 </html>
