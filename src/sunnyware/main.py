@@ -552,6 +552,10 @@ class _MetricsMiddleware:
             if path.startswith('/api/auth/sso') or path.startswith('/static/mobile.html'):
                 return await call_next(request)
             
+            if path.startswith("/api/auth/sso") or path.startswith("/static/mobile.html"):
+            
+                return await call_next(request)
+            
             if is_protected and _auth.auth_enabled():
                 key = _incoming_key
                 # Part 196: Check if it's a valid JWT
@@ -607,6 +611,10 @@ class _MetricsMiddleware:
 
             
             if path.startswith('/api/auth/sso') or path.startswith('/static/mobile.html'):
+                return await call_next(request)
+            
+            if path.startswith("/api/auth/sso") or path.startswith("/static/mobile.html"):
+            
                 return await call_next(request)
             
             if is_protected and _auth.auth_enabled() and not _auth.is_valid_key(key or "") and not (key and key.startswith("user:")):
