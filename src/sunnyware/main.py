@@ -1086,3 +1086,5 @@ async def debug_test_83_tools():
         "tool_calls": res.get("tool_calls"),
         "content": str(res.get("content"))[:500]
     }
+
+# Build trigger v1.112.1 - Mobile redirect fix
