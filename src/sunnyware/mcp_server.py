@@ -14,6 +14,9 @@ SERVER_VERSION = "0.1.0"
 
 
 def _json_schema_from_params(params: dict) -> dict:
+    if not isinstance(params, dict):
+        return {"type": "object", "properties": {}}
+
     props = {}
     required = []
     for name, meta in (params or {}).items():
