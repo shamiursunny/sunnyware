@@ -244,7 +244,7 @@ async def mobile_redirect_middleware(request: Request, call_next):
     if request.url.path == "/" and request.headers.get("user-agent"):
         ua = request.headers.get("user-agent").lower()
         if "mobile" in ua or "android" in ua or "iphone" in ua:
-            return RedirectResponse(url="/static/mobile.html")
+            return RedirectResponse(url="/app/")
     return await call_next(request)
 
 if _STATIC_DIR.is_dir():
@@ -465,6 +465,8 @@ class _MetricsMiddleware:
         self.app = app
 
     async def __call__(self, scope, receive, send):
+        if scope["type"] == "http" and scope.get("path", "").startswith("/api/auth/sso"):
+            return await self.app(scope, receive, send)
         if scope.get("type") != "http":
             await self.app(scope, receive, send)
             return
