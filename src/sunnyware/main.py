@@ -468,6 +468,10 @@ class _MetricsMiddleware:
         self.app = app
 
     async def __call__(self, scope, receive, send):
+        if scope["type"] == "http":
+            _path = scope.get("path", "")
+            if _path.startswith("/api/auth/sso") or _path.startswith("/static/mobile.html"):
+                return await self.app(scope, receive, send)
         if scope["type"] == "http" and scope.get("path", "").startswith("/api/auth/sso"):
             return await self.app(scope, receive, send)
         if scope.get("type") != "http":
@@ -554,8 +558,6 @@ class _MetricsMiddleware:
             
             # Part 134c: auth gate (only when SUNNYWARE_API_KEYS is set).
             
-            if path.startswith('/api/auth/sso') or path.startswith('/static/mobile.html'):
-                return await call_next(request)
             
             if path.startswith("/api/auth/sso") or path.startswith("/static/mobile.html"):
             
@@ -615,8 +617,6 @@ class _MetricsMiddleware:
                     print(f"[rate_limit] middleware error: {e}")
 
             
-            if path.startswith('/api/auth/sso') or path.startswith('/static/mobile.html'):
-                return await call_next(request)
             
             if path.startswith("/api/auth/sso") or path.startswith("/static/mobile.html"):
             
