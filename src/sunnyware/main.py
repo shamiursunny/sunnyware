@@ -1,3 +1,6 @@
+from fastapi import Request
+from fastapi.responses import RedirectResponse
+
 # SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
 # SPDX-License-Identifier: AGPL-3.0-only
 """FastAPI entry point — thin wrapper mounting route packages."""
