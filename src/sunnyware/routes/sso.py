@@ -247,5 +247,5 @@ async def auth_sso(redirect: str = '/admin'):
     workos_domain = os.getenv('WORKOS_DOMAIN', 'https://api.workos.com')
     client_id = os.getenv('WORKOS_CLIENT_ID', '')
     redirect_uri = os.getenv('WORKOS_REDIRECT_URI', 'https://sunnyware.app/auth/callback')
-    auth_url = f'{workos_domain}/user_management/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&provider=GoogleOAuth'
+    auth_url = f'{workos_domain}/user_management/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&provider=GoogleOAuth&state={redirect}'
     return RedirectResponse(url=auth_url)

@@ -19,7 +19,7 @@ async def auth_google():
 
 
 @router.get("/auth/callback")
-async def auth_callback(code: str = ""):
+async def auth_callback(code: str = "", state: str = ""):
     """Handle WorkOS redirect, issue JWT, send user to /ui."""
     if not code:
         return JSONResponse({"error": "missing code"}, status_code=400)
@@ -65,10 +65,10 @@ async def auth_callback(code: str = ""):
     if _tfs.is_enabled(email):
         pending_token = _generate_jwt(email)
         return RedirectResponse(
-            url=f"/app?2fa=required&pending={pending_token}",
+            url=f"{state or '/app'}?2fa=required&pending={pending_token}",
             status_code=302,
         )
 
     # 3. Normal flow — issue full JWT
     token = _generate_jwt(email)
-    return RedirectResponse(url=f"/app?token={token}", status_code=302)
+    return RedirectResponse(url=f"{state or '/app'}?token={token}", status_code=302)
