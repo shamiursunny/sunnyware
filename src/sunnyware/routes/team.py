@@ -1,3 +1,4 @@
+import os
 # SPDX-FileCopyrightText: 2026 Shamiur Rashid Sunny
 # SPDX-License-Identifier: AGPL-3.0-only
 """Part 211: Team management routes."""
@@ -66,7 +67,7 @@ async def add_member(req: Request):
     # Part 233: Generate magic link and send email
     invite = _inv.create_invite(email, role)
     base_url = "https://shamiur-sunnyware.hf.space"
-    accept_url = f"{base_url}/invite?token={invite['token']}"
+    accept_url = f"{os.getenv('PUBLIC_URL', 'https://sunnyware.app')}/invite?token={invite['token']}"
     
     html = f"""
     <h2>You've been invited to Sunnyware</h2>
@@ -155,7 +156,7 @@ async def create_invite(req: Request):
     from .. import invite_store as _inv
     invite = _inv.create_invite(email, role)
     base_url = "https://shamiur-sunnyware.hf.space"
-    accept_url = f"{base_url}/invite?token={invite['token']}"
+    accept_url = f"{os.getenv('PUBLIC_URL', 'https://sunnyware.app')}/invite?token={invite['token']}"
 
     return {"ok": True, "accept_url": accept_url, "invite": invite}
 
