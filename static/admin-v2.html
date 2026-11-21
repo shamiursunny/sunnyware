@@ -284,6 +284,15 @@ if (inviteToken) {
   setTimeout(() => window.location.reload(), 100);
 }
 
+// Auto-login via WorkOS OAuth token (from /auth/callback)
+const _authToken = urlParams.get('token');
+if (_authToken) {
+  localStorage.setItem('sunnyware_admin_key', _authToken);
+  API_KEY = _authToken;
+  window.history.replaceState({}, document.title, "/admin");
+  setTimeout(() => window.location.reload(), 100);
+}
+
 let CURRENT_TAB = 'dashboard';
 let CACHE = {};  // { customers: [], plans: [], invoices: [], ledger: [], ... }
 let ACC_STATE = null;
