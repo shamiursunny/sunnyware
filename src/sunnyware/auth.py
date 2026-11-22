@@ -113,11 +113,17 @@ def auth_enabled() -> bool:
 
 
 def _is_valid_jwt(token: str) -> bool:
-    import os
-    import jwt
-    secret = os.getenv("SUNNYWARE_JWT_SECRET", "sunnyware-dev-secret-change-me")
+    import os, base64, json, hmac, hashlib, time
+    _secret = os.getenv("SUNNYWARE_JWT_SECRET", "sunnyware-dev-secret-change-me")
     try:
-        jwt.decode(token, secret, algorithms=["HS256"])
+        b64, sig = token.split(".")
+        expected = hmac.new(_secret.encode(), b64.encode(), hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(sig, expected):
+            return False
+        padding = "=" * (-len(b64) % 4)
+        payload = json.loads(base64.urlsafe_b64decode(b64 + padding))
+        if payload.get("exp", 0) < time.time():
+            return False
         return True
     except Exception:
         return False
