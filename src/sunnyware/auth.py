@@ -113,13 +113,15 @@ def auth_enabled() -> bool:
 
 
 def _is_valid_jwt(token: str) -> bool:
+    import os
     import jwt
-    from .routes.auth import SECRET_KEY as _jwt_secret
+    secret = os.getenv("SUNNYWARE_JWT_SECRET", "sunnyware-dev-secret-change-me")
     try:
-        jwt.decode(token, _jwt_secret, algorithms=["HS256"])
+        jwt.decode(token, secret, algorithms=["HS256"])
         return True
     except Exception:
         return False
+
 
 def is_valid_key(key: str) -> bool:
     if not key:
