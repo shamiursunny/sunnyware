@@ -880,5 +880,14 @@
     "combined_hash": "bb9a99137260c882838104ee5ad7f80754aa4c774eeda7f63fb229afb7f7540e",
     "prev_block_hash": "db411d75fa43a54bca384de9be5062b6dceab5a7280005b30a3cf9278024be22",
     "block_hash": "70df3c6937bfbc22bd31c3f6720afce3abad389af0c5f340aed8d99e468a0ed0"
+  },
+  {
+    "index": 98,
+    "timestamp_utc": "2026-11-22T17-24-05Z",
+    "commit": "f77c84d",
+    "version": "1.113.0",
+    "combined_hash": "c02f6031fa05e39a21681dd5767b0d66302e31852c94d4950d77b57bad35ee5a",
+    "prev_block_hash": "70df3c6937bfbc22bd31c3f6720afce3abad389af0c5f340aed8d99e468a0ed0",
+    "block_hash": "c1069ea1e82700a74a76d9e5835309513466c3d8208188e94964f5eacf6eb0ae"
   }
 ]
