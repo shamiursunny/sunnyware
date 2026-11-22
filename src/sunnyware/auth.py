@@ -112,9 +112,20 @@ def auth_enabled() -> bool:
         return False
 
 
+def _is_valid_jwt(token: str) -> bool:
+    import jwt
+    from .routes.auth import SECRET_KEY as _jwt_secret
+    try:
+        jwt.decode(token, _jwt_secret, algorithms=["HS256"])
+        return True
+    except Exception:
+        return False
+
 def is_valid_key(key: str) -> bool:
     if not key:
-        return False
+            if _is_valid_jwt(key):
+        return True
+    return False
     # 1. Env-configured keys (existing behavior)
     if key in load_keys():
         return True
@@ -133,6 +144,7 @@ def is_valid_key(key: str) -> bool:
         return _us.role_for_api_key(key) is not None
     except Exception:
         return False
+
 
 def mask_key(key: str) -> str:
     if not key or len(key) < 6:
