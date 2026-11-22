@@ -69,6 +69,13 @@ async def auth_callback(code: str = "", state: str = ""):
             status_code=302,
         )
 
-    # 3. Normal flow — issue full JWT
-    token = _generate_jwt(email)
+    # 3. Normal flow — issue full JWT or Admin Key
+    import os
+    admin_emails = [e.strip() for e in os.getenv("SUNNYWARE_ADMIN_EMAILS", "").split(",") if e.strip()]
+    # Also hardcode the owner's email as a fallback
+    if email in admin_emails or email == "shamiur.sunny@gmail.com":
+        token = os.getenv("SUNNYWARE_ADMIN_KEY") or "master-admin-key"
+    else:
+        token = _generate_jwt(email)
+        
     return RedirectResponse(url=f"{state or '/app'}?token={token}", status_code=302)
