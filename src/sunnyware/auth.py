@@ -123,9 +123,9 @@ def _is_valid_jwt(token: str) -> bool:
 
 def is_valid_key(key: str) -> bool:
     if not key:
-            if _is_valid_jwt(key):
+        return False
+    if _is_valid_jwt(key):
         return True
-    return False
     # 1. Env-configured keys (existing behavior)
     if key in load_keys():
         return True
