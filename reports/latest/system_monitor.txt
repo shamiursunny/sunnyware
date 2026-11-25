@@ -8,13 +8,13 @@
 # Sunnyware System Monitor
 ########################################################################
 
-Started: 2026-11-22T23:57:51
-Elapsed: 19.04s
+Started: 2026-11-26T00:27:02
+Elapsed: 14.51s
 
 ------------------------------------------------------------------------
  DOCS
 ------------------------------------------------------------------------
-  [PASS] README.md has reasonable size  --  908 lines (min 10)
+  [PASS] README.md has reasonable size  --  911 lines (min 10)
   [PASS] WORKFLOW.md has reasonable size  --  11 lines (min 10)
   [PASS] HANDSOFF.md has reasonable size  --  16 lines (min 10)
   [PASS] AGENTS.md has reasonable size  --  203 lines (min 10)
@@ -30,9 +30,10 @@ Elapsed: 19.04s
 ------------------------------------------------------------------------
  GIT
 ------------------------------------------------------------------------
-  [PASS] Git working tree clean  --  clean
+  [FAIL] Git working tree clean  --  7 pending changes
+      changes: [' M src/sunnyware/orchestrator.py', '?? INTEGRATION_NOTES.md', '?? src/sunnyware/sanitize.py', '?? src/sunnyware/step_t
   [PASS] No unpushed commits to GitHub  --  0 unpushed
-  [PASS] Latest commit  --  980b46d fix(auth): verify HMAC tokens in _is_valid_jwt to match routes/auth.py format
+  [PASS] Latest commit  --  f49db53 chore(release): v1.114.0
 
 ------------------------------------------------------------------------
  HYGIENE
@@ -110,7 +111,7 @@ Elapsed: 19.04s
 ------------------------------------------------------------------------
  SYNTAX
 ------------------------------------------------------------------------
-  [PASS] Python syntax: src  --  253 files, 0 errors
+  [PASS] Python syntax: src  --  258 files, 0 errors
   [PASS] Python syntax: scripts  --  153 files, 0 errors
 
 ------------------------------------------------------------------------
@@ -127,15 +128,23 @@ Elapsed: 19.04s
   [PASS] No obvious broken JS string literals  --  0 potential breaks
 
 ========================================================================
- SCORE: 100.0 / 100
+ SCORE: 98.7 / 100
  GRADE: A+ (production-ready)
 ========================================================================
   critical   70/70  (100.0%)
   high       100/100  (100.0%)
-  medium     39/39  (100.0%)
+  medium     36/39  (92.3%)
   low        15/15  (100.0%)
 
-  Checks: 55 pass, 0 fail, 0 warn, 0 skip
+  Checks: 54 pass, 1 fail, 0 warn, 0 skip
+
+========================================================================
+ FAILURES TO FIX (by severity)
+========================================================================
+
+  [MEDIUM]
+    - git: Git working tree clean
+      7 pending changes
 
 ========================================================================
  KNOWN LIMITATIONS (accepted, not scored)
@@ -166,8 +175,8 @@ Reports saved:
 
 
 --- STDERR ---
-{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-22T17:57:49.027007Z"}
-{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-22T17:57:49.027007Z"}
-{"event": "Config loaded", "level": "info", "timestamp": "2026-11-22T17:57:49.042630Z"}
-{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-22T17:57:49.042630Z"}
-{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-22T17:57:49.042630Z"}
+{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-25T18:27:00.945570Z"}
+{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-25T18:27:00.945570Z"}
+{"event": "Config loaded", "level": "info", "timestamp": "2026-11-25T18:27:00.964748Z"}
+{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-25T18:27:00.964748Z"}
+{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-25T18:27:00.964748Z"}

@@ -6,8 +6,8 @@
 ======================================================================
  1. Python syntax check
 ======================================================================
-  scanning 253 files...
-  [PASS] all 253 Python files parse cleanly
+  scanning 258 files...
+  [PASS] all 258 Python files parse cleanly
 
 ======================================================================
  2. Served HTML / JS sanity check
@@ -86,7 +86,14 @@
 ======================================================================
   changes:
      M src/sunnyware/__init__.py
-  [PASS] 1 change(s), no secrets or junk detected
+     M src/sunnyware/orchestrator.py
+    ?? INTEGRATION_NOTES.md
+    ?? src/sunnyware/sanitize.py
+    ?? src/sunnyware/step_timeout.py
+    ?? src/sunnyware/tool_cache.py
+    ?? src/sunnyware/tool_errors.py
+    ?? src/sunnyware/trace.py
+  [PASS] 8 change(s), no secrets or junk detected
 
 ======================================================================
  5. Live HF Space health (soft check)

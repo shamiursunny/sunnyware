@@ -1905,8 +1905,24 @@ async def _run_agent_body(
                                 "allowed": sorted(_allowed_set),
                             }
                         else:
-                            tool_result = await _execute_tool(tool_name, tool_args)
+                            from .trace import emit as _emit_trace
+                            _emit_trace(str(session_uuid or "unknown"), "tool_started", {"tool": tool_name})
+                            from .sanitize import sanitize_args as _sanitize_args
+                            tool_args = _sanitize_args(tool_args)
+                            from .tool_cache import get as _cache_get, set as _cache_set
+                            _cached = _cache_get(tool_name, tool_args)
+                            if _cached is not None:
+                                tool_result = _cached
+                            else:
+                                from .step_timeout import with_timeout as _with_timeout
+                                tool_result = await _with_timeout(_execute_tool(tool_name, tool_args), tool_name=tool_name)
+                                _cache_set(tool_name, tool_args, tool_result)
+                            import os as _os
+                            from .tool_errors import normalize_tool_error as _norm
+                            if _os.getenv("SUNNYWARE_STRUCTURED_ERRORS") == "1":
+                                tool_result = _norm(tool_name, tool_result)
                         _record_call(tool_name, tool_args, tool_result)
+                        _emit_trace(str(session_uuid or "unknown"), "tool_completed", {"tool": tool_name, "ok": bool((tool_result or {}).get("ok", True)) if isinstance(tool_result, dict) else True})
                         # Part 106: capture any attachment URL
                         _aurl = (tool_result or {}).get("attachment_url")
                         if _aurl:
@@ -2003,8 +2019,24 @@ async def _run_agent_body(
             else:
                 _dup_streak = 0
                 await _emit(on_event, {"type": "tool_call", "tool": tool_name, "args": tool_args, "protocol": "prompt-json"})
-                tool_result = await _execute_tool(tool_name, tool_args)
+                from .trace import emit as _emit_trace
+                _emit_trace(str(session_uuid or "unknown"), "tool_started", {"tool": tool_name})
+                from .sanitize import sanitize_args as _sanitize_args
+                tool_args = _sanitize_args(tool_args)
+                from .tool_cache import get as _cache_get, set as _cache_set
+                _cached = _cache_get(tool_name, tool_args)
+                if _cached is not None:
+                    tool_result = _cached
+                else:
+                    from .step_timeout import with_timeout as _with_timeout
+                    tool_result = await _with_timeout(_execute_tool(tool_name, tool_args), tool_name=tool_name)
+                    _cache_set(tool_name, tool_args, tool_result)
+                import os as _os
+                from .tool_errors import normalize_tool_error as _norm
+                if _os.getenv("SUNNYWARE_STRUCTURED_ERRORS") == "1":
+                    tool_result = _norm(tool_name, tool_result)
                 _record_call(tool_name, tool_args, tool_result)
+                _emit_trace(str(session_uuid or "unknown"), "tool_completed", {"tool": tool_name, "ok": bool((tool_result or {}).get("ok", True)) if isinstance(tool_result, dict) else True})
                 # Part 106: capture attachment URL from prompt-json path
                 _aurl = (tool_result or {}).get("attachment_url")
                 if _aurl:
