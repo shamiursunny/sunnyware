@@ -86,14 +86,8 @@
 ======================================================================
   changes:
      M src/sunnyware/__init__.py
-     M src/sunnyware/orchestrator.py
-    ?? INTEGRATION_NOTES.md
-    ?? src/sunnyware/sanitize.py
-    ?? src/sunnyware/step_timeout.py
-    ?? src/sunnyware/tool_cache.py
-    ?? src/sunnyware/tool_errors.py
-    ?? src/sunnyware/trace.py
-  [PASS] 8 change(s), no secrets or junk detected
+     M src/sunnyware/keyword_router.py
+  [PASS] 2 change(s), no secrets or junk detected
 
 ======================================================================
  5. Live HF Space health (soft check)

@@ -715,7 +715,7 @@ def keyword_route(prompt: str) -> Optional[dict]:
 
     # --- Tip / percent calculation ---
     import re as _re_tip
-    m_tip = _re_tip.search(r'(\d+(?:\.\d+)?)\s*%\s*(?:tip\s+)?(?:on|of)\s*(\d+(?:\.\d+)?)', prompt.lower())
+    m_tip = _re_tip.search(r'(\d+(?:\.\d+)?)\s*%\s*(?:tip\s+)?(?:on|of)\s*(?:an?\s+|the\s+)?\$?\s*(\d+(?:\.\d+)?)', prompt.lower())
     if m_tip:
         pct = float(m_tip.group(1))
         base = float(m_tip.group(2))

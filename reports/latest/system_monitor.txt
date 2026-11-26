@@ -8,13 +8,13 @@
 # Sunnyware System Monitor
 ########################################################################
 
-Started: 2026-11-26T00:27:02
-Elapsed: 14.51s
+Started: 2026-11-26T23:37:10
+Elapsed: 15.84s
 
 ------------------------------------------------------------------------
  DOCS
 ------------------------------------------------------------------------
-  [PASS] README.md has reasonable size  --  911 lines (min 10)
+  [PASS] README.md has reasonable size  --  914 lines (min 10)
   [PASS] WORKFLOW.md has reasonable size  --  11 lines (min 10)
   [PASS] HANDSOFF.md has reasonable size  --  16 lines (min 10)
   [PASS] AGENTS.md has reasonable size  --  203 lines (min 10)
@@ -30,10 +30,10 @@ Elapsed: 14.51s
 ------------------------------------------------------------------------
  GIT
 ------------------------------------------------------------------------
-  [FAIL] Git working tree clean  --  7 pending changes
-      changes: [' M src/sunnyware/orchestrator.py', '?? INTEGRATION_NOTES.md', '?? src/sunnyware/sanitize.py', '?? src/sunnyware/step_t
+  [FAIL] Git working tree clean  --  1 pending changes
+      changes: [' M src/sunnyware/keyword_router.py']
   [PASS] No unpushed commits to GitHub  --  0 unpushed
-  [PASS] Latest commit  --  f49db53 chore(release): v1.114.0
+  [PASS] Latest commit  --  a42c0f1 chore(release): v1.115.0
 
 ------------------------------------------------------------------------
  HYGIENE
@@ -144,7 +144,7 @@ Elapsed: 14.51s
 
   [MEDIUM]
     - git: Git working tree clean
-      7 pending changes
+      1 pending changes
 
 ========================================================================
  KNOWN LIMITATIONS (accepted, not scored)
@@ -175,8 +175,8 @@ Reports saved:
 
 
 --- STDERR ---
-{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-25T18:27:00.945570Z"}
-{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-25T18:27:00.945570Z"}
-{"event": "Config loaded", "level": "info", "timestamp": "2026-11-25T18:27:00.964748Z"}
-{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-25T18:27:00.964748Z"}
-{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-25T18:27:00.964748Z"}
+{"status": "disabled", "deleted": 0, "event": "fallback_cleanup", "level": "info", "timestamp": "2026-11-26T17:37:07.019145Z"}
+{"event": "sunnyware initializing", "level": "info", "timestamp": "2026-11-26T17:37:07.019145Z"}
+{"event": "Config loaded", "level": "info", "timestamp": "2026-11-26T17:37:07.034773Z"}
+{"event": "scheduler_disabled_to_save_api_quota", "level": "info", "timestamp": "2026-11-26T17:37:07.034773Z"}
+{"event": "sunnyware ready", "level": "info", "timestamp": "2026-11-26T17:37:07.034773Z"}
