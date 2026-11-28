@@ -155,5 +155,15 @@ def email_for_api_key(api_key: str) -> Optional[str]:
     return None
 
 
+def role_for_email(email: str) -> Optional[str]:
+    """Look up role by email (used for JWT sessions)."""
+    if not email:
+        return None
+    users = _load()
+    rec = users.get(email)
+    if rec:
+        return rec.get("role", "analyst")
+    return None
+
 def has_any_users() -> bool:
     return len(_load()) > 0

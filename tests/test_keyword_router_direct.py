@@ -430,3 +430,9 @@ def test_email_send_to_extracted():
     result = keyword_route("send email to alice@test.com regarding project update")
     assert result["tool"] == "email_send"
     assert result["args"]["to"] == "alice@test.com"
+
+def test_fibonacci_routing():
+    from src.sunnyware.keyword_router import keyword_route
+    r = keyword_route("calculate the first 10 fibonacci numbers")
+    assert r and r["tool"] == "python_eval"
+    assert "range(10)" in r["args"]["code"]

@@ -59,3 +59,10 @@
 | 4 Cache | Y | Y | Y | Y (2 sites) | Y | DONE |
 | 5 Step Timeout | Y | Y | Y | Y (2 sites) | Y | DONE |
 | 6 Sanitizer | Y | Y | Y | Y (2 sites) | Y | DONE |
+
+## A1 — MCP auth hardening — APPLIED
+- `POST /mcp/rpc` now requires the same API key as `/api/*` (existing auth middleware).
+- `GET /mcp` (info handshake) remains public — no trailing slash, no match.
+- Enforcement in `main.py` `is_protected` (~line 557). No changes to routes/mcp.py or mcp_server.py.
+- Behavior when SUNNYWARE_API_KEYS unset: auth disabled globally, /mcp/rpc open — consistent with rest of API.
+- Backward-compat note for MCP clients: send X-API-Key or Authorization: Bearer header.

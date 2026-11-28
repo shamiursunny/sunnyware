@@ -74,3 +74,16 @@ def test_rate_limit_separate_buckets(monkeypatch):
     # k1 exhausted, k2 still has room
     assert auth.check_rate_limit("k1")["ok"] is False
     assert auth.check_rate_limit("k2")["ok"] is True
+
+def test_jwt_does_not_default_to_admin():
+    """A valid JWT for an unknown email must not get admin role."""
+    import hmac, hashlib, base64, json, time
+    from src.sunnyware import auth
+    payload = {"sub": "nobody-unknown-xyz@example.invalid", "exp": time.time() + 60}
+    b64 = base64.urlsafe_b64encode(json.dumps(payload).encode()).decode().rstrip("=")
+    import os
+    secret = os.getenv("SUNNYWARE_JWT_SECRET", "sunnyware-dev-secret-change-me")
+    sig = hmac.new(secret.encode(), b64.encode(), hashlib.sha256).hexdigest()
+    token = f"{b64}.{sig}"
+    role = auth.role_for_key(token)
+    assert role != "admin", f"JWT for unknown email got role {role}"

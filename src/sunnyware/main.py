@@ -554,7 +554,10 @@ class _MetricsMiddleware:
             )
             # Attachments are served publicly for <img> tags (random IDs, unguessable)
             is_attachment = path.startswith("/api/attachments/")
-            is_protected = path.startswith("/api/") and not is_attachment and path not in _public_api
+            # A1_MCP_AUTH — POST /mcp/rpc executes tools and must require auth.
+            # GET /mcp (info handshake) has no trailing slash, so it stays public.
+            _is_mcp_call = path.startswith("/mcp/")
+            is_protected = (path.startswith("/api/") or _is_mcp_call) and not is_attachment and path not in _public_api
             
             # Part 134c: auth gate (only when SUNNYWARE_API_KEYS is set).
             

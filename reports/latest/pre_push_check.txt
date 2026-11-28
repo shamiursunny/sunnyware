@@ -85,9 +85,18 @@
  4. Git working-tree check
 ======================================================================
   changes:
+     M INTEGRATION_NOTES.md
      M src/sunnyware/__init__.py
+     M src/sunnyware/auth.py
      M src/sunnyware/keyword_router.py
-  [PASS] 2 change(s), no secrets or junk detected
+     M src/sunnyware/main.py
+     M src/sunnyware/tools/python_eval.py
+     M src/sunnyware/user_store.py
+     M tests/test_auth.py
+     M tests/test_keyword_router_direct.py
+    ?? =
+    ?? "fimport math; print(math.factorial({n}))"
+  [PASS] 11 change(s), no secrets or junk detected
 
 ======================================================================
  5. Live HF Space health (soft check)

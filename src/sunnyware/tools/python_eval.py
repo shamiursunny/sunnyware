@@ -27,6 +27,20 @@ from . import _sandbox
 def _worker_proc(code, q):
     try:
         import sys
+        # PATCH_RESOURCE_LIMITS — bound memory and CPU so a runaway
+        # python_eval cannot OOM-kill the HF container.
+        try:
+            import resource
+            import os as _os_rl
+            _mem_mb = int(_os_rl.getenv("SUNNYWARE_PY_MEM_MB", "512"))
+            _cpu_s = int(_os_rl.getenv("SUNNYWARE_PY_CPU_SEC", "60"))
+            resource.setrlimit(
+                resource.RLIMIT_AS,
+                (_mem_mb * 1024 * 1024, (_mem_mb + 512) * 1024 * 1024),
+            )
+            resource.setrlimit(resource.RLIMIT_CPU, (_cpu_s, _cpu_s + 10))
+        except Exception:
+            pass  # non-Linux or restricted container — graceful degrade
         g = _sandbox.build_globals()
         res = _sandbox.exec_code(code, g)
         

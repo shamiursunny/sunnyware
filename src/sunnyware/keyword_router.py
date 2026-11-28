@@ -730,6 +730,20 @@ def keyword_route(prompt: str) -> Optional[dict]:
         expr = f"{base} * {pct} / 100"
         return {"tool": "calculator", "args": {"expression": expr}}
 
+    # FIBONACCI_ROUTER_PATCH — natural-language fibonacci/factorial/prime
+    _algo_match = _re_tip.search(r'\b(fibonacci|factorial|prime)\b', prompt.lower())
+    _algo_num = _re_tip.search(r'\b(\d+)\b', prompt.lower())
+    if _algo_match and _algo_num and any(w in prompt.lower() for w in ("calculate", "compute", "first", "generate", "print", "list")):
+        n = _algo_num.group(1)
+        algo = _algo_match.group(1)
+        if algo == "fibonacci":
+            code = f"a,b=0,1\nr=[]\nfor _ in range({n}): r.append(a); a,b=b,a+b\nprint(r)"
+        elif algo == "factorial":
+            code = f"import math; print(math.factorial({n}))"
+        else:
+            code = f"print([i for i in range(2,{n}+1) if all(i%d for d in range(2,int(i**0.5)+1))])"
+        return {"tool": "python_eval", "args": {"code": code}}
+
 # --- calculator ---
     calc_keywords = ["calculate", "compute", "math", "square root", "sqrt",
                      "multiply", "divide", "what is", "how much is",

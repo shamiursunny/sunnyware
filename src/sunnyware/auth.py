@@ -90,6 +90,21 @@ def role_for_key(key: str) -> str:
             return r
     except Exception:
         pass
+    # F5_JWT_ROLE_FIX — JWTs must not inherit _DEFAULT_ROLE_FALLBACK (= admin)
+    if _is_valid_jwt(key):
+        try:
+            import base64, json as _j
+            b64 = key.split(".")[0]
+            pad = "=" * (-len(b64) % 4)
+            email = _j.loads(base64.urlsafe_b64decode(b64 + pad)).get("sub", "")
+            if email:
+                from . import user_store as _us2
+                r = _us2.role_for_email(email)
+                if r:
+                    return r
+        except Exception:
+            pass
+        return "readonly"
     return default_role()
 
 
